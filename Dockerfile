@@ -16,24 +16,27 @@ RUN npx prisma generate --schema prisma/schema.prisma
 COPY backend/ .
 
 FROM node:20-alpine
+ARG CACHEBUST=1
 WORKDIR /app
 RUN apk add --no-cache openssl
 RUN addgroup -S appgroup && adduser -S appuser -G appgroup
 
-COPY --from=backend-builder --chown=appuser:appgroup /build/backend/node_modules ./backend/node_modules
-COPY --from=backend-builder --chown=appuser:appgroup /build/backend/package.json ./backend/
-COPY --from=backend-builder --chown=appuser:appgroup /build/backend/server.js ./backend/
-COPY --from=backend-builder --chown=appuser:appgroup /build/backend/app.js ./backend/
-COPY --from=backend-builder --chown=appuser:appgroup /build/backend/src ./backend/src
-COPY --from=backend-builder --chown=appuser:appgroup /build/backend/prisma ./backend/prisma
-COPY --from=backend-builder --chown=appuser:appgroup /build/backend/start.sh ./backend/
-RUN chmod +x ./backend/start.sh
+COPY --from=backend-builder /build/backend/node_modules /app/backend/node_modules
+COPY --from=backend-builder /build/backend/package.json /app/backend/
+COPY --from=backend-builder /build/backend/server.js /app/backend/
+COPY --from=backend-builder /build/backend/app.js /app/backend/
+COPY --from=backend-builder /build/backend/src /app/backend/src
+COPY --from=backend-builder /build/backend/prisma /app/backend/prisma
+COPY --from=backend-builder /build/backend/start.sh /app/backend/
 
-COPY --from=frontend-builder --chown=appuser:appgroup /build/frontend/.next ./frontend/.next
-COPY --from=frontend-builder --chown=appuser:appgroup /build/frontend/public ./frontend/public
-COPY --from=frontend-builder --chown=appuser:appgroup /build/frontend/package.json ./frontend/
-COPY --from=frontend-builder --chown=appuser:appgroup /build/frontend/node_modules ./frontend/node_modules
-COPY --from=frontend-builder --chown=appuser:appgroup /build/frontend/next.config.js ./frontend/
+COPY --from=frontend-builder /build/frontend/package.json /app/frontend/
+COPY --from=frontend-builder /build/frontend/node_modules /app/frontend/node_modules
+COPY --from=frontend-builder /build/frontend/next.config.js /app/frontend/
+COPY --from=frontend-builder /build/frontend/public /app/frontend/public
+COPY --from=frontend-builder /build/frontend/.next /app/frontend/.next
+
+RUN chown -R appuser:appgroup /app
+RUN chmod +x /app/backend/start.sh
 
 USER appuser
 EXPOSE 3001

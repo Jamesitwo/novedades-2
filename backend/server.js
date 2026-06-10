@@ -39,10 +39,9 @@ async function main() {
       await new Promise(resolve => setTimeout(resolve, 8000));
 
       try {
-        app.use('*', createProxyMiddleware({
+        app.use('/', createProxyMiddleware({
           target: `http://localhost:${nextPort}`,
-          changeOrigin: true,
-          filter: (pathname, req) => !pathname.startsWith('/api')
+          changeOrigin: true
         }));
         console.log('✅ Frontend proxy ready');
       } catch (e) {
