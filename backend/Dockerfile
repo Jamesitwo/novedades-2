@@ -1,20 +1,23 @@
-# ---- Etapa 1: Build ----
+# ============================================
+# Railway Dockerfile — Backend API
+# Railway asigna PORT automáticamente
+# PostgreSQL se conecta via DATABASE_URL (plugin)
+# ============================================
+
 FROM node:20-alpine AS builder
 WORKDIR /app
 COPY package*.json ./
-RUN npm ci --only=production && npm cache clean --force
 COPY prisma ./prisma
-RUN npx prisma generate
+RUN npm ci
+RUN npx prisma generate --schema prisma/schema.prisma
 COPY . .
 
-# ---- Etapa 2: Runtime ----
 FROM node:20-alpine
 WORKDIR /app
-
 RUN addgroup -S appgroup && adduser -S appuser -G appgroup
 
 COPY --from=builder --chown=appuser:appgroup /app/node_modules ./node_modules
-COPY --from=builder --chown=appuser:appgroup /app/package*.json ./
+COPY --from=builder --chown=appuser:appgroup /app/package.json ./
 COPY --from=builder --chown=appuser:appgroup /app/server.js ./
 COPY --from=builder --chown=appuser:appgroup /app/app.js ./
 COPY --from=builder --chown=appuser:appgroup /app/src ./src
@@ -26,4 +29,6 @@ EXPOSE 3001
 HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \
   CMD node -e "require('http').get('http://localhost:3001/api/health', (r) => process.exit(r.statusCode === 200 ? 0 : 1))"
 
-CMD ["node", "server.js"]
+# Railway inyecta PORT automáticamente
+# Al iniciar aplica migraciones pendientes y ejecuta el seed solo si no hay usuarios
+CMD ["sh", "-c", "npx prisma migrate deploy --schema prisma/schema.prisma && node prisma/seed.js && node server.js"]
