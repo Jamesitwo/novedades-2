@@ -215,6 +215,28 @@ export default function OficinaPage() {
     });
   };
 
+  const handleBulkDelete = () => {
+    if (selected.length === 0) return;
+    setConfirmModal({
+      title: 'Eliminar registros',
+      message: `¿Eliminar ${selected.length} registro${selected.length !== 1 ? 's' : ''}? Esta acción no se puede deshacer.`,
+      onConfirm: async () => {
+        setBulkLoading(true);
+        try {
+          await api.delete('/api/oficina/bulk', { data: { ids: selected } });
+          setSelected([]);
+          fetchPedidos(1);
+          showToast(`${selected.length} registro(s) eliminado(s)`);
+        } catch (error) {
+          showToast('Error al eliminar registros', 'error');
+        } finally {
+          setBulkLoading(false);
+          setConfirmModal(null);
+        }
+      }
+    });
+  };
+
   const handleExport = async () => {
     try {
       const response = await api.get('/api/oficina/export', { responseType: 'blob' });
@@ -527,6 +549,12 @@ export default function OficinaPage() {
                   </div>
                 )}
               </div>
+
+              {usuario?.rol === 'admin' && (
+                <button onClick={handleBulkDelete} className="btn btn-danger" disabled={bulkLoading} style={{ padding: '7px 14px', fontSize: 13 }}>
+                  🗑 Eliminar ({selected.length})
+                </button>
+              )}
 
               <button onClick={() => setSelected([])} className="btn btn-ghost" style={{ marginLeft: 'auto' }}>✕ Cancelar</button>
             </div>

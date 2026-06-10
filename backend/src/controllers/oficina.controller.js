@@ -504,6 +504,39 @@ const bulkAsignar = async (req, res) => {
   }
 };
 
+const bulkRemove = async (req, res) => {
+  try {
+    const { ids } = req.body;
+
+    if (!ids || !Array.isArray(ids) || ids.length === 0) {
+      return res.status(400).json({ error: 'Se requiere un array de IDs' });
+    }
+
+    const resultados = await Promise.all(ids.map(async (id) => {
+      try {
+        await prisma.registroEtiqueta.deleteMany({ where: { registroId: id, tabla: 'pedidos_oficina' } });
+        await prisma.intentoContacto.deleteMany({ where: { registroId: id, tabla: 'pedidos_oficina' } });
+        await prisma.historialCambio.deleteMany({ where: { registroId: id, tabla: 'pedidos_oficina' } });
+        await prisma.transferencia.deleteMany({ where: { registroId: id, tabla: 'pedidos_oficina' } });
+        await prisma.pedidoOficina.delete({ where: { id } });
+        return { id, success: true };
+      } catch (error) {
+        return { id, success: false, error: error.message };
+      }
+    }));
+
+    const exitosos = resultados.filter(r => r.success).length;
+
+    res.json({
+      message: `Eliminados ${exitosos} registros`,
+      detalles: resultados
+    });
+  } catch (error) {
+    console.error('Bulk remove oficina error:', error);
+    res.status(500).json({ error: 'Error en el servidor' });
+  }
+};
+
 const transferir = async (req, res) => {
   try {
     const { id } = req.params;
@@ -672,4 +705,4 @@ const removerEtiqueta = async (req, res) => {
   }
 };
 
-module.exports = { getAll, getById, create, update, cambiarEstado, registrarIntento, remove, getVencimientos, exportarExcel, bulkCambiarEstado, bulkAsignar, transferir, toggleFavorito, duplicar, asignarEtiqueta, removerEtiqueta };
+module.exports = { getAll, getById, create, update, cambiarEstado, registrarIntento, remove, getVencimientos, exportarExcel, bulkCambiarEstado, bulkAsignar, bulkRemove, transferir, toggleFavorito, duplicar, asignarEtiqueta, removerEtiqueta };

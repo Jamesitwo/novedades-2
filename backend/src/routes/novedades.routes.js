@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const { getAll, getById, create, update, cambiarEstado, remove, exportarExcel, registrarIntento, bulkCambiarEstado, bulkAsignar, transferir, toggleFavorito, duplicar, asignarEtiqueta, removerEtiqueta } = require('../controllers/novedades.controller');
+const { getAll, getById, create, update, cambiarEstado, remove, exportarExcel, registrarIntento, bulkCambiarEstado, bulkAsignar, bulkRemove, transferir, toggleFavorito, duplicar, asignarEtiqueta, removerEtiqueta } = require('../controllers/novedades.controller');
 const { authMiddleware } = require('../middlewares/auth.middleware');
 const { adminOnly, adminOOperadorAsignado } = require('../middlewares/roles.middleware');
 
@@ -13,6 +13,7 @@ router.post('/', adminOOperadorAsignado, create);
 router.put('/:id', adminOOperadorAsignado, update);
 router.patch('/bulk-estado', adminOnly, bulkCambiarEstado);
 router.patch('/bulk-asignar', adminOnly, bulkAsignar);
+router.delete('/bulk', adminOnly, bulkRemove);
 router.patch('/:id/transferir', adminOOperadorAsignado, transferir);
 router.patch('/:id/estado', adminOOperadorAsignado, cambiarEstado);
 router.patch('/:id/favorito', adminOOperadorAsignado, toggleFavorito);
