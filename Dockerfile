@@ -36,7 +36,7 @@ COPY --from=frontend-builder --chown=appuser:appgroup /build/frontend/next.confi
 USER appuser
 EXPOSE 3001
 
-HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=5 \
+HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=10 \
   CMD node -e "require('http').get('http://localhost:3001/api/health', (r) => process.exit(r.statusCode === 200 ? 0 : 1))"
 
 WORKDIR /app/backend

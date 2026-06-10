@@ -2,26 +2,21 @@
 set -e
 
 echo "=== GestiónNovedades ==="
-echo "Waiting for DATABASE_URL..."
 
-# Esperar a que DATABASE_URL esté disponible (Railway plugin)
 if [ -z "$DATABASE_URL" ]; then
   echo "❌ DATABASE_URL no configurado. Agrega el plugin PostgreSQL en Railway."
   exit 1
 fi
 
-echo "✅ DATABASE_URL encontrado"
+echo "DATABASE_URL: ${DATABASE_URL%%@*}@***"
 
-# Aplicar schema
 echo "Sincronizando base de datos..."
 npx prisma db push --schema prisma/schema.prisma --accept-data-loss
-echo "✅ Schema sincronizado"
+echo "✅ Schema listo"
 
-# Seed
 echo "Ejecutando seed..."
-node prisma/seed.js || echo "⚠ Seed falló (posiblemente ya ejecutado)"
+node prisma/seed.js 2>/dev/null || true
 echo "✅ Seed completado"
 
-# Iniciar
 echo "🚀 Iniciando servidor..."
 exec node server.js

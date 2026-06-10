@@ -17,28 +17,37 @@ async function main() {
       const frontendDir = path.join(__dirname, '..', 'frontend');
       const nextPort = 3000;
 
-      console.log('Starting Next.js...');
+      console.log('Starting Next.js on port', nextPort);
       const nextProcess = spawn('npx', ['next', 'start', '-p', String(nextPort)], {
         cwd: frontendDir,
-        stdio: 'inherit',
+        stdio: 'pipe',
         shell: true
       });
 
+      nextProcess.stderr.on('data', (d) => process.stderr.write('[next] ' + d));
+      nextProcess.stdout.on('data', (d) => process.stdout.write('[next] ' + d));
+
       nextProcess.on('error', (err) => {
-        console.error('Next.js error:', err.message);
+        console.error('Next.js failed:', err.message);
+      });
+      nextProcess.on('exit', (code) => {
+        console.error('Next.js exited with code', code);
       });
 
       process.on('exit', () => nextProcess.kill());
 
-      await new Promise(resolve => setTimeout(resolve, 5000));
+      await new Promise(resolve => setTimeout(resolve, 8000));
 
-      app.use('*', createProxyMiddleware({
-        target: `http://localhost:${nextPort}`,
-        changeOrigin: true,
-        filter: (pathname) => !pathname.startsWith('/api')
-      }));
-
-      console.log('✅ Frontend proxy ready');
+      try {
+        app.use('*', createProxyMiddleware({
+          target: `http://localhost:${nextPort}`,
+          changeOrigin: true,
+          filter: (pathname, req) => !pathname.startsWith('/api')
+        }));
+        console.log('✅ Frontend proxy ready');
+      } catch (e) {
+        console.warn('⚠ Proxy setup failed, API-only mode:', e.message);
+      }
     }
 
     app.listen(PORT, () => {
