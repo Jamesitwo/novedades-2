@@ -112,13 +112,6 @@ export default function LoginPage() {
             {loading ? 'Ingresando...' : 'Iniciar Sesión'}
           </button>
         </form>
-
-        <div style={{ marginTop: 24, textAlign: 'center', fontSize: 12, color: 'var(--text3)' }}>
-          <div style={{ marginBottom: 4 }}>Credenciales de prueba:</div>
-          <div style={{ fontFamily: 'var(--mono)', color: 'var(--text2)' }}>
-            admin@novedades.com / admin123
-          </div>
-        </div>
       </div>
     </div>
   );
