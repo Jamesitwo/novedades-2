@@ -8,6 +8,7 @@ RUN npm run build
 
 FROM node:20-alpine AS backend-builder
 WORKDIR /build/backend
+RUN apk add --no-cache openssl
 COPY backend/package.json backend/package-lock.json ./
 COPY backend/prisma ./prisma
 RUN npm ci
@@ -16,6 +17,7 @@ COPY backend/ .
 
 FROM node:20-alpine
 WORKDIR /app
+RUN apk add --no-cache openssl
 RUN addgroup -S appgroup && adduser -S appuser -G appgroup
 
 COPY --from=backend-builder --chown=appuser:appgroup /build/backend/node_modules ./backend/node_modules
