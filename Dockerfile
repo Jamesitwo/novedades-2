@@ -1,13 +1,9 @@
-ARG NEXT_PUBLIC_API_URL=
-ARG NEXT_PUBLIC_APP_NAME=GestionNovedades
-
 FROM node:20-alpine AS frontend-builder
 WORKDIR /build/frontend
 COPY frontend/package.json frontend/package-lock.json ./
 RUN npm ci
 COPY frontend/ .
-ENV NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL
-ENV NEXT_PUBLIC_APP_NAME=$NEXT_PUBLIC_APP_NAME
+ENV NEXT_TELEMETRY_DISABLED=1
 RUN npm run build
 
 FROM node:20-alpine AS backend-builder
