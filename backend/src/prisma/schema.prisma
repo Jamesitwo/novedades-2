@@ -1,0 +1,223 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model Usuario {
+  id        String   @id @default(uuid())
+  nombre    String
+  email     String   @unique
+  password  String
+  rol       String   @default("operador")
+  activo    Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  pedidosNovedad         PedidoNovedad[] @relation("NovedadAsignado")
+  pedidosOficina         PedidoOficina[] @relation("OficinaAsignado")
+  pedidosNovedadCreados  PedidoNovedad[] @relation("NovedadCreador")
+  pedidosOficinaCreados  PedidoOficina[] @relation("OficinaCreador")
+  historialCambios       HistorialCambio[]
+  intentosContacto       IntentoContacto[]
+  transferenciasDe       Transferencia[] @relation("TransferenciaDe")
+  transferenciasA        Transferencia[] @relation("TransferenciaA")
+  sesiones               Sesion[]
+  vistasGuardadas        VistaGuardada[]
+  productosGanadores     ProductoGanador[]
+  etiquetasCreadas       Etiqueta[]
+}
+
+model PedidoNovedad {
+  id               String   @id @default(uuid())
+  nombre           String
+  apellido         String
+  celular          String
+  producto         String
+  totalAPagar      Float   @map("total_a_pagar")
+  transportadora   String
+  guia             String
+  motivoNovedad    String?  @map("motivo_novedad")
+  estado           String   @default("novedad")
+  intentosLlamada  Int      @default(0) @map("intentos_llamada")
+  notas            String?
+  favorito         Boolean  @default(false)
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+  createdById      String   @map("created_by")
+  createdBy        Usuario  @relation("NovedadCreador", fields: [createdById], references: [id])
+  asignadoId       String?  @map("asignado_id")
+  asignado         Usuario? @relation("NovedadAsignado", fields: [asignadoId], references: [id])
+
+  @@index([estado])
+  @@index([asignadoId])
+  @@index([transportadora])
+  @@index([createdAt])
+  @@index([favorito])
+}
+
+model PedidoOficina {
+  id               String   @id @default(uuid())
+  nombre           String
+  apellido         String
+  celular          String
+  producto         String
+  precio           Float    @default(0)
+  transportadora   String
+  guia             String
+  imagenGuiaUrl    String?  @map("imagen_guia_url")
+  fechaLimite      DateTime @map("fecha_limite")
+  estado           String   @default("pendiente_llamar")
+  intentosLlamada  Int      @default(0) @map("intentos_llamada")
+  notas            String?
+  notasInternas    String?  @map("notas_internas")
+  favorito         Boolean  @default(false)
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+  createdById      String   @map("created_by")
+  createdBy        Usuario  @relation("OficinaCreador", fields: [createdById], references: [id])
+  asignadoId       String?  @map("asignado_id")
+  asignado         Usuario? @relation("OficinaAsignado", fields: [asignadoId], references: [id])
+
+  @@index([estado])
+  @@index([asignadoId])
+  @@index([transportadora])
+  @@index([createdAt])
+  @@index([fechaLimite])
+  @@index([favorito])
+}
+
+model HistorialCambio {
+  id            String   @id @default(uuid())
+  tabla         String
+  registroId    String   @map("registro_id")
+  campo         String
+  valorAnterior String?  @map("valor_anterior")
+  valorNuevo    String?  @map("valor_nuevo")
+  usuarioId     String   @map("usuario_id")
+  usuario       Usuario  @relation(fields: [usuarioId], references: [id])
+  clienteNombre String?  @map("cliente_nombre")
+  createdAt     DateTime @default(now())
+
+  @@index([usuarioId])
+  @@index([createdAt])
+  @@index([registroId])
+}
+
+model Sesion {
+  id              String   @id @default(uuid())
+  usuarioId       String   @map("usuario_id")
+  usuario         Usuario  @relation(fields: [usuarioId], references: [id])
+  token           String   @unique
+  ip              String?
+  navegador       String?  @map("navegador")
+  ultimaAct       DateTime @default(now()) @map("ultima_actividad")
+  expiraAt        DateTime @map("expira_at")
+  activa          Boolean  @default(true)
+  minutosActivos  Int      @default(0) @map("minutos_activos")
+  createdAt       DateTime @default(now())
+
+  @@index([usuarioId])
+  @@index([activa])
+}
+
+model VistaGuardada {
+  id         String   @id @default(uuid())
+  usuarioId  String   @map("usuario_id")
+  usuario    Usuario  @relation(fields: [usuarioId], references: [id])
+  nombre     String
+  tipo       String
+  filtros    String
+  columnas   String?
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@index([usuarioId])
+}
+
+model IntentoContacto {
+  id         String   @id @default(uuid())
+  tabla      String
+  registroId String   @map("registro_id")
+  resultado  String
+  notas      String?
+  usuarioId  String   @map("usuario_id")
+  usuario    Usuario  @relation(fields: [usuarioId], references: [id])
+  createdAt  DateTime @default(now())
+}
+
+model Transferencia {
+  id          String   @id @default(uuid())
+  tabla       String
+  registroId  String   @map("registro_id")
+  deUsuarioId String   @map("de_usuario_id")
+  deUsuario   Usuario  @relation("TransferenciaDe", fields: [deUsuarioId], references: [id])
+  aUsuarioId  String   @map("a_usuario_id")
+  aUsuario    Usuario  @relation("TransferenciaA", fields: [aUsuarioId], references: [id])
+  notas       String?
+  createdAt   DateTime @default(now())
+}
+
+model Configuracion {
+  id                           String   @id @default(uuid())
+  auto_asignar_novedades       Boolean  @default(false) @map("auto_asignar_novedades")
+  auto_asignar_oficina         Boolean  @default(false) @map("auto_asignar_oficina")
+  metodo_asignacion            String   @default("round_robin") @map("metodo_asignacion")
+  operadores_incluidos         String   @default("[]") @map("operadores_incluidos")
+  ultimo_indice_round_robin    Int      @default(0) @map("ultimo_indice_round_robin")
+}
+
+model ApiKey {
+  id          String   @id @default(uuid())
+  nombre     String
+  clave      String   @unique @map("clave")
+  activo     Boolean  @default(true)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+}
+
+model ProductoGanador {
+  id          String   @id @default(uuid())
+  dropiId     String   @map("dropi_id")
+  nombre      String
+  ventas      Int      @default(0)
+  categoria   String
+  potencial   String   @default("medio")
+  imagen      String?
+  link        String?
+  createdById String   @map("created_by")
+  createdBy   Usuario  @relation(fields: [createdById], references: [id])
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([potencial])
+  @@index([categoria])
+  @@index([createdAt])
+}
+
+model Etiqueta {
+  id          String   @id @default(uuid())
+  nombre      String
+  color       String   @default("#6366f1")
+  createdById String   @map("created_by")
+  createdBy   Usuario  @relation(fields: [createdById], references: [id])
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  registros   RegistroEtiqueta[]
+}
+
+model RegistroEtiqueta {
+  id          String   @id @default(uuid())
+  etiquetaId  String   @map("etiqueta_id")
+  etiqueta    Etiqueta @relation(fields: [etiquetaId], references: [id])
+  tabla       String
+  registroId  String   @map("registro_id")
+  createdAt   DateTime @default(now())
+
+  @@index([etiquetaId])
+  @@index([registroId])
+  @@index([tabla])
+}

@@ -1,0 +1,20 @@
+.header {
+  background: white;
+  padding: 1.25rem 2rem;
+  border-bottom: 1px solid #eee;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.title {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #1a1a2e;
+}
+
+.date {
+  color: #666;
+  font-size: 0.875rem;
+  text-transform: capitalize;
+}

@@ -1,0 +1,299 @@
+.container {
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.loading, .error {
+  text-align: center;
+  padding: 2rem;
+  color: #666;
+}
+
+.card {
+  background: white;
+  padding: 2rem;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 1.5rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid #eee;
+}
+
+.title {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #1a1a2e;
+}
+
+.vencimientoAlert {
+  display: block;
+  color: #f59e0b;
+  font-size: 0.875rem;
+  font-weight: 500;
+  margin-top: 0.25rem;
+}
+
+.estadoBadge {
+  background: #667eea;
+  color: white;
+  padding: 0.25rem 0.75rem;
+  border-radius: 4px;
+  font-size: 0.875rem;
+  text-transform: capitalize;
+}
+
+.info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  margin-bottom: 1.5rem;
+}
+
+.infoRow {
+  display: flex;
+  gap: 1rem;
+}
+
+.label {
+  font-weight: 500;
+  color: #666;
+  min-width: 140px;
+}
+
+.link {
+  color: #667eea;
+  text-decoration: underline;
+}
+
+.vencido {
+  color: #ef4444;
+  font-weight: 600;
+}
+
+.estadoActions {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+  padding: 1rem;
+  background: #f5f5f5;
+  border-radius: 8px;
+}
+
+.estadoActions label {
+  font-weight: 500;
+}
+
+.estadoSelect {
+  padding: 0.5rem 1rem;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  font-size: 0.875rem;
+  text-transform: capitalize;
+}
+
+.intentoSection {
+  margin-bottom: 1.5rem;
+}
+
+.intentoBtn {
+  padding: 0.75rem 1.25rem;
+  background: #10b981;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.intentoForm {
+  margin-top: 1rem;
+  padding: 1.25rem;
+  background: #f5f5f5;
+  border-radius: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.intentoField {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.intentoField label {
+  font-weight: 500;
+  font-size: 0.875rem;
+}
+
+.intentoField select,
+.intentoField textarea {
+  padding: 0.625rem;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  font-size: 0.875rem;
+}
+
+.intentoActions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.75rem;
+}
+
+.cancelBtn {
+  padding: 0.5rem 1rem;
+  background: #ccc;
+  color: #666;
+  border: none;
+  border-radius: 6px;
+  font-size: 0.875rem;
+  cursor: pointer;
+}
+
+.submitBtn {
+  padding: 0.5rem 1rem;
+  background: #10b981;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-size: 0.875rem;
+  cursor: pointer;
+}
+
+.submitBtn:disabled {
+  opacity: 0.7;
+}
+
+.intentosList {
+  margin-bottom: 1.5rem;
+}
+
+.historialTitle {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #333;
+  margin-bottom: 0.75rem;
+}
+
+.intentoItem {
+  display: flex;
+  gap: 0.75rem;
+  align-items: center;
+  padding: 0.625rem;
+  background: #f9f9f9;
+  border-radius: 6px;
+  margin-bottom: 0.5rem;
+  font-size: 0.875rem;
+  flex-wrap: wrap;
+}
+
+.intentoFecha {
+  color: #666;
+  white-space: nowrap;
+}
+
+.intentoResultado {
+  font-weight: 600;
+  text-transform: capitalize;
+  padding: 0.125rem 0.5rem;
+  border-radius: 4px;
+  font-size: 0.75rem;
+}
+
+.intentoResultado.contactado {
+  background: #10b981;
+  color: white;
+}
+
+.intentoResultado.no_contesta {
+  background: #f59e0b;
+  color: white;
+}
+
+.intentoResultado.ocupado {
+  background: #3b82f6;
+  color: white;
+}
+
+.intentoResultado.equivocado,
+.intentoResultado.buzon {
+  background: #6b7280;
+  color: white;
+}
+
+.intentoUser {
+  color: #667eea;
+}
+
+.intentoNotas {
+  color: #666;
+}
+
+.historial {
+  margin-bottom: 1.5rem;
+}
+
+.historialList {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.historialItem {
+  display: flex;
+  gap: 1rem;
+  padding: 0.75rem;
+  background: #f9f9f9;
+  border-radius: 6px;
+  font-size: 0.875rem;
+}
+
+.historialFecha {
+  color: #666;
+  white-space: nowrap;
+}
+
+.historialUser {
+  font-weight: 500;
+  color: #667eea;
+  white-space: nowrap;
+}
+
+.historialCampo {
+  color: #333;
+}
+
+.footer {
+  display: flex;
+  justify-content: space-between;
+  padding-top: 1rem;
+  border-top: 1px solid #eee;
+}
+
+.backBtn {
+  padding: 0.625rem 1.25rem;
+  background: #f5f5f5;
+  color: #666;
+  border: none;
+  border-radius: 6px;
+  font-size: 0.875rem;
+  cursor: pointer;
+}
+
+.deleteBtn {
+  padding: 0.625rem 1.25rem;
+  background: #ef4444;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-size: 0.875rem;
+  cursor: pointer;
+}

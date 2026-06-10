@@ -1,0 +1,38 @@
+# Dependencias
+node_modules/
+.next/
+
+# Variables de entorno (contienen secretos)
+.env
+.env.local
+.env.production
+.env.*.local
+
+# Base de datos SQLite
+*.db
+*.db-journal
+
+# Logs
+*.log
+logs/
+
+# Backup
+backup-*.db
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+
+# Build
+dist/
+build/
+
+# PM2
+.pm2/
+
+# Embedded repos
+Platform News/

@@ -1,0 +1,777 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GestiónNovedades — Plataforma</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0f1117;
+    --bg2: #171a23;
+    --bg3: #1e2130;
+    --bg4: #252840;
+    --border: #2e3250;
+    --text: #e8eaf2;
+    --text2: #8b90b0;
+    --text3: #565a7a;
+    --accent: #5b6ef5;
+    --accent2: #7c8fff;
+    --green: #22c87a;
+    --amber: #f59e0b;
+    --red: #ef4444;
+    --teal: #14b8a6;
+    --purple: #a855f7;
+    --radius: 10px;
+    --font: 'DM Sans', sans-serif;
+    --mono: 'DM Mono', monospace;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: var(--font); background: var(--bg); color: var(--text); font-size: 14px; display: flex; height: 100vh; overflow: hidden; }
+
+  /* SIDEBAR */
+  .sidebar {
+    width: 220px; min-width: 220px; background: var(--bg2); border-right: 1px solid var(--border);
+    display: flex; flex-direction: column; padding: 0;
+  }
+  .sidebar-logo {
+    padding: 20px 18px 16px; border-bottom: 1px solid var(--border);
+  }
+  .sidebar-logo .logo-text { font-size: 15px; font-weight: 600; color: var(--text); }
+  .sidebar-logo .logo-sub { font-size: 11px; color: var(--text3); margin-top: 2px; font-family: var(--mono); }
+  .sidebar-logo .logo-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--green); display: inline-block; margin-right: 6px; box-shadow: 0 0 6px var(--green); }
+
+  .sidebar-section { padding: 14px 12px 6px; }
+  .sidebar-label { font-size: 10px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--text3); padding: 0 6px; margin-bottom: 4px; }
+  .nav-item {
+    display: flex; align-items: center; gap: 10px; padding: 8px 10px; border-radius: 8px;
+    cursor: pointer; color: var(--text2); font-size: 13.5px; transition: all 0.15s; margin-bottom: 2px;
+    border: 1px solid transparent;
+  }
+  .nav-item:hover { background: var(--bg3); color: var(--text); }
+  .nav-item.active { background: var(--bg4); color: var(--accent2); border-color: var(--border); }
+  .nav-item .icon { font-size: 16px; width: 18px; text-align: center; }
+  .nav-badge { margin-left: auto; background: var(--red); color: #fff; font-size: 10px; font-weight: 600; padding: 1px 6px; border-radius: 20px; }
+  .nav-badge.amber { background: var(--amber); color: #000; }
+
+  .sidebar-bottom { margin-top: auto; padding: 12px; border-top: 1px solid var(--border); }
+  .user-card { display: flex; align-items: center; gap: 10px; padding: 8px; border-radius: 8px; }
+  .user-avatar { width: 32px; height: 32px; border-radius: 50%; background: linear-gradient(135deg, var(--accent), var(--purple)); display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 600; color: #fff; }
+  .user-info .name { font-size: 13px; font-weight: 500; }
+  .user-info .role { font-size: 11px; color: var(--text3); }
+
+  /* MAIN */
+  .main { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+
+  /* TOPBAR */
+  .topbar {
+    background: var(--bg2); border-bottom: 1px solid var(--border);
+    padding: 0 24px; height: 56px; display: flex; align-items: center; gap: 16px; flex-shrink: 0;
+  }
+  .topbar-title { font-size: 16px; font-weight: 600; }
+  .topbar-search {
+    margin-left: auto; display: flex; align-items: center; gap: 8px;
+    background: var(--bg3); border: 1px solid var(--border); border-radius: 8px;
+    padding: 6px 12px; width: 240px;
+  }
+  .topbar-search input { background: none; border: none; outline: none; color: var(--text); font-size: 13px; width: 100%; font-family: var(--font); }
+  .topbar-search input::placeholder { color: var(--text3); }
+  .topbar-actions { display: flex; gap: 8px; }
+  .btn {
+    display: flex; align-items: center; gap: 6px; padding: 7px 14px; border-radius: 8px;
+    font-size: 13px; font-weight: 500; cursor: pointer; border: none; font-family: var(--font);
+    transition: all 0.15s;
+  }
+  .btn-primary { background: var(--accent); color: #fff; }
+  .btn-primary:hover { background: var(--accent2); }
+  .btn-ghost { background: var(--bg3); color: var(--text2); border: 1px solid var(--border); }
+  .btn-ghost:hover { color: var(--text); border-color: var(--accent); }
+
+  /* CONTENT */
+  .content { flex: 1; overflow-y: auto; padding: 24px; }
+
+  /* STATS */
+  .stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; margin-bottom: 24px; }
+  .stat-card {
+    background: var(--bg2); border: 1px solid var(--border); border-radius: var(--radius);
+    padding: 18px 20px; position: relative; overflow: hidden;
+  }
+  .stat-card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px; }
+  .stat-card.c-amber::before { background: var(--amber); }
+  .stat-card.c-blue::before { background: var(--accent); }
+  .stat-card.c-green::before { background: var(--green); }
+  .stat-card.c-red::before { background: var(--red); }
+  .stat-label { font-size: 11px; color: var(--text3); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 8px; }
+  .stat-value { font-size: 28px; font-weight: 600; font-family: var(--mono); }
+  .stat-value.amber { color: var(--amber); }
+  .stat-value.blue { color: var(--accent2); }
+  .stat-value.green { color: var(--green); }
+  .stat-value.red { color: var(--red); }
+  .stat-sub { font-size: 11px; color: var(--text3); margin-top: 4px; }
+
+  /* FILTERS */
+  .filters { display: flex; gap: 8px; margin-bottom: 16px; align-items: center; flex-wrap: wrap; }
+  .filter-tab {
+    padding: 5px 14px; border-radius: 20px; font-size: 12px; font-weight: 500; cursor: pointer;
+    border: 1px solid var(--border); background: var(--bg3); color: var(--text2); transition: all 0.15s;
+  }
+  .filter-tab:hover { color: var(--text); }
+  .filter-tab.active { background: var(--accent); border-color: var(--accent); color: #fff; }
+  .filter-tab.amber.active { background: var(--amber); border-color: var(--amber); color: #000; }
+  .filter-tab.green.active { background: var(--green); border-color: var(--green); color: #000; }
+  .filter-tab.red.active { background: var(--red); border-color: var(--red); color: #fff; }
+  .filters-right { margin-left: auto; display: flex; gap: 8px; }
+
+  /* TABLE */
+  .table-card { background: var(--bg2); border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; }
+  .table-header { display: flex; align-items: center; justify-content: space-between; padding: 14px 20px; border-bottom: 1px solid var(--border); }
+  .table-header-title { font-size: 13px; font-weight: 500; color: var(--text2); }
+  table { width: 100%; border-collapse: collapse; }
+  thead tr { background: var(--bg3); }
+  th { padding: 10px 16px; text-align: left; font-size: 11px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--text3); font-weight: 500; border-bottom: 1px solid var(--border); }
+  td { padding: 13px 16px; border-bottom: 1px solid var(--border); color: var(--text2); font-size: 13px; vertical-align: middle; }
+  tr:last-child td { border-bottom: none; }
+  tr:hover td { background: var(--bg3); }
+  .td-name { color: var(--text); font-weight: 500; }
+  .td-mono { font-family: var(--mono); font-size: 12px; }
+
+  /* BADGE */
+  .badge {
+    display: inline-flex; align-items: center; gap: 5px; padding: 3px 9px; border-radius: 20px;
+    font-size: 11px; font-weight: 500;
+  }
+  .badge::before { content: ''; width: 5px; height: 5px; border-radius: 50%; }
+  .badge.novedad { background: rgba(245,158,11,0.12); color: var(--amber); }
+  .badge.novedad::before { background: var(--amber); }
+  .badge.contactado { background: rgba(91,110,245,0.12); color: var(--accent2); }
+  .badge.contactado::before { background: var(--accent2); }
+  .badge.solucionado { background: rgba(34,200,122,0.12); color: var(--green); }
+  .badge.solucionado::before { background: var(--green); }
+  .badge.cancelado { background: rgba(239,68,68,0.12); color: var(--red); }
+  .badge.cancelado::before { background: var(--red); }
+  .badge.pendiente { background: rgba(245,158,11,0.12); color: var(--amber); }
+  .badge.pendiente::before { background: var(--amber); }
+  .badge.va_recoger { background: rgba(34,200,122,0.12); color: var(--green); }
+  .badge.va_recoger::before { background: var(--green); }
+  .badge.no_recoger { background: rgba(239,68,68,0.12); color: var(--red); }
+  .badge.no_recoger::before { background: var(--red); }
+
+  /* ACTIONS */
+  .row-actions { display: flex; gap: 6px; }
+  .action-btn {
+    padding: 4px 10px; border-radius: 6px; font-size: 11px; font-weight: 500; cursor: pointer;
+    border: 1px solid var(--border); background: var(--bg3); color: var(--text2); font-family: var(--font);
+    transition: all 0.15s;
+  }
+  .action-btn:hover { color: var(--text); border-color: var(--accent); }
+  .action-btn.danger:hover { border-color: var(--red); color: var(--red); }
+
+  /* MODAL */
+  .modal-overlay {
+    position: fixed; inset: 0; background: rgba(0,0,0,0.7); display: none;
+    align-items: center; justify-content: center; z-index: 100; backdrop-filter: blur(4px);
+  }
+  .modal-overlay.open { display: flex; }
+  .modal {
+    background: var(--bg2); border: 1px solid var(--border); border-radius: 14px;
+    width: 560px; max-height: 90vh; overflow-y: auto; padding: 28px;
+  }
+  .modal-title { font-size: 17px; font-weight: 600; margin-bottom: 4px; }
+  .modal-sub { font-size: 12px; color: var(--text3); margin-bottom: 24px; }
+  .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+  .form-grid.full { grid-template-columns: 1fr; }
+  .form-group { display: flex; flex-direction: column; gap: 6px; }
+  .form-group.span2 { grid-column: 1 / -1; }
+  label { font-size: 11px; font-weight: 500; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text3); }
+  input, select, textarea {
+    background: var(--bg3); border: 1px solid var(--border); border-radius: 8px;
+    padding: 9px 12px; color: var(--text); font-size: 13.5px; font-family: var(--font);
+    outline: none; transition: border-color 0.15s; width: 100%;
+  }
+  input:focus, select:focus, textarea:focus { border-color: var(--accent); }
+  select option { background: var(--bg3); }
+  textarea { resize: vertical; min-height: 80px; }
+  .form-actions { display: flex; gap: 10px; justify-content: flex-end; margin-top: 20px; padding-top: 16px; border-top: 1px solid var(--border); }
+
+  /* DETALLE PANEL */
+  .detail-overlay {
+    position: fixed; inset: 0; background: rgba(0,0,0,0.6); display: none;
+    z-index: 100; backdrop-filter: blur(3px); justify-content: flex-end;
+  }
+  .detail-overlay.open { display: flex; }
+  .detail-panel {
+    background: var(--bg2); border-left: 1px solid var(--border);
+    width: 480px; height: 100vh; overflow-y: auto; padding: 28px;
+    display: flex; flex-direction: column; gap: 20px;
+  }
+  .detail-close { position: absolute; top: 20px; right: 28px; cursor: pointer; color: var(--text3); font-size: 20px; }
+  .detail-field { display: flex; flex-direction: column; gap: 4px; }
+  .detail-field-label { font-size: 10px; text-transform: uppercase; letter-spacing: 0.07em; color: var(--text3); }
+  .detail-field-value { font-size: 14px; color: var(--text); }
+  .detail-section { border-top: 1px solid var(--border); padding-top: 16px; }
+  .detail-section-title { font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em; color: var(--text3); margin-bottom: 12px; }
+  .historial-item { display: flex; gap: 10px; margin-bottom: 10px; font-size: 12px; }
+  .historial-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--accent); margin-top: 4px; flex-shrink: 0; }
+  .historial-text { color: var(--text2); line-height: 1.5; }
+  .historial-time { color: var(--text3); font-family: var(--mono); font-size: 11px; }
+  .intento-item { background: var(--bg3); border: 1px solid var(--border); border-radius: 8px; padding: 10px 12px; margin-bottom: 8px; }
+  .intento-resultado { font-size: 11px; font-weight: 600; margin-bottom: 2px; }
+  .intento-nota { font-size: 12px; color: var(--text2); }
+
+  /* ALERT */
+  .alert-banner {
+    display: flex; align-items: center; gap: 10px; background: rgba(245,158,11,0.08);
+    border: 1px solid rgba(245,158,11,0.2); border-radius: 8px; padding: 10px 14px;
+    margin-bottom: 16px; font-size: 13px;
+  }
+  .alert-icon { font-size: 16px; }
+  .alert-text { color: var(--amber); }
+  .alert-text strong { font-weight: 600; }
+
+  /* MODULE TABS */
+  .module-tabs { display: flex; gap: 0; margin-bottom: 20px; border-bottom: 1px solid var(--border); }
+  .module-tab {
+    padding: 10px 20px; font-size: 13.5px; font-weight: 500; cursor: pointer; color: var(--text2);
+    border-bottom: 2px solid transparent; transition: all 0.15s; margin-bottom: -1px;
+  }
+  .module-tab:hover { color: var(--text); }
+  .module-tab.active { color: var(--accent2); border-bottom-color: var(--accent); }
+
+  /* VENCIMIENTO TAG */
+  .vence-tag { font-size: 10px; font-family: var(--mono); padding: 2px 6px; border-radius: 4px; margin-left: 6px; }
+  .vence-hoy { background: rgba(239,68,68,0.15); color: var(--red); }
+  .vence-pronto { background: rgba(245,158,11,0.15); color: var(--amber); }
+
+  ::-webkit-scrollbar { width: 5px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
+</style>
+</head>
+<body>
+
+<!-- SIDEBAR -->
+<aside class="sidebar">
+  <div class="sidebar-logo">
+    <div class="logo-text"><span class="logo-dot"></span>GestiónNovedades</div>
+    <div class="logo-sub">v1.0 · producción</div>
+  </div>
+
+  <div class="sidebar-section">
+    <div class="sidebar-label">Principal</div>
+    <div class="nav-item" onclick="setView('dashboard')">
+      <span class="icon">▣</span> Dashboard
+    </div>
+    <div class="nav-item active" onclick="setView('novedades')">
+      <span class="icon">⚠</span> Novedades
+      <span class="nav-badge amber">12</span>
+    </div>
+    <div class="nav-item" onclick="setView('oficina')">
+      <span class="icon">📦</span> En oficina
+      <span class="nav-badge">5</span>
+    </div>
+  </div>
+
+  <div class="sidebar-section">
+    <div class="sidebar-label">Admin</div>
+    <div class="nav-item" onclick="setView('usuarios')">
+      <span class="icon">👥</span> Usuarios
+    </div>
+    <div class="nav-item">
+      <span class="icon">⚙</span> Configuración
+    </div>
+  </div>
+
+  <div class="sidebar-bottom">
+    <div class="user-card">
+      <div class="user-avatar">JR</div>
+      <div class="user-info">
+        <div class="name">Juan Ríos</div>
+        <div class="role">Administrador</div>
+      </div>
+    </div>
+  </div>
+</aside>
+
+<!-- MAIN -->
+<div class="main">
+  <!-- TOPBAR -->
+  <div class="topbar">
+    <div class="topbar-title" id="topbar-title">Novedades de entrega</div>
+    <div class="topbar-search">
+      <span style="color:var(--text3)">⌕</span>
+      <input type="text" placeholder="Buscar por nombre, celular, guía...">
+    </div>
+    <div class="topbar-actions">
+      <button class="btn btn-ghost" onclick="exportar()">↓ Exportar Excel</button>
+      <button class="btn btn-primary" id="btn-nuevo" onclick="openModal()">+ Nuevo registro</button>
+    </div>
+  </div>
+
+  <!-- CONTENT -->
+  <div class="content" id="content-area">
+    <!-- se llena por JS -->
+  </div>
+</div>
+
+<!-- MODAL CREAR NOVEDAD -->
+<div class="modal-overlay" id="modal-novedad">
+  <div class="modal">
+    <div class="modal-title">Nuevo registro — Novedad</div>
+    <div class="modal-sub">Completa la información del pedido con novedad de entrega</div>
+    <div class="form-grid">
+      <div class="form-group">
+        <label>Nombre</label>
+        <input type="text" placeholder="Juan">
+      </div>
+      <div class="form-group">
+        <label>Apellido</label>
+        <input type="text" placeholder="García">
+      </div>
+      <div class="form-group">
+        <label>Celular</label>
+        <input type="text" placeholder="3001234567">
+      </div>
+      <div class="form-group">
+        <label>Total a pagar</label>
+        <input type="number" placeholder="120000">
+      </div>
+      <div class="form-group span2">
+        <label>Producto comprado</label>
+        <input type="text" placeholder="Nombre del producto">
+      </div>
+      <div class="form-group">
+        <label>Transportadora</label>
+        <select>
+          <option>Seleccionar...</option>
+          <option>Servientrega</option>
+          <option>Coordinadora</option>
+          <option>Envia</option>
+          <option>TCC</option>
+          <option>Deprisa</option>
+          <option>Otra</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Número de guía</label>
+        <input type="text" placeholder="Ej: 1234567890">
+      </div>
+      <div class="form-group span2">
+        <label>Notas internas</label>
+        <textarea placeholder="Observaciones relevantes del caso..."></textarea>
+      </div>
+    </div>
+    <div class="form-actions">
+      <button class="btn btn-ghost" onclick="closeModal('modal-novedad')">Cancelar</button>
+      <button class="btn btn-primary" onclick="closeModal('modal-novedad')">Guardar registro</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL CREAR OFICINA -->
+<div class="modal-overlay" id="modal-oficina">
+  <div class="modal">
+    <div class="modal-title">Nuevo registro — En oficina</div>
+    <div class="modal-sub">Paquete disponible para recogida en punto de la transportadora</div>
+    <div class="form-grid">
+      <div class="form-group">
+        <label>Nombre</label>
+        <input type="text" placeholder="María">
+      </div>
+      <div class="form-group">
+        <label>Apellido</label>
+        <input type="text" placeholder="López">
+      </div>
+      <div class="form-group">
+        <label>Celular</label>
+        <input type="text" placeholder="3009876543">
+      </div>
+      <div class="form-group">
+        <label>Fecha límite recogida</label>
+        <input type="date">
+      </div>
+      <div class="form-group span2">
+        <label>Producto comprado</label>
+        <input type="text" placeholder="Nombre del producto">
+      </div>
+      <div class="form-group">
+        <label>Transportadora</label>
+        <select>
+          <option>Seleccionar...</option>
+          <option>Servientrega</option>
+          <option>Coordinadora</option>
+          <option>Envia</option>
+          <option>TCC</option>
+          <option>Deprisa</option>
+          <option>Otra</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Número de guía</label>
+        <input type="text" placeholder="Ej: 1234567890">
+      </div>
+      <div class="form-group span2">
+        <label>Link imagen de guía</label>
+        <input type="url" placeholder="https://... o subir imagen directamente">
+      </div>
+      <div class="form-group span2">
+        <label>Notas internas</label>
+        <textarea placeholder="Observaciones relevantes..."></textarea>
+      </div>
+    </div>
+    <div class="form-actions">
+      <button class="btn btn-ghost" onclick="closeModal('modal-oficina')">Cancelar</button>
+      <button class="btn btn-primary" onclick="closeModal('modal-oficina')">Guardar registro</button>
+    </div>
+  </div>
+</div>
+
+<!-- PANEL DETALLE -->
+<div class="detail-overlay" id="detail-panel" onclick="closeDetail(event)">
+  <div class="detail-panel" id="detail-content">
+    <!-- se llena por JS -->
+  </div>
+</div>
+
+<script>
+let currentView = 'novedades';
+let currentFilter = 'todos';
+
+const novedadesData = [
+  { id:1, nombre:'Laura Martínez', celular:'3012345678', producto:'Zapatillas deportivas', total:'189.000', transportadora:'Coordinadora', guia:'CO-9923441', estado:'novedad', intentos:0, fecha:'2025-06-06', notas:'' },
+  { id:2, nombre:'Carlos Pérez', celular:'3198765432', producto:'Camiseta premium', total:'65.000', transportadora:'Servientrega', guia:'SE-4412233', estado:'contactado', intentos:2, fecha:'2025-06-05', notas:'Dice que no estaba en casa, promete estar mañana' },
+  { id:3, nombre:'Andrea Gómez', celular:'3104449988', producto:'Audífonos Bluetooth', total:'220.000', transportadora:'Envia', guia:'EN-7731290', estado:'solucionado', intentos:1, fecha:'2025-06-04', notas:'Reprogramada entrega exitosa' },
+  { id:4, nombre:'Pedro Ramírez', celular:'3156677889', producto:'Pantalón cargo', total:'95.000', transportadora:'TCC', guia:'TC-1122334', estado:'novedad', intentos:0, fecha:'2025-06-06', notas:'' },
+  { id:5, nombre:'Sofía Torres', celular:'3209988776', producto:'Bolso cuero sintético', total:'155.000', transportadora:'Coordinadora', guia:'CO-5534221', estado:'cancelado', intentos:3, fecha:'2025-06-03', notas:'No se puede contactar, se procesa devolución' },
+  { id:6, nombre:'Diego Herrera', celular:'3001122334', producto:'Reloj smartwatch', total:'340.000', transportadora:'Deprisa', guia:'DP-8899001', estado:'contactado', intentos:1, fecha:'2025-06-05', notas:'Número incorrecto en el pedido, se corrigió' },
+  { id:7, nombre:'Valentina Cruz', celular:'3133344556', producto:'Crema hidratante x3', total:'78.000', transportadora:'Servientrega', guia:'SE-2211009', estado:'novedad', intentos:0, fecha:'2025-06-06', notas:'' },
+];
+
+const oficinaData = [
+  { id:1, nombre:'Ricardo Molina', celular:'3175566778', producto:'Tenis running', transportadora:'Coordinadora', guia:'CO-3344221', estado:'pendiente_llamar', intentos:0, fecha_limite:'2025-06-08', imagen:'https://via.placeholder.com/400x200', notas:'' },
+  { id:2, nombre:'Juliana Vega', celular:'3228899001', producto:'Vestido floral', transportadora:'Servientrega', guia:'SE-5566334', estado:'contactado', intentos:1, fecha_limite:'2025-06-09', imagen:'', notas:'Viene mañana en la mañana' },
+  { id:3, nombre:'Andrés Silva', celular:'3019900112', producto:'Mochila escolar', transportadora:'Envia', guia:'EN-9981234', estado:'va_a_recoger', intentos:2, fecha_limite:'2025-06-10', imagen:'', notas:'Confirmó que pasa hoy entre 3-5pm' },
+  { id:4, nombre:'Catalina Ríos', celular:'3157788990', producto:'Perfume 100ml', transportadora:'TCC', guia:'TC-4455667', estado:'no_va_a_recoger', intentos:3, fecha_limite:'2025-06-07', imagen:'', notas:'No puede recoger, solicita reenvío a otra dirección' },
+  { id:5, nombre:'Felipe Castro', celular:'3104433221', producto:'Camisa formal', transportadora:'Coordinadora', guia:'CO-7766554', estado:'pendiente_llamar', intentos:0, fecha_limite:'2025-06-07', imagen:'', notas:'' },
+];
+
+const historialEjemplo = [
+  { texto: 'Estado cambiado de <b>novedad</b> a <b>contactado</b>', usuario: 'María O.', tiempo: 'Hoy 10:32' },
+  { texto: 'Intento de llamada registrado: <b>No contesta</b>', usuario: 'María O.', tiempo: 'Hoy 09:15' },
+  { texto: 'Registro creado', usuario: 'Sistema', tiempo: 'Ayer 16:48' },
+];
+
+function setView(view) {
+  currentView = view;
+  currentFilter = 'todos';
+  document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+  event.currentTarget.classList.add('active');
+
+  const titles = { dashboard: 'Dashboard', novedades: 'Novedades de entrega', oficina: 'Paquetes en oficina', usuarios: 'Gestión de usuarios' };
+  document.getElementById('topbar-title').textContent = titles[view] || '';
+
+  if (view === 'dashboard') renderDashboard();
+  else if (view === 'novedades') renderNovedades();
+  else if (view === 'oficina') renderOficina();
+  else if (view === 'usuarios') renderUsuarios();
+}
+
+function renderDashboard() {
+  const c = document.getElementById('content-area');
+  c.innerHTML = `
+    <div class="stats-grid">
+      <div class="stat-card c-amber">
+        <div class="stat-label">Novedades activas</div>
+        <div class="stat-value amber">12</div>
+        <div class="stat-sub">+3 hoy</div>
+      </div>
+      <div class="stat-card c-blue">
+        <div class="stat-label">En contacto</div>
+        <div class="stat-value blue">7</div>
+        <div class="stat-sub">Última: hace 20 min</div>
+      </div>
+      <div class="stat-card c-green">
+        <div class="stat-label">Solucionados (mes)</div>
+        <div class="stat-value green">48</div>
+        <div class="stat-sub">↑ 12% vs mes anterior</div>
+      </div>
+      <div class="stat-card c-red">
+        <div class="stat-label">Cancelados (mes)</div>
+        <div class="stat-value red">9</div>
+        <div class="stat-sub">↓ 3 vs mes anterior</div>
+      </div>
+    </div>
+    <div class="stats-grid">
+      <div class="stat-card c-amber">
+        <div class="stat-label">En oficina activos</div>
+        <div class="stat-value amber">5</div>
+        <div class="stat-sub">2 vencen hoy</div>
+      </div>
+      <div class="stat-card c-green">
+        <div class="stat-label">Van a recoger</div>
+        <div class="stat-value green">3</div>
+        <div class="stat-sub">Confirmados hoy</div>
+      </div>
+      <div class="stat-card c-red">
+        <div class="stat-label">No recogen</div>
+        <div class="stat-value red">4</div>
+        <div class="stat-sub">Pendientes devolución</div>
+      </div>
+      <div class="stat-card c-blue">
+        <div class="stat-label">Intentos llamada hoy</div>
+        <div class="stat-value blue">23</div>
+        <div class="stat-sub">Por 4 operadores</div>
+      </div>
+    </div>
+    <div class="alert-banner">
+      <span class="alert-icon">⚠</span>
+      <span class="alert-text"><strong>2 paquetes</strong> en oficina vencen hoy: Ricardo Molina (Coordinadora) y Felipe Castro (Coordinadora). Llamar antes de las 5pm.</span>
+    </div>
+    <div class="table-card">
+      <div class="table-header">
+        <span class="table-header-title">Últimas novedades registradas</span>
+        <button class="btn btn-ghost" onclick="setView('novedades')">Ver todas →</button>
+      </div>
+      <table>
+        <thead><tr><th>Cliente</th><th>Producto</th><th>Transportadora</th><th>Estado</th></tr></thead>
+        <tbody>
+          ${novedadesData.slice(0,4).map(r => `
+            <tr>
+              <td><div class="td-name">${r.nombre}</div><div class="td-mono" style="color:var(--text3)">${r.celular}</div></td>
+              <td>${r.producto}</td>
+              <td>${r.transportadora}</td>
+              <td><span class="badge ${r.estado}">${labelEstado(r.estado)}</span></td>
+            </tr>`).join('')}
+        </tbody>
+      </table>
+    </div>`;
+}
+
+function renderNovedades(filter) {
+  if (filter) currentFilter = filter;
+  const data = currentFilter === 'todos' ? novedadesData : novedadesData.filter(r => r.estado === currentFilter);
+  const c = document.getElementById('content-area');
+  c.innerHTML = `
+    <div class="stats-grid">
+      <div class="stat-card c-amber"><div class="stat-label">Novedad</div><div class="stat-value amber">${novedadesData.filter(r=>r.estado==='novedad').length}</div></div>
+      <div class="stat-card c-blue"><div class="stat-label">Contactado</div><div class="stat-value blue">${novedadesData.filter(r=>r.estado==='contactado').length}</div></div>
+      <div class="stat-card c-green"><div class="stat-label">Solucionado</div><div class="stat-value green">${novedadesData.filter(r=>r.estado==='solucionado').length}</div></div>
+      <div class="stat-card c-red"><div class="stat-label">Cancelado</div><div class="stat-value red">${novedadesData.filter(r=>r.estado==='cancelado').length}</div></div>
+    </div>
+    <div class="filters">
+      <span class="filter-tab ${currentFilter==='todos'?'active':''}" onclick="renderNovedades('todos')">Todos</span>
+      <span class="filter-tab amber ${currentFilter==='novedad'?'active':''}" onclick="renderNovedades('novedad')">⚠ Novedad</span>
+      <span class="filter-tab ${currentFilter==='contactado'?'active':''}" onclick="renderNovedades('contactado')">Contactado</span>
+      <span class="filter-tab green ${currentFilter==='solucionado'?'active':''}" onclick="renderNovedades('solucionado')">Solucionado</span>
+      <span class="filter-tab red ${currentFilter==='cancelado'?'active':''}" onclick="renderNovedades('cancelado')">Cancelado</span>
+    </div>
+    <div class="table-card">
+      <div class="table-header">
+        <span class="table-header-title">${data.length} registro${data.length!==1?'s':''} encontrado${data.length!==1?'s':''}</span>
+      </div>
+      <table>
+        <thead><tr><th>Cliente</th><th>Producto</th><th>Total</th><th>Transportadora</th><th>Guía</th><th>Estado</th><th>Intentos</th><th></th></tr></thead>
+        <tbody>
+          ${data.map(r => `
+            <tr>
+              <td><div class="td-name">${r.nombre}</div><div class="td-mono" style="color:var(--text3)">${r.celular}</div></td>
+              <td style="max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${r.producto}</td>
+              <td class="td-mono">$${r.total}</td>
+              <td>${r.transportadora}</td>
+              <td class="td-mono">${r.guia}</td>
+              <td><span class="badge ${r.estado}">${labelEstado(r.estado)}</span></td>
+              <td style="text-align:center">${r.intentos}</td>
+              <td>
+                <div class="row-actions">
+                  <button class="action-btn" onclick="openDetail(${r.id},'novedad')">Ver</button>
+                  <button class="action-btn" onclick="cambiarEstado(${r.id},'novedad')">Estado</button>
+                </div>
+              </td>
+            </tr>`).join('')}
+        </tbody>
+      </table>
+    </div>`;
+}
+
+function renderOficina(filter) {
+  if (filter) currentFilter = filter;
+  const data = currentFilter === 'todos' ? oficinaData : oficinaData.filter(r => r.estado === currentFilter);
+  const hoy = '2025-06-07';
+  const c = document.getElementById('content-area');
+  c.innerHTML = `
+    <div class="alert-banner">
+      <span class="alert-icon">⚠</span>
+      <span class="alert-text"><strong>2 paquetes</strong> vencen hoy — Llamar urgente para evitar devolución automática.</span>
+    </div>
+    <div class="stats-grid">
+      <div class="stat-card c-amber"><div class="stat-label">Pend. llamar</div><div class="stat-value amber">${oficinaData.filter(r=>r.estado==='pendiente_llamar').length}</div></div>
+      <div class="stat-card c-blue"><div class="stat-label">Contactado</div><div class="stat-value blue">${oficinaData.filter(r=>r.estado==='contactado').length}</div></div>
+      <div class="stat-card c-green"><div class="stat-label">Va a recoger</div><div class="stat-value green">${oficinaData.filter(r=>r.estado==='va_a_recoger').length}</div></div>
+      <div class="stat-card c-red"><div class="stat-label">No va a recoger</div><div class="stat-value red">${oficinaData.filter(r=>r.estado==='no_va_a_recoger').length}</div></div>
+    </div>
+    <div class="filters">
+      <span class="filter-tab ${currentFilter==='todos'?'active':''}" onclick="renderOficina('todos')">Todos</span>
+      <span class="filter-tab amber ${currentFilter==='pendiente_llamar'?'active':''}" onclick="renderOficina('pendiente_llamar')">Pend. llamar</span>
+      <span class="filter-tab ${currentFilter==='contactado'?'active':''}" onclick="renderOficina('contactado')">Contactado</span>
+      <span class="filter-tab green ${currentFilter==='va_a_recoger'?'active':''}" onclick="renderOficina('va_a_recoger')">Va a recoger</span>
+      <span class="filter-tab red ${currentFilter==='no_va_a_recoger'?'active':''}" onclick="renderOficina('no_va_a_recoger')">No va a recoger</span>
+    </div>
+    <div class="table-card">
+      <div class="table-header">
+        <span class="table-header-title">${data.length} registro${data.length!==1?'s':''} encontrado${data.length!==1?'s':''}</span>
+      </div>
+      <table>
+        <thead><tr><th>Cliente</th><th>Producto</th><th>Transportadora</th><th>Guía</th><th>Vence</th><th>Estado</th><th>Intentos</th><th></th></tr></thead>
+        <tbody>
+          ${data.map(r => {
+            const esHoy = r.fecha_limite === hoy;
+            const venceTag = esHoy ? `<span class="vence-tag vence-hoy">hoy</span>` : `<span class="vence-tag vence-pronto">pronto</span>`;
+            return `<tr>
+              <td><div class="td-name">${r.nombre}</div><div class="td-mono" style="color:var(--text3)">${r.celular}</div></td>
+              <td>${r.producto}</td>
+              <td>${r.transportadora}</td>
+              <td class="td-mono">${r.guia}</td>
+              <td class="td-mono">${r.fecha_limite}${(esHoy || r.fecha_limite === '2025-06-08') ? venceTag : ''}</td>
+              <td><span class="badge ${badgeClaseOficina(r.estado)}">${labelEstadoOficina(r.estado)}</span></td>
+              <td style="text-align:center">${r.intentos}</td>
+              <td>
+                <div class="row-actions">
+                  <button class="action-btn" onclick="openDetail(${r.id},'oficina')">Ver</button>
+                  <button class="action-btn" onclick="cambiarEstado(${r.id},'oficina')">Estado</button>
+                </div>
+              </td>
+            </tr>`;
+          }).join('')}
+        </tbody>
+      </table>
+    </div>`;
+}
+
+function renderUsuarios() {
+  const usuarios = [
+    { nombre:'Juan Ríos', email:'juan@empresa.com', rol:'admin', activo:true },
+    { nombre:'María Ospina', email:'maria@empresa.com', rol:'operador', activo:true },
+    { nombre:'Carlos Mejía', email:'carlos@empresa.com', rol:'operador', activo:true },
+    { nombre:'Ana Villegas', email:'ana@empresa.com', rol:'viewer', activo:false },
+  ];
+  const c = document.getElementById('content-area');
+  c.innerHTML = `
+    <div class="table-card">
+      <div class="table-header">
+        <span class="table-header-title">${usuarios.length} usuarios registrados</span>
+        <button class="btn btn-primary">+ Nuevo usuario</button>
+      </div>
+      <table>
+        <thead><tr><th>Nombre</th><th>Email</th><th>Rol</th><th>Estado</th><th></th></tr></thead>
+        <tbody>
+          ${usuarios.map(u => `<tr>
+            <td><div class="td-name">${u.nombre}</div></td>
+            <td class="td-mono" style="font-size:12px">${u.email}</td>
+            <td><span class="badge ${u.rol==='admin'?'contactado':u.rol==='operador'?'novedad':'solucionado'}">${u.rol}</span></td>
+            <td><span class="badge ${u.activo?'solucionado':'cancelado'}">${u.activo?'Activo':'Inactivo'}</span></td>
+            <td><div class="row-actions"><button class="action-btn">Editar</button><button class="action-btn danger">Desactivar</button></div></td>
+          </tr>`).join('')}
+        </tbody>
+      </table>
+    </div>`;
+}
+
+function labelEstado(e) {
+  const m = { novedad:'Novedad', contactado:'Contactado', solucionado:'Solucionado', cancelado:'Cancelado' };
+  return m[e] || e;
+}
+function labelEstadoOficina(e) {
+  const m = { pendiente_llamar:'Pend. llamar', contactado:'Contactado', va_a_recoger:'Va a recoger', no_va_a_recoger:'No va a recoger' };
+  return m[e] || e;
+}
+function badgeClaseOficina(e) {
+  const m = { pendiente_llamar:'pendiente', contactado:'contactado', va_a_recoger:'va_recoger', no_va_a_recoger:'no_recoger' };
+  return m[e] || e;
+}
+
+function openModal() {
+  const id = currentView === 'oficina' ? 'modal-oficina' : 'modal-novedad';
+  document.getElementById(id).classList.add('open');
+}
+function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+
+function openDetail(id, tipo) {
+  const data = tipo === 'novedad' ? novedadesData.find(r=>r.id===id) : oficinaData.find(r=>r.id===id);
+  if (!data) return;
+  const panel = document.getElementById('detail-content');
+  const estadoOpts = tipo === 'novedad'
+    ? ['novedad','contactado','solucionado','cancelado']
+    : ['pendiente_llamar','contactado','va_a_recoger','no_va_a_recoger'];
+  const labelFn = tipo === 'novedad' ? labelEstado : labelEstadoOficina;
+
+  panel.innerHTML = `
+    <div style="display:flex;justify-content:space-between;align-items:flex-start">
+      <div>
+        <div style="font-size:18px;font-weight:600;margin-bottom:4px">${data.nombre}</div>
+        <span class="badge ${tipo==='novedad'?data.estado:badgeClaseOficina(data.estado)}">${labelFn(data.estado)}</span>
+      </div>
+      <button onclick="closeDetail()" style="background:none;border:none;color:var(--text3);cursor:pointer;font-size:20px;padding:0">✕</button>
+    </div>
+
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:4px">
+      <div class="detail-field"><div class="detail-field-label">Celular</div><div class="detail-field-value td-mono">${data.celular}</div></div>
+      <div class="detail-field"><div class="detail-field-label">Producto</div><div class="detail-field-value">${data.producto}</div></div>
+      ${tipo==='novedad'?`<div class="detail-field"><div class="detail-field-label">Total a pagar</div><div class="detail-field-value td-mono">$${data.total}</div></div>`:''}
+      <div class="detail-field"><div class="detail-field-label">Transportadora</div><div class="detail-field-value">${data.transportadora}</div></div>
+      <div class="detail-field"><div class="detail-field-label">Guía</div><div class="detail-field-value td-mono">${data.guia}</div></div>
+      ${tipo==='oficina'?`<div class="detail-field"><div class="detail-field-label">Fecha límite</div><div class="detail-field-value td-mono">${data.fecha_limite}</div></div>`:''}
+      <div class="detail-field" style="grid-column:1/-1"><div class="detail-field-label">Notas</div><div class="detail-field-value">${data.notas||'Sin notas registradas'}</div></div>
+    </div>
+
+    <div class="detail-section">
+      <div class="detail-section-title">Cambiar estado</div>
+      <div style="display:flex;flex-wrap:wrap;gap:8px">
+        ${estadoOpts.map(e=>`<button class="action-btn ${e===data.estado?'':''}${e==='cancelado'||e==='no_va_a_recoger'?'danger':''}" style="${e===data.estado?'border-color:var(--accent);color:var(--accent2)':''}" onclick="alert('Estado actualizado → ${labelFn(e)}\\n\\nEn producción esto actualizaría la BD y enviaría notificación automática al cliente.')">${labelFn(e)}</button>`).join('')}
+      </div>
+    </div>
+
+    <div class="detail-section">
+      <div class="detail-section-title">Registrar intento de contacto</div>
+      <div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:10px">
+        ${['No contesta','Ocupado','Número equivocado','Buzon','Contactado'].map(r=>`<button class="action-btn" onclick="alert('Intento registrado: ${r}')">${r}</button>`).join('')}
+      </div>
+      <textarea placeholder="Nota del intento..." style="width:100%;margin-bottom:8px"></textarea>
+    </div>
+
+    <div class="detail-section">
+      <div class="detail-section-title">Historial de cambios</div>
+      ${historialEjemplo.map(h=>`
+        <div class="historial-item">
+          <div class="historial-dot"></div>
+          <div>
+            <div class="historial-text">${h.texto} — <span style="color:var(--accent2)">${h.usuario}</span></div>
+            <div class="historial-time">${h.tiempo}</div>
+          </div>
+        </div>`).join('')}
+    </div>
+
+    ${tipo==='oficina'?`
+    <div class="detail-section">
+      <div class="detail-section-title">Imagen de guía</div>
+      ${data.imagen ? `<img src="${data.imagen}" style="width:100%;border-radius:8px;border:1px solid var(--border)" alt="Guía">` : `<div style="background:var(--bg3);border:1px dashed var(--border);border-radius:8px;padding:24px;text-align:center;color:var(--text3)">Sin imagen cargada<br><button class="btn btn-ghost" style="margin-top:10px">Subir imagen</button></div>`}
+    </div>`:''}
+  `;
+  document.getElementById('detail-panel').classList.add('open');
+}
+
+function closeDetail(e) {
+  if (!e || e.target === document.getElementById('detail-panel')) {
+    document.getElementById('detail-panel').classList.remove('open');
+  }
+}
+
+function cambiarEstado(id, tipo) { openDetail(id, tipo); }
+
+function exportar() { alert('En producción: descarga un archivo Excel (.xlsx) con todos los registros del módulo actual, incluyendo filtros aplicados.'); }
+
+// Init
+renderDashboard();
+document.querySelector('.nav-item').classList.add('active');
+document.querySelector('.nav-item').classList.remove('active');
+</script>
+</body>
+</html>
