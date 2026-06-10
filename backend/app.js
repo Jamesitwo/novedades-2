@@ -40,6 +40,18 @@ app.use(cors({
     ].filter(Boolean);
     if (!origin || allowed.includes(origin)) {
       callback(null, true);
+    } else if (isProduction) {
+      try {
+        const originHost = new URL(origin).hostname;
+        const reqHost = req.headers.host?.split(':')[0];
+        if (originHost === reqHost) {
+          callback(null, true);
+        } else {
+          callback(new Error('Not allowed by CORS'));
+        }
+      } catch {
+        callback(new Error('Not allowed by CORS'));
+      }
     } else {
       callback(new Error('Not allowed by CORS'));
     }
