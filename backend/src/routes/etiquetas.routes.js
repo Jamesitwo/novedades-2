@@ -7,7 +7,7 @@ const { adminOnly } = require('../middlewares/roles.middleware');
 router.use(authMiddleware);
 
 router.get('/', getAll);
-router.post('/', adminOnly, create);
+router.post('/', create);
 router.put('/:id', adminOnly, update);
 router.delete('/:id', adminOnly, remove);
 

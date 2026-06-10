@@ -18,13 +18,11 @@ export default function EtiquetasLayout({ children }) {
     if (!initialized) return;
     if (!isAuthenticated) {
       router.push('/login');
-    } else if (usuario?.rol !== 'admin') {
-      router.push('/dashboard');
     }
-  }, [isAuthenticated, initialized, usuario, router]);
+  }, [isAuthenticated, initialized, router]);
 
   if (!initialized) return null;
-  if (!isAuthenticated || usuario?.rol !== 'admin') return null;
+  if (!isAuthenticated) return null;
 
   return (
     <div className="layout">

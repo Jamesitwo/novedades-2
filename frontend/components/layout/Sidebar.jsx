@@ -80,12 +80,12 @@ export default function Sidebar() {
     { href: '/novedades', label: 'Novedades', icon: '⚠', badge: counts.novedadesActivas > 0 ? counts.novedadesActivas : null, badgeColor: 'amber' },
     { href: '/oficina', label: 'En oficina', icon: '📦', badge: counts.oficinaActivos > 0 ? counts.oficinaActivos : null },
     { href: '/devoluciones', label: 'Devoluciones', icon: '↩️', badge: counts.devoluciones > 0 ? counts.devoluciones : null, badgeColor: 'purple' },
+    { href: '/etiquetas', label: 'Etiquetas', icon: '🏷️' },
   ];
 
   if (usuario?.rol === 'admin') {
     menuItems.push({ href: '/dashboard/metricas', label: 'Métricas', icon: '📊' });
     menuItems.push({ href: '/pizdo', label: 'Pizdo', icon: '🏆' });
-    menuItems.push({ href: '/etiquetas', label: 'Etiquetas', icon: '🏷️' });
     menuItems.push({ href: '/usuarios', label: 'Usuarios', icon: '👥' });
     menuItems.push({ href: '/configuracion', label: 'Configuración', icon: '⚙' });
     menuItems.push({ href: '/apikey', label: 'API Keys', icon: '🔑' });

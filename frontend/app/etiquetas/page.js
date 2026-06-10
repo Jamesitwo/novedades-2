@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import api from '@/lib/api';
+import { useAuthStore } from '@/store/authStore';
 import { TableSkeleton } from '@/components/Skeleton';
 
 const PRESET_COLORS = [
@@ -11,6 +12,7 @@ const PRESET_COLORS = [
 ];
 
 export default function EtiquetasPage() {
+  const { usuario } = useAuthStore();
   const [etiquetas, setEtiquetas] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
@@ -146,10 +148,14 @@ export default function EtiquetasPage() {
                     {new Date(e.createdAt).toLocaleDateString('es-CO')}
                   </td>
                   <td>
-                    <div className="row-actions">
-                      <button onClick={() => openModal(e)} className="action-btn">Editar</button>
-                      <button onClick={() => handleDelete(e)} className="action-btn danger">Eliminar</button>
-                    </div>
+                    {usuario?.rol === 'admin' ? (
+                      <div className="row-actions">
+                        <button onClick={() => openModal(e)} className="action-btn">Editar</button>
+                        <button onClick={() => handleDelete(e)} className="action-btn danger">Eliminar</button>
+                      </div>
+                    ) : (
+                      <span style={{ fontSize: 12, color: 'var(--text3)' }}>—</span>
+                    )}
                   </td>
                 </tr>
               ))}
