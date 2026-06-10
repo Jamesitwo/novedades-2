@@ -26,9 +26,7 @@ COPY --from=builder --chown=appuser:appgroup /app/prisma ./prisma
 USER appuser
 EXPOSE 3001
 
-HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \
+HEALTHCHECK --interval=30s --timeout=10s --start-period=30s --retries=5 \
   CMD node -e "require('http').get('http://localhost:3001/api/health', (r) => process.exit(r.statusCode === 200 ? 0 : 1))"
 
-# Railway inyecta PORT automáticamente
-# Al iniciar aplica migraciones pendientes y ejecuta el seed solo si no hay usuarios
-CMD ["sh", "-c", "npx prisma migrate deploy --schema prisma/schema.prisma && node prisma/seed.js && node server.js"]
+CMD ["sh", "-c", "npx prisma db push --schema prisma/schema.prisma --accept-data-loss && node prisma/seed.js && node server.js"]
