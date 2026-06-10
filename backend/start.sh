@@ -11,7 +11,7 @@ fi
 echo "DATABASE_URL: ${DATABASE_URL%%@*}@***"
 
 echo "Sincronizando base de datos..."
-npx prisma db push --schema prisma/schema.prisma --accept-data-loss
+npx prisma db push --schema prisma/schema.prisma --accept-data-loss --skip-generate
 echo "✅ Schema listo"
 
 echo "Ejecutando seed..."

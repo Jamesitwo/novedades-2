@@ -27,6 +27,8 @@ model Usuario {
   transferenciasA        Transferencia[] @relation("TransferenciaA")
   sesiones               Sesion[]
   vistasGuardadas        VistaGuardada[]
+  productosGanadores     ProductoGanador[]
+  etiquetasCreadas       Etiqueta[]
 }
 
 model PedidoNovedad {
@@ -175,4 +177,47 @@ model ApiKey {
   activo     Boolean  @default(true)
   createdAt  DateTime @default(now())
   updatedAt  DateTime @updatedAt
+}
+
+model ProductoGanador {
+  id          String   @id @default(uuid())
+  dropiId     String   @map("dropi_id")
+  nombre      String
+  ventas      Int      @default(0)
+  categoria   String
+  potencial   String   @default("medio")
+  imagen      String?
+  link        String?
+  createdById String   @map("created_by")
+  createdBy   Usuario  @relation(fields: [createdById], references: [id])
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([potencial])
+  @@index([categoria])
+  @@index([createdAt])
+}
+
+model Etiqueta {
+  id          String   @id @default(uuid())
+  nombre      String
+  color       String   @default("#6366f1")
+  createdById String   @map("created_by")
+  createdBy   Usuario  @relation(fields: [createdById], references: [id])
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  registros   RegistroEtiqueta[]
+}
+
+model RegistroEtiqueta {
+  id          String   @id @default(uuid())
+  etiquetaId  String   @map("etiqueta_id")
+  etiqueta    Etiqueta @relation(fields: [etiquetaId], references: [id])
+  tabla       String
+  registroId  String   @map("registro_id")
+  createdAt   DateTime @default(now())
+
+  @@index([etiquetaId])
+  @@index([registroId])
+  @@index([tabla])
 }
