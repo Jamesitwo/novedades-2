@@ -19,7 +19,8 @@ export default function NuevaOficinaPage() {
     imagenGuiaUrl: '',
     fechaLlegada: '',
     notas: '',
-    notasInternas: ''
+    notasInternas: '',
+    conversacionLink: ''
   });
 
   const handleChange = (e) => {
@@ -107,6 +108,10 @@ export default function NuevaOficinaPage() {
               <div className="form-group span2">
                 <label>Notas internas (solo operadores)</label>
                 <textarea name="notasInternas" value={formData.notasInternas} onChange={handleChange} placeholder="Notas privadas del equipo..." rows={2}></textarea>
+              </div>
+              <div className="form-group span2">
+                <label>Link de conversación</label>
+                <input type="url" name="conversacionLink" value={formData.conversacionLink} onChange={handleChange} placeholder="https://wa.me/... o https://..." />
               </div>
             </div>
 

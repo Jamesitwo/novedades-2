@@ -19,7 +19,8 @@ export default function EditarNovedadPage() {
     transportadora: '',
     guia: '',
     motivoNovedad: '',
-    notas: ''
+    notas: '',
+    conversacionLink: ''
   });
 
   useEffect(() => {
@@ -35,7 +36,8 @@ export default function EditarNovedadPage() {
           transportadora: data.transportadora || '',
           guia: data.guia || '',
           motivoNovedad: data.motivoNovedad || '',
-          notas: data.notas || ''
+          notas: data.notas || '',
+          conversacionLink: data.conversacionLink || ''
         });
       } catch (err) {
         setError('Error al cargar la novedad');
@@ -127,6 +129,10 @@ export default function EditarNovedadPage() {
               <div className="form-group span2">
                 <label>Notas internas</label>
                 <textarea name="notas" value={formData.notas} onChange={handleChange} rows={3}></textarea>
+              </div>
+              <div className="form-group span2">
+                <label>Link de conversación</label>
+                <input type="url" name="conversacionLink" value={formData.conversacionLink} onChange={handleChange} placeholder="https://wa.me/..." />
               </div>
             </div>
 

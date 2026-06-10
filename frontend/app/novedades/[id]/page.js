@@ -304,6 +304,16 @@ export default function NovedadDetallePage() {
             <div className="detail-field-label">Notas</div>
             <div className="detail-field-value">{novedad.notas || 'Sin notas registradas'}</div>
           </div>
+          {novedad.conversacionLink && (
+            <div className="detail-field full">
+              <div className="detail-field-label">Link de conversación</div>
+              <div className="detail-field-value">
+                <a href={novedad.conversacionLink} target="_blank" rel="noopener noreferrer" style={{ color: 'var(--accent2)', textDecoration: 'underline' }}>
+                  {novedad.conversacionLink}
+                </a>
+              </div>
+            </div>
+          )}
         </div>
 
         <div className="detail-section">

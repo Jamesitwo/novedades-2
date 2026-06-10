@@ -210,11 +210,12 @@ const create = async (req, res) => {
         apellido,
         celular,
         producto,
-        totalAPagar: parseFloat(totalAPagar),
+        totalAPagar: parseFloat(totalAPagar) || 0,
         transportadora,
         guia,
         motivoNovedad,
         notas,
+        conversacionLink: conversacionLink || null,
         createdById: req.usuario.id,
         asignadoId
       },
@@ -234,7 +235,7 @@ const create = async (req, res) => {
 const update = async (req, res) => {
   try {
     const { id } = req.params;
-    const { nombre, apellido, celular, producto, totalAPagar, transportadora, guia, motivoNovedad, notas } = req.body;
+    const { nombre, apellido, celular, producto, totalAPagar, transportadora, guia, motivoNovedad, notas, conversacionLink } = req.body;
 
     const actual = await prisma.pedidoNovedad.findUnique({ where: { id } });
     if (!actual) {
@@ -251,13 +252,17 @@ const update = async (req, res) => {
     if (req.body.totalAPagar !== undefined && parseFloat(req.body.totalAPagar) !== actual.totalAPagar) {
       await registrarCambio(id, 'pedidos_novedad', 'totalAPagar', actual.totalAPagar, req.body.totalAPagar, req.usuario.id, clienteNombre);
     }
+    if (req.body.conversacionLink !== undefined && req.body.conversacionLink !== (actual.conversacionLink || null)) {
+      await registrarCambio(id, 'pedidos_novedad', 'conversacionLink', actual.conversacionLink, req.body.conversacionLink, req.usuario.id, clienteNombre);
+    }
 
     const novedad = await prisma.pedidoNovedad.update({
       where: { id },
       data: {
         nombre, apellido, celular, producto,
         totalAPagar: req.body.totalAPagar !== undefined ? parseFloat(req.body.totalAPagar) : undefined,
-        transportadora, guia, motivoNovedad, notas
+        transportadora, guia, motivoNovedad, notas,
+        conversacionLink: req.body.conversacionLink !== undefined ? (req.body.conversacionLink || null) : undefined
       },
       include: {
         createdBy: { select: { id: true, nombre: true } }

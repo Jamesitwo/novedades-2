@@ -200,7 +200,7 @@ const getById = async (req, res) => {
 
 const create = async (req, res) => {
   try {
-    const { nombre, apellido, celular, producto, precio, transportadora, guia, imagenGuiaUrl, fechaLlegada, notas, notasInternas } = req.body;
+    const { nombre, apellido, celular, producto, precio, transportadora, guia, imagenGuiaUrl, fechaLlegada, notas, notasInternas, conversacionLink } = req.body;
 
     const fechaLimite = fechaLlegada
       ? new Date(new Date(fechaLlegada).getTime() + 7 * 24 * 60 * 60 * 1000)
@@ -221,6 +221,7 @@ const create = async (req, res) => {
         fechaLimite,
         notas,
         notasInternas,
+        conversacionLink: conversacionLink || null,
         createdById: req.usuario.id,
         asignadoId
       },
@@ -240,7 +241,7 @@ const create = async (req, res) => {
 const update = async (req, res) => {
   try {
     const { id } = req.params;
-    const { nombre, apellido, celular, producto, precio, transportadora, guia, imagenGuiaUrl, fechaLlegada, notas, notasInternas } = req.body;
+    const { nombre, apellido, celular, producto, precio, transportadora, guia, imagenGuiaUrl, fechaLlegada, notas, notasInternas, conversacionLink } = req.body;
 
     const actual = await prisma.pedidoOficina.findUnique({ where: { id } });
     if (!actual) {
@@ -257,6 +258,9 @@ const update = async (req, res) => {
     if (req.body.precio !== undefined && parseFloat(req.body.precio) !== actual.precio) {
       await registrarCambio(id, 'pedidos_oficina', 'precio', actual.precio, req.body.precio, req.usuario.id, clienteNombre);
     }
+    if (req.body.conversacionLink !== undefined && req.body.conversacionLink !== (actual.conversacionLink || null)) {
+      await registrarCambio(id, 'pedidos_oficina', 'conversacionLink', actual.conversacionLink, req.body.conversacionLink, req.usuario.id, clienteNombre);
+    }
 
     const actualFechaLimiteStr = actual.fechaLimite ? actual.fechaLimite.toISOString().split('T')[0] : null;
     if (fechaLlegada && fechaLlegada !== actualFechaLimiteStr) {
@@ -266,6 +270,7 @@ const update = async (req, res) => {
 
     const data = { nombre, apellido, celular, producto, transportadora, guia, imagenGuiaUrl, notas, notasInternas };
     if (req.body.precio !== undefined) data.precio = parseFloat(req.body.precio) || 0;
+    if (req.body.conversacionLink !== undefined) data.conversacionLink = req.body.conversacionLink || null;
     if (fechaLlegada) {
       data.fechaLimite = new Date(new Date(fechaLlegada).getTime() + 7 * 24 * 60 * 60 * 1000);
     }

@@ -334,6 +334,16 @@ export default function OficinaDetallePage() {
             <div className="detail-field-label">Notas</div>
             <div className="detail-field-value">{pedido.notas || 'Sin notas registradas'}</div>
           </div>
+          {pedido.conversacionLink && (
+            <div className="detail-field full">
+              <div className="detail-field-label">Link de conversación</div>
+              <div className="detail-field-value">
+                <a href={pedido.conversacionLink} target="_blank" rel="noopener noreferrer" style={{ color: 'var(--accent2)', textDecoration: 'underline' }}>
+                  {pedido.conversacionLink}
+                </a>
+              </div>
+            </div>
+          )}
         </div>
 
         {pedido.imagenGuiaUrl && (

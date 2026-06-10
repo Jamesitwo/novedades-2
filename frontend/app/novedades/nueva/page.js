@@ -17,7 +17,8 @@ export default function NuevaNovedadPage() {
     transportadora: '',
     guia: '',
     motivoNovedad: '',
-    notas: ''
+    notas: '',
+    conversacionLink: ''
   });
 
   const handleChange = (e) => {
@@ -97,6 +98,10 @@ export default function NuevaNovedadPage() {
               <div className="form-group span2">
                 <label>Notas internas</label>
                 <textarea name="notas" value={formData.notas} onChange={handleChange} placeholder="Observaciones relevantes..." rows={3}></textarea>
+              </div>
+              <div className="form-group span2">
+                <label>Link de conversación</label>
+                <input type="url" name="conversacionLink" value={formData.conversacionLink} onChange={handleChange} placeholder="https://wa.me/... o https://..." />
               </div>
             </div>
 
