@@ -20,13 +20,14 @@ const login = async (req, res) => {
       return res.status(401).json({ error: 'Credenciales inválidas' });
     }
 
+    const expiresIn = process.env.JWT_EXPIRES_IN || '8h';
     const token = jwt.sign(
       { id: usuario.id, email: usuario.email, rol: usuario.rol },
       process.env.JWT_SECRET,
-      { expiresIn: process.env.JWT_EXPIRES_IN }
+      { expiresIn }
     );
 
-    const expiraEnHoras = parseInt(process.env.JWT_EXPIRES_IN) || 8;
+    const expiraEnHoras = parseInt(expiresIn) || 8;
     const expiraAt = new Date(Date.now() + expiraEnHoras * 3600000);
 
     await prisma.sesion.create({
