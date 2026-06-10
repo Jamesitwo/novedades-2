@@ -20,7 +20,7 @@ const pizdoRoutes = require('./src/routes/pizdo.routes');
 const etiquetasRoutes = require('./src/routes/etiquetas.routes');
 
 const isProduction = process.env.NODE_ENV === 'production';
-const FRONTEND_URL = process.env.FRONTEND_URL || 'http://localhost:3000';
+const FRONTEND_URL = process.env.FRONTEND_URL;
 
 const app = express();
 
@@ -33,28 +33,11 @@ app.use(helmet({
 
 app.use(cors({
   origin: function (origin, callback) {
-    const allowed = [
-      FRONTEND_URL,
-      'http://localhost:3000',
-      'http://127.0.0.1:3000'
-    ].filter(Boolean);
-    if (!origin || allowed.includes(origin)) {
-      callback(null, true);
-    } else if (isProduction) {
-      try {
-        const originHost = new URL(origin).hostname;
-        const reqHost = req.headers.host?.split(':')[0];
-        if (originHost === reqHost) {
-          callback(null, true);
-        } else {
-          callback(new Error('Not allowed by CORS'));
-        }
-      } catch {
-        callback(new Error('Not allowed by CORS'));
-      }
-    } else {
-      callback(new Error('Not allowed by CORS'));
-    }
+    if (!origin) return callback(null, true);
+    if (FRONTEND_URL && origin === FRONTEND_URL) return callback(null, true);
+    if (['http://localhost:3000', 'http://127.0.0.1:3000'].includes(origin)) return callback(null, true);
+    if (isProduction && !FRONTEND_URL) return callback(null, true);
+    callback(new Error('Not allowed by CORS'));
   },
   credentials: true
 }));
