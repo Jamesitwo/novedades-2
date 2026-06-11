@@ -200,7 +200,7 @@ const getById = async (req, res) => {
 
 const create = async (req, res) => {
   try {
-    const { nombre, apellido, celular, producto, totalAPagar, transportadora, guia, motivoNovedad, notas } = req.body;
+    const { nombre, apellido, celular, producto, totalAPagar, transportadora, guia, motivoNovedad, notas, conversacionLink } = req.body;
 
     const asignadoId = await getNextOperador('novedades');
 
