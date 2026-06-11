@@ -13,6 +13,8 @@ const POTENCIAL_COLORS = {
 const ORDENES = [
   { value: 'ventas-desc', label: 'Más ventas' },
   { value: 'ventas-asc', label: 'Menos ventas' },
+  { value: 'precio-desc', label: 'Mayor precio prov.' },
+  { value: 'precio-asc', label: 'Menor precio prov.' },
   { value: 'nombre', label: 'Nombre A–Z' },
   { value: 'reciente', label: 'Reciente' }
 ];
@@ -32,7 +34,7 @@ export default function PizdoPage() {
   const [showModal, setShowModal] = useState(false);
   const [editando, setEditando] = useState(null);
   const [form, setForm] = useState({
-    dropiId: '', nombre: '', ventas: 0, categoria: '', potencial: 'medio', imagen: '', link: ''
+    dropiId: '', nombre: '', ventas: 0, categoria: '', potencial: 'medio', imagen: '', link: '', precioProveedor: 0
   });
   const [saving, setSaving] = useState(false);
 
@@ -73,11 +75,12 @@ export default function PizdoPage() {
         categoria: producto.categoria || '',
         potencial: producto.potencial || 'medio',
         imagen: producto.imagen || '',
-        link: producto.link || ''
+        link: producto.link || '',
+        precioProveedor: producto.precioProveedor || 0
       });
     } else {
       setEditando(null);
-      setForm({ dropiId: '', nombre: '', ventas: 0, categoria: '', potencial: 'medio', imagen: '', link: '' });
+      setForm({ dropiId: '', nombre: '', ventas: 0, categoria: '', potencial: 'medio', imagen: '', link: '', precioProveedor: 0 });
     }
     setShowModal(true);
   };
@@ -310,6 +313,16 @@ export default function PizdoPage() {
                   <div style={{ fontFamily: 'var(--mono)', fontSize: 17, fontWeight: 600 }}>
                     {formatNum(p.ventas)} <small style={{ fontSize: 10, color: 'var(--text3)', fontWeight: 400 }}>VENTAS</small>
                   </div>
+                  {p.precioProveedor > 0 && (
+                    <div style={{ display: 'flex', gap: 8, fontSize: 11, fontFamily: 'var(--mono)' }}>
+                      <span style={{ color: 'var(--text3)' }}>
+                        Costo: {formatNum(p.precioProveedor)}
+                      </span>
+                      <span style={{ color: (p.ventas - p.precioProveedor) > 0 ? 'var(--green)' : 'var(--red)', fontWeight: 600 }}>
+                        Margen: {formatNum(p.ventas - p.precioProveedor)}
+                      </span>
+                    </div>
+                  )}
                   <div style={{ display: 'flex', gap: 6, marginTop: 'auto', paddingTop: 8 }}>
                     {p.link && (
                       <a
@@ -352,7 +365,7 @@ export default function PizdoPage() {
               {editando ? 'Editar producto' : 'Agregar producto'}
             </div>
             <form onSubmit={handleSave} style={{ padding: 20, display: 'flex', flexDirection: 'column', gap: 12 }}>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 12 }}>
                 <label style={{ display: 'flex', flexDirection: 'column', gap: 4, fontSize: 12, color: 'var(--text3)', fontWeight: 500 }}>
                   ID Dropi
                   <input
@@ -371,6 +384,17 @@ export default function PizdoPage() {
                     value={form.ventas}
                     onChange={e => setForm({ ...form, ventas: parseInt(e.target.value) || 0 })}
                     required
+                    style={{ background: 'var(--bg3)', border: '1px solid var(--border)', borderRadius: 8, padding: '9px 12px', color: 'var(--text)', fontSize: 14, outline: 'none' }}
+                  />
+                </label>
+                <label style={{ display: 'flex', flexDirection: 'column', gap: 4, fontSize: 12, color: 'var(--text3)', fontWeight: 500 }}>
+                  Precio Proveedor
+                  <input
+                    type="number"
+                    min="0"
+                    value={form.precioProveedor}
+                    onChange={e => setForm({ ...form, precioProveedor: parseFloat(e.target.value) || 0 })}
+                    placeholder="Costo del proveedor"
                     style={{ background: 'var(--bg3)', border: '1px solid var(--border)', borderRadius: 8, padding: '9px 12px', color: 'var(--text)', fontSize: 14, outline: 'none' }}
                   />
                 </label>

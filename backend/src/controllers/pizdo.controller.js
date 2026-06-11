@@ -18,7 +18,9 @@ const getAll = async (req, res) => {
       'ventas-desc': { ventas: 'desc' },
       'ventas-asc': { ventas: 'asc' },
       'nombre': { nombre: 'asc' },
-      'reciente': { createdAt: 'desc' }
+      'reciente': { createdAt: 'desc' },
+      'precio-asc': { precioProveedor: 'asc' },
+      'precio-desc': { precioProveedor: 'desc' }
     };
 
     const [productos, todosProductos, todasCategorias] = await Promise.all([
@@ -55,7 +57,7 @@ const getAll = async (req, res) => {
 
 const create = async (req, res) => {
   try {
-    const { dropiId, nombre, ventas, categoria, potencial, imagen, link } = req.body;
+    const { dropiId, nombre, ventas, categoria, potencial, imagen, link, precioProveedor } = req.body;
 
     if (!dropiId || !nombre || !categoria) {
       return res.status(400).json({ error: 'ID, nombre y categoría son requeridos' });
@@ -70,6 +72,7 @@ const create = async (req, res) => {
         potencial: potencial || 'medio',
         imagen: imagen || null,
         link: link || null,
+        precioProveedor: parseFloat(precioProveedor) || 0,
         createdById: req.usuario.id
       }
     });
@@ -84,12 +87,9 @@ const create = async (req, res) => {
 const update = async (req, res) => {
   try {
     const { id } = req.params;
-    const { dropiId, nombre, ventas, categoria, potencial, imagen, link } = req.body;
+    const { dropiId, nombre, ventas, categoria, potencial, imagen, link, precioProveedor } = req.body;
 
     const existente = await prisma.productoGanador.findUnique({ where: { id } });
-    if (!existente) {
-      return res.status(404).json({ error: 'Producto no encontrado' });
-    }
 
     const data = {};
     if (dropiId !== undefined) data.dropiId = String(dropiId);
@@ -99,6 +99,7 @@ const update = async (req, res) => {
     if (potencial !== undefined) data.potencial = potencial;
     if (imagen !== undefined) data.imagen = imagen;
     if (link !== undefined) data.link = link;
+    if (precioProveedor !== undefined) data.precioProveedor = parseFloat(precioProveedor) || 0;
 
     const producto = await prisma.productoGanador.update({
       where: { id },

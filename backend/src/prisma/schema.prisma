@@ -182,18 +182,19 @@ model ApiKey {
 }
 
 model ProductoGanador {
-  id          String   @id @default(uuid())
-  dropiId     String   @map("dropi_id")
-  nombre      String
-  ventas      Int      @default(0)
-  categoria   String
-  potencial   String   @default("medio")
-  imagen      String?
-  link        String?
-  createdById String   @map("created_by")
-  createdBy   Usuario  @relation(fields: [createdById], references: [id])
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id               String   @id @default(uuid())
+  dropiId          String   @map("dropi_id")
+  nombre           String
+  ventas           Int      @default(0)
+  categoria        String
+  potencial        String   @default("medio")
+  imagen           String?
+  link             String?
+  precioProveedor  Float    @default(0) @map("precio_proveedor")
+  createdById      String   @map("created_by")
+  createdBy        Usuario  @relation(fields: [createdById], references: [id])
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
 
   @@index([potencial])
   @@index([categoria])
