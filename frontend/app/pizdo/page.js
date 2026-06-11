@@ -365,7 +365,7 @@ export default function PizdoPage() {
               {editando ? 'Editar producto' : 'Agregar producto'}
             </div>
             <form onSubmit={handleSave} style={{ padding: 20, display: 'flex', flexDirection: 'column', gap: 12 }}>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 12 }}>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
                 <label style={{ display: 'flex', flexDirection: 'column', gap: 4, fontSize: 12, color: 'var(--text3)', fontWeight: 500 }}>
                   ID Dropi
                   <input
@@ -387,6 +387,8 @@ export default function PizdoPage() {
                     style={{ background: 'var(--bg3)', border: '1px solid var(--border)', borderRadius: 8, padding: '9px 12px', color: 'var(--text)', fontSize: 14, outline: 'none' }}
                   />
                 </label>
+              </div>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
                 <label style={{ display: 'flex', flexDirection: 'column', gap: 4, fontSize: 12, color: 'var(--text3)', fontWeight: 500 }}>
                   Precio Proveedor
                   <input
@@ -397,32 +399,6 @@ export default function PizdoPage() {
                     placeholder="Costo del proveedor"
                     style={{ background: 'var(--bg3)', border: '1px solid var(--border)', borderRadius: 8, padding: '9px 12px', color: 'var(--text)', fontSize: 14, outline: 'none' }}
                   />
-                </label>
-              </div>
-              <label style={{ display: 'flex', flexDirection: 'column', gap: 4, fontSize: 12, color: 'var(--text3)', fontWeight: 500 }}>
-                Nombre
-                <input
-                  value={form.nombre}
-                  onChange={e => setForm({ ...form, nombre: e.target.value })}
-                  required
-                  placeholder="Ej: Kit Taladro + Pulidora DEWALT"
-                  style={{ background: 'var(--bg3)', border: '1px solid var(--border)', borderRadius: 8, padding: '9px 12px', color: 'var(--text)', fontSize: 14, outline: 'none' }}
-                />
-              </label>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
-                <label style={{ display: 'flex', flexDirection: 'column', gap: 4, fontSize: 12, color: 'var(--text3)', fontWeight: 500 }}>
-                  Categoría
-                  <input
-                    value={form.categoria}
-                    onChange={e => setForm({ ...form, categoria: e.target.value })}
-                    required
-                    placeholder="Ej: Herramientas"
-                    list="catList"
-                    style={{ background: 'var(--bg3)', border: '1px solid var(--border)', borderRadius: 8, padding: '9px 12px', color: 'var(--text)', fontSize: 14, outline: 'none' }}
-                  />
-                  <datalist id="catList">
-                    {categorias.map(c => <option key={c} value={c} />)}
-                  </datalist>
                 </label>
                 <label style={{ display: 'flex', flexDirection: 'column', gap: 4, fontSize: 12, color: 'var(--text3)', fontWeight: 500 }}>
                   Potencial
@@ -437,6 +413,30 @@ export default function PizdoPage() {
                   </select>
                 </label>
               </div>
+              <label style={{ display: 'flex', flexDirection: 'column', gap: 4, fontSize: 12, color: 'var(--text3)', fontWeight: 500 }}>
+                Nombre
+                <input
+                  value={form.nombre}
+                  onChange={e => setForm({ ...form, nombre: e.target.value })}
+                  required
+                  placeholder="Ej: Kit Taladro + Pulidora DEWALT"
+                  style={{ background: 'var(--bg3)', border: '1px solid var(--border)', borderRadius: 8, padding: '9px 12px', color: 'var(--text)', fontSize: 14, outline: 'none' }}
+                />
+              </label>
+              <label style={{ display: 'flex', flexDirection: 'column', gap: 4, fontSize: 12, color: 'var(--text3)', fontWeight: 500 }}>
+                Categoría
+                <input
+                  value={form.categoria}
+                  onChange={e => setForm({ ...form, categoria: e.target.value })}
+                  required
+                  placeholder="Ej: Herramientas"
+                  list="catList"
+                  style={{ background: 'var(--bg3)', border: '1px solid var(--border)', borderRadius: 8, padding: '9px 12px', color: 'var(--text)', fontSize: 14, outline: 'none' }}
+                />
+                <datalist id="catList">
+                  {categorias.map(c => <option key={c} value={c} />)}
+                </datalist>
+              </label>
               <label style={{ display: 'flex', flexDirection: 'column', gap: 4, fontSize: 12, color: 'var(--text3)', fontWeight: 500 }}>
                 URL de imagen
                 <input
