@@ -42,7 +42,8 @@ const getResumen = async (req, res) => {
       todasNovedades,
       todasOficina,
       transportadorasAgrupadas,
-      actividadReciente
+      actividadReciente,
+      motivosAgrupados
     ] = await Promise.all([
       prisma.pedidoNovedad.findMany({
         where: whereNovedad,
@@ -50,7 +51,7 @@ const getResumen = async (req, res) => {
       }),
       prisma.pedidoOficina.findMany({
         where: whereOficina,
-        select: { estado: true }
+        select: { estado: true, precio: true }
       }),
       prisma.pedidoNovedad.groupBy({
         by: ['transportadora'],
@@ -62,6 +63,13 @@ const getResumen = async (req, res) => {
         take: 10,
         orderBy: { createdAt: 'desc' },
         include: { usuario: { select: { nombre: true } } }
+      }),
+      prisma.pedidoNovedad.groupBy({
+        by: ['motivoNovedad'],
+        _count: { id: true },
+        where: { ...whereNovedad, motivoNovedad: { not: null } },
+        orderBy: { _count: { id: 'desc' } },
+        take: 8
       })
     ]);
 
@@ -78,7 +86,8 @@ const getResumen = async (req, res) => {
 
     const oficina = {
       total: todasOficina.length,
-      ...oficinaCounts
+      ...oficinaCounts,
+      totalPrecio: todasOficina.reduce((acc, o) => acc + (o.precio || 0), 0)
     };
 
     const totalDinero = todasNovedades.reduce((acc, n) => acc + n.totalAPagar, 0);
@@ -106,6 +115,11 @@ const getResumen = async (req, res) => {
       .sort((a, b) => b.cantidad - a.cantidad)
       .slice(0, 5);
 
+    const motivosNovedad = motivosAgrupados.map(m => ({
+      motivo: m.motivoNovedad,
+      total: m._count.id
+    }));
+
     res.json({
       novedades,
       oficina,
@@ -119,6 +133,7 @@ const getResumen = async (req, res) => {
       },
       rankingTransportadoras,
       topProductos,
+      motivosNovedad,
       actividadReciente: actividadReciente.map(h => ({
         id: h.id,
         texto: h.clienteNombre 

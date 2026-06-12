@@ -7,34 +7,23 @@ import { useAuthStore } from '@/store/authStore';
 import { StatsSkeleton, TableSkeleton } from '@/components/Skeleton';
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
-  PieChart, Pie, Cell, Legend, LineChart, Line
+  PieChart, Pie, Cell, Legend
 } from 'recharts';
 
 const COLORS = {
-  amber: '#f59e0b',
-  blue: '#3b82f6',
-  green: '#22c55e',
-  red: '#ef4444',
-  purple: '#a855f7',
-  teal: '#14b8a6',
-  accent: '#6366f1',
-  accent2: '#818cf8'
+  amber: '#f59e0b', blue: '#3b82f6', green: '#22c55e',
+  red: '#ef4444', purple: '#a855f7', teal: '#14b8a6',
+  accent: '#6366f1', accent2: '#818cf8'
 };
 
 const ESTADO_COLORS = {
-  novedad: COLORS.amber,
-  contactado: COLORS.blue,
-  solucionado: COLORS.green,
-  cancelado: COLORS.red,
-  devolucion: COLORS.purple
+  novedad: COLORS.amber, contactado: COLORS.blue,
+  solucionado: COLORS.green, cancelado: COLORS.red, devolucion: COLORS.purple
 };
 
 const ESTADO_LABELS = {
-  novedad: 'Novedad',
-  contactado: 'Contactado',
-  solucionado: 'Solucionado',
-  cancelado: 'Cancelado',
-  devolucion: 'Devolución'
+  novedad: 'Novedad', contactado: 'Contactado',
+  solucionado: 'Solucionado', cancelado: 'Cancelado', devolucion: 'Devolución'
 };
 
 export default function DashboardPage() {
@@ -65,25 +54,17 @@ export default function DashboardPage() {
   }, [periodo, chartDays]);
 
   const formatMoney = (amount) => {
-    return new Intl.NumberFormat('es-CO', {
-      style: 'currency',
-      currency: 'COP',
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 0
-    }).format(amount);
+    return new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0, maximumFractionDigits: 0 }).format(amount);
   };
 
   const formatDate = (dateStr) => {
-    const d = new Date(dateStr);
-    return d.toLocaleDateString('es-CO', { day: 'numeric', month: 'short' });
+    return new Date(dateStr).toLocaleDateString('es-CO', { day: 'numeric', month: 'short' });
   };
 
   if (loading) {
     return (
       <div className="content">
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
-          <h2 style={{ fontSize: 20, fontWeight: 600 }}>Dashboard</h2>
-        </div>
+        <h2 style={{ fontSize: 20, fontWeight: 600, marginBottom: 20 }}>Dashboard</h2>
         <StatsSkeleton />
         <div className="table-card" style={{ marginTop: 24 }}>
           <TableSkeleton rows={5} columns={5} />
@@ -92,35 +73,22 @@ export default function DashboardPage() {
     );
   }
 
-  const { novedades, oficina, estadisticas, rankingTransportadoras, actividadReciente, vencimientos } = data || {};
+  const { novedades, oficina, estadisticas, rankingTransportadoras, actividadReciente, vencimientos, motivosNovedad } = data || {};
   const { chartData: dailyData, estadoDistribution } = chartData || {};
 
   const pieData = estadoDistribution
-    ? Object.entries(estadoDistribution)
-        .filter(([, v]) => v > 0)
-        .map(([k, v]) => ({ name: ESTADO_LABELS[k] || k, value: v, color: ESTADO_COLORS[k] || COLORS.teal }))
-    : [];
-
-  const barDataNovedades = dailyData
-    ? dailyData.filter(d => d.novedades_total > 0 || d.novedades_solucionado > 0).slice(-30)
-    : [];
-
-  const barDataOficina = dailyData
-    ? dailyData.filter(d => d.oficina_total > 0 || d.oficina_va_recoger > 0).slice(-30)
+    ? Object.entries(estadoDistribution).filter(([, v]) => v > 0).map(([k, v]) => ({
+        name: ESTADO_LABELS[k] || k, value: v, color: ESTADO_COLORS[k] || COLORS.teal
+      }))
     : [];
 
   const CustomTooltip = ({ active, payload, label }) => {
     if (active && payload && payload.length) {
       return (
-        <div style={{
-          background: 'var(--bg2)', border: '1px solid var(--border)',
-          borderRadius: 8, padding: '10px 14px', fontSize: 12
-        }}>
+        <div style={{ background: 'var(--bg2)', border: '1px solid var(--border)', borderRadius: 8, padding: '10px 14px', fontSize: 12 }}>
           <div style={{ color: 'var(--text2)', marginBottom: 4 }}>{formatDate(label)}</div>
           {payload.map((p, i) => (
-            <div key={i} style={{ color: p.color, fontFamily: 'var(--mono)' }}>
-              {p.name}: <strong>{p.value}</strong>
-            </div>
+            <div key={i} style={{ color: p.color, fontFamily: 'var(--mono)' }}>{p.name}: <strong>{p.value}</strong></div>
           ))}
         </div>
       );
@@ -134,16 +102,12 @@ export default function DashboardPage() {
         <h2 style={{ fontSize: 20, fontWeight: 600 }}>Dashboard</h2>
         <div style={{ display: 'flex', gap: 8 }}>
           {['hoy', 'semana', 'mes', 'todos'].map(p => (
-            <button
-              key={p}
-              onClick={() => { setPeriodo(p); setChartDays(p === 'hoy' ? 1 : p === 'semana' ? 7 : p === 'mes' ? 30 : 90); }}
+            <button key={p} onClick={() => { setPeriodo(p); setChartDays(p === 'hoy' ? 1 : p === 'semana' ? 7 : p === 'mes' ? 30 : 90); }}
               style={{
-                padding: '6px 14px', borderRadius: 20, fontSize: 12, fontWeight: 500,
-                cursor: 'pointer', border: '1px solid var(--border)',
-                background: periodo === p ? 'var(--accent)' : 'var(--bg3)',
+                padding: '6px 14px', borderRadius: 20, fontSize: 12, fontWeight: 500, cursor: 'pointer',
+                border: '1px solid var(--border)', background: periodo === p ? 'var(--accent)' : 'var(--bg3)',
                 color: periodo === p ? '#fff' : 'var(--text2)', transition: 'all 0.15s'
-              }}
-            >
+              }}>
               {p === 'hoy' ? 'Hoy' : p === 'semana' ? 'Esta semana' : p === 'mes' ? 'Este mes' : 'Todo'}
             </button>
           ))}
@@ -173,6 +137,56 @@ export default function DashboardPage() {
         </div>
       </div>
 
+      <div className="grid-3" style={{ marginBottom: 20 }}>
+        <div className="table-card" style={{ gridColumn: 'span 2' }}>
+          <div className="table-header">
+            <span className="table-header-title">Novedades</span>
+          </div>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)' }}>
+            {['novedad', 'contactado', 'solucionado', 'cancelado', 'devolucion'].map(est => {
+              const colorMap = { novedad: 'var(--amber)', contactado: 'var(--accent2)', solucionado: 'var(--green)', cancelado: 'var(--red)', devolucion: 'var(--purple)' };
+              return (
+              <div key={est} style={{ padding: '16px 12px', textAlign: 'center', borderRight: est !== 'devolucion' ? '1px solid var(--border)' : 'none' }}>
+                <div style={{ fontSize: 28, fontWeight: 600, color: colorMap[est], fontFamily: 'var(--mono)' }}>
+                  {novedades?.[est] || 0}
+                </div>
+                <div style={{ fontSize: 10, color: 'var(--text3)', textTransform: 'uppercase', marginTop: 4, fontWeight: 500 }}>
+                  {ESTADO_LABELS[est]}
+                </div>
+              </div>
+              );
+            })}
+          </div>
+        </div>
+        <div className="table-card">
+          <div className="table-header">
+            <span className="table-header-title">Total Oficina</span>
+          </div>
+          <div style={{ padding: '14px 16px' }}>
+            <div style={{ fontSize: 30, fontWeight: 600, color: 'var(--teal)', fontFamily: 'var(--mono)' }}>
+              {formatMoney(oficina?.totalPrecio || 0)}
+            </div>
+            <div style={{ fontSize: 11, color: 'var(--text3)', marginTop: 4 }}>Valor total en paquetes</div>
+            <div style={{ marginTop: 12, display: 'flex', flexDirection: 'column', gap: 6 }}>
+              {['pendiente_llamar', 'contactado', 'va_a_recoger'].map(e => (
+                <div key={e} style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12 }}>
+                  <span style={{ color: 'var(--text2)' }}>
+                    {e === 'pendiente_llamar' ? 'Pend. llamar' : e === 'contactado' ? 'Contactados' : 'Van a recoger'}
+                  </span>
+                  <span style={{ fontFamily: 'var(--mono)', color: 'var(--text)' }}>{oficina?.[e] || 0}</span>
+                </div>
+              ))}
+              <div style={{ borderTop: '1px solid var(--border)', paddingTop: 6 }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12 }}>
+                  <span style={{ fontWeight: 500 }}>Total paquetes</span>
+                  <span style={{ fontFamily: 'var(--mono)', fontWeight: 600 }}>{oficina?.total || 0}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
       {vencimientos && vencimientos.length > 0 && (
         <div className="alert-banner" style={{ marginBottom: 20 }}>
           <span className="alert-icon">⚠</span>
@@ -187,14 +201,11 @@ export default function DashboardPage() {
         <div className="table-card">
           <div className="table-header">
             <span className="table-header-title">Novedades por Día</span>
-            <span style={{ fontSize: 11, color: 'var(--text3)' }}>
-              {barDataNovedades.length > 0 ? `${barDataNovedades[0]?.fecha} — ${barDataNovedades[barDataNovedades.length - 1]?.fecha}` : 'Sin datos'}
-            </span>
           </div>
           <div style={{ padding: '16px 8px 4px 0' }}>
-            {barDataNovedades.length > 0 ? (
-              <ResponsiveContainer width="100%" height={280}>
-                <BarChart data={barDataNovedades}>
+            {dailyData && dailyData.some(d => d.novedades_total > 0) ? (
+              <ResponsiveContainer width="100%" height={250}>
+                <BarChart data={dailyData.slice(-30)}>
                   <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
                   <XAxis dataKey="fecha" tick={{ fontSize: 10, fill: 'var(--text3)' }} tickFormatter={formatDate} />
                   <YAxis tick={{ fontSize: 10, fill: 'var(--text3)' }} allowDecimals={false} />
@@ -204,43 +215,27 @@ export default function DashboardPage() {
                 </BarChart>
               </ResponsiveContainer>
             ) : (
-              <div style={{ textAlign: 'center', color: 'var(--text3)', padding: 40 }}>Sin datos de novedades para este período</div>
+              <div style={{ textAlign: 'center', color: 'var(--text3)', padding: 40 }}>Sin datos</div>
             )}
           </div>
         </div>
-
         <div className="table-card">
           <div className="table-header">
             <span className="table-header-title">Distribución de Estados</span>
-            <span style={{ fontSize: 11, color: 'var(--text3)' }}>Novedades</span>
           </div>
           <div style={{ padding: '8px 0' }}>
             {pieData.length > 0 ? (
-              <ResponsiveContainer width="100%" height={280}>
+              <ResponsiveContainer width="100%" height={250}>
                 <PieChart>
-                  <Pie
-                    data={pieData}
-                    cx="50%"
-                    cy="50%"
-                    innerRadius={60}
-                    outerRadius={100}
-                    paddingAngle={3}
-                    dataKey="value"
-                  >
-                    {pieData.map((entry, i) => (
-                      <Cell key={i} fill={entry.color} />
-                    ))}
+                  <Pie data={pieData} cx="50%" cy="50%" innerRadius={55} outerRadius={95} paddingAngle={3} dataKey="value">
+                    {pieData.map((entry, i) => (<Cell key={i} fill={entry.color} />))}
                   </Pie>
                   <Tooltip />
-                  <Legend
-                    iconType="circle"
-                    iconSize={8}
-                    formatter={(value) => <span style={{ color: 'var(--text2)', fontSize: 12 }}>{value}</span>}
-                  />
+                  <Legend iconType="circle" iconSize={8} formatter={(v) => <span style={{ color: 'var(--text2)', fontSize: 12 }}>{v}</span>} />
                 </PieChart>
               </ResponsiveContainer>
             ) : (
-              <div style={{ textAlign: 'center', color: 'var(--text3)', padding: 40 }}>Sin datos de estados</div>
+              <div style={{ textAlign: 'center', color: 'var(--text3)', padding: 40 }}>Sin datos</div>
             )}
           </div>
         </div>
@@ -249,97 +244,25 @@ export default function DashboardPage() {
       <div className="grid-2" style={{ marginBottom: 20 }}>
         <div className="table-card">
           <div className="table-header">
-            <span className="table-header-title">Oficina por Día</span>
-            <span style={{ fontSize: 11, color: 'var(--text3)' }}>
-              {barDataOficina.length > 0 ? `${barDataOficina[0]?.fecha} — ${barDataOficina[barDataOficina.length - 1]?.fecha}` : 'Sin datos'}
-            </span>
+            <span className="table-header-title">Motivos más repetidos</span>
           </div>
-          <div style={{ padding: '16px 8px 4px 0' }}>
-            {barDataOficina.length > 0 ? (
-              <ResponsiveContainer width="100%" height={280}>
-                <BarChart data={barDataOficina}>
+          <div style={{ padding: '12px 8px 4px 0' }}>
+            {motivosNovedad && motivosNovedad.length > 0 ? (
+              <ResponsiveContainer width="100%" height={250}>
+                <BarChart data={motivosNovedad.slice(0, 8)} layout="vertical" margin={{ left: 10 }}>
                   <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
-                  <XAxis dataKey="fecha" tick={{ fontSize: 10, fill: 'var(--text3)' }} tickFormatter={formatDate} />
-                  <YAxis tick={{ fontSize: 10, fill: 'var(--text3)' }} allowDecimals={false} />
-                  <Tooltip content={<CustomTooltip />} />
-                  <Bar dataKey="oficina_total" name="Creados" fill={COLORS.blue} radius={[4, 4, 0, 0]} />
-                  <Bar dataKey="oficina_va_recoger" name="Recogidos" fill={COLORS.teal} radius={[4, 4, 0, 0]} />
+                  <XAxis type="number" tick={{ fontSize: 10, fill: 'var(--text3)' }} allowDecimals={false} />
+                  <YAxis type="category" dataKey="motivo" tick={{ fontSize: 11, fill: 'var(--text2)' }} width={150}
+                    tickFormatter={(v) => v && v.length > 22 ? v.substring(0, 22) + '...' : v} />
+                  <Tooltip contentStyle={{ background: 'var(--bg2)', border: '1px solid var(--border)', borderRadius: 8, fontSize: 12 }} />
+                  <Bar dataKey="total" name="Casos" radius={[0, 4, 4, 0]} fill={COLORS.amber} />
                 </BarChart>
               </ResponsiveContainer>
             ) : (
-              <div style={{ textAlign: 'center', color: 'var(--text3)', padding: 40 }}>Sin datos de oficina para este período</div>
+              <div style={{ textAlign: 'center', color: 'var(--text3)', padding: 40 }}>Sin datos</div>
             )}
           </div>
         </div>
-
-        <div className="table-card">
-          <div className="table-header">
-            <span className="table-header-title">Resumen Novedades</span>
-          </div>
-          <div className="stats-grid" style={{ padding: '8px 0', marginBottom: 0 }}>
-            <div style={{ padding: '20px 16px', textAlign: 'center', borderRight: '1px solid var(--border)' }}>
-              <div style={{ fontSize: 32, fontWeight: 600, color: 'var(--amber)', fontFamily: 'var(--mono)' }}>{novedades?.novedad || 0}</div>
-              <div style={{ fontSize: 11, color: 'var(--text3)', marginTop: 4 }}>Novedad</div>
-            </div>
-            <div style={{ padding: '20px 16px', textAlign: 'center', borderRight: '1px solid var(--border)' }}>
-              <div style={{ fontSize: 32, fontWeight: 600, color: 'var(--accent2)', fontFamily: 'var(--mono)' }}>{novedades?.contactado || 0}</div>
-              <div style={{ fontSize: 11, color: 'var(--text3)', marginTop: 4 }}>Contactado</div>
-            </div>
-            <div style={{ padding: '20px 16px', textAlign: 'center', borderRight: '1px solid var(--border)' }}>
-              <div style={{ fontSize: 32, fontWeight: 600, color: 'var(--green)', fontFamily: 'var(--mono)' }}>{novedades?.solucionado || 0}</div>
-              <div style={{ fontSize: 11, color: 'var(--text3)', marginTop: 4 }}>Solucionado</div>
-            </div>
-            <div style={{ padding: '20px 16px', textAlign: 'center', borderRight: '1px solid var(--border)' }}>
-              <div style={{ fontSize: 32, fontWeight: 600, color: 'var(--red)', fontFamily: 'var(--mono)' }}>{novedades?.cancelado || 0}</div>
-              <div style={{ fontSize: 11, color: 'var(--text3)', marginTop: 4 }}>Cancelado</div>
-            </div>
-            <div style={{ padding: '20px 16px', textAlign: 'center' }}>
-              <div style={{ fontSize: 32, fontWeight: 600, color: 'var(--purple)', fontFamily: 'var(--mono)' }}>{novedades?.devolucion || 0}</div>
-              <div style={{ fontSize: 11, color: 'var(--text3)', marginTop: 4 }}>Devolución</div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <div className="grid-2" style={{ marginBottom: 20 }}>
-        <div className="table-card">
-          <div className="table-header">
-            <span className="table-header-title">Transportadoras</span>
-          </div>
-          <table>
-            <thead>
-              <tr>
-                <th>Transportadora</th>
-                <th style={{ textAlign: 'center' }}>Cantidad</th>
-                <th style={{ textAlign: 'right' }}>Valor</th>
-              </tr>
-            </thead>
-            <tbody>
-              {rankingTransportadoras?.map((t, i) => (
-                <tr key={t.transportadora}>
-                  <td>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                      <span style={{
-                        width: 20, height: 20, borderRadius: '50%',
-                        background: i === 0 ? 'var(--amber)' : 'var(--bg4)',
-                        color: i === 0 ? '#000' : 'var(--text3)',
-                        display: 'flex', alignItems: 'center', justifyContent: 'center',
-                        fontSize: 11, fontWeight: 600
-                      }}>{i + 1}</span>
-                      <span className="td-name">{t.transportadora}</span>
-                    </div>
-                  </td>
-                  <td style={{ textAlign: 'center', fontFamily: 'var(--mono)' }}>{t.total}</td>
-                  <td style={{ textAlign: 'right', fontFamily: 'var(--mono)', color: 'var(--green)' }}>{formatMoney(t.dinero)}</td>
-                </tr>
-              ))}
-              {(!rankingTransportadoras || rankingTransportadoras.length === 0) && (
-                <tr><td colSpan={3} style={{ textAlign: 'center', color: 'var(--text3)', padding: 20 }}>Sin datos</td></tr>
-              )}
-            </tbody>
-          </table>
-        </div>
-
         <div className="table-card">
           <div className="table-header">
             <span className="table-header-title">Actividad Reciente</span>
@@ -348,14 +271,10 @@ export default function DashboardPage() {
             {actividadReciente && actividadReciente.length > 0 ? (
               actividadReciente.map((a, i) => (
                 <div key={a.id} style={{
-                  display: 'flex', alignItems: 'center', gap: 10,
-                  padding: '10px 16px',
+                  display: 'flex', alignItems: 'center', gap: 10, padding: '10px 16px',
                   borderBottom: i < actividadReciente.length - 1 ? '1px solid var(--border)' : 'none'
                 }}>
-                  <div style={{
-                    width: 6, height: 6, borderRadius: '50%',
-                    background: 'var(--accent)', flexShrink: 0
-                  }} />
+                  <div style={{ width: 6, height: 6, borderRadius: '50%', background: 'var(--accent)', flexShrink: 0 }} />
                   <div style={{ flex: 1 }}>
                     <div style={{ fontSize: 12, color: 'var(--text2)' }}>{a.texto}</div>
                     <div style={{ fontSize: 11, color: 'var(--text3)', marginTop: 2 }}>{a.hace}</div>
@@ -363,7 +282,7 @@ export default function DashboardPage() {
                 </div>
               ))
             ) : (
-              <div style={{ textAlign: 'center', color: 'var(--text3)', padding: 20 }}>Sin actividad reciente</div>
+              <div style={{ textAlign: 'center', color: 'var(--text3)', padding: 40 }}>Sin actividad reciente</div>
             )}
           </div>
         </div>
@@ -372,83 +291,60 @@ export default function DashboardPage() {
       <div className="grid-2">
         <div className="table-card">
           <div className="table-header">
-            <span className="table-header-title">Resumen Oficina</span>
+            <span className="table-header-title">Transportadoras</span>
           </div>
-          <div style={{ padding: '16px 20px' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 10 }}>
-              <span style={{ color: 'var(--text2)' }}>Pendientes llamar</span>
-              <span style={{ fontFamily: 'var(--mono)', fontWeight: 600, color: 'var(--amber)' }}>{oficina?.pendiente_llamar || 0}</span>
-            </div>
-            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 10 }}>
-              <span style={{ color: 'var(--text2)' }}>Contactados</span>
-              <span style={{ fontFamily: 'var(--mono)', fontWeight: 600, color: 'var(--accent2)' }}>{oficina?.contactado || 0}</span>
-            </div>
-            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 10 }}>
-              <span style={{ color: 'var(--text2)' }}>Van a recoger</span>
-              <span style={{ fontFamily: 'var(--mono)', fontWeight: 600, color: 'var(--green)' }}>{oficina?.va_a_recoger || 0}</span>
-            </div>
-            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 10 }}>
-              <span style={{ color: 'var(--text2)' }}>No van a recoger</span>
-              <span style={{ fontFamily: 'var(--mono)', fontWeight: 600, color: 'var(--red)' }}>{oficina?.no_va_a_recoger || 0}</span>
-            </div>
-            <div style={{ borderTop: '1px solid var(--border)', paddingTop: 10, marginTop: 4 }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                <span style={{ color: 'var(--text)', fontWeight: 500 }}>Total</span>
-                <span style={{ fontFamily: 'var(--mono)', fontWeight: 600 }}>{oficina?.total || 0}</span>
-              </div>
-            </div>
-          </div>
+          <table>
+            <thead>
+              <tr><th>Transportadora</th><th style={{ textAlign: 'center' }}>Cantidad</th><th style={{ textAlign: 'right' }}>Valor</th></tr>
+            </thead>
+            <tbody>
+              {rankingTransportadoras?.map((t, i) => (
+                <tr key={t.transportadora}>
+                  <td>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                      <span style={{ width: 20, height: 20, borderRadius: '50%', background: i === 0 ? 'var(--amber)' : 'var(--bg4)', color: i === 0 ? '#000' : 'var(--text3)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, fontWeight: 600 }}>{i + 1}</span>
+                      <span className="td-name">{t.transportadora}</span>
+                    </div>
+                  </td>
+                  <td style={{ textAlign: 'center', fontFamily: 'var(--mono)' }}>{t.total}</td>
+                  <td style={{ textAlign: 'right', fontFamily: 'var(--mono)', color: 'var(--green)' }}>{formatMoney(t.dinero)}</td>
+                </tr>
+              ))}
+              {(!rankingTransportadoras || rankingTransportadoras.length === 0) && (
+                <tr><td colSpan={3} style={{ color: 'var(--text3)', padding: 20, textAlign: 'center' }}>Sin datos</td></tr>
+              )}
+            </tbody>
+          </table>
         </div>
-
         <div className="table-card">
           <div className="table-header">
             <span className="table-header-title">Accesos Rápidos</span>
           </div>
           <div style={{ padding: 16 }}>
             <div className="grid-auto" style={{ gap: 12 }}>
-              <Link href="/novedades" style={{
-                background: 'var(--bg3)', border: '1px solid var(--border)',
-                borderRadius: 10, padding: 16,
-                display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8, transition: 'all 0.15s', textDecoration: 'none'
-              }}>
+              <Link href="/novedades" style={{ background: 'var(--bg3)', border: '1px solid var(--border)', borderRadius: 10, padding: 16, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8, textDecoration: 'none' }}>
                 <span style={{ fontSize: 24 }}>⚠</span>
                 <span style={{ fontSize: 12, fontWeight: 500, color: 'var(--text)' }}>Novedades</span>
                 <span style={{ fontSize: 11, color: 'var(--text3)' }}>{novedades?.novedad || 0} activas</span>
               </Link>
-              <Link href="/oficina" style={{
-                background: 'var(--bg3)', border: '1px solid var(--border)',
-                borderRadius: 10, padding: 16,
-                display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8, transition: 'all 0.15s', textDecoration: 'none'
-              }}>
+              <Link href="/oficina" style={{ background: 'var(--bg3)', border: '1px solid var(--border)', borderRadius: 10, padding: 16, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8, textDecoration: 'none' }}>
                 <span style={{ fontSize: 24 }}>📦</span>
                 <span style={{ fontSize: 12, fontWeight: 500, color: 'var(--text)' }}>En Oficina</span>
                 <span style={{ fontSize: 11, color: 'var(--text3)' }}>{oficina?.pendiente_llamar || 0} pendientes</span>
               </Link>
-              <Link href="/novedades/nueva" style={{
-                background: 'var(--bg3)', border: '1px solid var(--border)',
-                borderRadius: 10, padding: 16,
-                display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8, transition: 'all 0.15s', textDecoration: 'none'
-              }}>
+              <Link href="/novedades/nueva" style={{ background: 'var(--bg3)', border: '1px solid var(--border)', borderRadius: 10, padding: 16, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8, textDecoration: 'none' }}>
                 <span style={{ fontSize: 24 }}>➕</span>
                 <span style={{ fontSize: 12, fontWeight: 500, color: 'var(--text)' }}>Nueva</span>
                 <span style={{ fontSize: 11, color: 'var(--text3)' }}>Novedad</span>
               </Link>
               {usuario?.rol === 'admin' ? (
-                <Link href="/dashboard/metricas" style={{
-                  background: 'var(--bg3)', border: '1px solid var(--border)',
-                  borderRadius: 10, padding: 16,
-                  display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8, transition: 'all 0.15s', textDecoration: 'none'
-                }}>
+                <Link href="/dashboard/metricas" style={{ background: 'var(--bg3)', border: '1px solid var(--border)', borderRadius: 10, padding: 16, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8, textDecoration: 'none' }}>
                   <span style={{ fontSize: 24 }}>📊</span>
                   <span style={{ fontSize: 12, fontWeight: 500, color: 'var(--text)' }}>Métricas</span>
                   <span style={{ fontSize: 11, color: 'var(--text3)' }}>Admin</span>
                 </Link>
               ) : (
-                <Link href="/oficina/nueva" style={{
-                  background: 'var(--bg3)', border: '1px solid var(--border)',
-                  borderRadius: 10, padding: 16,
-                  display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8, transition: 'all 0.15s', textDecoration: 'none'
-                }}>
+                <Link href="/oficina/nueva" style={{ background: 'var(--bg3)', border: '1px solid var(--border)', borderRadius: 10, padding: 16, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8, textDecoration: 'none' }}>
                   <span style={{ fontSize: 24 }}>🏢</span>
                   <span style={{ fontSize: 12, fontWeight: 500, color: 'var(--text)' }}>Nuevo</span>
                   <span style={{ fontSize: 11, color: 'var(--text3)' }}>Oficina</span>

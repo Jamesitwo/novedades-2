@@ -355,6 +355,7 @@ input, select, textarea { font-family: var(--font); }
 .stat-card.c-green::before { background: var(--green); }
 .stat-card.c-red::before { background: var(--red); }
 .stat-card.c-purple::before { background: var(--purple); }
+.stat-card.c-teal::before { background: var(--teal); }
 
 .stat-label {
   font-size: 11px;
