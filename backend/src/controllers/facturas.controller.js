@@ -1,5 +1,6 @@
 const { prisma } = require('../prisma/client');
 const PDFDocument = require('pdfkit');
+const QRCode = require('qrcode');
 
 const getAll = async (req, res) => {
   try {
@@ -206,7 +207,14 @@ const getPdf = async (req, res) => {
 
     const doc = new PDFDocument({ margin: 50, size: 'A4' });
 
-    res.setHeader('Content-Type', 'application/pdf');
+    // QR Code
+    const frontendUrl = process.env.FRONTEND_URL || '';
+    const qrData = frontendUrl ? `${frontendUrl}/facturas/${factura.id}` : `Factura #${factura.numero}`;
+    const qrBuffer = await QRCode.toBuffer(qrData, { width: 120, margin: 1, color: { dark: '#1a1d2e', light: '#ffffff' } });
+
+    const headerY = doc.y;
+    doc.image(qrBuffer, 440, 50, { width: 80 });
+    doc.y = headerY;
     res.setHeader('Content-Disposition', `attachment; filename=factura-${factura.numero}.pdf`);
     doc.pipe(res);
 
