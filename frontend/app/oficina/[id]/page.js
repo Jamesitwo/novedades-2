@@ -5,7 +5,7 @@ import { useParams, useRouter } from 'next/navigation';
 import api from '@/lib/api';
 import { useAuthStore } from '@/store/authStore';
 
-const ESTADOS_OFICINA = ['pendiente_llamar', 'contactado', 'va_a_recoger', 'no_va_a_recoger', 'devolucion'];
+const ESTADOS_OFICINA = ['pendiente_llamar', 'contactado', 'va_a_recoger', 'entregado', 'no_va_a_recoger', 'devolucion'];
 const RESULTADOS = ['no_contesta', 'ocupado', 'equivocado', 'contactado', 'buzon'];
 
 const labelEstado = (e) => {
@@ -13,6 +13,7 @@ const labelEstado = (e) => {
     pendiente_llamar: 'Pend. llamar',
     contactado: 'Contactado',
     va_a_recoger: 'Va a recoger',
+    entregado: 'Entregado',
     no_va_a_recoger: 'No va a recoger',
     devolucion: 'Devolución'
   };
@@ -35,6 +36,7 @@ const getBadgeClass = (estado) => {
     pendiente_llamar: 'pendiente',
     contactado: 'contactado',
     va_a_recoger: 'va_recoger',
+    entregado: 'entregado',
     no_va_a_recoger: 'no_recoger',
     devolucion: 'purple'
   };
@@ -533,7 +535,7 @@ export default function OficinaDetallePage() {
         </div>
 
         <div style={{ marginTop: 'auto', paddingTop: 16, borderTop: '1px solid var(--border)', display: 'flex', gap: 8 }}>
-          <button onClick={() => router.push('/oficina')} className="btn btn-ghost">← Volver</button>
+          <button onClick={() => router.back()} className="btn btn-ghost">← Volver</button>
           {usuario?.rol === 'admin' && (
             <button onClick={handleDelete} className="btn btn-danger">Eliminar</button>
           )}

@@ -11,6 +11,7 @@ const ESTADOS = {
   novedad: { label: 'Novedad', color: 'amber' },
   contactado: { label: 'Contactado', color: 'blue' },
   solucionado: { label: 'Solucionado', color: 'green' },
+  entregado: { label: 'Entregado', color: 'teal' },
   cancelado: { label: 'Cancelado', color: 'red' },
   devolucion: { label: 'Devolución', color: 'purple' }
 };
@@ -181,9 +182,6 @@ export default function NovedadesPage() {
 
   const handleSearchChange = (value) => {
     setSearch(value);
-    if (searchTimeout) clearTimeout(searchTimeout);
-    const timeout = setTimeout(() => fetchNovedades(1), 300);
-    setSearchTimeout(timeout);
   };
 
   const getTransferenciaForRegistro = (registroId) => {

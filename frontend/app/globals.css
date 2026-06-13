@@ -527,6 +527,9 @@ tr:hover td { background: var(--bg3); }
 .badge.purple, .badge.purple::before { background: var(--purple); }
 .badge.purple { background: rgba(168,85,247,0.12); color: var(--purple); }
 
+.badge.entregado, .badge.entregado::before { background: var(--teal); }
+.badge.entregado { background: rgba(20,184,166,0.12); color: var(--teal); }
+
 .badge.admin { background: rgba(239,68,68,0.12); color: var(--red); }
 .badge.operador { background: rgba(91,110,245,0.12); color: var(--accent2); }
 .badge.viewer { background: rgba(107,114,128,0.12); color: var(--text2); }

@@ -17,6 +17,7 @@ const getAll = async (req, res) => {
           email: true,
           rol: true,
           activo: true,
+          verSoloAsignados: true,
           createdAt: true
         },
         orderBy: { createdAt: 'desc' }
@@ -80,16 +81,15 @@ const create = async (req, res) => {
 const update = async (req, res) => {
   try {
     const { id } = req.params;
-    const { nombre, email, rol, activo, password } = req.body;
+    const { nombre, email, rol, activo, password, verSoloAsignados } = req.body;
 
     if (rol && !['admin', 'operador'].includes(rol)) {
       return res.status(400).json({ error: 'Rol no válido' });
     }
 
     const data = { nombre, email, rol, activo };
-    if (password) {
-      data.password = await bcrypt.hash(password, 10);
-    }
+    if (password) data.password = await bcrypt.hash(password, 10);
+    if (verSoloAsignados !== undefined) data.verSoloAsignados = verSoloAsignados;
 
     const usuario = await prisma.usuario.update({
       where: { id },

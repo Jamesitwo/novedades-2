@@ -69,6 +69,15 @@ export default function UsuariosPage() {
     }
   };
 
+  const handleToggleVerSoloAsignados = async (usuario) => {
+    try {
+      await api.put(`/api/usuarios/${usuario.id}`, { verSoloAsignados: !usuario.verSoloAsignados, password: '' });
+      fetchUsuarios();
+    } catch (error) {
+      showToast('Error al actualizar', 'error');
+    }
+  };
+
   const getBadgeClass = (rol) => {
     const m = { admin: 'admin', operador: 'operador', viewer: 'viewer' };
     return m[rol] || rol;
@@ -88,6 +97,7 @@ export default function UsuariosPage() {
               <th>Email</th>
               <th>Rol</th>
               <th>Estado</th>
+              <th>Visibilidad</th>
               <th></th>
             </tr>
           </thead>
@@ -101,6 +111,23 @@ export default function UsuariosPage() {
                   <span className={`badge ${usuario.activo ? 'activo' : 'inactivo'}`}>
                     {usuario.activo ? 'Activo' : 'Inactivo'}
                   </span>
+                </td>
+                <td>
+                  {usuario.rol !== 'admin' && (
+                    <button
+                      onClick={() => handleToggleVerSoloAsignados(usuario)}
+                      style={{
+                        padding: '3px 10px', borderRadius: 12, fontSize: 11, fontWeight: 500,
+                        cursor: 'pointer', border: '1px solid var(--border)',
+                        background: usuario.verSoloAsignados ? 'rgba(99,102,241,0.15)' : 'var(--bg3)',
+                        color: usuario.verSoloAsignados ? 'var(--accent)' : 'var(--text3)',
+                        transition: 'all 0.15s'
+                      }}
+                      title={usuario.verSoloAsignados ? 'Viendo solo asignados' : 'Viendo todos'}
+                    >
+                      {usuario.verSoloAsignados ? '👤 Solo asignados' : '🌐 Todos'}
+                    </button>
+                  )}
                 </td>
                 <td>
                   <div className="row-actions">

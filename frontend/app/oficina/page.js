@@ -10,6 +10,7 @@ const ESTADOS = {
   pendiente_llamar: { label: 'Pend. llamar', color: 'pendiente' },
   contactado: { label: 'Contactado', color: 'contactado' },
   va_a_recoger: { label: 'Va a recoger', color: 'va_recoger' },
+  entregado: { label: 'Entregado', color: 'entregado' },
   no_va_a_recoger: { label: 'No va a recoger', color: 'no_recoger' },
   devolucion: { label: 'Devolución', color: 'purple' }
 };
@@ -145,9 +146,6 @@ export default function OficinaPage() {
 
   const handleSearchChange = (value) => {
     setSearch(value);
-    if (searchTimeout) clearTimeout(searchTimeout);
-    const timeout = setTimeout(() => fetchPedidos(1), 300);
-    setSearchTimeout(timeout);
   };
 
   const getTransferenciaForRegistro = (registroId) => {

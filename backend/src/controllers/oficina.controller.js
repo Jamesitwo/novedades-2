@@ -77,8 +77,11 @@ const getAll = async (req, res) => {
       if (guiaHasta) where.guia.lte = guiaHasta;
     }
 
-    if (req.usuario.rol === 'operador_asignado' || asignado_a_mi === 'true') {
-      where.asignadoId = req.usuario.id;
+    if (req.usuario.rol !== 'admin') {
+      const usuario = await prisma.usuario.findUnique({ where: { id: req.usuario.id }, select: { verSoloAsignados: true } });
+      if (req.usuario.rol === 'operador_asignado' || asignado_a_mi === 'true' || usuario?.verSoloAsignados) {
+        where.asignadoId = req.usuario.id;
+      }
     }
 
     if (favorito === 'true') {
@@ -206,7 +209,11 @@ const create = async (req, res) => {
       ? new Date(new Date(fechaLlegada).getTime() + 7 * 24 * 60 * 60 * 1000)
       : new Date(new Date().getTime() + 7 * 24 * 60 * 60 * 1000);
 
-    const asignadoId = await getNextOperador('oficina');
+    let asignadoId = await getNextOperador('oficina');
+    if (!asignadoId) {
+      const admin = await prisma.usuario.findFirst({ where: { rol: 'admin', activo: true }, select: { id: true } });
+      asignadoId = admin?.id || req.usuario.id;
+    }
 
     const pedido = await prisma.pedidoOficina.create({
       data: {

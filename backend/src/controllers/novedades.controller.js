@@ -77,8 +77,11 @@ const getAll = async (req, res) => {
       if (guiaHasta) where.guia.lte = guiaHasta;
     }
 
-    if (req.usuario.rol === 'operador_asignado' || asignado_a_mi === 'true') {
-      where.asignadoId = req.usuario.id;
+    if (req.usuario.rol !== 'admin') {
+      const usuario = await prisma.usuario.findUnique({ where: { id: req.usuario.id }, select: { verSoloAsignados: true } });
+      if (req.usuario.rol === 'operador_asignado' || asignado_a_mi === 'true' || usuario?.verSoloAsignados) {
+        where.asignadoId = req.usuario.id;
+      }
     }
 
     if (favorito === 'true') {
@@ -202,7 +205,11 @@ const create = async (req, res) => {
   try {
     const { nombre, apellido, celular, celular2, producto, totalAPagar, transportadora, guia, motivoNovedad, notas, conversacionLink } = req.body;
 
-    const asignadoId = await getNextOperador('novedades');
+    let asignadoId = await getNextOperador('novedades');
+    if (!asignadoId) {
+      const admin = await prisma.usuario.findFirst({ where: { rol: 'admin', activo: true }, select: { id: true } });
+      asignadoId = admin?.id || req.usuario.id;
+    }
 
     const novedad = await prisma.pedidoNovedad.create({
       data: {

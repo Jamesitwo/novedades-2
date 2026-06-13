@@ -5,11 +5,11 @@ import { useParams, useRouter } from 'next/navigation';
 import api from '@/lib/api';
 import { useAuthStore } from '@/store/authStore';
 
-const ESTADOS_NOVEDAD = ['novedad', 'contactado', 'solucionado', 'cancelado', 'devolucion'];
+const ESTADOS_NOVEDAD = ['novedad', 'contactado', 'solucionado', 'entregado', 'cancelado', 'devolucion'];
 const RESULTADOS = ['no_contesta', 'ocupado', 'equivocado', 'contactado', 'buzon'];
 
 const labelEstado = (e) => {
-  const m = { novedad: 'Novedad', contactado: 'Contactado', solucionado: 'Solucionado', cancelado: 'Cancelado', devolucion: 'Devolución' };
+  const m = { novedad: 'Novedad', contactado: 'Contactado', solucionado: 'Solucionado', entregado: 'Entregado', cancelado: 'Cancelado', devolucion: 'Devolución' };
   return m[e] || e;
 };
 
@@ -19,7 +19,7 @@ const labelResultado = (e) => {
 };
 
 const getBadgeClass = (estado) => {
-  const m = { novedad: 'novedad', contactado: 'contactado', solucionado: 'solucionado', cancelado: 'cancelado', devolucion: 'purple' };
+  const m = { novedad: 'novedad', contactado: 'contactado', solucionado: 'solucionado', entregado: 'entregado', cancelado: 'cancelado', devolucion: 'purple' };
   return m[estado] || estado;
 };
 
@@ -496,7 +496,7 @@ export default function NovedadDetallePage() {
         </div>
 
         <div style={{ marginTop: 'auto', paddingTop: 16, borderTop: '1px solid var(--border)', display: 'flex', gap: 8 }}>
-          <button onClick={() => router.push('/novedades')} className="btn btn-ghost">← Volver</button>
+          <button onClick={() => router.back()} className="btn btn-ghost">← Volver</button>
           {usuario?.rol === 'admin' && (
             <button onClick={handleDelete} className="btn btn-danger">Eliminar</button>
           )}

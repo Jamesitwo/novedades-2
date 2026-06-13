@@ -36,7 +36,7 @@ app.use(cors({
   origin: function (origin, callback) {
     if (!origin) return callback(null, true);
     if (FRONTEND_URL && origin === FRONTEND_URL) return callback(null, true);
-    if (['http://localhost:3000', 'http://127.0.0.1:3000'].includes(origin)) return callback(null, true);
+    if (['http://localhost:3000', 'http://127.0.0.1:3000', 'http://[::1]:3000'].includes(origin)) return callback(null, true);
     if (isProduction && !FRONTEND_URL) return callback(null, true);
     callback(new Error('Not allowed by CORS'));
   },
