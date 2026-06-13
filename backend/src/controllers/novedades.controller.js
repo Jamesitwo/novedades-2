@@ -309,6 +309,10 @@ const remove = async (req, res) => {
   try {
     const { id } = req.params;
 
+    await prisma.registroEtiqueta.deleteMany({ where: { registroId: id, tabla: 'pedidos_novedad' } });
+    await prisma.intentoContacto.deleteMany({ where: { registroId: id, tabla: 'pedidos_novedad' } });
+    await prisma.historialCambio.deleteMany({ where: { registroId: id, tabla: 'pedidos_novedad' } });
+    await prisma.transferencia.deleteMany({ where: { registroId: id, tabla: 'pedidos_novedad' } });
     await prisma.pedidoNovedad.delete({ where: { id } });
 
     res.json({ message: 'Novedad eliminada' });
