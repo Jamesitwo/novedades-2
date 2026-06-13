@@ -222,12 +222,18 @@ const getPdf = async (req, res) => {
     doc.moveDown(1.5);
 
     // Empresa info (left)
-    doc.fontSize(11).font('Helvetica-Bold').fillColor('#333').text('GestiónNovedades');
+    const empresaNombre = process.env.EMPRESA_NOMBRE || 'GestiónNovedades';
+    const empresaNit = process.env.EMPRESA_NIT || '900.123.456-7';
+    const empresaDireccion = process.env.EMPRESA_DIRECCION || 'Calle 123 #45-67, Bogotá';
+    const empresaTelefono = process.env.EMPRESA_TELEFONO || 'Tel: (601) 123-4567';
+    const empresaEmail = process.env.EMPRESA_EMAIL || 'info@novedades.com';
+
+    doc.fontSize(11).font('Helvetica-Bold').fillColor('#333').text(empresaNombre);
     doc.fontSize(9).font('Helvetica').fillColor('#666')
-      .text('NIT: 900.123.456-7')
-      .text('Calle 123 #45-67, Bogotá')
-      .text('Tel: (601) 123-4567')
-      .text('info@novedades.com');
+      .text(`NIT: ${empresaNit}`)
+      .text(empresaDireccion)
+      .text(empresaTelefono)
+      .text(empresaEmail);
 
     doc.moveDown();
 
@@ -244,10 +250,11 @@ const getPdf = async (req, res) => {
 
     // Table header
     const tableTop = doc.y;
-    const col1 = 50, col2 = 280, col3 = 370, col4 = 430, col5 = 500;
+    const col1 = 50, col2 = 270, col3 = 360, col4 = 440, col5 = 500;
+    const tableFullWidth = 510;
 
     doc.fontSize(9).font('Helvetica-Bold').fillColor('#fff');
-    doc.rect(50, tableTop - 3, 500, 18).fill('#6366f1');
+    doc.rect(50, tableTop - 3, tableFullWidth, 18).fill('#6366f1');
     doc.fillColor('#fff')
       .text('Descripción', col1 + 5, tableTop + 2)
       .text('Cant', col2, tableTop + 2, { width: 60, align: 'center' })
@@ -260,19 +267,19 @@ const getPdf = async (req, res) => {
 
     factura.items.forEach((item, i) => {
       if (i % 2 === 0) {
-        doc.rect(50, y - 2, 500, 16).fill('#f8f9fc');
+        doc.rect(50, y - 2, tableFullWidth, 16).fill('#f8f9fc');
       }
       doc.fillColor('#333')
-        .text(item.descripcion, col1 + 5, y, { width: 220 })
+        .text(item.descripcion, col1 + 5, y, { width: 210 })
         .text(String(item.cantidad), col2, y, { width: 60, align: 'center' })
         .text(`$${item.precioUnitario.toLocaleString('es-CO')}`, col3, y, { width: 70, align: 'right' })
         .text(`$${item.total.toLocaleString('es-CO')}`, col5, y, { width: 60, align: 'right' });
       y += 16;
     });
 
-    // Line
+    // Separator line
     doc.moveDown(0.5);
-    doc.moveTo(col4, doc.y).lineTo(550, doc.y).stroke('#ccc');
+    doc.moveTo(50, doc.y).lineTo(50 + tableFullWidth, doc.y).stroke('#ccc');
     doc.moveDown(0.3);
 
     // Totals
