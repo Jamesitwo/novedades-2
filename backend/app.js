@@ -18,6 +18,7 @@ const vistasRoutes = require('./src/routes/vistas.routes');
 const backupRoutes = require('./src/routes/backup.routes');
 const pizdoRoutes = require('./src/routes/pizdo.routes');
 const etiquetasRoutes = require('./src/routes/etiquetas.routes');
+const facturasRoutes = require('./src/routes/facturas.routes');
 
 const isProduction = process.env.NODE_ENV === 'production';
 const FRONTEND_URL = process.env.FRONTEND_URL;
@@ -81,6 +82,7 @@ app.use('/api/vistas', vistasRoutes);
 app.use('/api/backup', backupRoutes);
 app.use('/api/pizdo', pizdoRoutes);
 app.use('/api/etiquetas', etiquetasRoutes);
+app.use('/api/facturas', facturasRoutes);
 
 app.get('/api/health', (req, res) => {
   res.json({
