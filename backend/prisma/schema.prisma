@@ -178,6 +178,18 @@ model Configuracion {
   empresa_direccion            String?  @map("empresa_direccion")
   empresa_telefono             String?  @map("empresa_telefono")
   empresa_email                String?  @map("empresa_email")
+  empresa_logo                 String?  @map("empresa_logo")
+  empresa_banco                String?  @map("empresa_banco")
+  empresa_tipo_cuenta          String?  @map("empresa_tipo_cuenta")
+  empresa_numero_cuenta        String?  @map("empresa_numero_cuenta")
+  empresa_titular_cuenta       String?  @map("empresa_titular_cuenta")
+  factura_terminos             String?  @map("factura_terminos")
+  factura_resolucion           String?  @map("factura_resolucion")
+  factura_rango_desde          Int?     @map("factura_rango_desde")
+  factura_rango_hasta          Int?     @map("factura_rango_hasta")
+  factura_vigencia             String?  @map("factura_vigencia")
+  factura_pie_legal            String?  @map("factura_pie_legal")
+  factura_prefijo              String?  @map("factura_prefijo")
 }
 
 model ApiKey {
@@ -220,6 +232,7 @@ model Factura {
   iva              Float    @default(0)
   total            Float    @default(0)
   estado           String   @default("pendiente")
+  metodoPago       String?  @map("metodo_pago")
   notas            String?
   createdById      String   @map("created_by")
   createdBy        Usuario  @relation(fields: [createdById], references: [id])

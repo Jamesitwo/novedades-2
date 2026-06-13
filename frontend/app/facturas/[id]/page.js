@@ -80,6 +80,9 @@ export default function FacturaDetallePage() {
           <div><div style={{ fontSize: 11, color: 'var(--text3)' }}>NIT / CC</div><div className="td-mono">{factura.clienteDocumento || '—'}</div></div>
           <div><div style={{ fontSize: 11, color: 'var(--text3)' }}>Teléfono</div><div className="td-mono">{factura.clienteTelefono || '—'}</div></div>
           <div><div style={{ fontSize: 11, color: 'var(--text3)' }}>Dirección</div><div>{factura.clienteDireccion || '—'}</div></div>
+          {factura.metodoPago && (
+            <div className="span2"><div style={{ fontSize: 11, color: 'var(--text3)' }}>Método de pago</div><div style={{ fontWeight: 500, textTransform: 'capitalize' }}>{factura.metodoPago}</div></div>
+          )}
         </div>
       </div>
 

@@ -12,6 +12,7 @@ export default function NuevaFacturaPage() {
   const [items, setItems] = useState([{ descripcion: '', cantidad: 1, precioUnitario: 0 }]);
   const [iva, setIva] = useState(0);
   const [notas, setNotas] = useState('');
+  const [metodoPago, setMetodoPago] = useState('contraentrega');
 
   const showToast = (m, t = 'success') => { setToast({ message: m, type: t }); setTimeout(() => setToast(null), 4000); };
   const formatNum = (n) => Number(n).toLocaleString('es-CO');
@@ -46,6 +47,7 @@ export default function NuevaFacturaPage() {
         clienteDireccion: cliente.direccion || null,
         iva: parseFloat(iva) || 0,
         notas: notas || null,
+        metodoPago,
         items: items.map(i => ({ ...i, cantidad: parseInt(i.cantidad) || 1, precioUnitario: parseFloat(i.precioUnitario) || 0 }))
       });
       router.push('/facturas');
@@ -84,6 +86,16 @@ export default function NuevaFacturaPage() {
             <div className="form-group span2">
               <label>Dirección</label>
               <input value={cliente.direccion} onChange={e => setCliente({ ...cliente, direccion: e.target.value })} placeholder="Opcional" style={{ width: '100%' }} />
+            </div>
+            <div className="form-group">
+              <label>Método de pago</label>
+              <select value={metodoPago} onChange={e => setMetodoPago(e.target.value)}
+                style={{ width: '100%', background: 'var(--bg3)', border: '1px solid var(--border)', borderRadius: 8, padding: '9px 12px', color: 'var(--text)', fontSize: 13, outline: 'none', cursor: 'pointer' }}>
+                <option value="contraentrega">Contraentrega</option>
+                <option value="transferencia">Transferencia</option>
+                <option value="efectivo">Efectivo</option>
+                <option value="otro">Otro</option>
+              </select>
             </div>
           </div>
         </div>

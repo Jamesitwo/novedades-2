@@ -11,11 +11,10 @@ export default function ConfiguracionPage() {
     auto_asignar_oficina: false,
     metodo_asignacion: 'round_robin',
     operadores_incluidos: [],
-    empresa_nombre: '',
-    empresa_nit: '',
-    empresa_direccion: '',
-    empresa_telefono: '',
-    empresa_email: ''
+    empresa_nombre: '', empresa_nit: '', empresa_direccion: '', empresa_telefono: '', empresa_email: '',
+    empresa_logo: '', empresa_banco: '', empresa_tipo_cuenta: '', empresa_numero_cuenta: '', empresa_titular_cuenta: '',
+    factura_terminos: '', factura_resolucion: '', factura_rango_desde: '', factura_rango_hasta: '',
+    factura_vigencia: '', factura_pie_legal: '', factura_prefijo: ''
   });
   const [operadores, setOperadores] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -75,11 +74,15 @@ export default function ConfiguracionPage() {
         auto_asignar_oficina: config.auto_asignar_oficina,
         metodo_asignacion: config.metodo_asignacion,
         operadores_incluidos: config.operadores_incluidos,
-        empresa_nombre: config.empresa_nombre,
-        empresa_nit: config.empresa_nit,
-        empresa_direccion: config.empresa_direccion,
-        empresa_telefono: config.empresa_telefono,
-        empresa_email: config.empresa_email
+        empresa_nombre: config.empresa_nombre, empresa_nit: config.empresa_nit,
+        empresa_direccion: config.empresa_direccion, empresa_telefono: config.empresa_telefono,
+        empresa_email: config.empresa_email, empresa_logo: config.empresa_logo,
+        empresa_banco: config.empresa_banco, empresa_tipo_cuenta: config.empresa_tipo_cuenta,
+        empresa_numero_cuenta: config.empresa_numero_cuenta, empresa_titular_cuenta: config.empresa_titular_cuenta,
+        factura_terminos: config.factura_terminos, factura_resolucion: config.factura_resolucion,
+        factura_rango_desde: config.factura_rango_desde, factura_rango_hasta: config.factura_rango_hasta,
+        factura_vigencia: config.factura_vigencia, factura_pie_legal: config.factura_pie_legal,
+        factura_prefijo: config.factura_prefijo
       });
       showToast('Configuración guardada correctamente');
     } catch (error) {
@@ -291,6 +294,84 @@ export default function ConfiguracionPage() {
               placeholder="Ej: info@empresa.com"
               style={{ width: '100%' }}
             />
+          </div>
+        </div>
+      </div>
+
+      <div className="table-card" style={{ maxWidth: 700, marginTop: 16 }}>
+        <div className="table-header">
+          <span className="table-header-title">Logo de la Empresa</span>
+          <span style={{ fontSize: 11, color: 'var(--text3)' }}>URL de la imagen</span>
+        </div>
+        <div style={{ padding: 20 }}>
+          <input type="url" value={config.empresa_logo} onChange={e => setConfig(prev => ({ ...prev, empresa_logo: e.target.value }))}
+            placeholder="https://tudominio.com/logo.png" style={{ width: '100%' }} />
+          <p style={{ color: 'var(--text3)', fontSize: 11, marginTop: 8 }}>Aparece en la esquina superior izquierda de los PDF. Debe ser PNG o JPG, idealmente 200x200px.</p>
+        </div>
+      </div>
+
+      <div className="table-card" style={{ maxWidth: 700, marginTop: 16 }}>
+        <div className="table-header"><span className="table-header-title">Facturación</span></div>
+        <div style={{ padding: 20, display: 'grid', gap: 14 }}>
+          <div className="form-group"><label>Prefijo de numeración</label>
+            <input type="text" value={config.factura_prefijo} onChange={e => setConfig(prev => ({ ...prev, factura_prefijo: e.target.value }))}
+              placeholder="FAC" style={{ width: 120 }} />
+            <p style={{ color: 'var(--text3)', fontSize: 11, marginTop: 4 }}>Ej: FAC-0001, NV-0001</p>
+          </div>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 14 }}>
+            <div className="form-group"><label>Resolución DIAN</label>
+              <input type="text" value={config.factura_resolucion} onChange={e => setConfig(prev => ({ ...prev, factura_resolucion: e.target.value }))}
+                placeholder="N° 18764000012345" style={{ width: '100%' }} />
+            </div>
+            <div className="form-group"><label>Rango desde</label>
+              <input type="number" value={config.factura_rango_desde} onChange={e => setConfig(prev => ({ ...prev, factura_rango_desde: e.target.value }))}
+                placeholder="1" style={{ width: '100%' }} />
+            </div>
+            <div className="form-group"><label>Rango hasta</label>
+              <input type="number" value={config.factura_rango_hasta} onChange={e => setConfig(prev => ({ ...prev, factura_rango_hasta: e.target.value }))}
+                placeholder="5000" style={{ width: '100%' }} />
+            </div>
+          </div>
+          <div className="form-group"><label>Vigencia</label>
+            <input type="text" value={config.factura_vigencia} onChange={e => setConfig(prev => ({ ...prev, factura_vigencia: e.target.value }))}
+              placeholder="2027-12-31" style={{ width: 120 }} />
+          </div>
+          <div className="form-group"><label>Términos y condiciones</label>
+            <textarea value={config.factura_terminos} onChange={e => setConfig(prev => ({ ...prev, factura_terminos: e.target.value }))}
+              placeholder="Pago a 30 días. 2% descuento por pronto pago..." rows={3}></textarea>
+          </div>
+          <div className="form-group"><label>Pie de página legal</label>
+            <input type="text" value={config.factura_pie_legal} onChange={e => setConfig(prev => ({ ...prev, factura_pie_legal: e.target.value }))}
+              placeholder="Documento generado por sistema..." style={{ width: '100%' }} />
+          </div>
+        </div>
+      </div>
+
+      <div className="table-card" style={{ maxWidth: 700, marginTop: 16 }}>
+        <div className="table-header">
+          <span className="table-header-title">Datos Bancarios</span>
+          <span style={{ fontSize: 11, color: 'var(--text3)' }}>Solo se muestran en facturas con método Transferencia</span>
+        </div>
+        <div style={{ padding: 20, display: 'grid', gap: 14 }}>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
+            <div className="form-group"><label>Banco</label>
+              <input type="text" value={config.empresa_banco} onChange={e => setConfig(prev => ({ ...prev, empresa_banco: e.target.value }))}
+                placeholder="Bancolombia" style={{ width: '100%' }} />
+            </div>
+            <div className="form-group"><label>Tipo de cuenta</label>
+              <input type="text" value={config.empresa_tipo_cuenta} onChange={e => setConfig(prev => ({ ...prev, empresa_tipo_cuenta: e.target.value }))}
+                placeholder="Ahorros / Corriente" style={{ width: '100%' }} />
+            </div>
+          </div>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
+            <div className="form-group"><label>Número de cuenta</label>
+              <input type="text" value={config.empresa_numero_cuenta} onChange={e => setConfig(prev => ({ ...prev, empresa_numero_cuenta: e.target.value }))}
+                placeholder="123-456789-00" style={{ width: '100%' }} />
+            </div>
+            <div className="form-group"><label>Titular de la cuenta</label>
+              <input type="text" value={config.empresa_titular_cuenta} onChange={e => setConfig(prev => ({ ...prev, empresa_titular_cuenta: e.target.value }))}
+                placeholder="GestiónNovedades SAS" style={{ width: '100%' }} />
+            </div>
           </div>
         </div>
       </div>
