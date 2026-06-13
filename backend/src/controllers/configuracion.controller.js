@@ -76,15 +76,6 @@ const updateConfiguracion = async (req, res) => {
           ...extraData
         }
       });
-    } else {
-      const data = {
-        auto_asignar_novedades: auto_asignar_novedades ?? config.auto_asignar_novedades,
-        auto_asignar_oficina: auto_asignar_oficina ?? config.auto_asignar_oficina,
-        metodo_asignacion: metodo_asignacion ?? config.metodo_asignacion,
-        operadores_incluidos: JSON.stringify(operadores_incluidos ?? JSON.parse(config.operadores_incluidos)),
-        ...empresaData
-      };
-      config = await prisma.configuracion.update({ where: { id: config.id }, data });
     }
 
     res.json({
