@@ -34,8 +34,18 @@ export default function FacturaDetallePage() {
     } catch { showToast('Error', 'error'); }
   };
 
-  const downloadPdf = () => {
-    window.open(`/api/facturas/${params.id}/pdf`, '_blank');
+  const downloadPdf = async () => {
+    try {
+      const res = await api.get(`/api/facturas/${params.id}/pdf`, { responseType: 'blob' });
+      const url = window.URL.createObjectURL(new Blob([res.data]));
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `factura-${factura.numero}.pdf`;
+      a.click();
+      window.URL.revokeObjectURL(url);
+    } catch {
+      showToast('Error al descargar PDF', 'error');
+    }
   };
 
   if (loading) return <div className="content"><div className="loading">Cargando...</div></div>;

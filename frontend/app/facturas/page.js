@@ -47,6 +47,18 @@ export default function FacturasPage() {
     catch { showToast('Error al eliminar', 'error'); }
   };
 
+  const downloadPdf = async (f) => {
+    try {
+      const res = await api.get(`/api/facturas/${f.id}/pdf`, { responseType: 'blob' });
+      const url = window.URL.createObjectURL(new Blob([res.data]));
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `factura-${f.numero}.pdf`;
+      a.click();
+      window.URL.revokeObjectURL(url);
+    } catch { showToast('Error al descargar PDF', 'error'); }
+  };
+
   return (
     <div className="content">
       {toast && <div style={{ position: 'fixed', top: 20, right: 20, zIndex: 9999, background: toast.type === 'error' ? 'var(--red)' : 'var(--green)', color: '#fff', padding: '12px 20px', borderRadius: 10, boxShadow: '0 4px 20px rgba(0,0,0,0.3)', fontSize: 14, fontWeight: 500 }}>{toast.message}</div>}
@@ -114,7 +126,7 @@ export default function FacturasPage() {
                   <td>
                     <div className="row-actions">
                       <Link href={`/facturas/${f.id}`} className="action-btn">Ver</Link>
-                      <a href={`${process.env.NEXT_PUBLIC_API_URL || ''}/api/facturas/${f.id}/pdf`} target="_blank" className="action-btn" style={{ color: 'var(--accent2)' }}>PDF</a>
+                      <button onClick={() => downloadPdf(f)} className="action-btn" style={{ color: 'var(--accent2)' }}>PDF</button>
                       {f.estado === 'pendiente' && <button onClick={() => handleEstado(f.id, 'pagada')} className="action-btn" style={{ color: 'var(--green)' }}>Pagar</button>}
                       {usuario?.rol === 'admin' && <button onClick={() => handleDelete(f)} className="action-btn danger">Eliminar</button>}
                     </div>
