@@ -59,11 +59,11 @@ const getAll = async (req, res) => {
     if (transportadora) where.transportadora = { contains: transportadora };
     if (search) {
       where.OR = [
-        { nombre: { contains: search } },
-        { apellido: { contains: search } },
-        { guia: { contains: search } },
-        { producto: { contains: search } },
-        { celular: { contains: search } }
+        { nombre: { contains: search, mode: 'insensitive' } },
+        { apellido: { contains: search, mode: 'insensitive' } },
+        { guia: { contains: search, mode: 'insensitive' } },
+        { producto: { contains: search, mode: 'insensitive' } },
+        { celular: { contains: search, mode: 'insensitive' } }
       ];
     }
     if (fechaDesde || fechaHasta) {
