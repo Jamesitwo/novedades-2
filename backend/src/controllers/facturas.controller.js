@@ -277,19 +277,23 @@ const getPdf = async (req, res) => {
 
     // Totals
     const totX = 400;
+
+    const subtotalY = doc.y;
     doc.fontSize(9).font('Helvetica').fillColor('#666')
-      .text('Subtotal:', totX, doc.y, { width: 100, align: 'right' })
-      .text(`$${factura.subtotal.toLocaleString('es-CO')}`, col5, doc.y - 12, { width: 60, align: 'right' });
+      .text('Subtotal:', totX, subtotalY, { width: 100, align: 'right' })
+      .text(`$${factura.subtotal.toLocaleString('es-CO')}`, col5, subtotalY, { width: 60, align: 'right' });
 
     doc.moveDown(0.3);
+    const ivaY = doc.y;
     doc.fillColor('#666')
-      .text('IVA:', totX, doc.y, { width: 100, align: 'right' })
-      .text(`$${factura.iva.toLocaleString('es-CO')}`, col5, doc.y - 12, { width: 60, align: 'right' });
+      .text('IVA:', totX, ivaY, { width: 100, align: 'right' })
+      .text(`$${factura.iva.toLocaleString('es-CO')}`, col5, ivaY, { width: 60, align: 'right' });
 
     doc.moveDown(0.3);
+    const totalY = doc.y;
     doc.fontSize(11).font('Helvetica-Bold').fillColor('#333')
-      .text('TOTAL:', totX, doc.y, { width: 100, align: 'right' })
-      .text(`$${factura.total.toLocaleString('es-CO')}`, col5, doc.y - 14, { width: 60, align: 'right' });
+      .text('TOTAL:', totX, totalY, { width: 100, align: 'right' })
+      .text(`$${factura.total.toLocaleString('es-CO')}`, col5, totalY, { width: 60, align: 'right' });
 
     // Footer
     doc.moveDown(2);
