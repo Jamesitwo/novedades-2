@@ -10,7 +10,12 @@ export default function ConfiguracionPage() {
     auto_asignar_novedades: false,
     auto_asignar_oficina: false,
     metodo_asignacion: 'round_robin',
-    operadores_incluidos: []
+    operadores_incluidos: [],
+    empresa_nombre: '',
+    empresa_nit: '',
+    empresa_direccion: '',
+    empresa_telefono: '',
+    empresa_email: ''
   });
   const [operadores, setOperadores] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -69,7 +74,12 @@ export default function ConfiguracionPage() {
         auto_asignar_novedades: config.auto_asignar_novedades,
         auto_asignar_oficina: config.auto_asignar_oficina,
         metodo_asignacion: config.metodo_asignacion,
-        operadores_incluidos: config.operadores_incluidos
+        operadores_incluidos: config.operadores_incluidos,
+        empresa_nombre: config.empresa_nombre,
+        empresa_nit: config.empresa_nit,
+        empresa_direccion: config.empresa_direccion,
+        empresa_telefono: config.empresa_telefono,
+        empresa_email: config.empresa_email
       });
       showToast('Configuración guardada correctamente');
     } catch (error) {
@@ -220,6 +230,67 @@ export default function ConfiguracionPage() {
                 No hay operadores disponibles
               </p>
             )}
+          </div>
+        </div>
+      </div>
+
+      <div className="table-card" style={{ maxWidth: 700, marginTop: 16 }}>
+        <div className="table-header">
+          <span className="table-header-title">Datos de la Empresa</span>
+          <span style={{ fontSize: 11, color: 'var(--text3)' }}>Aparecen en las facturas PDF</span>
+        </div>
+        <div style={{ padding: 20, display: 'grid', gap: 14 }}>
+          <div className="form-group">
+            <label>Nombre de la empresa</label>
+            <input
+              type="text"
+              value={config.empresa_nombre}
+              onChange={e => setConfig(prev => ({ ...prev, empresa_nombre: e.target.value }))}
+              placeholder="Ej: GestiónNovedades SAS"
+              style={{ width: '100%' }}
+            />
+          </div>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
+            <div className="form-group">
+              <label>NIT</label>
+              <input
+                type="text"
+                value={config.empresa_nit}
+                onChange={e => setConfig(prev => ({ ...prev, empresa_nit: e.target.value }))}
+                placeholder="Ej: 900.123.456-7"
+                style={{ width: '100%' }}
+              />
+            </div>
+            <div className="form-group">
+              <label>Teléfono</label>
+              <input
+                type="text"
+                value={config.empresa_telefono}
+                onChange={e => setConfig(prev => ({ ...prev, empresa_telefono: e.target.value }))}
+                placeholder="Ej: (601) 123-4567"
+                style={{ width: '100%' }}
+              />
+            </div>
+          </div>
+          <div className="form-group">
+            <label>Dirección</label>
+            <input
+              type="text"
+              value={config.empresa_direccion}
+              onChange={e => setConfig(prev => ({ ...prev, empresa_direccion: e.target.value }))}
+              placeholder="Ej: Calle 123 #45-67, Bogotá"
+              style={{ width: '100%' }}
+            />
+          </div>
+          <div className="form-group">
+            <label>Email</label>
+            <input
+              type="email"
+              value={config.empresa_email}
+              onChange={e => setConfig(prev => ({ ...prev, empresa_email: e.target.value }))}
+              placeholder="Ej: info@empresa.com"
+              style={{ width: '100%' }}
+            />
           </div>
         </div>
       </div>

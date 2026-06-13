@@ -173,6 +173,11 @@ model Configuracion {
   metodo_asignacion            String   @default("round_robin") @map("metodo_asignacion")
   operadores_incluidos         String   @default("[]") @map("operadores_incluidos")
   ultimo_indice_round_robin    Int      @default(0) @map("ultimo_indice_round_robin")
+  empresa_nombre               String?  @map("empresa_nombre")
+  empresa_nit                  String?  @map("empresa_nit")
+  empresa_direccion            String?  @map("empresa_direccion")
+  empresa_telefono             String?  @map("empresa_telefono")
+  empresa_email                String?  @map("empresa_email")
 }
 
 model ApiKey {

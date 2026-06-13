@@ -222,11 +222,12 @@ const getPdf = async (req, res) => {
     doc.moveDown(1.5);
 
     // Empresa info (left)
-    const empresaNombre = process.env.EMPRESA_NOMBRE || 'GestiónNovedades';
-    const empresaNit = process.env.EMPRESA_NIT || '900.123.456-7';
-    const empresaDireccion = process.env.EMPRESA_DIRECCION || 'Calle 123 #45-67, Bogotá';
-    const empresaTelefono = process.env.EMPRESA_TELEFONO || 'Tel: (601) 123-4567';
-    const empresaEmail = process.env.EMPRESA_EMAIL || 'info@novedades.com';
+    const config = await prisma.configuracion.findFirst();
+    const empresaNombre = config?.empresa_nombre || 'GestiónNovedades';
+    const empresaNit = config?.empresa_nit || '900.123.456-7';
+    const empresaDireccion = config?.empresa_direccion || 'Calle 123 #45-67, Bogotá';
+    const empresaTelefono = config?.empresa_telefono || 'Tel: (601) 123-4567';
+    const empresaEmail = config?.empresa_email || 'info@novedades.com';
 
     doc.fontSize(11).font('Helvetica-Bold').fillColor('#333').text(empresaNombre);
     doc.fontSize(9).font('Helvetica').fillColor('#666')
