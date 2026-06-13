@@ -58,13 +58,16 @@ const getAll = async (req, res) => {
 
     if (transportadora) where.transportadora = { contains: transportadora };
     if (search) {
-      where.OR = [
-        { nombre: { contains: search, mode: 'insensitive' } },
-        { apellido: { contains: search, mode: 'insensitive' } },
-        { guia: { contains: search, mode: 'insensitive' } },
-        { producto: { contains: search, mode: 'insensitive' } },
-        { celular: { contains: search, mode: 'insensitive' } }
-      ];
+      const words = search.split(/\s+/).filter(Boolean);
+      where.AND = words.map(word => ({
+        OR: [
+          { nombre: { contains: word, mode: 'insensitive' } },
+          { apellido: { contains: word, mode: 'insensitive' } },
+          { guia: { contains: word, mode: 'insensitive' } },
+          { producto: { contains: word, mode: 'insensitive' } },
+          { celular: { contains: word, mode: 'insensitive' } }
+        ]
+      }));
     }
     if (fechaDesde || fechaHasta) {
       where.createdAt = {};

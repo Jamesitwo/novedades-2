@@ -10,8 +10,8 @@ const getAll = async (req, res) => {
     if (estado) where.estado = estado;
     if (search) {
       where.OR = [
-        { clienteNombre: { contains: search } },
-        { clienteDocumento: { contains: search } },
+        { clienteNombre: { contains: search, mode: 'insensitive' } },
+        { clienteDocumento: { contains: search, mode: 'insensitive' } },
         { numero: isNaN(search) ? undefined : parseInt(search) }
       ].filter(Boolean);
     }

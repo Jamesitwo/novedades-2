@@ -8,10 +8,13 @@ const getAll = async (req, res) => {
     if (potencial) where.potencial = potencial;
     if (categoria) where.categoria = categoria;
     if (search) {
-      where.OR = [
-        { nombre: { contains: search } },
-        { dropiId: { contains: search } }
-      ];
+      const words = search.split(/\s+/).filter(Boolean);
+      where.AND = words.map(word => ({
+        OR: [
+          { nombre: { contains: word, mode: 'insensitive' } },
+          { dropiId: { contains: word, mode: 'insensitive' } }
+        ]
+      }));
     }
 
     const orderBy = {

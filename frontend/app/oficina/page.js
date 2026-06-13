@@ -41,6 +41,18 @@ export default function OficinaPage() {
   const [soloFavoritos, setSoloFavoritos] = useState(false);
   const [counts, setCounts] = useState({ pendiente_llamar: 0, contactado: 0, va_a_recoger: 0, no_va_a_recoger: 0, devolucion: 0 });
 
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const p = new URLSearchParams(window.location.search);
+    if (p.has('search')) setSearch(p.get('search'));
+    if (p.has('transportadora')) setTransportadora(p.get('transportadora'));
+    if (p.has('fechaDesde')) setFechaDesde(p.get('fechaDesde'));
+    if (p.has('fechaHasta')) setFechaHasta(p.get('fechaHasta'));
+    if (p.has('favorito')) setSoloFavoritos(true);
+    if (p.has('pageSize')) setPageSize(parseInt(p.get('pageSize')) || 20);
+    try { if (p.has('estados')) setFiltrosEstado(JSON.parse(p.get('estados'))); } catch {}
+  }, []);
+
   const showToast = (message, type = 'success') => {
     setToast({ message, type });
     setTimeout(() => setToast(null), 4000);

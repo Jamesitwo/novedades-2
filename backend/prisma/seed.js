@@ -42,41 +42,49 @@ async function main() {
 
   console.log('\n📦 Creando datos de prueba...');
 
-  const pedidoNovedad = await prisma.pedidoNovedad.create({
-    data: {
-      nombre: 'Juan',
-      apellido: 'Pérez',
-      celular: '3001234567',
-      producto: 'Laptop HP Pavilion 15',
-      totalAPagar: 2500000,
-      transportadora: 'Servientrega',
-      guia: 'SE123456789',
-      motivoNovedad: 'No atendido en domicilio',
-      estado: 'novedad',
-      createdById: admin.id
-    }
-  });
+  const existente = await prisma.pedidoNovedad.findFirst({ where: { guia: 'SE123456789' } });
+  if (!existente) {
+    const pedidoNovedad = await prisma.pedidoNovedad.create({
+      data: {
+        nombre: 'Juan',
+        apellido: 'Pérez',
+        celular: '3001234567',
+        producto: 'Laptop HP Pavilion 15',
+        totalAPagar: 2500000,
+        transportadora: 'Servientrega',
+        guia: 'SE123456789',
+        motivoNovedad: 'No atendido en domicilio',
+        estado: 'novedad',
+        createdById: admin.id
+      }
+    });
+    console.log('✅ Novedad creada:', pedidoNovedad.id);
+  } else {
+    console.log('⏭ Novedad de prueba ya existe');
+  }
 
-  console.log('✅ Novedad creada:', pedidoNovedad.id);
+  const existenteOficina = await prisma.pedidoOficina.findFirst({ where: { guia: 'INT987654321' } });
+  if (!existenteOficina) {
+    const fechaLimite = new Date();
+    fechaLimite.setDate(fechaLimite.getDate() + 5);
 
-  const fechaLimite = new Date();
-  fechaLimite.setDate(fechaLimite.getDate() + 5);
-
-  const pedidoOficina = await prisma.pedidoOficina.create({
-    data: {
-      nombre: 'María',
-      apellido: 'García',
-      celular: '3109876543',
-      producto: 'Audífonos Sony WH-1000XM4',
-      transportadora: 'Interrapidisimo',
-      guia: 'INT987654321',
-      fechaLimite: fechaLimite,
-      estado: 'pendiente_llamar',
-      createdById: admin.id
-    }
-  });
-
-  console.log('✅ Pedido oficina creado:', pedidoOficina.id);
+    const pedidoOficina = await prisma.pedidoOficina.create({
+      data: {
+        nombre: 'María',
+        apellido: 'García',
+        celular: '3109876543',
+        producto: 'Audífonos Sony WH-1000XM4',
+        transportadora: 'Interrapidisimo',
+        guia: 'INT987654321',
+        fechaLimite: fechaLimite,
+        estado: 'pendiente_llamar',
+        createdById: admin.id
+      }
+    });
+    console.log('✅ Pedido oficina creado:', pedidoOficina.id);
+  } else {
+    console.log('⏭ Pedido oficina de prueba ya existe');
+  }
 
   console.log('\n🎉 Seed completado! Database lista para pruebas.');
 }
