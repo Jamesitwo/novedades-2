@@ -207,14 +207,7 @@ const getPdf = async (req, res) => {
 
     const doc = new PDFDocument({ margin: 50, size: 'A4' });
 
-    // QR Code
-    const frontendUrl = process.env.FRONTEND_URL || '';
-    const qrData = frontendUrl ? `${frontendUrl}/facturas/${factura.id}` : `Factura #${factura.numero}`;
-    const qrBuffer = await QRCode.toBuffer(qrData, { width: 120, margin: 1, color: { dark: '#1a1d2e', light: '#ffffff' } });
-
-    const headerY = doc.y;
-    doc.image(qrBuffer, 440, 50, { width: 80 });
-    doc.y = headerY;
+    res.setHeader('Content-Type', 'application/pdf');
     res.setHeader('Content-Disposition', `attachment; filename=factura-${factura.numero}.pdf`);
     doc.pipe(res);
 
@@ -310,6 +303,16 @@ const getPdf = async (req, res) => {
     doc.fontSize(11).font('Helvetica-Bold').fillColor('#333')
       .text('TOTAL:', totX, totalY, { width: 100, align: 'right' })
       .text(`$${factura.total.toLocaleString('es-CO')}`, col5, totalY, { width: 60, align: 'right' });
+
+    // QR Code (bottom right, aligned with totals)
+    doc.moveDown(0.5);
+    const qrY = doc.y;
+    const frontendUrl = process.env.FRONTEND_URL || '';
+    const qrData = frontendUrl ? `${frontendUrl}/facturas/${factura.id}` : `Factura #${factura.numero}`;
+    const qrBuffer = await QRCode.toBuffer(qrData, { width: 120, margin: 1, color: { dark: '#1a1d2e', light: '#ffffff' } });
+    doc.image(qrBuffer, 430, qrY, { width: 80 });
+    doc.fontSize(7).font('Helvetica').fillColor('#999')
+      .text('Escanear para ver factura', 430, qrY + 85, { width: 80, align: 'center' });
 
     // Footer
     doc.moveDown(2);
