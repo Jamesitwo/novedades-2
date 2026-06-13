@@ -252,7 +252,7 @@ const getPdf = async (req, res) => {
     // Table header
     const tableTop = doc.y;
     const col1 = 50, col2 = 270, col3 = 360, col4 = 440, col5 = 500;
-    const tableFullWidth = 510;
+    const tableFullWidth = 515;
 
     doc.fontSize(9).font('Helvetica-Bold').fillColor('#fff');
     doc.rect(50, tableTop - 3, tableFullWidth, 18).fill('#6366f1');
@@ -306,8 +306,7 @@ const getPdf = async (req, res) => {
     // Footer
     doc.moveDown(2);
     doc.fontSize(8).font('Helvetica').fillColor('#999')
-      .text(`Estado: ${factura.estado.toUpperCase()}`, 50, doc.y)
-      .text(`Generado por: ${factura.createdBy.nombre}`, 50, doc.y + 12);
+      .text(`Estado: ${factura.estado.toUpperCase()}`, 50, doc.y);
 
     if (factura.notas) {
       doc.moveDown(0.5);
