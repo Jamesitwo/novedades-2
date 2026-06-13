@@ -14,6 +14,7 @@ export default function EditarNovedadPage() {
     nombre: '',
     apellido: '',
     celular: '',
+    celular2: '',
     producto: '',
     totalAPagar: '',
     transportadora: '',
@@ -31,6 +32,7 @@ export default function EditarNovedadPage() {
           nombre: data.nombre || '',
           apellido: data.apellido || '',
           celular: data.celular || '',
+          celular2: data.celular2 || '',
           producto: data.producto || '',
           totalAPagar: data.totalAPagar?.toString() || '',
           transportadora: data.transportadora || '',
@@ -105,6 +107,10 @@ export default function EditarNovedadPage() {
               <div className="form-group">
                 <label>Celular</label>
                 <input type="text" name="celular" value={formData.celular} onChange={handleChange} required />
+              </div>
+              <div className="form-group">
+                <label>Celular 2</label>
+                <input type="text" name="celular2" value={formData.celular2} onChange={handleChange} placeholder="Opcional" />
               </div>
               <div className="form-group">
                 <label>Total a pagar</label>

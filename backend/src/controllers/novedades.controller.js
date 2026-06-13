@@ -200,7 +200,7 @@ const getById = async (req, res) => {
 
 const create = async (req, res) => {
   try {
-    const { nombre, apellido, celular, producto, totalAPagar, transportadora, guia, motivoNovedad, notas, conversacionLink } = req.body;
+    const { nombre, apellido, celular, celular2, producto, totalAPagar, transportadora, guia, motivoNovedad, notas, conversacionLink } = req.body;
 
     const asignadoId = await getNextOperador('novedades');
 
@@ -209,6 +209,7 @@ const create = async (req, res) => {
         nombre,
         apellido,
         celular,
+        celular2: celular2 || null,
         producto,
         totalAPagar: parseFloat(totalAPagar) || 0,
         transportadora,
@@ -235,7 +236,7 @@ const create = async (req, res) => {
 const update = async (req, res) => {
   try {
     const { id } = req.params;
-    const { nombre, apellido, celular, producto, totalAPagar, transportadora, guia, motivoNovedad, notas, conversacionLink } = req.body;
+    const { nombre, apellido, celular, celular2, producto, totalAPagar, transportadora, guia, motivoNovedad, notas, conversacionLink } = req.body;
 
     const actual = await prisma.pedidoNovedad.findUnique({ where: { id } });
     if (!actual) {
@@ -262,6 +263,7 @@ const update = async (req, res) => {
         nombre, apellido, celular, producto,
         totalAPagar: req.body.totalAPagar !== undefined ? parseFloat(req.body.totalAPagar) : undefined,
         transportadora, guia, motivoNovedad, notas,
+        celular2: req.body.celular2 !== undefined ? (req.body.celular2 || null) : undefined,
         conversacionLink: req.body.conversacionLink !== undefined ? (req.body.conversacionLink || null) : undefined
       },
       include: {

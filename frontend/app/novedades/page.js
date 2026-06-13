@@ -641,6 +641,9 @@ export default function NovedadesPage() {
                     <td>
                       <div className="td-name">{novedad.nombre} {novedad.apellido}</div>
                       <div className="td-mono" style={{ color: 'var(--text3)' }}>{novedad.celular}</div>
+                      {novedad.celular2 && (
+                        <div className="td-mono" style={{ color: 'var(--accent2)', fontSize: 11 }}>{novedad.celular2}</div>
+                      )}
                       {novedad._etiquetas && novedad._etiquetas.length > 0 && (
                         <div style={{ display: 'flex', gap: 4, marginTop: 4, flexWrap: 'wrap' }}>
                           {novedad._etiquetas.map(e => (

@@ -148,7 +148,7 @@ export default function EtiquetasPage() {
                     {new Date(e.createdAt).toLocaleDateString('es-CO')}
                   </td>
                   <td>
-                    {usuario?.rol === 'admin' ? (
+                    {(usuario?.rol === 'admin' || e.createdById === usuario?.id) ? (
                       <div className="row-actions">
                         <button onClick={() => openModal(e)} className="action-btn">Editar</button>
                         <button onClick={() => handleDelete(e)} className="action-btn danger">Eliminar</button>

@@ -12,6 +12,7 @@ export default function NuevaNovedadPage() {
     nombre: '',
     apellido: '',
     celular: '',
+    celular2: '',
     producto: '',
     totalAPagar: '',
     transportadora: '',
@@ -74,6 +75,10 @@ export default function NuevaNovedadPage() {
               <div className="form-group">
                 <label>Celular</label>
                 <input type="text" name="celular" value={formData.celular} onChange={handleChange} required placeholder="3001234567" />
+              </div>
+              <div className="form-group">
+                <label>Celular 2</label>
+                <input type="text" name="celular2" value={formData.celular2} onChange={handleChange} placeholder="Opcional" />
               </div>
               <div className="form-group">
                 <label>Total a pagar</label>

@@ -272,6 +272,12 @@ export default function NovedadDetallePage() {
             <div className="detail-field-label">Celular</div>
             <div className="detail-field-value td-mono">{novedad.celular}</div>
           </div>
+          {novedad.celular2 && (
+            <div className="detail-field">
+              <div className="detail-field-label">Celular 2</div>
+              <div className="detail-field-value td-mono" style={{ color: 'var(--accent2)' }}>{novedad.celular2}</div>
+            </div>
+          )}
           <div className="detail-field">
             <div className="detail-field-label">Total a pagar</div>
             <div className="detail-field-value td-mono">${Number(novedad.totalAPagar).toLocaleString()}</div>

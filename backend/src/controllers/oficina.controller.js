@@ -200,7 +200,7 @@ const getById = async (req, res) => {
 
 const create = async (req, res) => {
   try {
-    const { nombre, apellido, celular, producto, precio, transportadora, guia, imagenGuiaUrl, fechaLlegada, notas, notasInternas, conversacionLink } = req.body;
+    const { nombre, apellido, celular, celular2, producto, precio, transportadora, guia, imagenGuiaUrl, fechaLlegada, notas, notasInternas, conversacionLink } = req.body;
 
     const fechaLimite = fechaLlegada
       ? new Date(new Date(fechaLlegada).getTime() + 7 * 24 * 60 * 60 * 1000)
@@ -213,6 +213,7 @@ const create = async (req, res) => {
         nombre,
         apellido,
         celular,
+        celular2: celular2 || null,
         producto,
         precio: parseFloat(precio) || 0,
         transportadora,
@@ -241,7 +242,7 @@ const create = async (req, res) => {
 const update = async (req, res) => {
   try {
     const { id } = req.params;
-    const { nombre, apellido, celular, producto, precio, transportadora, guia, imagenGuiaUrl, fechaLlegada, notas, notasInternas, conversacionLink } = req.body;
+    const { nombre, apellido, celular, celular2, producto, precio, transportadora, guia, imagenGuiaUrl, fechaLlegada, notas, notasInternas, conversacionLink } = req.body;
 
     const actual = await prisma.pedidoOficina.findUnique({ where: { id } });
     if (!actual) {
@@ -269,6 +270,7 @@ const update = async (req, res) => {
     }
 
     const data = { nombre, apellido, celular, producto, transportadora, guia, imagenGuiaUrl, notas, notasInternas };
+    if (req.body.celular2 !== undefined) data.celular2 = req.body.celular2 || null;
     if (req.body.precio !== undefined) data.precio = parseFloat(req.body.precio) || 0;
     if (req.body.conversacionLink !== undefined) data.conversacionLink = req.body.conversacionLink || null;
     if (fechaLlegada) {

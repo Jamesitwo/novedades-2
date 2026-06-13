@@ -4,7 +4,7 @@ const getAll = async (req, res) => {
   try {
     const etiquetas = await prisma.etiqueta.findMany({
       orderBy: { nombre: 'asc' },
-      select: { id: true, nombre: true, color: true, createdAt: true }
+      select: { id: true, nombre: true, color: true, createdById: true, createdAt: true }
     });
     res.json(etiquetas);
   } catch (error) {
@@ -46,6 +46,10 @@ const update = async (req, res) => {
       return res.status(404).json({ error: 'Etiqueta no encontrada' });
     }
 
+    if (req.usuario.rol !== 'admin' && existente.createdById !== req.usuario.id) {
+      return res.status(403).json({ error: 'Solo puedes editar tus propias etiquetas' });
+    }
+
     const data = {};
     if (nombre !== undefined) data.nombre = nombre;
     if (color !== undefined) data.color = color;
@@ -66,6 +70,15 @@ const update = async (req, res) => {
 const remove = async (req, res) => {
   try {
     const { id } = req.params;
+
+    const existente = await prisma.etiqueta.findUnique({ where: { id } });
+    if (!existente) {
+      return res.status(404).json({ error: 'Etiqueta no encontrada' });
+    }
+
+    if (req.usuario.rol !== 'admin' && existente.createdById !== req.usuario.id) {
+      return res.status(403).json({ error: 'Solo puedes eliminar tus propias etiquetas' });
+    }
 
     await prisma.registroEtiqueta.deleteMany({ where: { etiquetaId: id } });
     await prisma.etiqueta.delete({ where: { id } });

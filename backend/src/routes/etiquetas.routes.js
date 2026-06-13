@@ -8,7 +8,7 @@ router.use(authMiddleware);
 
 router.get('/', getAll);
 router.post('/', create);
-router.put('/:id', adminOnly, update);
-router.delete('/:id', adminOnly, remove);
+router.put('/:id', update);
+router.delete('/:id', remove);
 
 module.exports = router;

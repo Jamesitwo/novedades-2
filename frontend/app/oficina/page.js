@@ -595,6 +595,9 @@ export default function OficinaPage() {
                       <td>
                         <div className="td-name">{pedido.nombre} {pedido.apellido}</div>
                         <div className="td-mono" style={{ color: 'var(--text3)' }}>{pedido.celular}</div>
+                        {pedido.celular2 && (
+                          <div className="td-mono" style={{ color: 'var(--accent2)', fontSize: 11 }}>{pedido.celular2}</div>
+                        )}
                         {pedido._etiquetas && pedido._etiquetas.length > 0 && (
                           <div style={{ display: 'flex', gap: 4, marginTop: 4, flexWrap: 'wrap' }}>
                             {pedido._etiquetas.map(e => (
