@@ -19,15 +19,23 @@ const TRANSPORTADORAS = ['Servientrega', 'Coordinadora', 'Envia', 'TCC', 'Interr
 
 export default function OficinaPage() {
   const { usuario } = useAuthStore();
+  const getParam = (key, fallback = '') => {
+    if (typeof window === 'undefined') return fallback;
+    const p = new URLSearchParams(window.location.search);
+    return p.get(key) || fallback;
+  };
   const [pedidos, setPedidos] = useState([]);
   const [pagination, setPagination] = useState(null);
   const [transferencias, setTransferencias] = useState([]);
-  const [filtrosEstado, setFiltrosEstado] = useState([]);
+  const [filtrosEstado, setFiltrosEstado] = useState(() => {
+    if (typeof window === 'undefined') return [];
+    try { const e = new URLSearchParams(window.location.search).get('estados'); return e ? JSON.parse(e) : []; } catch { return []; }
+  });
   const [mostrarAsignados, setMostrarAsignados] = useState(false);
-  const [transportadora, setTransportadora] = useState('');
-  const [search, setSearch] = useState('');
-  const [fechaDesde, setFechaDesde] = useState('');
-  const [fechaHasta, setFechaHasta] = useState('');
+  const [transportadora, setTransportadora] = useState(() => getParam('transportadora'));
+  const [search, setSearch] = useState(() => getParam('search'));
+  const [fechaDesde, setFechaDesde] = useState(() => getParam('fechaDesde'));
+  const [fechaHasta, setFechaHasta] = useState(() => getParam('fechaHasta'));
   const [loading, setLoading] = useState(true);
   const [selected, setSelected] = useState([]);
   const [showBulkMenuEstado, setShowBulkMenuEstado] = useState(false);
@@ -37,21 +45,12 @@ export default function OficinaPage() {
   const [toast, setToast] = useState(null);
   const [confirmModal, setConfirmModal] = useState(null);
   const [searchTimeout, setSearchTimeout] = useState(null);
-  const [pageSize, setPageSize] = useState(20);
-  const [soloFavoritos, setSoloFavoritos] = useState(false);
+  const [pageSize, setPageSize] = useState(() => {
+    if (typeof window === 'undefined') return 20;
+    return parseInt(new URLSearchParams(window.location.search).get('pageSize')) || 20;
+  });
+  const [soloFavoritos, setSoloFavoritos] = useState(() => new URLSearchParams(typeof window !== 'undefined' ? window.location.search : '').has('favorito'));
   const [counts, setCounts] = useState({ pendiente_llamar: 0, contactado: 0, va_a_recoger: 0, no_va_a_recoger: 0, devolucion: 0 });
-
-  useEffect(() => {
-    if (typeof window === 'undefined') return;
-    const p = new URLSearchParams(window.location.search);
-    if (p.has('search')) setSearch(p.get('search'));
-    if (p.has('transportadora')) setTransportadora(p.get('transportadora'));
-    if (p.has('fechaDesde')) setFechaDesde(p.get('fechaDesde'));
-    if (p.has('fechaHasta')) setFechaHasta(p.get('fechaHasta'));
-    if (p.has('favorito')) setSoloFavoritos(true);
-    if (p.has('pageSize')) setPageSize(parseInt(p.get('pageSize')) || 20);
-    try { if (p.has('estados')) setFiltrosEstado(JSON.parse(p.get('estados'))); } catch {}
-  }, []);
 
   const showToast = (message, type = 'success') => {
     setToast({ message, type });
@@ -693,7 +692,7 @@ export default function OficinaPage() {
                         </button>
                         <div className="row-actions">
                           <button onClick={() => duplicarRegistro(pedido.id)} className="action-btn" title="Duplicar">📋</button>
-                          <Link href={`/oficina/${pedido.id}`} className="action-btn">Ver</Link>
+                          <Link href={`/oficina/${pedido.id}`} className="action-btn" prefetch={false}>Ver</Link>
                         </div>
                       </td>
                     </tr>
