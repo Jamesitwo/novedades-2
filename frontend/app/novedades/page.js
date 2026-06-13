@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import Link from 'next/link';
 import api from '@/lib/api';
 import { useAuthStore } from '@/store/authStore';
@@ -80,6 +80,23 @@ export default function NovedadesPage() {
   useEffect(() => {
     fetchNovedades();
   }, [fetchNovedades]);
+
+  const fetchRef = useRef(fetchNovedades);
+  useEffect(() => { fetchRef.current = fetchNovedades; }, [fetchNovedades]);
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const params = new URLSearchParams();
+    if (filtrosEstado.length > 0) params.set('estados', JSON.stringify(filtrosEstado));
+    if (transportadora) params.set('transportadora', transportadora);
+    if (search) params.set('search', search);
+    if (fechaDesde) params.set('fechaDesde', fechaDesde);
+    if (fechaHasta) params.set('fechaHasta', fechaHasta);
+    if (soloFavoritos) params.set('favorito', 'true');
+    params.set('pageSize', pageSize);
+    const url = `/novedades?${params.toString()}`;
+    sessionStorage.setItem('novedades_prev_url', url);
+  }, [filtrosEstado, transportadora, search, fechaDesde, fechaHasta, soloFavoritos, pageSize]);
 
   useEffect(() => {
     fetchOperadores();
@@ -182,6 +199,9 @@ export default function NovedadesPage() {
 
   const handleSearchChange = (value) => {
     setSearch(value);
+    if (searchTimeout) clearTimeout(searchTimeout);
+    const timeout = setTimeout(() => fetchRef.current(1), 300);
+    setSearchTimeout(timeout);
   };
 
   const getTransferenciaForRegistro = (registroId) => {

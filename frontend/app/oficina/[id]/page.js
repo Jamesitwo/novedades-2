@@ -535,7 +535,11 @@ export default function OficinaDetallePage() {
         </div>
 
         <div style={{ marginTop: 'auto', paddingTop: 16, borderTop: '1px solid var(--border)', display: 'flex', gap: 8 }}>
-          <button onClick={() => router.back()} className="btn btn-ghost">← Volver</button>
+          <button onClick={() => {
+            const prev = sessionStorage.getItem('oficina_prev_url');
+            if (prev) router.push(prev);
+            else router.push('/oficina');
+          }} className="btn btn-ghost">← Volver</button>
           {usuario?.rol === 'admin' && (
             <button onClick={handleDelete} className="btn btn-danger">Eliminar</button>
           )}
