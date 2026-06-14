@@ -33,6 +33,10 @@ export default function NovedadesPage() {
     try { const e = new URLSearchParams(window.location.search).get('estados'); return e ? JSON.parse(e) : []; } catch { return []; }
   });
   const [mostrarAsignados, setMostrarAsignados] = useState(false);
+  const [page, setPage] = useState(() => {
+    if (typeof window === 'undefined') return 1;
+    return parseInt(new URLSearchParams(window.location.search).get('page')) || 1;
+  });
   const [transportadora, setTransportadora] = useState(() => getParam('transportadora'));
   const [search, setSearch] = useState(() => getParam('search'));
   const [fechaDesde, setFechaDesde] = useState(() => getParam('fechaDesde'));
@@ -89,7 +93,7 @@ export default function NovedadesPage() {
   }, [filtrosEstado, mostrarAsignados, transportadora, search, fechaDesde, fechaHasta, pageSize, soloFavoritos]);
 
   useEffect(() => {
-    fetchNovedades();
+    fetchNovedades(page);
   }, [fetchNovedades]);
 
   const fetchRef = useRef(fetchNovedades);
@@ -105,9 +109,10 @@ export default function NovedadesPage() {
     if (fechaHasta) params.set('fechaHasta', fechaHasta);
     if (soloFavoritos) params.set('favorito', 'true');
     params.set('pageSize', pageSize);
+    params.set('page', page);
     const url = `/novedades?${params.toString()}`;
     sessionStorage.setItem('novedades_prev_url', url);
-  }, [filtrosEstado, transportadora, search, fechaDesde, fechaHasta, soloFavoritos, pageSize]);
+  }, [filtrosEstado, transportadora, search, fechaDesde, fechaHasta, soloFavoritos, pageSize, page]);
 
   useEffect(() => {
     fetchOperadores();
@@ -202,6 +207,7 @@ export default function NovedadesPage() {
     try {
       await api.post(`/api/novedades/${id}/duplicar`);
       showToast('Registro duplicado correctamente');
+      setPage(1);
       fetchNovedades(1);
     } catch (error) {
       showToast('Error al duplicar registro', 'error');
@@ -241,6 +247,7 @@ export default function NovedadesPage() {
       onConfirm: async () => {
         setBulkLoading(true);
         try {
+          setPage(1);
           await api.patch('/api/novedades/bulk-estado', { ids: selected, estado });
           setSelected([]);
           setShowBulkMenuEstado(false);
@@ -268,6 +275,7 @@ export default function NovedadesPage() {
           await api.patch('/api/novedades/bulk-asignar', { ids: selected, asignadoId });
           setSelected([]);
           setShowBulkMenuAsignar(false);
+          setPage(1);
           fetchNovedades(1);
           showToast('Registros asignados correctamente');
         } catch (error) {
@@ -303,6 +311,7 @@ export default function NovedadesPage() {
         try {
           await api.delete('/api/novedades/bulk', { data: { ids: selected } });
           setSelected([]);
+          setPage(1);
           fetchNovedades(1);
           showToast(`${selected.length} registro(s) eliminado(s)`);
         } catch (error) {
@@ -751,13 +760,14 @@ export default function NovedadesPage() {
 
           {pagination && pagination.totalPages > 1 && (
             <div className="pagination">
-              <button disabled={!pagination.hasPrevPage} onClick={() => fetchNovedades(pagination.page - 1)}>Anterior</button>
+              <button disabled={!pagination.hasPrevPage} onClick={() => { const p = pagination.page - 1; setPage(p); fetchNovedades(p); }}>Anterior</button>
               <span>Página {pagination.page} de {pagination.totalPages}</span>
-              <button disabled={!pagination.hasNextPage} onClick={() => fetchNovedades(pagination.page + 1)}>Siguiente</button>
+              <button disabled={!pagination.hasNextPage} onClick={() => { const p = pagination.page + 1; setPage(p); fetchNovedades(p); }}>Siguiente</button>
               <select
                 value={pageSize}
                 onChange={(e) => {
                   setPageSize(Number(e.target.value));
+                  setPage(1);
                   fetchNovedades(1);
                 }}
                 style={{
