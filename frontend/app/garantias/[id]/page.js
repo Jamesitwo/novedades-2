@@ -80,6 +80,9 @@ export default function GarantiaDetallePage() {
           {garantia.telefono && (
             <div><div style={{ fontSize: 11, color: 'var(--text3)' }}>Teléfono</div><div className="td-mono" style={{ fontSize: 13 }}>{garantia.telefono}</div></div>
           )}
+          {garantia.precio > 0 && (
+            <div><div style={{ fontSize: 11, color: 'var(--text3)' }}>Precio</div><div className="td-mono" style={{ fontSize: 13 }}>${Number(garantia.precio).toLocaleString()}</div></div>
+          )}
           {garantia.conversacionLink && (
             <div className="span2"><div style={{ fontSize: 11, color: 'var(--text3)' }}>Conversación</div>
               <div><a href={garantia.conversacionLink} target="_blank" rel="noopener" style={{ color: 'var(--accent2)', fontSize: 13, wordBreak: 'break-all' }}>{garantia.conversacionLink}</a></div>

@@ -10,6 +10,7 @@ export default function NuevaGarantiaPage() {
   const [producto, setProducto] = useState('');
   const [telefono, setTelefono] = useState('');
   const [conversacionLink, setConversacionLink] = useState('');
+  const [precio, setPrecio] = useState('');
   const [loading, setLoading] = useState(false);
   const [created, setCreated] = useState(null);
   const [copied, setCopied] = useState(false);
@@ -20,7 +21,7 @@ export default function NuevaGarantiaPage() {
     try {
       const { data } = await api.post('/api/garantias', {
         nombre: nombre || null, producto: producto || null,
-        telefono, conversacionLink
+        telefono, conversacionLink, precio
       });
       setCreated(data);
     } catch { /* error */ }
@@ -85,6 +86,10 @@ export default function NuevaGarantiaPage() {
               <div className="form-group">
                 <label>Link de conversación *</label>
                 <input type="url" value={conversacionLink} onChange={e => setConversacionLink(e.target.value)} required placeholder="https://wa.me/..." style={{ width: '100%' }} />
+              </div>
+              <div className="form-group">
+                <label>Precio</label>
+                <input type="number" value={precio} onChange={e => setPrecio(e.target.value)} placeholder="Opcional" style={{ width: '100%' }} />
               </div>
             </div>
           </div>

@@ -293,6 +293,7 @@ model Garantia {
   estado           String   @default("esperando")
   telefono         String?  @map("telefono")
   conversacionLink String?  @map("conversacion_link")
+  precio           Float?   @map("precio")
   creadoPorId      String   @map("creado_por")
   creadoPor        Usuario  @relation(fields: [creadoPorId], references: [id])
   fechaExpiracion  DateTime @map("fecha_expiracion")

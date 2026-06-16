@@ -71,7 +71,7 @@ const checkToken = async (req, res) => {
 
 const create = async (req, res) => {
   try {
-    const { nombre, producto, telefono, conversacionLink } = req.body;
+    const { nombre, producto, telefono, conversacionLink, precio } = req.body;
 
     if (!telefono) return res.status(400).json({ error: 'El teléfono es requerido' });
     if (!conversacionLink) return res.status(400).json({ error: 'El link de conversación es requerido' });
@@ -86,6 +86,7 @@ const create = async (req, res) => {
         producto: producto || null,
         telefono,
         conversacionLink,
+        precio: precio ? parseFloat(precio) : null,
         fechaExpiracion,
         creadoPorId: req.usuario.id
       },
