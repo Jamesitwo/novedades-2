@@ -77,6 +77,14 @@ export default function GarantiaDetallePage() {
         <div style={{ padding: 16, display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
           <div><div style={{ fontSize: 11, color: 'var(--text3)' }}>Cliente</div><div>{garantia.clienteNombre || 'Sin registrar'}</div></div>
           <div><div style={{ fontSize: 11, color: 'var(--text3)' }}>Producto</div><div>{garantia.producto || 'Sin registrar'}</div></div>
+          {garantia.telefono && (
+            <div><div style={{ fontSize: 11, color: 'var(--text3)' }}>Teléfono</div><div className="td-mono" style={{ fontSize: 13 }}>{garantia.telefono}</div></div>
+          )}
+          {garantia.conversacionLink && (
+            <div className="span2"><div style={{ fontSize: 11, color: 'var(--text3)' }}>Conversación</div>
+              <div><a href={garantia.conversacionLink} target="_blank" rel="noopener" style={{ color: 'var(--accent2)', fontSize: 13, wordBreak: 'break-all' }}>{garantia.conversacionLink}</a></div>
+            </div>
+          )}
           <div className="span2"><div style={{ fontSize: 11, color: 'var(--text3)' }}>Descripción</div><div>{garantia.descripcion || 'Sin descripción'}</div></div>
           <div><div style={{ fontSize: 11, color: 'var(--text3)' }}>Token</div><div className="td-mono" style={{ fontSize: 12 }}>{garantia.linkToken}</div></div>
           <div><div style={{ fontSize: 11, color: 'var(--text3)' }}>Expira</div><div className="td-mono" style={{ fontSize: 12, color: expirada ? 'var(--red)' : 'var(--text2)' }}>{new Date(garantia.fechaExpiracion).toLocaleString('es-CO')}</div></div>

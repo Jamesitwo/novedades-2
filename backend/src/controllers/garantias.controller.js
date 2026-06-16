@@ -71,7 +71,11 @@ const checkToken = async (req, res) => {
 
 const create = async (req, res) => {
   try {
-    const { nombre, producto } = req.body;
+    const { nombre, producto, telefono, conversacionLink } = req.body;
+
+    if (!telefono) return res.status(400).json({ error: 'El teléfono es requerido' });
+    if (!conversacionLink) return res.status(400).json({ error: 'El link de conversación es requerido' });
+
     const token = generateToken();
     const fechaExpiracion = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
 
@@ -80,6 +84,8 @@ const create = async (req, res) => {
         linkToken: token,
         clienteNombre: nombre || null,
         producto: producto || null,
+        telefono,
+        conversacionLink,
         fechaExpiracion,
         creadoPorId: req.usuario.id
       },

@@ -8,6 +8,8 @@ export default function NuevaGarantiaPage() {
   const router = useRouter();
   const [nombre, setNombre] = useState('');
   const [producto, setProducto] = useState('');
+  const [telefono, setTelefono] = useState('');
+  const [conversacionLink, setConversacionLink] = useState('');
   const [loading, setLoading] = useState(false);
   const [created, setCreated] = useState(null);
   const [copied, setCopied] = useState(false);
@@ -16,7 +18,10 @@ export default function NuevaGarantiaPage() {
     e.preventDefault();
     setLoading(true);
     try {
-      const { data } = await api.post('/api/garantias', { nombre: nombre || null, producto: producto || null });
+      const { data } = await api.post('/api/garantias', {
+        nombre: nombre || null, producto: producto || null,
+        telefono, conversacionLink
+      });
       setCreated(data);
     } catch { /* error */ }
     finally { setLoading(false); }
@@ -72,6 +77,14 @@ export default function NuevaGarantiaPage() {
               <div className="form-group">
                 <label>Producto</label>
                 <input value={producto} onChange={e => setProducto(e.target.value)} placeholder="Opcional - el cliente lo llenará" style={{ width: '100%' }} />
+              </div>
+              <div className="form-group">
+                <label>Teléfono *</label>
+                <input value={telefono} onChange={e => setTelefono(e.target.value)} required placeholder="Celular del cliente" style={{ width: '100%' }} />
+              </div>
+              <div className="form-group">
+                <label>Link de conversación *</label>
+                <input type="url" value={conversacionLink} onChange={e => setConversacionLink(e.target.value)} required placeholder="https://wa.me/..." style={{ width: '100%' }} />
               </div>
             </div>
           </div>
