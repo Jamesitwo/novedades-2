@@ -10,8 +10,12 @@ const ESTADO_COLORS = {
   esperando: { bg: 'rgba(99,102,241,0.12)', color: '#6366f1' },
   pendiente: { bg: 'rgba(245,158,11,0.12)', color: 'var(--amber)' },
   revisada: { bg: 'rgba(59,130,246,0.12)', color: '#3b82f6' },
+  subido_dropi: { bg: 'rgba(139,92,246,0.12)', color: '#8b5cf6' },
+  guia_generada: { bg: 'rgba(20,184,166,0.12)', color: '#14b8a6' },
+  guia_compartida: { bg: 'rgba(99,102,241,0.12)', color: 'var(--accent)' },
   aprobada: { bg: 'rgba(34,197,94,0.12)', color: 'var(--green)' },
-  rechazada: { bg: 'rgba(239,68,68,0.12)', color: 'var(--red)' }
+  rechazada: { bg: 'rgba(239,68,68,0.12)', color: 'var(--red)' },
+  finalizado: { bg: 'rgba(168,85,247,0.12)', color: 'var(--purple)' }
 };
 
 export default function GarantiasPage() {
@@ -70,8 +74,9 @@ export default function GarantiasPage() {
       <div className="stats-grid" style={{ marginBottom: 16 }}>
         <div className="stat-card c-blue"><div className="stat-label">Esperando</div><div className="stat-value blue">{stats.esperando || 0}</div></div>
         <div className="stat-card c-amber"><div className="stat-label">Pendientes</div><div className="stat-value amber">{stats.pendiente || 0}</div></div>
+        <div className="stat-card c-purple"><div className="stat-label">Subido Dropi</div><div className="stat-value purple">{stats.subido_dropi || 0}</div></div>
+        <div className="stat-card c-teal"><div className="stat-label">Guía Generada</div><div className="stat-value">{stats.guia_generada || 0}</div></div>
         <div className="stat-card c-green"><div className="stat-label">Aprobadas</div><div className="stat-value green">{stats.aprobada || 0}</div></div>
-        <div className="stat-card c-red"><div className="stat-label">Rechazadas</div><div className="stat-value red">{stats.rechazada || 0}</div></div>
       </div>
 
       <div className="filters" style={{ marginBottom: 16 }}>
@@ -83,8 +88,12 @@ export default function GarantiasPage() {
           <option value="esperando">Esperando</option>
           <option value="pendiente">Pendiente</option>
           <option value="revisada">Revisada</option>
+          <option value="subido_dropi">Subido a Dropi</option>
+          <option value="guia_generada">Guía generada</option>
+          <option value="guia_compartida">Guía compartida</option>
           <option value="aprobada">Aprobada</option>
           <option value="rechazada">Rechazada</option>
+          <option value="finalizado">Proceso finalizado</option>
         </select>
       </div>
 
@@ -123,6 +132,10 @@ export default function GarantiasPage() {
                       <div className="row-actions">
                         <Link href={`/garantias/${g.id}`} className="action-btn">Ver</Link>
                         {g.estado === 'pendiente' && <button onClick={() => handleEstado(g.id, 'revisada')} className="action-btn" style={{ color: '#3b82f6' }}>Revisar</button>}
+                        {g.estado === 'revisada' && <button onClick={() => handleEstado(g.id, 'subido_dropi')} className="action-btn" style={{ color: '#8b5cf6' }}>Dropi</button>}
+                        {g.estado === 'subido_dropi' && <button onClick={() => handleEstado(g.id, 'guia_generada')} className="action-btn" style={{ color: '#14b8a6' }}>Guía</button>}
+                        {g.estado === 'guia_generada' && <button onClick={() => handleEstado(g.id, 'guia_compartida')} className="action-btn" style={{ color: 'var(--accent)' }}>Compartir</button>}
+                        {g.estado === 'guia_compartida' && <button onClick={() => handleEstado(g.id, 'finalizado')} className="action-btn" style={{ color: 'var(--purple)' }}>Finalizar</button>}
                         {g.estado === 'revisada' && <button onClick={() => handleEstado(g.id, 'aprobada')} className="action-btn" style={{ color: 'var(--green)' }}>Aprobar</button>}
                         {usuario?.rol === 'admin' && <button onClick={() => handleDelete(g)} className="action-btn danger">Eliminar</button>}
                       </div>

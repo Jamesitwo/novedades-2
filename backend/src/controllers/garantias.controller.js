@@ -27,8 +27,12 @@ const getAll = async (req, res) => {
       esperando: await prisma.garantia.count({ where: { estado: 'esperando' } }),
       pendiente: await prisma.garantia.count({ where: { estado: 'pendiente' } }),
       revisada: await prisma.garantia.count({ where: { estado: 'revisada' } }),
+      subido_dropi: await prisma.garantia.count({ where: { estado: 'subido_dropi' } }),
+      guia_generada: await prisma.garantia.count({ where: { estado: 'guia_generada' } }),
+      guia_compartida: await prisma.garantia.count({ where: { estado: 'guia_compartida' } }),
       aprobada: await prisma.garantia.count({ where: { estado: 'aprobada' } }),
-      rechazada: await prisma.garantia.count({ where: { estado: 'rechazada' } })
+      rechazada: await prisma.garantia.count({ where: { estado: 'rechazada' } }),
+      finalizado: await prisma.garantia.count({ where: { estado: 'finalizado' } })
     };
 
     res.json({ garantias, stats });
@@ -140,7 +144,7 @@ const cambiarEstado = async (req, res) => {
     const { id } = req.params;
     const { estado } = req.body;
 
-    if (!['pendiente', 'revisada', 'aprobada', 'rechazada'].includes(estado)) {
+    if (!['pendiente', 'revisada', 'subido_dropi', 'guia_generada', 'guia_compartida', 'aprobada', 'rechazada', 'finalizado'].includes(estado)) {
       return res.status(400).json({ error: 'Estado inválido' });
     }
 

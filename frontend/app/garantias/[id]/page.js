@@ -47,8 +47,8 @@ export default function GarantiaDetallePage() {
           </h2>
           <span style={{
             padding: '2px 8px', borderRadius: 4, fontSize: 12, fontWeight: 500, textTransform: 'capitalize',
-            background: { esperando: 'rgba(99,102,241,0.12)', pendiente: 'rgba(245,158,11,0.12)', revisada: 'rgba(59,130,246,0.12)', aprobada: 'rgba(34,197,94,0.12)', rechazada: 'rgba(239,68,68,0.12)' }[garantia.estado],
-            color: { esperando: '#6366f1', pendiente: 'var(--amber)', revisada: '#3b82f6', aprobada: 'var(--green)', rechazada: 'var(--red)' }[garantia.estado]
+            background: { esperando: 'rgba(99,102,241,0.12)', pendiente: 'rgba(245,158,11,0.12)', revisada: 'rgba(59,130,246,0.12)', subido_dropi: 'rgba(139,92,246,0.12)', guia_generada: 'rgba(20,184,166,0.12)', guia_compartida: 'rgba(99,102,241,0.12)', aprobada: 'rgba(34,197,94,0.12)', rechazada: 'rgba(239,68,68,0.12)', finalizado: 'rgba(168,85,247,0.12)' }[garantia.estado],
+            color: { esperando: '#6366f1', pendiente: 'var(--amber)', revisada: '#3b82f6', subido_dropi: '#8b5cf6', guia_generada: '#14b8a6', guia_compartida: 'var(--accent)', aprobada: 'var(--green)', rechazada: 'var(--red)', finalizado: 'var(--purple)' }[garantia.estado]
           }}>{garantia.estado}</span>
         </div>
         <div style={{ display: 'flex', gap: 8 }}>
@@ -57,9 +57,19 @@ export default function GarantiaDetallePage() {
           )}
           {garantia.estado === 'revisada' && (
             <>
+              <button onClick={() => handleEstado('subido_dropi')} className="btn btn-secondary" style={{ padding: '8px 14px', color: '#8b5cf6' }}>Subir a Dropi</button>
               <button onClick={() => handleEstado('aprobada')} className="btn btn-success" style={{ padding: '8px 14px' }}>✅ Aprobar</button>
               <button onClick={() => handleEstado('rechazada')} className="btn btn-danger" style={{ padding: '8px 14px' }}>❌ Rechazar</button>
             </>
+          )}
+          {garantia.estado === 'subido_dropi' && (
+            <button onClick={() => handleEstado('guia_generada')} className="btn btn-secondary" style={{ padding: '8px 14px', color: '#14b8a6' }}>Guía generada</button>
+          )}
+          {garantia.estado === 'guia_generada' && (
+            <button onClick={() => handleEstado('guia_compartida')} className="btn btn-secondary" style={{ padding: '8px 14px', color: 'var(--accent)' }}>Guía compartida</button>
+          )}
+          {garantia.estado === 'guia_compartida' && (
+            <button onClick={() => handleEstado('finalizado')} className="btn btn-success" style={{ padding: '8px 14px' }}>✅ Finalizar proceso</button>
           )}
           <button onClick={() => router.push('/garantias')} className="btn btn-ghost">Volver</button>
         </div>
