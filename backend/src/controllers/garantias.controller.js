@@ -93,7 +93,10 @@ const create = async (req, res) => {
       include: { creadoPor: { select: { id: true, nombre: true } } }
     });
 
-    res.status(201).json(garantia);
+    res.status(201).json({
+      ...garantia,
+      registroUrl: `${process.env.FRONTEND_URL || ''}/garantias/registro/${garantia.linkToken}`
+    });
   } catch (error) {
     console.error('Create garantia error:', error);
     res.status(500).json({ error: 'Error en el servidor' });
