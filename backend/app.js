@@ -19,6 +19,7 @@ const backupRoutes = require('./src/routes/backup.routes');
 const pizdoRoutes = require('./src/routes/pizdo.routes');
 const etiquetasRoutes = require('./src/routes/etiquetas.routes');
 const facturasRoutes = require('./src/routes/facturas.routes');
+const garantiasRoutes = require('./src/routes/garantias.routes');
 
 const isProduction = process.env.NODE_ENV === 'production';
 const FRONTEND_URL = process.env.FRONTEND_URL;
@@ -83,6 +84,10 @@ app.use('/api/backup', backupRoutes);
 app.use('/api/pizdo', pizdoRoutes);
 app.use('/api/etiquetas', etiquetasRoutes);
 app.use('/api/facturas', facturasRoutes);
+app.use('/api/garantias', garantiasRoutes);
+
+const cloudinaryRoutes = require('./src/routes/cloudinary.routes');
+app.use('/api/cloudinary', cloudinaryRoutes);
 
 app.get('/api/health', (req, res) => {
   res.json({

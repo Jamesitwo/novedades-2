@@ -81,6 +81,7 @@ export default function Sidebar() {
     { href: '/oficina', label: 'En oficina', icon: '📦', badge: counts.oficinaActivos > 0 ? counts.oficinaActivos : null },
     { href: '/devoluciones', label: 'Devoluciones', icon: '↩️', badge: counts.devoluciones > 0 ? counts.devoluciones : null, badgeColor: 'purple' },
     { href: '/facturas', label: 'Facturas', icon: '📄' },
+    { href: '/garantias', label: 'Garantías', icon: '📋' },
     { href: '/etiquetas', label: 'Etiquetas', icon: '🏷️' },
   ];
 

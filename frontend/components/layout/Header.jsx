@@ -41,6 +41,7 @@ export default function Header() {
     if (pathname.startsWith('/pizdo')) return 'Pizdo · Productos Ganadores';
     if (pathname.startsWith('/etiquetas')) return 'Etiquetas';
     if (pathname.startsWith('/facturas')) return 'Facturas';
+    if (pathname.startsWith('/garantias')) return 'Garantías';
     return '';
   };
 
