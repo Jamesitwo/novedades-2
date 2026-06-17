@@ -70,6 +70,7 @@ export default function RegistroGarantiaPage() {
       {
         cloudName: 'dgbz1ze71',
         uploadPreset: 'garantias_preset',
+        resourceType: 'video',
         sources: ['local', 'camera'],
         multiple: false,
         maxFiles: 1,
