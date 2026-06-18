@@ -57,7 +57,7 @@ const getAll = async (req, res) => {
     }
 
     if (!where.estado) {
-      where.estado = { notIn: ['va_a_recoger'] };
+      where.estado = { notIn: ['va_a_recoger', 'entregado'] };
     }
 
     if (transportadora) where.transportadora = { contains: transportadora };
