@@ -55,6 +55,8 @@ export default function NovedadesPage() {
     return parseInt(new URLSearchParams(window.location.search).get('pageSize')) || 20;
   });
   const [soloFavoritos, setSoloFavoritos] = useState(() => new URLSearchParams(typeof window !== 'undefined' ? window.location.search : '').has('favorito'));
+  const [etiquetaId, setEtiquetaId] = useState('');
+  const [etiquetas, setEtiquetas] = useState([]);
   const [counts, setCounts] = useState({ novedad: 0, contactado: 0, solucionado: 0, cancelado: 0, devolucion: 0 });
 
   const showToast = (message, type = 'success') => {
@@ -80,6 +82,7 @@ export default function NovedadesPage() {
       if (fechaDesde) params.append('fechaDesde', fechaDesde);
       if (fechaHasta) params.append('fechaHasta', fechaHasta);
       if (soloFavoritos) params.append('favorito', 'true');
+      if (etiquetaId) params.append('etiquetaId', etiquetaId);
 
       const { data } = await api.get(`/api/novedades?${params}`);
       setNovedades(data.data);
@@ -90,7 +93,7 @@ export default function NovedadesPage() {
     } finally {
       setLoading(false);
     }
-  }, [filtrosEstado, mostrarAsignados, transportadora, search, fechaDesde, fechaHasta, pageSize, soloFavoritos]);
+  }, [filtrosEstado, mostrarAsignados, transportadora, search, fechaDesde, fechaHasta, pageSize, soloFavoritos, etiquetaId]);
 
   useEffect(() => {
     fetchNovedades(page);
@@ -98,6 +101,10 @@ export default function NovedadesPage() {
 
   const fetchRef = useRef(fetchNovedades);
   useEffect(() => { fetchRef.current = fetchNovedades; }, [fetchNovedades]);
+
+  useEffect(() => {
+    api.get('/api/etiquetas').then(({ data }) => setEtiquetas(data)).catch(() => {});
+  }, []);
 
   useEffect(() => {
     if (typeof window === 'undefined') return;
@@ -425,6 +432,19 @@ export default function NovedadesPage() {
         >
           <option value="">Todas transportadoras</option>
           {TRANSPORTADORAS.map(t => <option key={t} value={t}>{t}</option>)}
+        </select>
+
+        <select
+          value={etiquetaId}
+          onChange={(e) => setEtiquetaId(e.target.value)}
+          style={{
+            background: 'var(--bg3)', border: '1px solid var(--border)', borderRadius: 20,
+            padding: '5px 14px', fontSize: 12, fontWeight: 500,
+            color: etiquetaId ? 'var(--accent2)' : 'var(--text2)', cursor: 'pointer'
+          }}
+        >
+          <option value="">Todas etiquetas</option>
+          {etiquetas.map(e => <option key={e.id} value={e.id}>{e.nombre}</option>)}
         </select>
 
         <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 12 }}>

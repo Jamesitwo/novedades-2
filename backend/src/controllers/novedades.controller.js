@@ -567,6 +567,21 @@ const transferir = async (req, res) => {
       }
     });
 
+    if (operadorDestino.rol === 'admin') {
+      await prisma.tarea.create({
+        data: {
+          titulo: `${novedad.nombre} ${novedad.apellido}`,
+          descripcion: novedad.motivoNovedad || 'Novedad transferida',
+          prioridad: 'media',
+          estado: 'pendiente',
+          creadoPorId: req.usuario.id,
+          asignadoId: aUsuarioId,
+          origenTipo: 'novedad',
+          origenId: id
+        }
+      });
+    }
+
     res.json(novedadActualizada);
   } catch (error) {
     console.error('Transferir novedad error:', error);

@@ -603,6 +603,21 @@ const transferir = async (req, res) => {
       }
     });
 
+    if (operadorDestino.rol === 'admin') {
+      await prisma.tarea.create({
+        data: {
+          titulo: `${pedido.nombre} ${pedido.apellido}`,
+          descripcion: pedido.producto || 'Pedido de oficina transferido',
+          prioridad: 'media',
+          estado: 'pendiente',
+          creadoPorId: req.usuario.id,
+          asignadoId: aUsuarioId,
+          origenTipo: 'oficina',
+          origenId: id
+        }
+      });
+    }
+
     res.json(pedidoActualizado);
   } catch (error) {
     console.error('Transferir oficina error:', error);

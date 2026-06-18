@@ -42,6 +42,7 @@ export default function Header() {
     if (pathname.startsWith('/etiquetas')) return 'Etiquetas';
     if (pathname.startsWith('/facturas')) return 'Facturas';
     if (pathname.startsWith('/garantias')) return 'Garantías';
+    if (pathname.startsWith('/tareas')) return 'Tareas';
     return '';
   };
 

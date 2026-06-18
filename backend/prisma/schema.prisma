@@ -32,6 +32,8 @@ model Usuario {
   etiquetasCreadas       Etiqueta[]
   facturas               Factura[]
   garantias              Garantia[]
+  tareasCreadas          Tarea[]     @relation("TareaCreador")
+  tareasAsignadas        Tarea[]     @relation("TareaAsignado")
 }
 
 model PedidoNovedad {
@@ -302,4 +304,24 @@ model Garantia {
 
   @@index([estado])
   @@index([linkToken])
+}
+
+model Tarea {
+  id            String    @id @default(uuid())
+  titulo        String
+  descripcion   String?
+  estado        String    @default("pendiente")
+  prioridad     String    @default("media")
+  creadoPorId   String    @map("creado_por")
+  creadoPor     Usuario   @relation("TareaCreador", fields: [creadoPorId], references: [id])
+  asignadoId    String?   @map("asignado_id")
+  asignado      Usuario?  @relation("TareaAsignado", fields: [asignadoId], references: [id])
+  origenTipo    String?   @map("origen_tipo")
+  origenId      String?   @map("origen_id")
+  fechaLimite   DateTime? @map("fecha_limite")
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  @@index([estado])
+  @@index([asignadoId])
 }
