@@ -38,6 +38,8 @@ export default function Header() {
     if (pathname.startsWith('/apikey')) return 'API Keys';
     if (pathname.startsWith('/sesiones')) return 'Sesiones';
     if (pathname.startsWith('/devoluciones')) return 'Devoluciones';
+    if (pathname.startsWith('/solucionados')) return 'Solucionados';
+    if (pathname.startsWith('/recoger')) return 'Por Recoger';
     if (pathname.startsWith('/pizdo')) return 'Pizdo · Productos Ganadores';
     if (pathname.startsWith('/etiquetas')) return 'Etiquetas';
     if (pathname.startsWith('/facturas')) return 'Facturas';

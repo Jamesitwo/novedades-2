@@ -12,7 +12,6 @@ const ESTADOS = {
   contactado: { label: 'Contactado', color: 'blue' },
   solucionado: { label: 'Solucionado', color: 'green' },
   entregado: { label: 'Entregado', color: 'teal' },
-  cancelado: { label: 'Cancelado', color: 'red' },
   devolucion: { label: 'Devolución', color: 'purple' }
 };
 

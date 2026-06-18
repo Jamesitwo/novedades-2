@@ -512,17 +512,11 @@ tr:hover td { background: var(--bg3); }
 .badge.solucionado, .badge.solucionado::before { background: var(--green); }
 .badge.solucionado { background: rgba(34,200,122,0.12); color: var(--green); }
 
-.badge.cancelado, .badge.cancelado::before { background: var(--red); }
-.badge.cancelado { background: rgba(239,68,68,0.12); color: var(--red); }
-
 .badge.pendiente, .badge.pendiente::before { background: var(--amber); }
 .badge.pendiente { background: rgba(245,158,11,0.12); color: var(--amber); }
 
 .badge.va_recoger, .badge.va_recoger::before { background: var(--green); }
 .badge.va_recoger { background: rgba(34,200,122,0.12); color: var(--green); }
-
-.badge.no_recoger, .badge.no_recoger::before { background: var(--red); }
-.badge.no_recoger { background: rgba(239,68,68,0.12); color: var(--red); }
 
 .badge.purple, .badge.purple::before { background: var(--purple); }
 .badge.purple { background: rgba(168,85,247,0.12); color: var(--purple); }

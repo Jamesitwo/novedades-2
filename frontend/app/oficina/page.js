@@ -11,7 +11,6 @@ const ESTADOS = {
   contactado: { label: 'Contactado', color: 'contactado' },
   va_a_recoger: { label: 'Va a recoger', color: 'va_recoger' },
   entregado: { label: 'Entregado', color: 'entregado' },
-  no_va_a_recoger: { label: 'No va a recoger', color: 'no_recoger' },
   devolucion: { label: 'Devolución', color: 'purple' }
 };
 

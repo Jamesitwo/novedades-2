@@ -18,5 +18,9 @@ echo "Ejecutando seed..."
 node prisma/seed.js 2>/dev/null || true
 echo "✅ Seed completado"
 
+echo "Ejecutando migraciones de datos..."
+node prisma/migrate.js 2>/dev/null || true
+echo "✅ Migraciones completadas"
+
 echo "🚀 Iniciando servidor..."
 exec node server.js

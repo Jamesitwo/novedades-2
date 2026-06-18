@@ -5,11 +5,11 @@ import { useParams, useRouter } from 'next/navigation';
 import api from '@/lib/api';
 import { useAuthStore } from '@/store/authStore';
 
-const ESTADOS_NOVEDAD = ['novedad', 'contactado', 'solucionado', 'entregado', 'cancelado', 'devolucion'];
+const ESTADOS_NOVEDAD = ['novedad', 'contactado', 'solucionado', 'entregado', 'devolucion'];
 const RESULTADOS = ['no_contesta', 'ocupado', 'equivocado', 'contactado', 'buzon'];
 
 const labelEstado = (e) => {
-  const m = { novedad: 'Novedad', contactado: 'Contactado', solucionado: 'Solucionado', entregado: 'Entregado', cancelado: 'Cancelado', devolucion: 'Devolución' };
+  const m = { novedad: 'Novedad', contactado: 'Contactado', solucionado: 'Solucionado', entregado: 'Entregado', devolucion: 'Devolución' };
   return m[e] || e;
 };
 
@@ -19,7 +19,7 @@ const labelResultado = (e) => {
 };
 
 const getBadgeClass = (estado) => {
-  const m = { novedad: 'novedad', contactado: 'contactado', solucionado: 'solucionado', entregado: 'entregado', cancelado: 'cancelado', devolucion: 'purple' };
+  const m = { novedad: 'novedad', contactado: 'contactado', solucionado: 'solucionado', entregado: 'entregado', devolucion: 'purple' };
   return m[estado] || estado;
 };
 

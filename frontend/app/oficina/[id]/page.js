@@ -5,7 +5,7 @@ import { useParams, useRouter } from 'next/navigation';
 import api from '@/lib/api';
 import { useAuthStore } from '@/store/authStore';
 
-const ESTADOS_OFICINA = ['pendiente_llamar', 'contactado', 'va_a_recoger', 'entregado', 'no_va_a_recoger', 'devolucion'];
+const ESTADOS_OFICINA = ['pendiente_llamar', 'contactado', 'va_a_recoger', 'entregado', 'devolucion'];
 const RESULTADOS = ['no_contesta', 'ocupado', 'equivocado', 'contactado', 'buzon'];
 
 const labelEstado = (e) => {
@@ -14,7 +14,6 @@ const labelEstado = (e) => {
     contactado: 'Contactado',
     va_a_recoger: 'Va a recoger',
     entregado: 'Entregado',
-    no_va_a_recoger: 'No va a recoger',
     devolucion: 'Devolución'
   };
   return m[e] || e;
@@ -37,7 +36,6 @@ const getBadgeClass = (estado) => {
     contactado: 'contactado',
     va_a_recoger: 'va_recoger',
     entregado: 'entregado',
-    no_va_a_recoger: 'no_recoger',
     devolucion: 'purple'
   };
   return m[estado] || estado;
