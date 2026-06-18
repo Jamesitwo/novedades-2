@@ -47,6 +47,8 @@ const getAll = async (req, res) => {
 
     const where = {};
 
+    where.estado = { notIn: ['solucionado'] };
+
     if (estados) {
       const estadosArray = JSON.parse(estados);
       if (estadosArray.length > 0) {
@@ -54,10 +56,6 @@ const getAll = async (req, res) => {
       }
     } else if (estado) {
       where.estado = estado;
-    }
-
-    if (!where.estado) {
-      where.estado = { notIn: ['solucionado'] };
     }
 
     if (transportadora) where.transportadora = { contains: transportadora };
