@@ -349,13 +349,9 @@ export default function OficinaPage() {
           <div className="stat-label">Contactado</div>
           <div className="stat-value blue">{counts.contactado}</div>
         </div>
-        <div className="stat-card c-green">
-          <div className="stat-label">Va a Recoger</div>
-          <div className="stat-value green">{counts.va_a_recoger}</div>
-        </div>
-        <div className="stat-card c-red">
-          <div className="stat-label">No Va a Recoger</div>
-          <div className="stat-value red">{counts.no_va_a_recoger}</div>
+        <div className="stat-card c-purple">
+          <div className="stat-label">Devolución</div>
+          <div className="stat-value purple">{counts.devolucion}</div>
         </div>
       </div>
 

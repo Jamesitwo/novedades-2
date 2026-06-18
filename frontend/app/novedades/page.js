@@ -377,13 +377,9 @@ export default function NovedadesPage() {
           <div className="stat-label">Contactado</div>
           <div className="stat-value blue">{counts.contactado}</div>
         </div>
-        <div className="stat-card c-green">
-          <div className="stat-label">Solucionado</div>
-          <div className="stat-value green">{counts.solucionado}</div>
-        </div>
         <div className="stat-card c-red">
-          <div className="stat-label">Cancelado</div>
-          <div className="stat-value red">{counts.cancelado}</div>
+          <div className="stat-label">Devolución</div>
+          <div className="stat-value red">{counts.devolucion}</div>
         </div>
       </div>
 

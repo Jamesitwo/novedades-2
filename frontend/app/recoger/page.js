@@ -15,7 +15,7 @@ export default function RecogerPage() {
     setLoading(true);
     try {
       const params = new URLSearchParams();
-      params.append('estados', JSON.stringify(['va_a_recoger']));
+      params.append('estados', JSON.stringify(['va_a_recoger', 'entregado']));
       if (search) params.append('search', search);
       params.append('limit', '50');
       const { data } = await api.get(`/api/oficina?${params}`);
