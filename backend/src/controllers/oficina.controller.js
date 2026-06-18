@@ -56,6 +56,10 @@ const getAll = async (req, res) => {
       where.estado = estado;
     }
 
+    if (!where.estado) {
+      where.estado = { notIn: ['va_a_recoger'] };
+    }
+
     if (transportadora) where.transportadora = { contains: transportadora };
     if (search) {
       const words = search.split(/\s+/).filter(Boolean);
