@@ -10,8 +10,8 @@
     "db:migrate": "npx prisma migrate deploy --schema prisma/schema.prisma",
     "db:push": "npx prisma db push --schema prisma/schema.prisma",
     "db:seed": "node prisma/seed.js",
-    "prisma:generate": "prisma generate --schema src/prisma/schema.prisma",
-    "prisma:migrate": "prisma migrate dev --schema src/prisma/schema.prisma"
+    "prisma:generate": "prisma generate --schema prisma/schema.prisma",
+    "prisma:migrate": "prisma migrate dev --schema prisma/schema.prisma"
   },
   "dependencies": {
     "@prisma/client": "^5.10.0",
@@ -19,15 +19,15 @@
     "cloudinary": "^2.10.0",
     "cors": "^2.8.5",
     "dotenv": "^16.4.5",
+    "exceljs": "^4.4.0",
     "express": "^4.18.3",
     "express-rate-limit": "^7.2.0",
     "helmet": "^8.2.0",
-    "http-proxy-middleware": "^4.1.0",
+    "http-proxy-middleware": "^4.1.1",
     "jsonwebtoken": "^9.0.2",
     "morgan": "^1.10.0",
     "pdfkit": "^0.19.1",
     "qrcode": "^1.5.4",
-    "xlsx": "^0.18.5",
     "zod": "^3.22.4"
   },
   "devDependencies": {

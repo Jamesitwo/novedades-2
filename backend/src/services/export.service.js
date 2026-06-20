@@ -1,15 +1,18 @@
-const XLSX = require('xlsx');
+const ExcelJS = require('exceljs');
 
-const generarExcel = (data, nombreHoja) => {
-  const worksheet = XLSX.utils.json_to_sheet(data);
-  const workbook = XLSX.utils.book_new();
+const generarExcel = async (data, nombreHoja) => {
+  const workbook = new ExcelJS.Workbook();
+  const worksheet = workbook.addWorksheet(nombreHoja);
 
-  XLSX.utils.book_append_sheet(workbook, worksheet, nombreHoja);
-
-  const colWidths = Object.keys(data[0] || {}).map(key => ({
-    wch: Math.max(key.length, 20)
-  }));
-  worksheet['!cols'] = colWidths;
+  if (data.length > 0) {
+    const columns = Object.keys(data[0]).map(key => ({
+      header: key,
+      key,
+      width: Math.max(key.length, 20)
+    }));
+    worksheet.columns = columns;
+    data.forEach(row => worksheet.addRow(row));
+  }
 
   return workbook;
 };

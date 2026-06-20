@@ -50,9 +50,13 @@ const getAll = async (req, res) => {
     where.estado = { notIn: ['solucionado'] };
 
     if (estados) {
-      const estadosArray = JSON.parse(estados);
-      if (estadosArray.length > 0) {
-        where.estado = { in: estadosArray };
+      try {
+        const estadosArray = JSON.parse(estados);
+        if (Array.isArray(estadosArray) && estadosArray.length > 0) {
+          where.estado = { in: estadosArray };
+        }
+      } catch {
+        return res.status(400).json({ error: 'Parámetro estados inválido' });
       }
     } else if (estado) {
       where.estado = estado;
@@ -356,10 +360,11 @@ const exportarExcel = async (req, res) => {
       'Fecha Creación': n.createdAt.toISOString().split('T')[0]
     }));
 
-    const workbook = exportService.generarExcel(data, 'Novedades');
+    const workbook = await exportService.generarExcel(data, 'Novedades');
     res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
     res.setHeader('Content-Disposition', 'attachment; filename=novedades.xlsx');
-    workbook.xlsx.write(res).then(() => res.end());
+    await workbook.xlsx.write(res);
+    res.end();
   } catch (error) {
     console.error('Export novedades error:', error);
     res.status(500).json({ error: 'Error en el servidor' });

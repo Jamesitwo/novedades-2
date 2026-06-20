@@ -58,13 +58,13 @@ if (isProduction) {
 
 const loginLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
-  max: isProduction ? 20 : 100,
+  max: isProduction ? 5 : 100,
   message: { error: 'Demasiados intentos de login. Intenta en 15 minutos.' }
 });
 
 const generalLimiter = rateLimit({
   windowMs: 60 * 1000,
-  max: isProduction ? 200 : 1000,
+  max: isProduction ? 100 : 1000,
   message: { error: 'Demasiadas solicitudes. Intenta en un minuto.' }
 });
 
