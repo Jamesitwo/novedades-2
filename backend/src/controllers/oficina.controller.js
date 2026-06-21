@@ -1,44 +1,7 @@
 const { prisma } = require('../prisma/client');
 const { paginate } = require('../utils/paginate');
 const { registrarCambio } = require('./historial.controller');
-
-const getNextOperador = async (tabla) => {
-  const config = await prisma.configuracion.findFirst();
-  if (!config) return null;
-
-  const field = tabla === 'novedades' ? 'auto_asignar_novedades' : 'auto_asignar_oficina';
-  if (!config[field]) return null;
-
-  const operadoresIncluidos = JSON.parse(config.operadores_incluidos || '[]');
-  if (operadoresIncluidos.length === 0) return null;
-
-  const activos = await prisma.usuario.findMany({
-    where: {
-      id: { in: operadoresIncluidos },
-      activo: true,
-      rol: { in: ['operador', 'operador_asignado'] }
-    }
-  });
-
-  if (activos.length === 0) return null;
-
-  if (config.metodo_asignacion === 'menor_carga') {
-    const counts = await Promise.all(activos.map(async (op) => {
-      const count = await prisma.pedidoOficina.count({ where: { asignadoId: op.id } });
-      return { op, count };
-    }));
-    counts.sort((a, b) => a.count - b.count);
-    return counts[0].op.id;
-  } else {
-    const ultimoIndice = config.ultimo_indice_round_robin || 0;
-    const siguienteIndice = (ultimoIndice + 1) % activos.length;
-    await prisma.configuracion.update({
-      where: { id: config.id },
-      data: { ultimo_indice_round_robin: siguienteIndice }
-    });
-    return activos[siguienteIndice - 1 >= 0 ? siguienteIndice - 1 : activos.length - 1].id;
-  }
-};
+const { getNextOperador } = require('../utils/autoAssign');
 
 const getAll = async (req, res) => {
   try {
@@ -446,38 +409,33 @@ const bulkCambiarEstado = async (req, res) => {
   try {
     const { ids, estado } = req.body;
 
-    if (!ids || !Array.isArray(ids) || ids.length === 0) {
-      return res.status(400).json({ error: 'Se requiere un array de IDs' });
-    }
-
     if (!estado) {
       return res.status(400).json({ error: 'Se requiere el nuevo estado' });
     }
 
-    const resultados = await Promise.all(ids.map(async (id) => {
-      try {
-        const actual = await prisma.pedidoOficina.findUnique({ where: { id } });
-        if (!actual) return { id, success: false, error: 'No encontrado' };
+    const registros = await prisma.pedidoOficina.findMany({ where: { id: { in: ids } } });
+    const encontrados = new Map(registros.map(r => [r.id, r]));
 
-await registrarCambio(id, 'pedidos_oficina', 'estado', actual.estado, estado, req.usuario.id, `${actual.nombre} ${actual.apellido}`);
-
-        await prisma.pedidoOficina.update({
-          where: { id },
-          data: { estado }
+    await prisma.$transaction([
+      ...ids.map(id => {
+        const actual = encontrados.get(id);
+        if (!actual) return prisma.$executeRawUnsafe('SELECT 1');
+        return prisma.historialCambio.create({
+          data: {
+            tabla: 'pedidos_oficina',
+            registroId: id,
+            campo: 'estado',
+            valorAnterior: actual.estado,
+            valorNuevo: estado,
+            usuarioId: req.usuario.id,
+            clienteNombre: `${actual.nombre} ${actual.apellido}`
+          }
         });
+      }),
+      prisma.pedidoOficina.updateMany({ where: { id: { in: ids } }, data: { estado } })
+    ]);
 
-        return { id, success: true };
-      } catch (error) {
-        return { id, success: false, error: error.message };
-      }
-    }));
-
-    const exitosos = resultados.filter(r => r.success).length;
-
-    res.json({
-      message: `Actualizados ${exitosos} registros`,
-      detalles: resultados
-    });
+    res.json({ message: `Actualizados ${ids.length} registros` });
   } catch (error) {
     console.error('Bulk cambiar estado oficina error:', error);
     res.status(500).json({ error: 'Error en el servidor' });
@@ -488,44 +446,34 @@ const bulkAsignar = async (req, res) => {
   try {
     const { ids, asignadoId } = req.body;
 
-    if (!ids || !Array.isArray(ids) || ids.length === 0) {
-      return res.status(400).json({ error: 'Se requiere un array de IDs' });
-    }
-
-    if (!asignadoId) {
-      return res.status(400).json({ error: 'Se requiere el ID del operador' });
-    }
-
     const operador = await prisma.usuario.findUnique({ where: { id: asignadoId } });
     if (!operador) {
       return res.status(404).json({ error: 'Operador no encontrado' });
     }
 
-    const resultados = await Promise.all(ids.map(async (id) => {
-      try {
-        const actual = await prisma.pedidoOficina.findUnique({ where: { id } });
-        if (!actual) return { id, success: false, error: 'No encontrado' };
+    const registros = await prisma.pedidoOficina.findMany({ where: { id: { in: ids } } });
+    const encontrados = new Map(registros.map(r => [r.id, r]));
 
-        const nombreAnterior = actual.asignadoId ? (await prisma.usuario.findUnique({ where: { id: actual.asignadoId } }))?.nombre : null;
-        await registrarCambio(id, 'pedidos_oficina', 'asignado', nombreAnterior, operador.nombre, req.usuario.id, `${actual.nombre} ${actual.apellido}`);
-
-        await prisma.pedidoOficina.update({
-          where: { id },
-          data: { asignadoId }
+    await prisma.$transaction([
+      ...ids.map(id => {
+        const actual = encontrados.get(id);
+        if (!actual) return prisma.$executeRawUnsafe('SELECT 1');
+        return prisma.historialCambio.create({
+          data: {
+            tabla: 'pedidos_oficina',
+            registroId: id,
+            campo: 'asignado',
+            valorAnterior: actual.asignadoId || null,
+            valorNuevo: operador.nombre,
+            usuarioId: req.usuario.id,
+            clienteNombre: `${actual.nombre} ${actual.apellido}`
+          }
         });
+      }),
+      prisma.pedidoOficina.updateMany({ where: { id: { in: ids } }, data: { asignadoId } })
+    ]);
 
-        return { id, success: true };
-      } catch (error) {
-        return { id, success: false, error: error.message };
-      }
-    }));
-
-    const exitosos = resultados.filter(r => r.success).length;
-
-    res.json({
-      message: `Asignados ${exitosos} registros a ${operador.nombre}`,
-      detalles: resultados
-    });
+    res.json({ message: `Asignados ${ids.length} registros a ${operador.nombre}` });
   } catch (error) {
     console.error('Bulk asignar oficina error:', error);
     res.status(500).json({ error: 'Error en el servidor' });
@@ -536,29 +484,15 @@ const bulkRemove = async (req, res) => {
   try {
     const { ids } = req.body;
 
-    if (!ids || !Array.isArray(ids) || ids.length === 0) {
-      return res.status(400).json({ error: 'Se requiere un array de IDs' });
-    }
+    await prisma.$transaction([
+      prisma.registroEtiqueta.deleteMany({ where: { registroId: { in: ids }, tabla: 'pedidos_oficina' } }),
+      prisma.intentoContacto.deleteMany({ where: { registroId: { in: ids }, tabla: 'pedidos_oficina' } }),
+      prisma.historialCambio.deleteMany({ where: { registroId: { in: ids }, tabla: 'pedidos_oficina' } }),
+      prisma.transferencia.deleteMany({ where: { registroId: { in: ids }, tabla: 'pedidos_oficina' } }),
+      prisma.pedidoOficina.deleteMany({ where: { id: { in: ids } } })
+    ]);
 
-    const resultados = await Promise.all(ids.map(async (id) => {
-      try {
-        await prisma.registroEtiqueta.deleteMany({ where: { registroId: id, tabla: 'pedidos_oficina' } });
-        await prisma.intentoContacto.deleteMany({ where: { registroId: id, tabla: 'pedidos_oficina' } });
-        await prisma.historialCambio.deleteMany({ where: { registroId: id, tabla: 'pedidos_oficina' } });
-        await prisma.transferencia.deleteMany({ where: { registroId: id, tabla: 'pedidos_oficina' } });
-        await prisma.pedidoOficina.delete({ where: { id } });
-        return { id, success: true };
-      } catch (error) {
-        return { id, success: false, error: error.message };
-      }
-    }));
-
-    const exitosos = resultados.filter(r => r.success).length;
-
-    res.json({
-      message: `Eliminados ${exitosos} registros`,
-      detalles: resultados
-    });
+    res.json({ message: `Eliminados ${ids.length} registros` });
   } catch (error) {
     console.error('Bulk remove oficina error:', error);
     res.status(500).json({ error: 'Error en el servidor' });
@@ -611,10 +545,11 @@ const transferir = async (req, res) => {
     });
 
     if (operadorDestino.rol === 'admin') {
+      const motivo = notas || pedido.producto || 'Pedido de oficina transferido';
       await prisma.tarea.create({
         data: {
           titulo: `${pedido.nombre} ${pedido.apellido}`,
-          descripcion: pedido.producto || 'Pedido de oficina transferido',
+          descripcion: motivo,
           prioridad: 'media',
           estado: 'pendiente',
           creadoPorId: req.usuario.id,

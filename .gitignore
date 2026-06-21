@@ -18,6 +18,8 @@ logs/
 
 # Backup
 backup-*.db
+backup-*.sql
+backups/
 
 # OS
 .DS_Store

@@ -2,25 +2,56 @@ const { prisma } = require('../prisma/client');
 const fs = require('fs').promises;
 const fsSync = require('fs');
 const path = require('path');
+const { execSync } = require('child_process');
+
+const isPostgres = () => {
+  return (process.env.DATABASE_URL || '').startsWith('postgres');
+};
 
 const crearBackup = async (req, res) => {
   try {
-    const dbPath = process.env.DATABASE_URL?.replace('file:', '') || './dev.db';
-    const backupDir = path.dirname(dbPath);
     const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
-    const backupPath = path.join(backupDir, `backup-${timestamp}.db`);
+    const backupDir = path.join(__dirname, '..', '..', 'backups');
+    if (!fsSync.existsSync(backupDir)) {
+      await fs.mkdir(backupDir, { recursive: true });
+    }
 
-    await fs.copyFile(dbPath, backupPath);
+    if (isPostgres()) {
+      const dbUrl = new URL(process.env.DATABASE_URL);
+      const host = dbUrl.hostname;
+      const port = dbUrl.port || '5432';
+      const dbName = dbUrl.pathname.replace('/', '');
+      const user = dbUrl.username;
+      const password = dbUrl.password;
 
-    const fecha = new Date().toISOString();
-    const stats = await fs.stat(backupPath);
+      const backupPath = path.join(backupDir, `backup-${timestamp}.sql`);
+      const env = { ...process.env, PGPASSWORD: password };
+      execSync(
+        `pg_dump -h ${host} -p ${port} -U ${user} -d ${dbName} -f "${backupPath}" --no-owner --no-acl`,
+        { env, timeout: 60000 }
+      );
 
-    res.json({
-      message: 'Backup creado exitosamente',
-      archivo: `backup-${timestamp}.db`,
-      tamaño: `${(stats.size / 1024 / 1024).toFixed(2)} MB`,
-      fecha
-    });
+      const stats = await fs.stat(backupPath);
+      res.json({
+        message: 'Backup creado exitosamente (PostgreSQL)',
+        archivo: `backup-${timestamp}.sql`,
+        tamaño: `${(stats.size / 1024 / 1024).toFixed(2)} MB`,
+        fecha: new Date().toISOString()
+      });
+    } else {
+      const dbPath = process.env.DATABASE_URL?.replace('file:', '') || './dev.db';
+      const backupPath = path.join(backupDir, `backup-${timestamp}.db`);
+
+      await fs.copyFile(dbPath, backupPath);
+
+      const stats = await fs.stat(backupPath);
+      res.json({
+        message: 'Backup creado exitosamente (SQLite)',
+        archivo: `backup-${timestamp}.db`,
+        tamaño: `${(stats.size / 1024 / 1024).toFixed(2)} MB`,
+        fecha: new Date().toISOString()
+      });
+    }
   } catch (error) {
     console.error('Backup error:', error);
     res.status(500).json({ error: 'Error al crear backup' });
@@ -29,8 +60,7 @@ const crearBackup = async (req, res) => {
 
 const listarBackups = async (req, res) => {
   try {
-    const dbPath = process.env.DATABASE_URL?.replace('file:', '') || './dev.db';
-    const backupDir = path.dirname(dbPath);
+    const backupDir = path.join(__dirname, '..', '..', 'backups');
 
     if (!fsSync.existsSync(backupDir)) {
       return res.json([]);
@@ -39,7 +69,7 @@ const listarBackups = async (req, res) => {
     const files = await fs.readdir(backupDir);
     const backups = await Promise.all(
       files
-        .filter(f => f.startsWith('backup-') && f.endsWith('.db'))
+        .filter(f => f.startsWith('backup-') && (f.endsWith('.db') || f.endsWith('.sql')))
         .map(async f => {
           const stats = await fs.stat(path.join(backupDir, f));
           return {

@@ -545,63 +545,67 @@ export default function OficinaPage() {
             }}>
               <span style={{ fontSize: 13, fontWeight: 500 }}>{selected.length} seleccionado{selected.length !== 1 ? 's' : ''}</span>
 
-              <div style={{ position: 'relative' }}>
-                <button onClick={() => setShowBulkMenuAsignar(!showBulkMenuAsignar)} className="btn btn-secondary" disabled={bulkLoading}>
-                  {bulkLoading ? 'Asignando...' : '👤 Asignar →'}
-                </button>
-                {showBulkMenuAsignar && (
-                  <div style={{
-                    position: 'absolute', top: '100%', right: 0, marginTop: 4,
-                    background: 'var(--bg2)', border: '1px solid var(--border)', borderRadius: 8,
-                    padding: 8, zIndex: 50, minWidth: 180
-                  }}>
-                    {operadores.map(op => (
-                      <button
-                        key={op.id}
-                        onClick={() => handleBulkAsignar(op.id)}
-                        style={{
-                          display: 'block', width: '100%', padding: '8px 12px', border: 'none',
-                          background: 'none', color: 'var(--text2)', fontSize: 12,
-                          textAlign: 'left', borderRadius: 6, cursor: 'pointer'
-                        }}
-                        onMouseEnter={(e) => e.target.style.background = 'var(--bg3)'}
-                        onMouseLeave={(e) => e.target.style.background = 'none'}
-                      >
-                        {op.nombre}
-                      </button>
-                    ))}
-                  </div>
-                )}
-              </div>
+              {usuario?.rol === 'admin' && (
+                <div style={{ position: 'relative' }}>
+                  <button onClick={() => setShowBulkMenuAsignar(!showBulkMenuAsignar)} className="btn btn-secondary" disabled={bulkLoading}>
+                    {bulkLoading ? 'Asignando...' : '👤 Asignar →'}
+                  </button>
+                  {showBulkMenuAsignar && (
+                    <div style={{
+                      position: 'absolute', top: '100%', right: 0, marginTop: 4,
+                      background: 'var(--bg2)', border: '1px solid var(--border)', borderRadius: 8,
+                      padding: 8, zIndex: 50, minWidth: 180
+                    }}>
+                      {operadores.map(op => (
+                        <button
+                          key={op.id}
+                          onClick={() => handleBulkAsignar(op.id)}
+                          style={{
+                            display: 'block', width: '100%', padding: '8px 12px', border: 'none',
+                            background: 'none', color: 'var(--text2)', fontSize: 12,
+                            textAlign: 'left', borderRadius: 6, cursor: 'pointer'
+                          }}
+                          onMouseEnter={(e) => e.target.style.background = 'var(--bg3)'}
+                          onMouseLeave={(e) => e.target.style.background = 'none'}
+                        >
+                          {op.nombre}
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
 
-              <div style={{ position: 'relative' }}>
-                <button onClick={() => setShowBulkMenuEstado(!showBulkMenuEstado)} className="btn btn-primary" disabled={bulkLoading}>
-                  {bulkLoading ? 'Actualizando...' : 'Cambiar estado →'}
-                </button>
-                {showBulkMenuEstado && (
-                  <div style={{
-                    position: 'absolute', top: '100%', right: 0, marginTop: 4,
-                    background: 'var(--bg2)', border: '1px solid var(--border)', borderRadius: 8,
-                    padding: 8, zIndex: 50, minWidth: 150
-                  }}>
-                    {Object.entries(ESTADOS).map(([key, val]) => (
-                      <button
-                        key={key}
-                        onClick={() => handleBulkEstado(key)}
-                        style={{
-                          display: 'block', width: '100%', padding: '8px 12px', border: 'none',
-                          background: 'none', color: 'var(--text2)', fontSize: 12,
-                          textAlign: 'left', borderRadius: 6, cursor: 'pointer'
-                        }}
-                        onMouseEnter={(e) => e.target.style.background = 'var(--bg3)'}
-                        onMouseLeave={(e) => e.target.style.background = 'none'}
-                      >
-                        {val.label}
-                      </button>
-                    ))}
-                  </div>
-                )}
-              </div>
+              {usuario?.rol === 'admin' && (
+                <div style={{ position: 'relative' }}>
+                  <button onClick={() => setShowBulkMenuEstado(!showBulkMenuEstado)} className="btn btn-primary" disabled={bulkLoading}>
+                    {bulkLoading ? 'Actualizando...' : 'Cambiar estado →'}
+                  </button>
+                  {showBulkMenuEstado && (
+                    <div style={{
+                      position: 'absolute', top: '100%', right: 0, marginTop: 4,
+                      background: 'var(--bg2)', border: '1px solid var(--border)', borderRadius: 8,
+                      padding: 8, zIndex: 50, minWidth: 150
+                    }}>
+                      {Object.entries(ESTADOS).map(([key, val]) => (
+                        <button
+                          key={key}
+                          onClick={() => handleBulkEstado(key)}
+                          style={{
+                            display: 'block', width: '100%', padding: '8px 12px', border: 'none',
+                            background: 'none', color: 'var(--text2)', fontSize: 12,
+                            textAlign: 'left', borderRadius: 6, cursor: 'pointer'
+                          }}
+                          onMouseEnter={(e) => e.target.style.background = 'var(--bg3)'}
+                          onMouseLeave={(e) => e.target.style.background = 'none'}
+                        >
+                          {val.label}
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
 
               {usuario?.rol === 'admin' && (
                 <button onClick={handleBulkDelete} className="btn btn-danger" disabled={bulkLoading} style={{ padding: '7px 14px', fontSize: 13 }}>
@@ -728,14 +732,15 @@ export default function OficinaPage() {
 
           {pagination && pagination.totalPages > 1 && (
             <div className="pagination">
-              <button disabled={!pagination.hasPrevPage} onClick={() => { const p = pagination.page - 1; setPage(p); fetchPedidos(p); }}>Anterior</button>
+              <button disabled={!pagination.hasPrevPage} onClick={() => { const p = pagination.page - 1; setPage(p); setSelected([]); fetchPedidos(p); }}>Anterior</button>
               <span>Página {pagination.page} de {pagination.totalPages}</span>
-              <button disabled={!pagination.hasNextPage} onClick={() => { const p = pagination.page + 1; setPage(p); fetchPedidos(p); }}>Siguiente</button>
+              <button disabled={!pagination.hasNextPage} onClick={() => { const p = pagination.page + 1; setPage(p); setSelected([]); fetchPedidos(p); }}>Siguiente</button>
               <select
                 value={pageSize}
                 onChange={(e) => {
                   setPageSize(Number(e.target.value));
                   setPage(1);
+                  setSelected([]);
                   fetchPedidos(1);
                 }}
                 style={{

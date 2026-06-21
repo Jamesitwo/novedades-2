@@ -2,6 +2,19 @@ const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const { prisma } = require('../prisma/client');
 
+const parseExpiry = (str) => {
+  const match = str.match(/^(\d+)\s*(s|m|h|d)$/);
+  if (!match) return 8 * 3600000;
+  const val = parseInt(match[1]);
+  switch (match[2]) {
+    case 's': return val * 1000;
+    case 'm': return val * 60000;
+    case 'h': return val * 3600000;
+    case 'd': return val * 86400000;
+    default: return 8 * 3600000;
+  }
+};
+
 const login = async (req, res) => {
   try {
     const { email, password } = req.body;
@@ -27,8 +40,7 @@ const login = async (req, res) => {
       { expiresIn }
     );
 
-    const expiraEnHoras = parseInt(expiresIn) || 8;
-    const expiraAt = new Date(Date.now() + expiraEnHoras * 3600000);
+    const expiraAt = new Date(Date.now() + parseExpiry(expiresIn));
 
     await prisma.sesion.create({
       data: {

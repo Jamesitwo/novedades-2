@@ -39,7 +39,10 @@ app.use(cors({
     if (!origin) return callback(null, true);
     if (FRONTEND_URL && origin === FRONTEND_URL) return callback(null, true);
     if (['http://localhost:3000', 'http://127.0.0.1:3000', 'http://[::1]:3000'].includes(origin)) return callback(null, true);
-    if (isProduction && !FRONTEND_URL) return callback(null, true);
+    if (isProduction && !FRONTEND_URL) {
+      console.warn('[CORS] FRONTEND_URL not set in production, allowing all origins');
+      return callback(null, true);
+    }
     callback(new Error('Not allowed by CORS'));
   },
   credentials: true

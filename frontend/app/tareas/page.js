@@ -150,10 +150,15 @@ export default function TareasKanbanPage() {
                                 {pr.label}
                               </div>
                               <Link href={`/tareas/${tarea.id}`} style={{ color: 'var(--text)', textDecoration: 'none' }}>
-                                <div style={{ fontSize: 13, fontWeight: 500, marginBottom: 4 }}>
+                                <div style={{ fontSize: 13, fontWeight: 500, marginBottom: 2 }}>
                                   {tarea.titulo}
                                 </div>
                               </Link>
+                              {tarea.descripcion && (
+                                <div style={{ fontSize: 11, color: 'var(--text3)', marginBottom: 4, lineHeight: 1.3, display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
+                                  {tarea.descripcion}
+                                </div>
+                              )}
                               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: 10, color: 'var(--text3)' }}>
                                 <span>
                                   {tarea.origenTipo === 'novedad' ? '⚠' : tarea.origenTipo === 'oficina' ? '📦' : '✏️'}

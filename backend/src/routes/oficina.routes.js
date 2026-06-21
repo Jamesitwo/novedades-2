@@ -3,7 +3,7 @@ const router = express.Router();
 const { getAll, getById, create, update, cambiarEstado, registrarIntento, remove, getVencimientos, exportarExcel, bulkCambiarEstado, bulkAsignar, bulkRemove, transferir, toggleFavorito, duplicar, asignarEtiqueta, removerEtiqueta } = require('../controllers/oficina.controller');
 const { authMiddleware } = require('../middlewares/auth.middleware');
 const { adminOnly, adminOOperadorAsignado } = require('../middlewares/roles.middleware');
-const { validateBody, validateParams, idParamSchema, oficinaSchema, cambiarEstadoOficinaSchema, intentoSchema, bulkEstadoSchema, bulkAsignarSchema, transferirSchema } = require('../middlewares/validate.middleware');
+const { validateBody, validateParams, idParamSchema, oficinaSchema, cambiarEstadoOficinaSchema, intentoSchema, bulkEstadoSchema, bulkAsignarSchema, bulkDeleteSchema, transferirSchema } = require('../middlewares/validate.middleware');
 
 router.use(authMiddleware);
 
@@ -15,7 +15,7 @@ router.post('/', adminOOperadorAsignado, validateBody(oficinaSchema), create);
 router.put('/:id', adminOOperadorAsignado, validateParams(idParamSchema), validateBody(oficinaSchema.partial()), update);
 router.patch('/bulk-estado', adminOnly, validateBody(bulkEstadoSchema), bulkCambiarEstado);
 router.patch('/bulk-asignar', adminOnly, validateBody(bulkAsignarSchema), bulkAsignar);
-router.delete('/bulk', adminOnly, bulkRemove);
+router.delete('/bulk', adminOnly, validateBody(bulkDeleteSchema), bulkRemove);
 router.patch('/:id/transferir', adminOOperadorAsignado, validateParams(idParamSchema), validateBody(transferirSchema), transferir);
 router.patch('/:id/estado', adminOOperadorAsignado, validateParams(idParamSchema), validateBody(cambiarEstadoOficinaSchema), cambiarEstado);
 router.patch('/:id/favorito', adminOOperadorAsignado, validateParams(idParamSchema), toggleFavorito);

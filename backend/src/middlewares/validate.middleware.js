@@ -107,6 +107,10 @@ const bulkAsignarSchema = z.object({
   asignadoId: uuidSchema
 });
 
+const bulkDeleteSchema = z.object({
+  ids: z.array(uuidSchema).min(1)
+});
+
 const transferirSchema = z.object({
   aUsuarioId: uuidSchema,
   notas: z.string().optional().nullable()
@@ -130,6 +134,7 @@ module.exports = {
   intentoSchema,
   bulkEstadoSchema,
   bulkAsignarSchema,
+  bulkDeleteSchema,
   transferirSchema,
   changePasswordSchema
 };
