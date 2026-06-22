@@ -109,7 +109,10 @@ export default function OficinaPage() {
   useEffect(() => { fetchRef.current = fetchPedidos; }, [fetchPedidos]);
 
   const refreshTable = useCallback(() => {
-    fetchPedidos(page);
+    const scrollY = window.scrollY;
+    fetchPedidos(page).then(() => {
+      setTimeout(() => window.scrollTo(0, scrollY), 50);
+    });
   }, [fetchPedidos, page]);
 
   useEffect(() => {

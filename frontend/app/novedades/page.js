@@ -158,7 +158,10 @@ export default function NovedadesPage() {
   const [detailId, setDetailId] = useState(null);
 
   const refreshTable = useCallback(() => {
-    fetchNovedades(page);
+    const scrollY = window.scrollY;
+    fetchNovedades(page).then(() => {
+      setTimeout(() => window.scrollTo(0, scrollY), 50);
+    });
   }, [fetchNovedades, page]);
 
   const handlePrevRow = useCallback(() => {
