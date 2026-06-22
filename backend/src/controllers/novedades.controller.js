@@ -646,4 +646,31 @@ const removerEtiqueta = async (req, res) => {
   }
 };
 
-module.exports = { getAll, getById, create, update, cambiarEstado, remove, exportarExcel, registrarIntento, bulkCambiarEstado, bulkAsignar, bulkRemove, transferir, toggleFavorito, duplicar, asignarEtiqueta, removerEtiqueta };
+const toggleChat = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { chatActivo } = req.body;
+
+    const novedad = await prisma.pedidoNovedad.findUnique({ where: { id } });
+    if (!novedad) {
+      return res.status(404).json({ error: 'Novedad no encontrada' });
+    }
+
+    const data = chatActivo
+      ? { chatActivo: true, fechaUltimoMsjCliente: new Date() }
+      : { chatActivo: false, fechaUltimoMsjCliente: null };
+
+    const actualizada = await prisma.pedidoNovedad.update({ where: { id }, data });
+
+    res.json({
+      id: actualizada.id,
+      chatActivo: actualizada.chatActivo,
+      fechaUltimoMsjCliente: actualizada.fechaUltimoMsjCliente
+    });
+  } catch (error) {
+    console.error('Toggle chat novedad error:', error);
+    res.status(500).json({ error: 'Error en el servidor' });
+  }
+};
+
+module.exports = { getAll, getById, create, update, cambiarEstado, remove, exportarExcel, registrarIntento, bulkCambiarEstado, bulkAsignar, bulkRemove, transferir, toggleFavorito, duplicar, asignarEtiqueta, removerEtiqueta, toggleChat };

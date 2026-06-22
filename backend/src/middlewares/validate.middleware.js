@@ -121,6 +121,10 @@ const changePasswordSchema = z.object({
   newPassword: z.string().min(6)
 });
 
+const chatSchema = z.object({
+  chatActivo: z.boolean()
+});
+
 module.exports = {
   validateBody,
   validateParams,
@@ -136,5 +140,6 @@ module.exports = {
   bulkAsignarSchema,
   bulkDeleteSchema,
   transferirSchema,
-  changePasswordSchema
+  changePasswordSchema,
+  chatSchema
 };

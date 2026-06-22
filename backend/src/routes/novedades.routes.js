@@ -1,9 +1,9 @@
 const express = require('express');
 const router = express.Router();
-const { getAll, getById, create, update, cambiarEstado, remove, exportarExcel, registrarIntento, bulkCambiarEstado, bulkAsignar, bulkRemove, transferir, toggleFavorito, duplicar, asignarEtiqueta, removerEtiqueta } = require('../controllers/novedades.controller');
+const { getAll, getById, create, update, cambiarEstado, remove, exportarExcel, registrarIntento, bulkCambiarEstado, bulkAsignar, bulkRemove, transferir, toggleFavorito, duplicar, asignarEtiqueta, removerEtiqueta, toggleChat } = require('../controllers/novedades.controller');
 const { authMiddleware } = require('../middlewares/auth.middleware');
 const { adminOnly, adminOOperadorAsignado } = require('../middlewares/roles.middleware');
-const { validateBody, validateParams, idParamSchema, novedadSchema, cambiarEstadoNovedadSchema, intentoSchema, bulkEstadoSchema, bulkAsignarSchema, bulkDeleteSchema, transferirSchema } = require('../middlewares/validate.middleware');
+const { validateBody, validateParams, idParamSchema, novedadSchema, cambiarEstadoNovedadSchema, intentoSchema, bulkEstadoSchema, bulkAsignarSchema, bulkDeleteSchema, transferirSchema, chatSchema } = require('../middlewares/validate.middleware');
 
 router.use(authMiddleware);
 
@@ -18,6 +18,7 @@ router.delete('/bulk', adminOnly, validateBody(bulkDeleteSchema), bulkRemove);
 router.patch('/:id/transferir', adminOOperadorAsignado, validateParams(idParamSchema), validateBody(transferirSchema), transferir);
 router.patch('/:id/estado', adminOOperadorAsignado, validateParams(idParamSchema), validateBody(cambiarEstadoNovedadSchema), cambiarEstado);
 router.patch('/:id/favorito', adminOOperadorAsignado, validateParams(idParamSchema), toggleFavorito);
+router.patch('/:id/chat', adminOOperadorAsignado, validateParams(idParamSchema), validateBody(chatSchema), toggleChat);
 router.post('/:id/duplicar', adminOOperadorAsignado, validateParams(idParamSchema), duplicar);
 router.post('/:id/intento', adminOOperadorAsignado, validateParams(idParamSchema), validateBody(intentoSchema), registrarIntento);
 router.post('/:id/etiquetas', adminOOperadorAsignado, validateParams(idParamSchema), asignarEtiqueta);

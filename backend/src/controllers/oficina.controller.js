@@ -687,4 +687,31 @@ const removerEtiqueta = async (req, res) => {
   }
 };
 
-module.exports = { getAll, getById, create, update, cambiarEstado, registrarIntento, remove, getVencimientos, exportarExcel, bulkCambiarEstado, bulkAsignar, bulkRemove, transferir, toggleFavorito, duplicar, asignarEtiqueta, removerEtiqueta };
+const toggleChat = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { chatActivo } = req.body;
+
+    const pedido = await prisma.pedidoOficina.findUnique({ where: { id } });
+    if (!pedido) {
+      return res.status(404).json({ error: 'Pedido no encontrado' });
+    }
+
+    const data = chatActivo
+      ? { chatActivo: true, fechaUltimoMsjCliente: new Date() }
+      : { chatActivo: false, fechaUltimoMsjCliente: null };
+
+    const actualizado = await prisma.pedidoOficina.update({ where: { id }, data });
+
+    res.json({
+      id: actualizado.id,
+      chatActivo: actualizado.chatActivo,
+      fechaUltimoMsjCliente: actualizado.fechaUltimoMsjCliente
+    });
+  } catch (error) {
+    console.error('Toggle chat oficina error:', error);
+    res.status(500).json({ error: 'Error en el servidor' });
+  }
+};
+
+module.exports = { getAll, getById, create, update, cambiarEstado, registrarIntento, remove, getVencimientos, exportarExcel, bulkCambiarEstado, bulkAsignar, bulkRemove, transferir, toggleFavorito, duplicar, asignarEtiqueta, removerEtiqueta, toggleChat };

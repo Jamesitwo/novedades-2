@@ -677,6 +677,7 @@ export default function OficinaPage() {
                   <th>Asignado</th>
                   <th>Transferencias</th>
                   <th>Estado</th>
+                  <th style={{ width: 36, textAlign: 'center' }}>💬</th>
                   <th></th>
                 </tr>
               </thead>
@@ -746,6 +747,17 @@ export default function OficinaPage() {
                         })()}
                       </td>
                       <td><span className={`badge ${ESTADOS[pedido.estado]?.color}`}>{ESTADOS[pedido.estado]?.label}</span></td>
+                      <td style={{ textAlign: 'center' }}>
+                        {pedido.conversacionLink && (
+                          <span title={pedido.chatActivo ? 'Chat activo (ventana 24h abierta)' : 'Chat inactivo (ventana 24h cerrada)'} style={{
+                            fontSize: 14, cursor: 'pointer',
+                            opacity: pedido.chatActivo ? 1 : 0.3,
+                            transition: 'opacity 0.2s'
+                          }}>
+                            {pedido.chatActivo ? '💬' : '💤'}
+                          </span>
+                        )}
+                      </td>
                       <td>
                         <button
                           onClick={() => toggleFavorito(pedido.id)}

@@ -18,6 +18,28 @@ const BADGE_CLASS = {
 
 const getBadgeClass = (estado) => BADGE_CLASS[estado] || estado;
 
+function formatTimeAgo(date) {
+  if (!date) return '';
+  const diff = Date.now() - new Date(date).getTime();
+  const minutes = Math.floor(diff / 60000);
+  const hours = Math.floor(diff / 3600000);
+  if (minutes < 1) return 'Ahora';
+  if (minutes < 60) return `Hace ${minutes} min`;
+  if (hours < 24) return `Hace ${hours}h`;
+  const days = Math.floor(hours / 24);
+  return `Hace ${days}d`;
+}
+
+function getTimeRemaining(date) {
+  if (!date) return null;
+  const elapsed = Date.now() - new Date(date).getTime();
+  const remaining = 24 * 3600000 - elapsed;
+  if (remaining <= 0) return null;
+  const h = Math.floor(remaining / 3600000);
+  const m = Math.floor((remaining % 3600000) / 60000);
+  return h > 0 ? `${h}h ${m}m restantes` : `${m}m restantes`;
+}
+
 export default function DetailPanel({ id, tipo, onClose, onUpdate }) {
   const { usuario } = useAuthStore();
   const [record, setRecord] = useState(null);
@@ -154,6 +176,19 @@ export default function DetailPanel({ id, tipo, onClose, onUpdate }) {
     const hoy = new Date();
     const limite = new Date(fechaLimite);
     return Math.ceil((limite - hoy) / (1000 * 60 * 60 * 24));
+  };
+
+  const handleToggleChat = async () => {
+    setUpdating(true);
+    try {
+      await api.patch(`/api/${apiBase}/${id}/chat`, { chatActivo: !record.chatActivo });
+      await refreshAfterAction();
+      showToast(record.chatActivo ? 'Chat desactivado' : 'Chat activado');
+    } catch {
+      showToast('Error al actualizar chat', 'error');
+    } finally {
+      setUpdating(false);
+    }
   };
 
   if (loading) {
@@ -356,6 +391,45 @@ export default function DetailPanel({ id, tipo, onClose, onUpdate }) {
                   <a href={record.conversacionLink} target="_blank" rel="noopener noreferrer" style={{ color: 'var(--accent2)', textDecoration: 'underline' }}>
                     {record.conversacionLink}
                   </a>
+                </div>
+                <div style={{
+                  marginTop: 10, padding: '10px 14px', borderRadius: 10,
+                  background: record.chatActivo ? 'rgba(34,197,94,0.08)' : 'rgba(239,68,68,0.06)',
+                  border: `1px solid ${record.chatActivo ? 'rgba(34,197,94,0.2)' : 'rgba(239,68,68,0.15)'}`,
+                  display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10
+                }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                    <span style={{
+                      width: 10, height: 10, borderRadius: '50%',
+                      background: record.chatActivo ? 'var(--green)' : 'var(--text3)',
+                      flexShrink: 0
+                    }} />
+                    <div>
+                      <div style={{ fontSize: 12, fontWeight: 600, color: record.chatActivo ? 'var(--green)' : 'var(--text3)' }}>
+                        Chat {record.chatActivo ? 'activo' : 'inactivo'}
+                      </div>
+                      <div style={{ fontSize: 10, color: 'var(--text3)', marginTop: 1 }}>
+                        {record.chatActivo
+                          ? (getTimeRemaining(record.fechaUltimoMsjCliente) || 'Ventana abierta')
+                          : (record.fechaUltimoMsjCliente
+                            ? `${formatTimeAgo(record.fechaUltimoMsjCliente)} — ventana cerrada`
+                            : 'Ventana de 24h cerrada')}
+                      </div>
+                    </div>
+                  </div>
+                  <button
+                    onClick={handleToggleChat}
+                    disabled={updating}
+                    style={{
+                      padding: '5px 12px', borderRadius: 6, border: 'none', cursor: 'pointer',
+                      fontSize: 11, fontWeight: 500,
+                      background: record.chatActivo ? 'rgba(239,68,68,0.15)' : 'rgba(34,197,94,0.15)',
+                      color: record.chatActivo ? 'var(--red)' : 'var(--green)',
+                      whiteSpace: 'nowrap'
+                    }}
+                  >
+                    {record.chatActivo ? 'Desactivar' : 'Activar'}
+                  </button>
                 </div>
               </div>
             )}

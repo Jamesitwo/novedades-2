@@ -717,6 +717,7 @@ export default function NovedadesPage() {
                   <th>Asignado</th>
                   <th>Transferencias</th>
                   <th>Estado</th>
+                  <th style={{ width: 36, textAlign: 'center' }}>💬</th>
                   <th>Fecha</th>
                   <th></th>
                 </tr>
@@ -797,6 +798,17 @@ export default function NovedadesPage() {
                       })()}
                     </td>
                     <td><span className={`badge ${getBadgeClass(novedad.estado)}`}>{getLabelEstado(novedad.estado)}</span></td>
+                    <td style={{ textAlign: 'center' }}>
+                      {novedad.conversacionLink && (
+                        <span title={novedad.chatActivo ? 'Chat activo (ventana 24h abierta)' : 'Chat inactivo (ventana 24h cerrada)'} style={{
+                          fontSize: 14, cursor: 'pointer',
+                          opacity: novedad.chatActivo ? 1 : 0.3,
+                          transition: 'opacity 0.2s'
+                        }}>
+                          {novedad.chatActivo ? '💬' : '💤'}
+                        </span>
+                      )}
+                    </td>
                     <td className="td-mono" style={{ fontSize: 12, color: 'var(--text2)' }}>
                       {new Date(novedad.createdAt).toLocaleDateString('es-CO')}
                     </td>

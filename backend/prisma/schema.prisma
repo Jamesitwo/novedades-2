@@ -51,6 +51,8 @@ model PedidoNovedad {
   intentosLlamada  Int      @default(0) @map("intentos_llamada")
   notas            String?
   conversacionLink String?  @map("conversacion_link")
+  chatActivo       Boolean  @default(false) @map("chat_activo")
+  fechaUltimoMsjCliente DateTime? @map("fecha_ultimo_msj_cliente")
   favorito         Boolean  @default(false)
   createdAt        DateTime @default(now())
   updatedAt        DateTime @updatedAt
@@ -83,6 +85,8 @@ model PedidoOficina {
   notas            String?
   notasInternas    String?  @map("notas_internas")
   conversacionLink String?  @map("conversacion_link")
+  chatActivo       Boolean  @default(false) @map("chat_activo")
+  fechaUltimoMsjCliente DateTime? @map("fecha_ultimo_msj_cliente")
   favorito         Boolean  @default(false)
   createdAt        DateTime @default(now())
   updatedAt        DateTime @updatedAt
