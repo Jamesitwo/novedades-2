@@ -725,20 +725,45 @@ tr:hover td { background: var(--bg3); }
   border-top: 1px solid var(--border);
 }
 
+.detail-panel-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.5);
+  z-index: 99;
+  animation: fadeIn 0.15s ease-out;
+}
+
 .detail-panel {
   position: fixed;
   top: 0;
   right: 0;
   background: var(--bg2);
   border-left: 1px solid var(--border);
-  width: 480px;
+  width: 520px;
+  max-width: 100vw;
   height: 100vh;
   overflow-y: auto;
+  z-index: 100;
+  box-shadow: -8px 0 30px rgba(0,0,0,0.3);
+  animation: slideInRight 0.25s ease-out;
+}
+
+.detail-panel-inner {
   padding: 28px;
   display: flex;
   flex-direction: column;
   gap: 20px;
-  z-index: 100;
+  min-height: 100vh;
+}
+
+@keyframes slideInRight {
+  from { transform: translateX(100%); }
+  to { transform: translateX(0); }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
 }
 
 .detail-header {

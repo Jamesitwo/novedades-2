@@ -6,6 +6,7 @@ import api from '@/lib/api';
 import { useAuthStore } from '@/store/authStore';
 import { TableSkeleton } from '@/components/Skeleton';
 import { useKeyboardShortcuts } from '@/lib/useKeyboardShortcuts';
+import DetailPanel from '@/components/detail/DetailPanel';
 
 const ESTADOS = {
   novedad: { label: 'Novedad', color: 'amber' },
@@ -154,6 +155,11 @@ export default function NovedadesPage() {
   }, []);
 
   const [selectedIndex, setSelectedIndex] = useState(-1);
+  const [detailId, setDetailId] = useState(null);
+
+  const refreshTable = useCallback(() => {
+    fetchNovedades(page);
+  }, [fetchNovedades, page]);
 
   const handlePrevRow = useCallback(() => {
     if (novedades.length === 0) return;
@@ -179,12 +185,19 @@ export default function NovedadesPage() {
     document.querySelector('.topbar-search input')?.focus();
   }, []);
 
+  const handleViewRow = useCallback(() => {
+    if (selectedIndex >= 0 && selectedIndex < novedades.length) {
+      setDetailId(novedades[selectedIndex].id);
+    }
+  }, [selectedIndex, novedades]);
+
   useKeyboardShortcuts({
     onNext: handleNextRow,
     onPrev: handlePrevRow,
     onEdit: handleEditRow,
     onNew: handleNewRow,
-    onSearch: handleSearchFocus
+    onSearch: handleSearchFocus,
+    onView: handleViewRow
   });
 
   const toggleEstado = (estado) => {
@@ -799,7 +812,7 @@ export default function NovedadesPage() {
                       <div className="row-actions">
                         <button onClick={() => duplicarRegistro(novedad.id)} className="action-btn" title="Duplicar">📋</button>
                         <Link href={`/novedades/${novedad.id}/editar`} className="action-btn" prefetch={false}>Editar</Link>
-                        <Link href={`/novedades/${novedad.id}`} className="action-btn" prefetch={false}>Ver</Link>
+                        <button onClick={() => setDetailId(novedad.id)} className="action-btn">Ver</button>
                       </div>
                     </td>
                   </tr>
@@ -838,6 +851,13 @@ export default function NovedadesPage() {
               </select>
             </div>
           )}
+        </>
+      )}
+
+      {detailId && (
+        <>
+          <div className="detail-panel-overlay" onClick={() => setDetailId(null)} />
+          <DetailPanel id={detailId} tipo="novedad" onClose={() => setDetailId(null)} onUpdate={refreshTable} />
         </>
       )}
     </div>

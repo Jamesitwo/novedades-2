@@ -1,6 +1,6 @@
 import { useEffect, useCallback } from 'react';
 
-export function useKeyboardShortcuts({ onNext, onPrev, onEdit, onNew, onSearch }) {
+export function useKeyboardShortcuts({ onNext, onPrev, onEdit, onNew, onSearch, onView }) {
   const handleKeyDown = useCallback((e) => {
     if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA' || e.target.tagName === 'SELECT') {
       return;
@@ -23,8 +23,14 @@ export function useKeyboardShortcuts({ onNext, onPrev, onEdit, onNew, onSearch }
         e.preventDefault();
         onSearch?.();
         break;
+      case 'enter':
+        onView?.();
+        break;
+      case 'v':
+        onView?.();
+        break;
     }
-  }, [onNext, onPrev, onEdit, onNew, onSearch]);
+  }, [onNext, onPrev, onEdit, onNew, onSearch, onView]);
 
   useEffect(() => {
     window.addEventListener('keydown', handleKeyDown);

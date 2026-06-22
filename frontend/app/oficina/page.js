@@ -5,6 +5,7 @@ import Link from 'next/link';
 import api from '@/lib/api';
 import { useAuthStore } from '@/store/authStore';
 import { TableSkeleton } from '@/components/Skeleton';
+import DetailPanel from '@/components/detail/DetailPanel';
 
 const ESTADOS = {
   pendiente_llamar: { label: 'Pend. llamar', color: 'pendiente' },
@@ -60,6 +61,7 @@ export default function OficinaPage() {
   });
   const [etiquetaId, setEtiquetaId] = useState('');
   const [etiquetas, setEtiquetas] = useState([]);
+  const [detailId, setDetailId] = useState(null);
   const [counts, setCounts] = useState({ pendiente_llamar: 0, contactado: 0, va_a_recoger: 0, no_va_a_recoger: 0, devolucion: 0 });
 
   const showToast = (message, type = 'success') => {
@@ -105,6 +107,10 @@ export default function OficinaPage() {
 
   const fetchRef = useRef(fetchPedidos);
   useEffect(() => { fetchRef.current = fetchPedidos; }, [fetchPedidos]);
+
+  const refreshTable = useCallback(() => {
+    fetchPedidos(page);
+  }, [fetchPedidos, page]);
 
   useEffect(() => {
     api.get('/api/etiquetas').then(({ data }) => setEtiquetas(data)).catch(() => {});
@@ -751,7 +757,7 @@ export default function OficinaPage() {
                         </button>
                         <div className="row-actions">
                           <button onClick={() => duplicarRegistro(pedido.id)} className="action-btn" title="Duplicar">📋</button>
-                          <Link href={`/oficina/${pedido.id}`} className="action-btn" prefetch={false}>Ver</Link>
+                          <button onClick={() => setDetailId(pedido.id)} className="action-btn">Ver</button>
                         </div>
                       </td>
                     </tr>
@@ -791,6 +797,13 @@ export default function OficinaPage() {
               </select>
             </div>
           )}
+        </>
+      )}
+
+      {detailId && (
+        <>
+          <div className="detail-panel-overlay" onClick={() => setDetailId(null)} />
+          <DetailPanel id={detailId} tipo="oficina" onClose={() => setDetailId(null)} onUpdate={refreshTable} />
         </>
       )}
     </div>
