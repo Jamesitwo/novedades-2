@@ -14,6 +14,10 @@ echo "Sincronizando base de datos..."
 npx prisma db push --schema prisma/schema.prisma --accept-data-loss --skip-generate
 echo "✅ Schema listo"
 
+echo "Generando cliente Prisma..."
+npx prisma generate --schema prisma/schema.prisma
+echo "✅ Cliente generado"
+
 echo "Ejecutando seed..."
 node prisma/seed.js 2>/dev/null || true
 echo "✅ Seed completado"
