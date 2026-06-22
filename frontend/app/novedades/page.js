@@ -54,6 +54,11 @@ export default function NovedadesPage() {
     return parseInt(new URLSearchParams(window.location.search).get('pageSize')) || 20;
   });
   const [soloFavoritos, setSoloFavoritos] = useState(() => new URLSearchParams(typeof window !== 'undefined' ? window.location.search : '').has('favorito'));
+  const [asignadoId, setAsignadoId] = useState(() => {
+    if (typeof window === 'undefined') return '';
+    const params = new URLSearchParams(window.location.search);
+    return params.get('asignadoId') || '';
+  });
   const [etiquetaId, setEtiquetaId] = useState('');
   const [etiquetas, setEtiquetas] = useState([]);
   const [counts, setCounts] = useState({ novedad: 0, contactado: 0, solucionado: 0, cancelado: 0, devolucion: 0 });
@@ -82,6 +87,7 @@ export default function NovedadesPage() {
       if (fechaHasta) params.append('fechaHasta', fechaHasta);
       if (soloFavoritos) params.append('favorito', 'true');
       if (etiquetaId) params.append('etiquetaId', etiquetaId);
+      if (asignadoId) params.append('asignadoId', asignadoId);
 
       const { data } = await api.get(`/api/novedades?${params}`);
       setNovedades(data.data);
@@ -92,7 +98,7 @@ export default function NovedadesPage() {
     } finally {
       setLoading(false);
     }
-  }, [filtrosEstado, mostrarAsignados, transportadora, search, fechaDesde, fechaHasta, pageSize, soloFavoritos, etiquetaId]);
+  }, [filtrosEstado, mostrarAsignados, transportadora, search, fechaDesde, fechaHasta, pageSize, soloFavoritos, etiquetaId, asignadoId]);
 
   useEffect(() => {
     fetchNovedades(page);
@@ -114,6 +120,7 @@ export default function NovedadesPage() {
     if (fechaDesde) params.set('fechaDesde', fechaDesde);
     if (fechaHasta) params.set('fechaHasta', fechaHasta);
     if (soloFavoritos) params.set('favorito', 'true');
+    if (asignadoId) params.set('asignadoId', asignadoId);
     params.set('pageSize', pageSize);
     params.set('page', page);
     const url = `/novedades?${params.toString()}`;
@@ -198,6 +205,8 @@ export default function NovedadesPage() {
     setFechaDesde('');
     setFechaHasta('');
     setSoloFavoritos(false);
+    setAsignadoId('');
+    setEtiquetaId('');
   };
 
   const toggleFavorito = async (id, currentFav) => {
@@ -333,7 +342,7 @@ export default function NovedadesPage() {
   const getBadgeClass = (estado) => ({ novedad: 'novedad', contactado: 'contactado', solucionado: 'solucionado', cancelado: 'cancelado' }[estado] || estado);
   const getLabelEstado = (estado) => ESTADOS[estado]?.label || estado;
 
-  const totalFiltrosActivos = filtrosEstado.length + (mostrarAsignados ? 1 : 0) + (transportadora ? 1 : 0) + (fechaDesde || fechaHasta ? 1 : 0) + (search ? 1 : 0);
+  const totalFiltrosActivos = filtrosEstado.length + (mostrarAsignados ? 1 : 0) + (transportadora ? 1 : 0) + (fechaDesde || fechaHasta ? 1 : 0) + (search ? 1 : 0) + (asignadoId ? 1 : 0) + (etiquetaId ? 1 : 0) + (soloFavoritos ? 1 : 0);
 
   return (
     <div className="content">
@@ -427,6 +436,19 @@ export default function NovedadesPage() {
         >
           <option value="">Todas transportadoras</option>
           {TRANSPORTADORAS.map(t => <option key={t} value={t}>{t}</option>)}
+        </select>
+
+        <select
+          value={asignadoId}
+          onChange={(e) => setAsignadoId(e.target.value)}
+          style={{
+            background: 'var(--bg3)', border: '1px solid var(--border)', borderRadius: 20,
+            padding: '5px 14px', fontSize: 12, fontWeight: 500,
+            color: asignadoId ? 'var(--accent2)' : 'var(--text2)', cursor: 'pointer'
+          }}
+        >
+          <option value="">Todos operadores</option>
+          {operadores.map(op => <option key={op.id} value={op.id}>{op.nombre}</option>)}
         </select>
 
         <select
@@ -552,6 +574,15 @@ export default function NovedadesPage() {
             }}>
               🔍 {search}
               <button onClick={() => setSearch('')} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'inherit', padding: 0, marginLeft: 4 }}>✕</button>
+            </span>
+          )}
+          {asignadoId && (
+            <span style={{
+              background: 'var(--bg3)', border: '1px solid var(--accent2)', borderRadius: 16,
+              padding: '4px 10px', fontSize: 11, color: 'var(--accent2)', display: 'flex', alignItems: 'center', gap: 4
+            }}>
+              👤 {operadores.find(op => op.id === asignadoId)?.nombre || 'Operador'}
+              <button onClick={() => setAsignadoId('')} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'inherit', padding: 0, marginLeft: 4 }}>✕</button>
             </span>
           )}
         </div>

@@ -53,6 +53,11 @@ export default function OficinaPage() {
     return parseInt(new URLSearchParams(window.location.search).get('pageSize')) || 20;
   });
   const [soloFavoritos, setSoloFavoritos] = useState(() => new URLSearchParams(typeof window !== 'undefined' ? window.location.search : '').has('favorito'));
+  const [asignadoId, setAsignadoId] = useState(() => {
+    if (typeof window === 'undefined') return '';
+    const params = new URLSearchParams(window.location.search);
+    return params.get('asignadoId') || '';
+  });
   const [etiquetaId, setEtiquetaId] = useState('');
   const [etiquetas, setEtiquetas] = useState([]);
   const [counts, setCounts] = useState({ pendiente_llamar: 0, contactado: 0, va_a_recoger: 0, no_va_a_recoger: 0, devolucion: 0 });
@@ -81,6 +86,7 @@ export default function OficinaPage() {
       if (fechaHasta) params.append('fechaHasta', fechaHasta);
       if (soloFavoritos) params.append('favorito', 'true');
       if (etiquetaId) params.append('etiquetaId', etiquetaId);
+      if (asignadoId) params.append('asignadoId', asignadoId);
 
       const { data } = await api.get(`/api/oficina?${params}`);
       setPedidos(data.data);
@@ -91,7 +97,7 @@ export default function OficinaPage() {
     } finally {
       setLoading(false);
     }
-  }, [filtrosEstado, mostrarAsignados, transportadora, search, fechaDesde, fechaHasta, pageSize, soloFavoritos, etiquetaId]);
+  }, [filtrosEstado, mostrarAsignados, transportadora, search, fechaDesde, fechaHasta, pageSize, soloFavoritos, etiquetaId, asignadoId]);
 
   useEffect(() => {
     fetchPedidos(page);
@@ -113,11 +119,12 @@ export default function OficinaPage() {
     if (fechaDesde) params.set('fechaDesde', fechaDesde);
     if (fechaHasta) params.set('fechaHasta', fechaHasta);
     if (soloFavoritos) params.set('favorito', 'true');
+    if (asignadoId) params.set('asignadoId', asignadoId);
     params.set('pageSize', pageSize);
     params.set('page', page);
     const url = `/oficina?${params.toString()}`;
     sessionStorage.setItem('oficina_prev_url', url);
-  }, [filtrosEstado, transportadora, search, fechaDesde, fechaHasta, soloFavoritos, pageSize, page]);
+  }, [filtrosEstado, transportadora, search, fechaDesde, fechaHasta, soloFavoritos, pageSize, page, asignadoId]);
 
   useEffect(() => {
     const fetchCounts = async () => {
@@ -162,6 +169,8 @@ export default function OficinaPage() {
     setFechaDesde('');
     setFechaHasta('');
     setSoloFavoritos(false);
+    setAsignadoId('');
+    setEtiquetaId('');
   };
 
   const toggleFavorito = async (id) => {
@@ -300,7 +309,7 @@ export default function OficinaPage() {
     return Math.ceil((limite - hoy) / (1000 * 60 * 60 * 24));
   };
 
-  const totalFiltrosActivos = filtrosEstado.length + (mostrarAsignados ? 1 : 0) + (transportadora ? 1 : 0) + (fechaDesde || fechaHasta ? 1 : 0) + (search ? 1 : 0);
+  const totalFiltrosActivos = filtrosEstado.length + (mostrarAsignados ? 1 : 0) + (transportadora ? 1 : 0) + (fechaDesde || fechaHasta ? 1 : 0) + (search ? 1 : 0) + (asignadoId ? 1 : 0) + (etiquetaId ? 1 : 0) + (soloFavoritos ? 1 : 0);
 
   return (
     <div className="content">
@@ -399,6 +408,19 @@ export default function OficinaPage() {
         >
           <option value="">Todas transportadoras</option>
           {TRANSPORTADORAS.map(t => <option key={t} value={t}>{t}</option>)}
+        </select>
+
+        <select
+          value={asignadoId}
+          onChange={(e) => setAsignadoId(e.target.value)}
+          style={{
+            background: 'var(--bg3)', border: '1px solid var(--border)', borderRadius: 20,
+            padding: '5px 14px', fontSize: 12, fontWeight: 500,
+            color: asignadoId ? 'var(--accent2)' : 'var(--text2)', cursor: 'pointer'
+          }}
+        >
+          <option value="">Todos operadores</option>
+          {operadores.map(op => <option key={op.id} value={op.id}>{op.nombre}</option>)}
         </select>
 
         <select
@@ -524,6 +546,15 @@ export default function OficinaPage() {
             }}>
               🔍 {search}
               <button onClick={() => setSearch('')} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'inherit', padding: 0, marginLeft: 4 }}>✕</button>
+            </span>
+          )}
+          {asignadoId && (
+            <span style={{
+              background: 'var(--bg3)', border: '1px solid var(--accent2)', borderRadius: 16,
+              padding: '4px 10px', fontSize: 11, color: 'var(--accent2)', display: 'flex', alignItems: 'center', gap: 4
+            }}>
+              👤 {operadores.find(op => op.id === asignadoId)?.nombre || 'Operador'}
+              <button onClick={() => setAsignadoId('')} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'inherit', padding: 0, marginLeft: 4 }}>✕</button>
             </span>
           )}
         </div>

@@ -5,7 +5,7 @@ const { getNextOperador } = require('../utils/autoAssign');
 
 const getAll = async (req, res) => {
   try {
-    const { page = 1, limit = 20, estados, estado, transportadora, search, fechaDesde, fechaHasta, asignado_a_mi, favorito, guiaDesde, guiaHasta, etiquetaId } = req.query;
+    const { page = 1, limit = 20, estados, estado, transportadora, search, fechaDesde, fechaHasta, asignado_a_mi, favorito, guiaDesde, guiaHasta, etiquetaId, asignadoId } = req.query;
     const skip = (parseInt(page) - 1) * parseInt(limit);
 
     const where = {};
@@ -58,6 +58,10 @@ const getAll = async (req, res) => {
 
     if (favorito === 'true') {
       where.favorito = true;
+    }
+
+    if (asignadoId) {
+      where.asignadoId = asignadoId;
     }
 
     if (etiquetaId) {
