@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import React from 'react';
 import api from '@/lib/api';
 import { TableSkeleton } from '@/components/Skeleton';
 import {
@@ -12,22 +13,39 @@ const CHART_COLORS = ['#f59e0b', '#6366f1', '#14b8a6', '#22c55e', '#a855f7', '#e
 export default function MetricasPage() {
   const [metricas, setMetricas] = useState(null);
   const [tiempoActivo, setTiempoActivo] = useState(null);
+  const [resumenDiario, setResumenDiario] = useState(null);
   const [loading, setLoading] = useState(true);
   const [periodo, setPeriodo] = useState('mes');
+  const [fechaDesde, setFechaDesde] = useState('');
+  const [fechaHasta, setFechaHasta] = useState('');
   const [tab, setTab] = useState('rendimiento');
   const [sortField, setSortField] = useState('totalResueltos');
   const [sortDir, setSortDir] = useState('desc');
+  const [expandedDay, setExpandedDay] = useState(null);
+
+  const isCustomRange = fechaDesde && fechaHasta;
 
   useEffect(() => {
     const fetchData = async () => {
       setLoading(true);
       try {
-        const [metRes, tempRes] = await Promise.all([
-          api.get(`/api/dashboard/metricas-operadores?periodo=${periodo}`),
-          api.get(`/api/dashboard/tiempo-activo?periodo=${periodo}`)
-        ]);
-        setMetricas(metRes.data);
-        setTiempoActivo(tempRes.data);
+        const params = isCustomRange
+          ? `fechaDesde=${fechaDesde}&fechaHasta=${fechaHasta}`
+          : `periodo=${periodo}`;
+
+        const promises = [
+          api.get(`/api/dashboard/metricas-operadores?${params}`),
+          api.get(`/api/dashboard/tiempo-activo?${params}`)
+        ];
+
+        if (isCustomRange) {
+          promises.push(api.get(`/api/dashboard/resumen-diario?${params}`));
+        }
+
+        const results = await Promise.all(promises);
+        setMetricas(results[0].data);
+        setTiempoActivo(results[1].data);
+        setResumenDiario(isCustomRange ? results[2].data : null);
       } catch (error) {
         console.error('Error fetching metricas:', error);
       } finally {
@@ -35,7 +53,7 @@ export default function MetricasPage() {
       }
     };
     fetchData();
-  }, [periodo]);
+  }, [periodo, fechaDesde, fechaHasta, isCustomRange]);
 
   const formatMoney = (amount) => {
     return new Intl.NumberFormat('es-CO', {
@@ -78,13 +96,13 @@ export default function MetricasPage() {
 
   return (
     <div className="content">
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20, flexWrap: 'wrap', gap: 10 }}>
         <h2 style={{ fontSize: 20, fontWeight: 600 }}>Métricas</h2>
-        <div style={{ display: 'flex', gap: 8 }}>
-          {['hoy', 'semana', 'mes', 'todos'].map(p => (
+        <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
+          {!isCustomRange && ['hoy', 'semana', 'mes', 'todos'].map(p => (
             <button
               key={p}
-              onClick={() => setPeriodo(p)}
+              onClick={() => { setPeriodo(p); setFechaDesde(''); setFechaHasta(''); }}
               style={{
                 padding: '6px 14px',
                 borderRadius: 20,
@@ -100,6 +118,40 @@ export default function MetricasPage() {
               {p === 'hoy' ? 'Hoy' : p === 'semana' ? 'Esta semana' : p === 'mes' ? 'Este mes' : 'Todo'}
             </button>
           ))}
+          <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
+            <input
+              type="date"
+              value={fechaDesde}
+              onChange={(e) => { setFechaDesde(e.target.value); setPeriodo(''); }}
+              style={{
+                background: isCustomRange ? 'var(--accent)' : 'var(--bg3)',
+                border: `1px solid ${isCustomRange ? 'var(--accent)' : 'var(--border)'}`,
+                borderRadius: 20, padding: '6px 12px', fontSize: 12, color: isCustomRange ? '#fff' : 'var(--text2)',
+                outline: 'none', cursor: 'pointer', fontFamily: 'var(--mono)'
+              }}
+            />
+            <span style={{ fontSize: 12, color: 'var(--text3)' }}>→</span>
+            <input
+              type="date"
+              value={fechaHasta}
+              onChange={(e) => { setFechaHasta(e.target.value); setPeriodo(''); }}
+              style={{
+                background: isCustomRange ? 'var(--accent)' : 'var(--bg3)',
+                border: `1px solid ${isCustomRange ? 'var(--accent)' : 'var(--border)'}`,
+                borderRadius: 20, padding: '6px 12px', fontSize: 12, color: isCustomRange ? '#fff' : 'var(--text2)',
+                outline: 'none', cursor: 'pointer', fontFamily: 'var(--mono)'
+              }}
+            />
+            {isCustomRange && (
+              <button
+                onClick={() => { setFechaDesde(''); setFechaHasta(''); setPeriodo('mes'); }}
+                style={{
+                  padding: '6px 10px', borderRadius: 20, fontSize: 11, cursor: 'pointer',
+                  border: '1px solid var(--border)', background: 'var(--bg3)', color: 'var(--text2)'
+                }}
+              >✕</button>
+            )}
+          </div>
         </div>
       </div>
 
@@ -135,6 +187,22 @@ export default function MetricasPage() {
           }}
         >
           Tiempo Activo
+        </button>
+        <button
+          onClick={() => setTab('diario')}
+          style={{
+            padding: '6px 16px',
+            borderRadius: 6,
+            fontSize: 12,
+            fontWeight: 500,
+            cursor: 'pointer',
+            border: 'none',
+            background: tab === 'diario' ? 'var(--accent)' : 'transparent',
+            color: tab === 'diario' ? '#fff' : 'var(--text2)',
+            transition: 'all 0.15s'
+          }}
+        >
+          Resumen Diario
         </button>
       </div>
 
@@ -198,7 +266,9 @@ export default function MetricasPage() {
           <div className="table-card">
           <div className="table-header">
             <span className="table-header-title">Rendimiento por Operador</span>
-            <span style={{ fontSize: 11, color: 'var(--text3)', textTransform: 'capitalize' }}>Período: {periodo}</span>
+            <span style={{ fontSize: 11, color: 'var(--text3)', textTransform: 'capitalize' }}>
+              {isCustomRange ? `${fechaDesde} → ${fechaHasta}` : `Período: ${periodo}`}
+            </span>
           </div>
           <div style={{ overflowX: 'auto' }}>
             <table>
@@ -394,6 +464,187 @@ export default function MetricasPage() {
               <div style={{ textAlign: 'center', color: 'var(--text3)', padding: 40 }}>
                 Sin datos de tiempo activo para este período
               </div>
+            </div>
+          )}
+        </>
+      )}
+
+      {tab === 'diario' && (
+        <>
+          {!isCustomRange ? (
+            <div className="table-card">
+              <div style={{ textAlign: 'center', color: 'var(--text3)', padding: 60 }}>
+                <div style={{ fontSize: 40, marginBottom: 12 }}>📅</div>
+                <div style={{ fontSize: 14, fontWeight: 500, marginBottom: 4 }}>Selecciona un rango de fechas</div>
+                <div style={{ fontSize: 12 }}>Usa los campos de fecha arriba para ver el resumen diario</div>
+              </div>
+            </div>
+          ) : resumenDiario ? (
+            <>
+              <div className="grid-2" style={{ marginBottom: 16 }}>
+                <div className="stat-card c-blue">
+                  <div className="stat-label">Novedades Creadas</div>
+                  <div className="stat-value blue">{resumenDiario.totales.novedadesCreadas}</div>
+                </div>
+                <div className="stat-card c-green">
+                  <div className="stat-label">Novedades Resueltas</div>
+                  <div className="stat-value green">{resumenDiario.totales.novedadesResueltas}</div>
+                </div>
+                <div className="stat-card c-purple">
+                  <div className="stat-label">Oficina Creados</div>
+                  <div className="stat-value purple">{resumenDiario.totales.oficinaCreadas}</div>
+                </div>
+                <div className="stat-card c-amber">
+                  <div className="stat-label">Oficina Resueltos</div>
+                  <div className="stat-value amber">{resumenDiario.totales.oficinaResueltas}</div>
+                </div>
+                <div className="stat-card c-red">
+                  <div className="stat-label">Pendientes Novedades</div>
+                  <div className="stat-value red">{resumenDiario.totales.novedadesPendientes}</div>
+                </div>
+                <div className="stat-card c-teal">
+                  <div className="stat-label">Tasa Resolución Novedades</div>
+                  <div className="stat-value teal">{resumenDiario.totales.tasaNovedades}%</div>
+                </div>
+              </div>
+
+              <div className="table-card" style={{ marginBottom: 16 }}>
+                <div className="table-header">
+                  <span className="table-header-title">Resumen Diario · {resumenDiario.rango.desde} → {resumenDiario.rango.hasta}</span>
+                </div>
+                <div style={{ overflowX: 'auto' }}>
+                  <table>
+                    <thead>
+                      <tr>
+                        <th style={{ width: 110 }}>Fecha</th>
+                        <th style={{ textAlign: 'center' }}>Creados</th>
+                        <th style={{ textAlign: 'center' }}>Resueltos</th>
+                        <th style={{ textAlign: 'center' }}>Pendientes</th>
+                        <th style={{ textAlign: 'center' }}>Tasa</th>
+                        <th style={{ textAlign: 'left' }}>Operadores</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {resumenDiario.diario.map((d) => {
+                        const totalCreados = d.novedadesCreadas + d.oficinaCreadas;
+                        const totalResueltos = d.novedadesResueltas + d.oficinaResueltas;
+                        const pendientes = totalCreados - totalResueltos;
+                        const tasa = totalCreados > 0 ? Math.round((totalResueltos / totalCreados) * 100) : 0;
+                        const isExpanded = expandedDay === d.fecha;
+
+                        return (
+                          <React.Fragment key={d.fecha}>
+                            <tr
+                              onClick={() => setExpandedDay(isExpanded ? null : d.fecha)}
+                              style={{ cursor: 'pointer', background: isExpanded ? 'var(--bg3)' : 'transparent' }}
+                            >
+                              <td>
+                                <div className="td-name">{new Date(d.fecha + 'T12:00:00').toLocaleDateString('es-CO', { weekday: 'short', day: 'numeric', month: 'short' })}</div>
+                              </td>
+                              <td style={{ textAlign: 'center', fontFamily: 'var(--mono)' }}>
+                                {totalCreados > 0 ? totalCreados : '-'}
+                              </td>
+                              <td style={{ textAlign: 'center', fontFamily: 'var(--mono)', fontWeight: 600, color: totalResueltos > 0 ? 'var(--green)' : 'var(--text3)' }}>
+                                {totalResueltos > 0 ? totalResueltos : '-'}
+                              </td>
+                              <td style={{ textAlign: 'center', fontFamily: 'var(--mono)', color: pendientes > 0 ? 'var(--red)' : 'var(--green)' }}>
+                                {pendientes > 0 ? pendientes : '0'}
+                              </td>
+                              <td style={{ textAlign: 'center' }}>
+                                <span style={{
+                                  padding: '2px 8px', borderRadius: 10, fontSize: 11, fontWeight: 600,
+                                  background: tasa >= 80 ? 'rgba(34,197,94,0.15)' : tasa >= 50 ? 'rgba(245,158,11,0.15)' : 'rgba(239,68,68,0.15)',
+                                  color: tasa >= 80 ? 'var(--green)' : tasa >= 50 ? 'var(--amber)' : 'var(--red)'
+                                }}>
+                                  {tasa}%
+                                </span>
+                              </td>
+                              <td style={{ fontSize: 11, color: 'var(--text2)' }}>
+                                {d.operadores.map(op => op.operador).join(', ') || '-'}
+                              </td>
+                            </tr>
+                            {isExpanded && (
+                              <tr>
+                                <td colSpan={6} style={{ padding: '0 16px 12px 16px', background: 'var(--bg3)' }}>
+                                  <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                                    {d.operadores.length === 0 ? (
+                                      <span style={{ fontSize: 11, color: 'var(--text3)' }}>Sin casos resueltos este día</span>
+                                    ) : (
+                                      d.operadores.map((op, i) => (
+                                        <div key={i}>
+                                          <div style={{ fontSize: 12, fontWeight: 600, color: 'var(--accent)', marginBottom: 4 }}>
+                                            {op.operador} → {op.novedadesResueltas + op.oficinaResueltas} resueltos
+                                          </div>
+                                          <div style={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+                                            {op.casos.map((c, j) => (
+                                              <div key={j} style={{
+                                                display: 'flex', alignItems: 'center', gap: 8, fontSize: 11,
+                                                padding: '4px 8px', borderRadius: 6, background: 'var(--bg2)'
+                                              }}>
+                                                <span>{c.tipo === 'novedad' ? '⚠' : '📦'}</span>
+                                                <span style={{ fontWeight: 500 }}>{c.cliente}</span>
+                                                <span style={{ color: 'var(--text3)' }}>·</span>
+                                                <span style={{ color: 'var(--text3)' }}>{c.producto}</span>
+                                                <span style={{ color: 'var(--text3)' }}>·</span>
+                                                <span style={{ fontFamily: 'var(--mono)', fontSize: 10, color: 'var(--accent2)' }}>{c.guia}</span>
+                                                <span style={{ marginLeft: 'auto', fontWeight: 500, color: 'var(--green)', fontFamily: 'var(--mono)', fontSize: 11 }}>
+                                                  {formatMoney(c.valor)}
+                                                </span>
+                                              </div>
+                                            ))}
+                                          </div>
+                                        </div>
+                                      ))
+                                    )}
+                                  </div>
+                                </td>
+                              </tr>
+                            )}
+                          </React.Fragment>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+
+              {resumenDiario.diario.length > 0 && (
+                <div className="table-card">
+                  <div className="table-header">
+                    <span className="table-header-title">Gráfico Diario</span>
+                  </div>
+                  <div style={{ padding: '12px 8px 4px 0' }}>
+                    <ResponsiveContainer width="100%" height={250}>
+                      <BarChart data={resumenDiario.diario} margin={{ left: 0, right: 0 }}>
+                        <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
+                        <XAxis
+                          dataKey="fecha"
+                          tick={{ fontSize: 10, fill: 'var(--text3)' }}
+                          tickFormatter={(v) => {
+                            const d = new Date(v + 'T12:00:00');
+                            return d.toLocaleDateString('es-CO', { day: 'numeric', month: 'short' });
+                          }}
+                        />
+                        <YAxis tick={{ fontSize: 10, fill: 'var(--text3)' }} allowDecimals={false} />
+                        <Tooltip
+                          contentStyle={{
+                            background: 'var(--bg2)', border: '1px solid var(--border)',
+                            borderRadius: 8, fontSize: 12
+                          }}
+                        />
+                        <Bar dataKey="novedadesCreadas" name="Novedades" stackId="a" fill="#6366f1" radius={[4, 4, 0, 0]} />
+                        <Bar dataKey="oficinaCreadas" name="Oficina" stackId="a" fill="#a855f7" radius={[0, 0, 0, 0]} />
+                        <Bar dataKey="novedadesResueltas" name="Resueltas N." stackId="b" fill="#22c55e" radius={[4, 4, 0, 0]} />
+                        <Bar dataKey="oficinaResueltas" name="Resueltas O." stackId="b" fill="#f59e0b" radius={[0, 0, 0, 0]} />
+                      </BarChart>
+                    </ResponsiveContainer>
+                  </div>
+                </div>
+              )}
+            </>
+          ) : (
+            <div className="table-card">
+              <TableSkeleton rows={5} columns={5} />
             </div>
           )}
         </>

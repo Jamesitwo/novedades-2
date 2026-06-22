@@ -1,6 +1,14 @@
 const { prisma } = require('../prisma/client');
 
-const getDateRange = (periodo) => {
+const getDateRange = (periodo, fechaDesde, fechaHasta) => {
+  if (fechaDesde && fechaHasta) {
+    const start = new Date(fechaDesde);
+    start.setHours(0, 0, 0, 0);
+    const end = new Date(fechaHasta);
+    end.setHours(23, 59, 59, 999);
+    return { start, end };
+  }
+
   const now = new Date();
   let start, end = new Date(now.setHours(23, 59, 59, 999));
 
@@ -32,8 +40,8 @@ const getDateRange = (periodo) => {
 
 const getResumen = async (req, res) => {
   try {
-    const { periodo = 'todos' } = req.query;
-    const { start, end } = getDateRange(periodo);
+    const { periodo = 'todos', fechaDesde, fechaHasta } = req.query;
+    const { start, end } = getDateRange(periodo, fechaDesde, fechaHasta);
 
     const whereNovedad = start ? { createdAt: { gte: start, lte: end } } : {};
     const whereOficina = start ? { createdAt: { gte: start, lte: end } } : {};
@@ -258,8 +266,8 @@ const getChartData = async (req, res) => {
 
 const getRendimientoOperadores = async (req, res) => {
   try {
-    const { periodo = 'mes' } = req.query;
-    const { start, end } = getDateRange(periodo);
+    const { periodo = 'mes', fechaDesde, fechaHasta } = req.query;
+    const { start, end } = getDateRange(periodo, fechaDesde, fechaHasta);
 
     const whereNovedad = start ? { createdAt: { gte: start, lte: end } } : {};
     const whereOficina = start ? { createdAt: { gte: start, lte: end } } : {};
@@ -302,8 +310,8 @@ const getRendimientoOperadores = async (req, res) => {
 
 const getMetricasOperadores = async (req, res) => {
   try {
-    const { periodo = 'mes' } = req.query;
-    const { start, end } = getDateRange(periodo);
+    const { periodo = 'mes', fechaDesde, fechaHasta } = req.query;
+    const { start, end } = getDateRange(periodo, fechaDesde, fechaHasta);
 
     const whereNovedad = start ? { createdAt: { gte: start, lte: end } } : {};
     const whereOficina = start ? { createdAt: { gte: start, lte: end } } : {};
@@ -404,8 +412,8 @@ const getMetricasOperadores = async (req, res) => {
 
 const getTiempoActivo = async (req, res) => {
   try {
-    const { periodo = 'hoy' } = req.query;
-    const { start, end } = getDateRange(periodo);
+    const { periodo = 'hoy', fechaDesde, fechaHasta } = req.query;
+    const { start, end } = getDateRange(periodo, fechaDesde, fechaHasta);
 
     const where = start ? { createdAt: { gte: start, lte: end } } : {};
 
@@ -455,4 +463,157 @@ const getTiempoActivo = async (req, res) => {
   }
 };
 
-module.exports = { getResumen, getHoy, getChartData, getRendimientoOperadores, getMetricasOperadores, getTiempoActivo };
+const getResumenDiario = async (req, res) => {
+  try {
+    const { fechaDesde, fechaHasta } = req.query;
+    if (!fechaDesde || !fechaHasta) {
+      return res.status(400).json({ error: 'fechaDesde y fechaHasta son requeridos' });
+    }
+
+    const { start, end } = getDateRange(null, fechaDesde, fechaHasta);
+
+    const [novedadesCreadas, novedadesResueltas, oficinaCreadas, oficinaResueltas] = await Promise.all([
+      prisma.pedidoNovedad.findMany({
+        where: { createdAt: { gte: start, lte: end } },
+        select: { id: true, createdAt: true, estado: true },
+        orderBy: { createdAt: 'asc' }
+      }),
+      prisma.pedidoNovedad.findMany({
+        where: {
+          updatedAt: { gte: start, lte: end },
+          estado: 'solucionado'
+        },
+        select: {
+          id: true, updatedAt: true, nombre: true, apellido: true, producto: true,
+          guia: true, totalAPagar: true, asignadoId: true,
+          asignado: { select: { id: true, nombre: true } }
+        },
+        orderBy: { updatedAt: 'asc' }
+      }),
+      prisma.pedidoOficina.findMany({
+        where: { createdAt: { gte: start, lte: end } },
+        select: { id: true, createdAt: true, estado: true },
+        orderBy: { createdAt: 'asc' }
+      }),
+      prisma.pedidoOficina.findMany({
+        where: {
+          updatedAt: { gte: start, lte: end },
+          estado: 'va_a_recoger'
+        },
+        select: {
+          id: true, updatedAt: true, nombre: true, apellido: true, producto: true,
+          precio: true, guia: true, asignadoId: true,
+          asignado: { select: { id: true, nombre: true } }
+        },
+        orderBy: { updatedAt: 'asc' }
+      })
+    ]);
+
+    const dateMap = {};
+    const current = new Date(start);
+    while (current <= end) {
+      const dateKey = current.toISOString().split('T')[0];
+      dateMap[dateKey] = {
+        fecha: dateKey,
+        novedadesCreadas: 0,
+        novedadesResueltas: 0,
+        oficinaCreadas: 0,
+        oficinaResueltas: 0,
+        operadores: {}
+      };
+      current.setDate(current.getDate() + 1);
+    }
+
+    novedadesCreadas.forEach(n => {
+      const dk = new Date(n.createdAt).toISOString().split('T')[0];
+      if (dateMap[dk]) dateMap[dk].novedadesCreadas++;
+    });
+
+    oficinaCreadas.forEach(o => {
+      const dk = new Date(o.createdAt).toISOString().split('T')[0];
+      if (dateMap[dk]) dateMap[dk].oficinaCreadas++;
+    });
+
+    novedadesResueltas.forEach(n => {
+      const dk = new Date(n.updatedAt).toISOString().split('T')[0];
+      if (dateMap[dk]) {
+        dateMap[dk].novedadesResueltas++;
+        const opId = n.asignadoId || 'sin_asignar';
+        if (!dateMap[dk].operadores[opId]) {
+          dateMap[dk].operadores[opId] = {
+            operador: n.asignado?.nombre || 'Sin asignar',
+            novedadesResueltas: 0, oficinaResueltas: 0,
+            casos: []
+          };
+        }
+        dateMap[dk].operadores[opId].novedadesResueltas++;
+        dateMap[dk].operadores[opId].casos.push({
+          tipo: 'novedad',
+          cliente: `${n.nombre} ${n.apellido}`,
+          producto: n.producto,
+          guia: n.guia,
+          valor: n.totalAPagar
+        });
+      }
+    });
+
+    oficinaResueltas.forEach(o => {
+      const dk = new Date(o.updatedAt).toISOString().split('T')[0];
+      if (dateMap[dk]) {
+        dateMap[dk].oficinaResueltas++;
+        const opId = o.asignadoId || 'sin_asignar';
+        if (!dateMap[dk].operadores[opId]) {
+          dateMap[dk].operadores[opId] = {
+            operador: o.asignado?.nombre || 'Sin asignar',
+            novedadesResueltas: 0, oficinaResueltas: 0,
+            casos: []
+          };
+        }
+        dateMap[dk].operadores[opId].oficinaResueltas++;
+        dateMap[dk].operadores[opId].casos.push({
+          tipo: 'oficina',
+          cliente: `${o.nombre} ${o.apellido}`,
+          producto: o.producto,
+          guia: o.guia,
+          valor: o.precio
+        });
+      }
+    });
+
+    const diario = Object.values(dateMap)
+      .sort((a, b) => a.fecha.localeCompare(b.fecha))
+      .map(d => ({
+        ...d,
+        operadores: Object.values(d.operadores).sort((a, b) =>
+          (b.novedadesResueltas + b.oficinaResueltas) - (a.novedadesResueltas + a.oficinaResueltas)
+        )
+      }));
+
+    const totalNovedadesCreadas = novedadesCreadas.length;
+    const totalNovedadesResueltas = novedadesResueltas.length;
+    const totalOficinaCreadas = oficinaCreadas.length;
+    const totalOficinaResueltas = oficinaResueltas.length;
+    const todasNoResueltas = novedadesCreadas.filter(n => n.estado !== 'solucionado').length;
+    const oficinasNoResueltas = oficinaCreadas.filter(o => o.estado !== 'va_a_recoger').length;
+
+    res.json({
+      rango: { desde: fechaDesde, hasta: fechaHasta },
+      totales: {
+        novedadesCreadas: totalNovedadesCreadas,
+        novedadesResueltas: totalNovedadesResueltas,
+        novedadesPendientes: todasNoResueltas,
+        oficinaCreadas: totalOficinaCreadas,
+        oficinaResueltas: totalOficinaResueltas,
+        oficinaPendientes: oficinasNoResueltas,
+        tasaNovedades: totalNovedadesCreadas > 0 ? Math.round((totalNovedadesResueltas / totalNovedadesCreadas) * 100) : 0,
+        tasaOficina: totalOficinaCreadas > 0 ? Math.round((totalOficinaResueltas / totalOficinaCreadas) * 100) : 0
+      },
+      diario
+    });
+  } catch (error) {
+    console.error('Get resumen diario error:', error);
+    res.status(500).json({ error: 'Error en el servidor' });
+  }
+};
+
+module.exports = { getResumen, getHoy, getChartData, getRendimientoOperadores, getMetricasOperadores, getTiempoActivo, getResumenDiario };
