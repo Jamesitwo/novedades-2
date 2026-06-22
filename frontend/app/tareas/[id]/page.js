@@ -2,8 +2,8 @@
 
 import { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
-import Link from 'next/link';
 import api from '@/lib/api';
+import DetailPanel from '@/components/detail/DetailPanel';
 
 const ESTADOS = ['pendiente', 'en_progreso', 'revision', 'completada', 'cancelada'];
 const ESTADO_LABELS = { pendiente: 'Pendiente', en_progreso: 'En Progreso', revision: 'Revisión', completada: 'Completada', cancelada: 'Cancelada' };
@@ -15,6 +15,7 @@ export default function TareaDetallePage() {
   const [tarea, setTarea] = useState(null);
   const [loading, setLoading] = useState(true);
   const [toast, setToast] = useState(null);
+  const [origenDetailId, setOrigenDetailId] = useState(null);
 
   const showToast = (m, t = 'success') => { setToast({ message: m, type: t }); setTimeout(() => setToast(null), 4000); };
 
@@ -95,10 +96,12 @@ export default function TareaDetallePage() {
           )}
           {tarea.origenId && (tarea.origenTipo === 'novedad' || tarea.origenTipo === 'oficina') && (
             <div className="span2">
-              <Link href={`/${tarea.origenTipo === 'novedad' ? 'novedades' : 'oficina'}/${tarea.origenId}`}
-                style={{ color: 'var(--accent2)', fontSize: 13, textDecoration: 'underline' }}>
+              <button
+                onClick={() => setOrigenDetailId(tarea.origenId)}
+                style={{ background: 'none', border: 'none', padding: 0, color: 'var(--accent2)', fontSize: 13, textDecoration: 'underline', cursor: 'pointer' }}
+              >
                 Ver {tarea.origenTipo === 'novedad' ? 'novedad' : 'pedido'} original →
-              </Link>
+              </button>
             </div>
           )}
           {tarea.descripcion && (
@@ -109,6 +112,17 @@ export default function TareaDetallePage() {
           )}
         </div>
       </div>
+
+      {origenDetailId && (
+        <>
+          <div className="detail-panel-overlay" onClick={() => setOrigenDetailId(null)} />
+          <DetailPanel
+            id={origenDetailId}
+            tipo={tarea.origenTipo}
+            onClose={() => setOrigenDetailId(null)}
+          />
+        </>
+      )}
     </div>
   );
 }
