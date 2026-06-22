@@ -179,7 +179,7 @@ const getById = async (req, res) => {
 
 const create = async (req, res) => {
   try {
-    const { nombre, apellido, celular, celular2, producto, precio, transportadora, guia, imagenGuiaUrl, fechaLlegada, notas, notasInternas, conversacionLink } = req.body;
+    const { nombre, apellido, celular, celular2, producto, precio, transportadora, guia, imagenGuiaUrl, fechaLlegada, notas, notasInternas, conversacionLink, chatActivo, fechaUltimoMsjCliente } = req.body;
 
     const fechaLimite = fechaLlegada
       ? new Date(new Date(fechaLlegada).getTime() + 7 * 24 * 60 * 60 * 1000)
@@ -206,6 +206,8 @@ const create = async (req, res) => {
         notas,
         notasInternas,
         conversacionLink: conversacionLink || null,
+        chatActivo: chatActivo || false,
+        fechaUltimoMsjCliente: fechaUltimoMsjCliente ? new Date(fechaUltimoMsjCliente) : null,
         createdById: req.usuario.id,
         asignadoId
       },

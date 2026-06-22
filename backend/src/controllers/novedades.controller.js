@@ -179,7 +179,7 @@ const getById = async (req, res) => {
 
 const create = async (req, res) => {
   try {
-    const { nombre, apellido, celular, celular2, producto, totalAPagar, transportadora, guia, motivoNovedad, notas, conversacionLink } = req.body;
+    const { nombre, apellido, celular, celular2, producto, totalAPagar, transportadora, guia, motivoNovedad, notas, conversacionLink, chatActivo, fechaUltimoMsjCliente } = req.body;
 
     let asignadoId = await getNextOperador('novedades');
     if (!asignadoId) {
@@ -200,6 +200,8 @@ const create = async (req, res) => {
         motivoNovedad,
         notas,
         conversacionLink: conversacionLink || null,
+        chatActivo: chatActivo || false,
+        fechaUltimoMsjCliente: fechaUltimoMsjCliente ? new Date(fechaUltimoMsjCliente) : null,
         createdById: req.usuario.id,
         asignadoId
       },
