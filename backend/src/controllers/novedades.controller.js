@@ -2,6 +2,7 @@ const { prisma } = require('../prisma/client');
 const { paginate } = require('../utils/paginate');
 const { registrarCambio } = require('./historial.controller');
 const { getNextOperador } = require('../utils/autoAssign');
+const wpService = require('../services/whatsapp.service');
 
 const getAll = async (req, res) => {
   try {
@@ -137,6 +138,11 @@ const getById = async (req, res) => {
 
     if (req.usuario.rol === 'operador_asignado' && novedad.asignadoId !== req.usuario.id) {
       return res.status(403).json({ error: 'No tienes acceso a esta novedad' });
+    }
+
+    const chatExpired = await wpService.autoExpireChatWindow('pedidos_novedad', id);
+    if (chatExpired) {
+      novedad.chatActivo = false;
     }
 
     const [historialCambios, intentosContacto, transferencias, etiquetas] = await Promise.all([

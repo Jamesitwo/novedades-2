@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import api from '@/lib/api';
 import { useAuthStore } from '@/store/authStore';
+import ChatWidget from '@/components/chat/ChatWidget';
 
 const ESTADOS_NOVEDAD = ['novedad', 'contactado', 'solucionado', 'entregado', 'devolucion'];
 const ESTADOS_OFICINA = ['pendiente_llamar', 'contactado', 'va_a_recoger', 'entregado', 'devolucion'];
@@ -54,6 +55,7 @@ export default function DetailPanel({ id, tipo, onClose, onUpdate }) {
   const [operadores, setOperadores] = useState([]);
   const [todasEtiquetas, setTodasEtiquetas] = useState([]);
   const [selectedEtiqueta, setSelectedEtiqueta] = useState('');
+  const [showChat, setShowChat] = useState(false);
 
   const isNovedad = tipo === 'novedad';
   const LABEL_ESTADO = isNovedad ? LABEL_NOVEDAD : LABEL_OFICINA;
@@ -176,19 +178,6 @@ export default function DetailPanel({ id, tipo, onClose, onUpdate }) {
     const hoy = new Date();
     const limite = new Date(fechaLimite);
     return Math.ceil((limite - hoy) / (1000 * 60 * 60 * 24));
-  };
-
-  const handleToggleChat = async () => {
-    setUpdating(true);
-    try {
-      await api.patch(`/api/${apiBase}/${id}/chat`, { chatActivo: !record.chatActivo });
-      await refreshAfterAction();
-      showToast(record.chatActivo ? 'Chat desactivado' : 'Chat activado');
-    } catch {
-      showToast('Error al actualizar chat', 'error');
-    } finally {
-      setUpdating(false);
-    }
   };
 
   if (loading) {
@@ -392,23 +381,20 @@ export default function DetailPanel({ id, tipo, onClose, onUpdate }) {
                     {record.conversacionLink}
                   </a>
                 </div>
-                <div style={{
-                  marginTop: 10, padding: '10px 14px', borderRadius: 10,
-                  background: record.chatActivo ? 'rgba(34,197,94,0.08)' : 'rgba(239,68,68,0.06)',
-                  border: `1px solid ${record.chatActivo ? 'rgba(34,197,94,0.2)' : 'rgba(239,68,68,0.15)'}`,
-                  display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10
-                }}>
+                <div className={`chat-toggle-section ${record.chatActivo ? 'active' : 'inactive'}`} style={{ marginTop: 10 }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                    <span style={{
-                      width: 10, height: 10, borderRadius: '50%',
-                      background: record.chatActivo ? 'var(--green)' : 'var(--text3)',
-                      flexShrink: 0
+                    <span className="chat-toggle-dot" style={{
+                      background: record.chatActivo ? 'var(--green)' : 'var(--text3)'
                     }} />
-                    <div>
-                      <div style={{ fontSize: 12, fontWeight: 600, color: record.chatActivo ? 'var(--green)' : 'var(--text3)' }}>
-                        Chat {record.chatActivo ? 'activo' : 'inactivo'}
+                    <div className="chat-toggle-info">
+                      <div className="chat-toggle-status">
+                        {record.optOutWhatsapp
+                          ? 'Cliente optó por no recibir mensajes'
+                          : record.chatActivo
+                            ? 'Chat activo'
+                            : 'Chat inactivo'}
                       </div>
-                      <div style={{ fontSize: 10, color: 'var(--text3)', marginTop: 1 }}>
+                      <div className="chat-toggle-time">
                         {record.chatActivo
                           ? (getTimeRemaining(record.fechaUltimoMsjCliente) || 'Ventana abierta')
                           : (record.fechaUltimoMsjCliente
@@ -417,20 +403,32 @@ export default function DetailPanel({ id, tipo, onClose, onUpdate }) {
                       </div>
                     </div>
                   </div>
-                  <button
-                    onClick={handleToggleChat}
-                    disabled={updating}
-                    style={{
-                      padding: '5px 12px', borderRadius: 6, border: 'none', cursor: 'pointer',
-                      fontSize: 11, fontWeight: 500,
-                      background: record.chatActivo ? 'rgba(239,68,68,0.15)' : 'rgba(34,197,94,0.15)',
-                      color: record.chatActivo ? 'var(--red)' : 'var(--green)',
-                      whiteSpace: 'nowrap'
-                    }}
-                  >
-                    {record.chatActivo ? 'Desactivar' : 'Activar'}
-                  </button>
+                  {!record.optOutWhatsapp && (
+                    <button
+                      onClick={() => setShowChat(!showChat)}
+                      disabled={updating}
+                      className="chat-toggle-btn"
+                      style={{
+                        background: showChat ? 'rgba(239,68,68,0.15)' : 'rgba(34,197,94,0.15)',
+                        color: showChat ? 'var(--red)' : 'var(--green)'
+                      }}
+                    >
+                      {showChat ? 'Cerrar chat' : 'Abrir chat'}
+                    </button>
+                  )}
                 </div>
+                {showChat && (
+                  <div className="chat-panel-container" style={{ marginTop: 10 }}>
+                    <ChatWidget
+                      tabla={apiBase === 'novedades' ? 'pedidos_novedad' : 'pedidos_oficina'}
+                      registroId={record.id}
+                      onClose={() => {
+                        setShowChat(false);
+                        refreshAfterAction();
+                      }}
+                    />
+                  </div>
+                )}
               </div>
             )}
           </div>

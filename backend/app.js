@@ -48,7 +48,12 @@ app.use(cors({
   credentials: true
 }));
 
-app.use(express.json({ limit: '10mb' }));
+app.use(express.json({
+  limit: '10mb',
+  verify: (req, res, buf) => {
+    req.rawBody = buf;
+  }
+}));
 
 if (isProduction) {
   morgan.token('body', (req) => req.method === 'POST' || req.method === 'PUT' ? '' : '');
@@ -74,6 +79,9 @@ const generalLimiter = rateLimit({
 app.use('/api/auth/login', loginLimiter);
 app.use('/api', generalLimiter);
 
+const whatsappWebhookRoutes = require('./src/routes/whatsapp.webhook.routes');
+app.use('/api/whatsapp/webhook', whatsappWebhookRoutes);
+
 app.use('/api/auth', authRoutes);
 app.use('/api/usuarios', usuariosRoutes);
 app.use('/api/novedades', novedadesRoutes);
@@ -93,6 +101,9 @@ app.use('/api/tareas', tareasRoutes);
 
 const cloudinaryRoutes = require('./src/routes/cloudinary.routes');
 app.use('/api/cloudinary', cloudinaryRoutes);
+
+const whatsappRoutes = require('./src/routes/whatsapp.routes');
+app.use('/api/whatsapp', whatsappRoutes);
 
 app.get('/api/health', (req, res) => {
   res.json({

@@ -8,92 +8,98 @@ datasource db {
 }
 
 model Usuario {
-  id        String   @id @default(uuid())
-  nombre    String
-  email     String   @unique
-  password  String
-  rol       String   @default("operador")
-  activo    Boolean  @default(true)
-  verSoloAsignados Boolean @default(false) @map("ver_solo_asignados")
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id               String   @id @default(uuid())
+  nombre           String
+  email            String   @unique
+  password         String
+  rol              String   @default("operador")
+  activo           Boolean  @default(true)
+  verSoloAsignados Boolean  @default(false) @map("ver_solo_asignados")
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
 
-  pedidosNovedad         PedidoNovedad[] @relation("NovedadAsignado")
-  pedidosOficina         PedidoOficina[] @relation("OficinaAsignado")
-  pedidosNovedadCreados  PedidoNovedad[] @relation("NovedadCreador")
-  pedidosOficinaCreados  PedidoOficina[] @relation("OficinaCreador")
-  historialCambios       HistorialCambio[]
-  intentosContacto       IntentoContacto[]
-  transferenciasDe       Transferencia[] @relation("TransferenciaDe")
-  transferenciasA        Transferencia[] @relation("TransferenciaA")
-  sesiones               Sesion[]
-  vistasGuardadas        VistaGuardada[]
-  productosGanadores     ProductoGanador[]
-  etiquetasCreadas       Etiqueta[]
-  facturas               Factura[]
-  garantias              Garantia[]
-  tareasCreadas          Tarea[]     @relation("TareaCreador")
-  tareasAsignadas        Tarea[]     @relation("TareaAsignado")
+  pedidosNovedad        PedidoNovedad[]   @relation("NovedadAsignado")
+  pedidosOficina        PedidoOficina[]   @relation("OficinaAsignado")
+  pedidosNovedadCreados PedidoNovedad[]   @relation("NovedadCreador")
+  pedidosOficinaCreados PedidoOficina[]   @relation("OficinaCreador")
+  historialCambios      HistorialCambio[]
+  intentosContacto      IntentoContacto[]
+  transferenciasDe      Transferencia[]   @relation("TransferenciaDe")
+  transferenciasA       Transferencia[]   @relation("TransferenciaA")
+  sesiones              Sesion[]
+  vistasGuardadas       VistaGuardada[]
+  productosGanadores    ProductoGanador[]
+  etiquetasCreadas      Etiqueta[]
+  facturas              Factura[]
+  garantias             Garantia[]
+  tareasCreadas         Tarea[]           @relation("TareaCreador")
+  tareasAsignadas       Tarea[]           @relation("TareaAsignado")
+  mensajesWhatsapp      MensajeWhatsApp[]
 }
 
 model PedidoNovedad {
-  id               String   @id @default(uuid())
-  nombre           String
-  apellido         String
-  celular          String
-  celular2         String?  @map("celular2")
-  producto         String
-  totalAPagar      Float   @map("total_a_pagar")
-  transportadora   String
-  guia             String
-  motivoNovedad    String?  @map("motivo_novedad")
-  estado           String   @default("novedad")
-  intentosLlamada  Int      @default(0) @map("intentos_llamada")
-  notas            String?
-  conversacionLink String?  @map("conversacion_link")
-  chatActivo       Boolean  @default(false) @map("chat_activo")
+  id                    String    @id @default(uuid())
+  nombre                String
+  apellido              String
+  celular               String
+  celular2              String?   @map("celular2")
+  producto              String
+  totalAPagar           Float     @map("total_a_pagar")
+  transportadora        String
+  guia                  String
+  motivoNovedad         String?   @map("motivo_novedad")
+  estado                String    @default("novedad")
+  intentosLlamada       Int       @default(0) @map("intentos_llamada")
+  notas                 String?
+  conversacionLink      String?   @map("conversacion_link")
+  chatActivo            Boolean   @default(false) @map("chat_activo")
   fechaUltimoMsjCliente DateTime? @map("fecha_ultimo_msj_cliente")
-  favorito         Boolean  @default(false)
-  createdAt        DateTime @default(now())
-  updatedAt        DateTime @updatedAt
-  createdById      String   @map("created_by")
-  createdBy        Usuario  @relation("NovedadCreador", fields: [createdById], references: [id])
-  asignadoId       String?  @map("asignado_id")
-  asignado         Usuario? @relation("NovedadAsignado", fields: [asignadoId], references: [id])
+  whatsappThreadId      String?   @map("whatsapp_thread_id")
+  optOutWhatsapp        Boolean   @default(false) @map("opt_out_whatsapp")
+  favorito              Boolean   @default(false)
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
+  createdById           String    @map("created_by")
+  createdBy             Usuario   @relation("NovedadCreador", fields: [createdById], references: [id])
+  asignadoId            String?   @map("asignado_id")
+  asignado              Usuario?  @relation("NovedadAsignado", fields: [asignadoId], references: [id])
 
   @@index([estado])
   @@index([asignadoId])
   @@index([transportadora])
   @@index([createdAt])
   @@index([favorito])
+  @@index([celular])
 }
 
 model PedidoOficina {
-  id               String   @id @default(uuid())
-  nombre           String
-  apellido         String
-  celular          String
-  celular2         String?  @map("celular2")
-  producto         String
-  precio           Float    @default(0)
-  transportadora   String
-  guia             String
-  imagenGuiaUrl    String?  @map("imagen_guia_url")
-  fechaLimite      DateTime @map("fecha_limite")
-  estado           String   @default("pendiente_llamar")
-  intentosLlamada  Int      @default(0) @map("intentos_llamada")
-  notas            String?
-  notasInternas    String?  @map("notas_internas")
-  conversacionLink String?  @map("conversacion_link")
-  chatActivo       Boolean  @default(false) @map("chat_activo")
+  id                    String    @id @default(uuid())
+  nombre                String
+  apellido              String
+  celular               String
+  celular2              String?   @map("celular2")
+  producto              String
+  precio                Float     @default(0)
+  transportadora        String
+  guia                  String
+  imagenGuiaUrl         String?   @map("imagen_guia_url")
+  fechaLimite           DateTime  @map("fecha_limite")
+  estado                String    @default("pendiente_llamar")
+  intentosLlamada       Int       @default(0) @map("intentos_llamada")
+  notas                 String?
+  notasInternas         String?   @map("notas_internas")
+  conversacionLink      String?   @map("conversacion_link")
+  chatActivo            Boolean   @default(false) @map("chat_activo")
   fechaUltimoMsjCliente DateTime? @map("fecha_ultimo_msj_cliente")
-  favorito         Boolean  @default(false)
-  createdAt        DateTime @default(now())
-  updatedAt        DateTime @updatedAt
-  createdById      String   @map("created_by")
-  createdBy        Usuario  @relation("OficinaCreador", fields: [createdById], references: [id])
-  asignadoId       String?  @map("asignado_id")
-  asignado         Usuario? @relation("OficinaAsignado", fields: [asignadoId], references: [id])
+  whatsappThreadId      String?   @map("whatsapp_thread_id")
+  optOutWhatsapp        Boolean   @default(false) @map("opt_out_whatsapp")
+  favorito              Boolean   @default(false)
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
+  createdById           String    @map("created_by")
+  createdBy             Usuario   @relation("OficinaCreador", fields: [createdById], references: [id])
+  asignadoId            String?   @map("asignado_id")
+  asignado              Usuario?  @relation("OficinaAsignado", fields: [asignadoId], references: [id])
 
   @@index([estado])
   @@index([asignadoId])
@@ -101,6 +107,7 @@ model PedidoOficina {
   @@index([createdAt])
   @@index([fechaLimite])
   @@index([favorito])
+  @@index([celular])
 }
 
 model HistorialCambio {
@@ -121,32 +128,32 @@ model HistorialCambio {
 }
 
 model Sesion {
-  id              String   @id @default(uuid())
-  usuarioId       String   @map("usuario_id")
-  usuario         Usuario  @relation(fields: [usuarioId], references: [id])
-  token           String   @unique
-  ip              String?
-  navegador       String?  @map("navegador")
-  ultimaAct       DateTime @default(now()) @map("ultima_actividad")
-  expiraAt        DateTime @map("expira_at")
-  activa          Boolean  @default(true)
-  minutosActivos  Int      @default(0) @map("minutos_activos")
-  createdAt       DateTime @default(now())
+  id             String   @id @default(uuid())
+  usuarioId      String   @map("usuario_id")
+  usuario        Usuario  @relation(fields: [usuarioId], references: [id])
+  token          String   @unique
+  ip             String?
+  navegador      String?  @map("navegador")
+  ultimaAct      DateTime @default(now()) @map("ultima_actividad")
+  expiraAt       DateTime @map("expira_at")
+  activa         Boolean  @default(true)
+  minutosActivos Int      @default(0) @map("minutos_activos")
+  createdAt      DateTime @default(now())
 
   @@index([usuarioId])
   @@index([activa])
 }
 
 model VistaGuardada {
-  id         String   @id @default(uuid())
-  usuarioId  String   @map("usuario_id")
-  usuario    Usuario  @relation(fields: [usuarioId], references: [id])
-  nombre     String
-  tipo       String
-  filtros    String
-  columnas   String?
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
+  id        String   @id @default(uuid())
+  usuarioId String   @map("usuario_id")
+  usuario   Usuario  @relation(fields: [usuarioId], references: [id])
+  nombre    String
+  tipo      String
+  filtros   String
+  columnas  String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@index([usuarioId])
 }
@@ -175,54 +182,54 @@ model Transferencia {
 }
 
 model Configuracion {
-  id                           String   @id @default(uuid())
-  auto_asignar_novedades       Boolean  @default(false) @map("auto_asignar_novedades")
-  auto_asignar_oficina         Boolean  @default(false) @map("auto_asignar_oficina")
-  metodo_asignacion            String   @default("round_robin") @map("metodo_asignacion")
-  operadores_incluidos         String   @default("[]") @map("operadores_incluidos")
-  ultimo_indice_round_robin    Int      @default(0) @map("ultimo_indice_round_robin")
-  empresa_nombre               String?  @map("empresa_nombre")
-  empresa_nit                  String?  @map("empresa_nit")
-  empresa_direccion            String?  @map("empresa_direccion")
-  empresa_telefono             String?  @map("empresa_telefono")
-  empresa_email                String?  @map("empresa_email")
-  empresa_logo                 String?  @map("empresa_logo")
-  empresa_banco                String?  @map("empresa_banco")
-  empresa_tipo_cuenta          String?  @map("empresa_tipo_cuenta")
-  empresa_numero_cuenta        String?  @map("empresa_numero_cuenta")
-  empresa_titular_cuenta       String?  @map("empresa_titular_cuenta")
-  factura_terminos             String?  @map("factura_terminos")
-  factura_resolucion           String?  @map("factura_resolucion")
-  factura_rango_desde          Int?     @map("factura_rango_desde")
-  factura_rango_hasta          Int?     @map("factura_rango_hasta")
-  factura_vigencia             String?  @map("factura_vigencia")
-  factura_pie_legal            String?  @map("factura_pie_legal")
-  factura_prefijo              String?  @map("factura_prefijo")
+  id                        String  @id @default(uuid())
+  auto_asignar_novedades    Boolean @default(false) @map("auto_asignar_novedades")
+  auto_asignar_oficina      Boolean @default(false) @map("auto_asignar_oficina")
+  metodo_asignacion         String  @default("round_robin") @map("metodo_asignacion")
+  operadores_incluidos      String  @default("[]") @map("operadores_incluidos")
+  ultimo_indice_round_robin Int     @default(0) @map("ultimo_indice_round_robin")
+  empresa_nombre            String? @map("empresa_nombre")
+  empresa_nit               String? @map("empresa_nit")
+  empresa_direccion         String? @map("empresa_direccion")
+  empresa_telefono          String? @map("empresa_telefono")
+  empresa_email             String? @map("empresa_email")
+  empresa_logo              String? @map("empresa_logo")
+  empresa_banco             String? @map("empresa_banco")
+  empresa_tipo_cuenta       String? @map("empresa_tipo_cuenta")
+  empresa_numero_cuenta     String? @map("empresa_numero_cuenta")
+  empresa_titular_cuenta    String? @map("empresa_titular_cuenta")
+  factura_terminos          String? @map("factura_terminos")
+  factura_resolucion        String? @map("factura_resolucion")
+  factura_rango_desde       Int?    @map("factura_rango_desde")
+  factura_rango_hasta       Int?    @map("factura_rango_hasta")
+  factura_vigencia          String? @map("factura_vigencia")
+  factura_pie_legal         String? @map("factura_pie_legal")
+  factura_prefijo           String? @map("factura_prefijo")
 }
 
 model ApiKey {
-  id          String   @id @default(uuid())
-  nombre     String
-  clave      String   @unique @map("clave")
-  activo     Boolean  @default(true)
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
+  id        String   @id @default(uuid())
+  nombre    String
+  clave     String   @unique @map("clave")
+  activo    Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
 model ProductoGanador {
-  id               String   @id @default(uuid())
-  dropiId          String   @map("dropi_id")
-  nombre           String
-  ventas           Int      @default(0)
-  categoria        String
-  potencial        String   @default("medio")
-  imagen           String?
-  link             String?
-  precioProveedor  Float    @default(0) @map("precio_proveedor")
-  createdById      String   @map("created_by")
-  createdBy        Usuario  @relation(fields: [createdById], references: [id])
-  createdAt        DateTime @default(now())
-  updatedAt        DateTime @updatedAt
+  id              String   @id @default(uuid())
+  dropiId         String   @map("dropi_id")
+  nombre          String
+  ventas          Int      @default(0)
+  categoria       String
+  potencial       String   @default("medio")
+  imagen          String?
+  link            String?
+  precioProveedor Float    @default(0) @map("precio_proveedor")
+  createdById     String   @map("created_by")
+  createdBy       Usuario  @relation(fields: [createdById], references: [id])
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
 
   @@index([potencial])
   @@index([categoria])
@@ -230,58 +237,58 @@ model ProductoGanador {
 }
 
 model Factura {
-  id               String   @id @default(uuid())
-  numero           Int      @unique
+  id               String        @id @default(uuid())
+  numero           Int           @unique
   clienteNombre    String
-  clienteDocumento String?  @map("cliente_documento")
-  clienteTelefono  String?  @map("cliente_telefono")
-  clienteDireccion String?  @map("cliente_direccion")
-  subtotal         Float    @default(0)
-  iva              Float    @default(0)
-  total            Float    @default(0)
-  estado           String   @default("pendiente")
-  metodoPago       String?  @map("metodo_pago")
+  clienteDocumento String?       @map("cliente_documento")
+  clienteTelefono  String?       @map("cliente_telefono")
+  clienteDireccion String?       @map("cliente_direccion")
+  subtotal         Float         @default(0)
+  iva              Float         @default(0)
+  total            Float         @default(0)
+  estado           String        @default("pendiente")
+  metodoPago       String?       @map("metodo_pago")
   notas            String?
-  createdById      String   @map("created_by")
-  createdBy        Usuario  @relation(fields: [createdById], references: [id])
+  createdById      String        @map("created_by")
+  createdBy        Usuario       @relation(fields: [createdById], references: [id])
   items            FacturaItem[]
-  createdAt        DateTime @default(now())
-  updatedAt        DateTime @updatedAt
+  createdAt        DateTime      @default(now())
+  updatedAt        DateTime      @updatedAt
 
   @@index([estado])
   @@index([createdAt])
 }
 
 model FacturaItem {
-  id              String  @id @default(uuid())
-  facturaId       String  @map("factura_id")
-  factura         Factura @relation(fields: [facturaId], references: [id], onDelete: Cascade)
-  descripcion     String
-  cantidad        Int     @default(1)
-  precioUnitario  Float   @default(0) @map("precio_unitario")
-  total           Float   @default(0)
+  id             String  @id @default(uuid())
+  facturaId      String  @map("factura_id")
+  factura        Factura @relation(fields: [facturaId], references: [id], onDelete: Cascade)
+  descripcion    String
+  cantidad       Int     @default(1)
+  precioUnitario Float   @default(0) @map("precio_unitario")
+  total          Float   @default(0)
 
   @@index([facturaId])
 }
 
 model Etiqueta {
-  id          String   @id @default(uuid())
+  id          String             @id @default(uuid())
   nombre      String
-  color       String   @default("#6366f1")
-  createdById String   @map("created_by")
-  createdBy   Usuario  @relation(fields: [createdById], references: [id])
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  color       String             @default("#6366f1")
+  createdById String             @map("created_by")
+  createdBy   Usuario            @relation(fields: [createdById], references: [id])
+  createdAt   DateTime           @default(now())
+  updatedAt   DateTime           @updatedAt
   registros   RegistroEtiqueta[]
 }
 
 model RegistroEtiqueta {
-  id          String   @id @default(uuid())
-  etiquetaId  String   @map("etiqueta_id")
-  etiqueta    Etiqueta @relation(fields: [etiquetaId], references: [id])
-  tabla       String
-  registroId  String   @map("registro_id")
-  createdAt   DateTime @default(now())
+  id         String   @id @default(uuid())
+  etiquetaId String   @map("etiqueta_id")
+  etiqueta   Etiqueta @relation(fields: [etiquetaId], references: [id])
+  tabla      String
+  registroId String   @map("registro_id")
+  createdAt  DateTime @default(now())
 
   @@index([etiquetaId])
   @@index([registroId])
@@ -311,21 +318,57 @@ model Garantia {
 }
 
 model Tarea {
-  id            String    @id @default(uuid())
-  titulo        String
-  descripcion   String?
-  estado        String    @default("pendiente")
-  prioridad     String    @default("media")
-  creadoPorId   String    @map("creado_por")
-  creadoPor     Usuario   @relation("TareaCreador", fields: [creadoPorId], references: [id])
-  asignadoId    String?   @map("asignado_id")
-  asignado      Usuario?  @relation("TareaAsignado", fields: [asignadoId], references: [id])
-  origenTipo    String?   @map("origen_tipo")
-  origenId      String?   @map("origen_id")
-  fechaLimite   DateTime? @map("fecha_limite")
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
+  id          String    @id @default(uuid())
+  titulo      String
+  descripcion String?
+  estado      String    @default("pendiente")
+  prioridad   String    @default("media")
+  creadoPorId String    @map("creado_por")
+  creadoPor   Usuario   @relation("TareaCreador", fields: [creadoPorId], references: [id])
+  asignadoId  String?   @map("asignado_id")
+  asignado    Usuario?  @relation("TareaAsignado", fields: [asignadoId], references: [id])
+  origenTipo  String?   @map("origen_tipo")
+  origenId    String?   @map("origen_id")
+  fechaLimite DateTime? @map("fecha_limite")
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
 
   @@index([estado])
   @@index([asignadoId])
+}
+
+model MensajeWhatsApp {
+  id              String   @id @default(uuid())
+  tabla           String
+  registroId      String   @map("registro_id")
+  direccion       String
+  tipo            String
+  contenido       String?
+  plantillaNombre String?  @map("plantilla_nombre")
+  mediaUrl        String?  @map("media_url")
+  whatsappMsgId   String?  @unique @map("whatsapp_msg_id")
+  estado          String   @default("enviado")
+  metadata        Json?
+  usuarioId       String?  @map("usuario_id")
+  usuario         Usuario? @relation(fields: [usuarioId], references: [id])
+  leido           Boolean  @default(false)
+  createdAt       DateTime @default(now())
+
+  @@index([tabla, registroId])
+  @@index([whatsappMsgId])
+  @@index([createdAt])
+  @@map("mensajes_whatsapp")
+}
+
+model PlantillaWhatsApp {
+  id        String   @id @default(uuid())
+  nombre    String   @unique
+  categoria String
+  idioma    String   @default("es")
+  estado    String   @default("aprobada")
+  activa    Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("plantillas_whatsapp")
 }

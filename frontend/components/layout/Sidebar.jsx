@@ -95,6 +95,7 @@ export default function Sidebar() {
     menuItems.push({ href: '/configuracion', label: 'Configuración', icon: '⚙' });
     menuItems.push({ href: '/apikey', label: 'API Keys', icon: '🔑' });
     menuItems.push({ href: '/sesiones', label: 'Sesiones', icon: '🔐' });
+    menuItems.push({ href: '/plantillas', label: 'Plantillas WA', icon: '📋' });
   }
 
   return (
