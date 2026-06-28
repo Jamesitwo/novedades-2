@@ -1,14 +1,28 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import api from '@/lib/api';
 import { TableSkeleton } from '@/components/Skeleton';
+
+const isEmpty = (v) => v === null || v === undefined || v === '' || v === 0 || v === '0' || (typeof v === 'object' && !Array.isArray(v) && Object.keys(v).length === 0) || (Array.isArray(v) && v.length === 0);
+
+const formatLabel = (key) => key.replace(/([a-z])([A-Z])/g, '$1 $2').replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+
+const renderVal = (val) => {
+  if (val === null || val === undefined) return null;
+  if (typeof val === 'boolean') return val ? '✅ Sí' : '❌ No';
+  if (typeof val === 'object') return <pre style={{ fontSize: 11, margin: 0, whiteSpace: 'pre-wrap', fontFamily: 'var(--mono)', color: 'var(--text2)' }}>{JSON.stringify(val, null, 2)}</pre>;
+  return String(val);
+};
+
+const GROUP_ORDER = ['id', 'idEmpresa', 'nombre', 'name', 'nombreCliente', 'sku', 'precio', 'price', 'costo', 'stock', 'categoria', 'category', 'descripcion', 'description', 'imagen', 'image', 'link', 'estado', 'status', 'activo', 'createdAt', 'updatedAt'];
 
 export default function LucidSalesProductosPage() {
   const [productos, setProductos] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [search, setSearch] = useState('');
+  const [selected, setSelected] = useState(null);
 
   const fetchProductos = useCallback(async () => {
     setLoading(true);
@@ -17,6 +31,7 @@ export default function LucidSalesProductosPage() {
       const { data } = await api.post('/api/lucidsales/productos');
       const list = Array.isArray(data) ? data : data.productos || data.data || [];
       setProductos(list);
+      setSelected(null);
     } catch (err) {
       setError(err.response?.data?.error || err.message || 'Error al obtener productos');
     } finally {
@@ -28,20 +43,32 @@ export default function LucidSalesProductosPage() {
     fetchProductos();
   }, [fetchProductos]);
 
-  const filtered = search
-    ? productos.filter(p =>
-        Object.values(p).some(v =>
-          String(v).toLowerCase().includes(search.toLowerCase())
-        )
-      )
-    : productos;
+  const processed = useMemo(() => {
+    let list = [...productos];
+    if (search) {
+      const q = search.toLowerCase();
+      list = list.filter(p => Object.values(p).some(v => String(v).toLowerCase().includes(q)));
+    }
+    return list;
+  }, [productos, search]);
 
-  const renderValue = (val) => {
-    if (val === null || val === undefined) return '-';
-    if (typeof val === 'boolean') return val ? 'Sí' : 'No';
-    if (typeof val === 'object') return JSON.stringify(val);
-    return String(val);
-  };
+  const columns = useMemo(() => {
+    if (productos.length === 0) return [];
+    const allKeys = Object.keys(productos[0]);
+    return allKeys.filter(key => productos.some(p => !isEmpty(p[key])));
+  }, [productos]);
+
+  const sortedColumns = useMemo(() => {
+    const sorted = [...columns].sort((a, b) => {
+      const ia = GROUP_ORDER.indexOf(a);
+      const ib = GROUP_ORDER.indexOf(b);
+      if (ia !== -1 && ib !== -1) return ia - ib;
+      if (ia !== -1) return -1;
+      if (ib !== -1) return 1;
+      return a.localeCompare(b);
+    });
+    return sorted;
+  }, [columns]);
 
   if (loading) return <div className="content"><TableSkeleton /></div>;
 
@@ -56,15 +83,13 @@ export default function LucidSalesProductosPage() {
     );
   }
 
-  const columns = productos.length > 0 ? Object.keys(productos[0]) : [];
-
   return (
     <div className="content">
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
         <div>
           <h2 style={{ margin: 0, fontSize: 20, fontWeight: 700 }}>LucidSales · Productos</h2>
           <div style={{ fontSize: 12, color: 'var(--text3)', marginTop: 4 }}>
-            {productos.length.toLocaleString()} productos
+            {productos.length.toLocaleString()} productos · {columns.length} columnas
           </div>
         </div>
         <button onClick={fetchProductos} className="btn btn-ghost" style={{ fontSize: 12 }}>
@@ -87,24 +112,28 @@ export default function LucidSalesProductosPage() {
         <table style={{ fontSize: 13 }}>
           <thead>
             <tr>
-              {columns.map(col => (
-                <th key={col} style={{ whiteSpace: 'nowrap' }}>{col}</th>
+              <th style={{ width: 50 }}></th>
+              {sortedColumns.map(col => (
+                <th key={col} style={{ whiteSpace: 'nowrap' }}>{formatLabel(col)}</th>
               ))}
             </tr>
           </thead>
           <tbody>
-            {filtered.length === 0 ? (
+            {processed.length === 0 ? (
               <tr>
-                <td colSpan={columns.length} style={{ textAlign: 'center', color: 'var(--text3)', padding: 40 }}>
+                <td colSpan={sortedColumns.length + 1} style={{ textAlign: 'center', color: 'var(--text3)', padding: 40 }}>
                   {search ? 'No se encontraron productos' : 'Sin productos'}
                 </td>
               </tr>
             ) : (
-              filtered.map((p, i) => (
-                <tr key={p.id || i}>
-                  {columns.map(col => (
+              processed.map((p, i) => (
+                <tr key={p.id || i} onClick={() => setSelected(p)} style={{ cursor: 'pointer' }}>
+                  <td style={{ textAlign: 'center', color: 'var(--accent)', fontWeight: 600 }}>
+                    ▶
+                  </td>
+                  {sortedColumns.map(col => (
                     <td key={col} style={{ maxWidth: 200, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                      {renderValue(p[col])}
+                      {isEmpty(p[col]) ? '-' : renderVal(p[col])}
                     </td>
                   ))}
                 </tr>
@@ -113,6 +142,55 @@ export default function LucidSalesProductosPage() {
           </tbody>
         </table>
       </div>
+
+      {selected && (
+        <div style={{
+          position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.65)',
+          display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 10000, padding: 20
+        }} onClick={() => setSelected(null)}>
+          <div style={{
+            background: 'var(--bg2)', borderRadius: 14, width: 'min(640px, 95vw)',
+            maxHeight: '85vh', overflow: 'auto', boxShadow: '0 20px 60px rgba(0,0,0,0.5)',
+            border: '1px solid var(--border)'
+          }} onClick={e => e.stopPropagation()}>
+            <div style={{
+              display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+              padding: '16px 20px', borderBottom: '1px solid var(--border)', position: 'sticky',
+              top: 0, background: 'var(--bg2)', zIndex: 1
+            }}>
+              <div style={{ fontWeight: 600, fontSize: 16 }}>
+                {selected.nombre || selected.name || selected.sku || `Producto #${selected.id}`}
+              </div>
+              <button onClick={() => setSelected(null)} className="btn btn-ghost" style={{ fontSize: 14, padding: '4px 10px' }}>✕</button>
+            </div>
+            <div style={{ padding: 20, display: 'flex', flexDirection: 'column', gap: 2 }}>
+              {Object.entries(selected)
+                .filter(([, v]) => !isEmpty(v))
+                .sort(([a], [b]) => {
+                  const ia = GROUP_ORDER.indexOf(a);
+                  const ib = GROUP_ORDER.indexOf(b);
+                  if (ia !== -1 && ib !== -1) return ia - ib;
+                  if (ia !== -1) return -1;
+                  if (ib !== -1) return 1;
+                  return a.localeCompare(b);
+                })
+                .map(([key, val]) => (
+                  <div key={key} style={{
+                    display: 'flex', gap: 12, padding: '8px 0',
+                    borderBottom: '1px solid var(--border)', fontSize: 13
+                  }}>
+                    <div style={{ width: 140, flexShrink: 0, color: 'var(--text3)', fontWeight: 500 }}>
+                      {formatLabel(key)}
+                    </div>
+                    <div style={{ flex: 1, color: 'var(--text)', wordBreak: 'break-word' }}>
+                      {renderVal(val)}
+                    </div>
+                  </div>
+                ))}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
