@@ -130,10 +130,11 @@ async function getPedidoById(id) {
   const config = await getConfig();
   const { token } = await authenticate(config);
   const result = await apiGet(`/pedidos/get-pedido-by-id/${id}`, token);
-  if (!result || !result.id) {
+  const pedido = result.pedido || result;
+  if (!pedido || !pedido.id) {
     throw new Error('Pedido no encontrado o respuesta inválida de LucidSales');
   }
-  return result;
+  return pedido;
 }
 
 async function updatePedido(pedido) {
