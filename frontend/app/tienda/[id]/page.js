@@ -4,6 +4,7 @@ import { useParams } from 'next/navigation';
 import api from '@/lib/api';
 import ProductCard from '../../../components/tienda/ProductCard';
 import CountdownTimer from '../../../components/tienda/CountdownTimer';
+import { useAuthStore } from '@/store/authStore';
 
 export default function ProductoDetallePage() {
   const params = useParams();
@@ -18,6 +19,8 @@ export default function ProductoDetallePage() {
   const [resenaForm, setResenaForm] = useState({ nombre: '', calificacion: 5, comentario: '' });
   const [resenaSaving, setResenaSaving] = useState(false);
   const [resenaSuccess, setResenaSuccess] = useState(false);
+  const { usuario } = useAuthStore();
+  const isAdmin = usuario?.rol === 'admin';
 
   useEffect(() => {
     if (!id) return;
@@ -55,6 +58,24 @@ export default function ProductoDetallePage() {
       setDistribucion(data.distribucion);
       setTimeout(() => setResenaSuccess(false), 3000);
     } catch (e) {
+    } finally {
+      setResenaSaving(false);
+    }
+  };
+
+  const handleGenerarResenas = async () => {
+    setResenaSaving(true);
+    try {
+      await api.post(`/api/resenas/${id}/generar`, { cantidad: 10 });
+      setResenaSuccess(true);
+      const { data } = await api.get(`/api/resenas/${id}`);
+      setResenas(data.resenas);
+      setPromedioResenas(data.promedio);
+      setResenasTotal(data.total);
+      setDistribucion(data.distribucion);
+      setTimeout(() => setResenaSuccess(false), 3000);
+    } catch (e) {
+      console.error(e);
     } finally {
       setResenaSaving(false);
     }
@@ -232,67 +253,81 @@ export default function ProductoDetallePage() {
           </div>
         )}
 
-        <div style={{ marginBottom: 16 }}>
-          {!showResenaForm ? (
-            <button onClick={() => setShowResenaForm(true)} style={{
-              background: 'var(--accent)', color: '#fff', border: 'none', borderRadius: 10,
-              padding: '10px 20px', cursor: 'pointer', fontWeight: 600, fontSize: 13
-            }}>
-              ✏️ Escribir reseña
-            </button>
-          ) : (
-            <form onSubmit={handleResenaSubmit} style={{
-              background: 'var(--bg2)', border: '1px solid var(--border)', borderRadius: 12,
-              padding: 16, display: 'flex', flexDirection: 'column', gap: 10
-            }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                <span style={{ fontSize: 13, color: 'var(--text2)' }}>Calificación:</span>
-                <div style={{ display: 'flex', gap: 4 }}>
-                  {[1,2,3,4,5].map(star => (
-                    <button key={star} type="button" onClick={() => setResenaForm({...resenaForm, calificacion: star})} style={{
-                      background: 'none', border: 'none', cursor: 'pointer', fontSize: 24,
-                      color: star <= resenaForm.calificacion ? 'var(--amber)' : 'var(--text3)',
-                      transition: 'color 0.15s'
-                    }}>
-                      {star <= resenaForm.calificacion ? '★' : '☆'}
-                    </button>
-                  ))}
+        {isAdmin && (
+          <div style={{ 
+            display: 'flex', gap: 10, flexWrap: 'wrap', marginBottom: 16,
+            background: 'var(--bg2)', border: '1px solid var(--accent)', borderRadius: 12,
+            padding: 14
+          }}>
+            <span style={{ width: '100%', fontSize: 12, color: 'var(--accent)', fontWeight: 600, marginBottom: 2 }}>
+              🔧 Panel admin de reseñas
+            </span>
+            {!showResenaForm ? (
+              <button onClick={() => setShowResenaForm(true)} style={{
+                background: 'var(--accent)', color: '#fff', border: 'none', borderRadius: 8,
+                padding: '8px 16px', cursor: 'pointer', fontWeight: 600, fontSize: 12
+              }}>
+                ✏️ Crear reseña
+              </button>
+            ) : (
+              <form onSubmit={handleResenaSubmit} style={{
+                width: '100%', display: 'flex', flexDirection: 'column', gap: 10
+              }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                  <span style={{ fontSize: 13, color: 'var(--text2)' }}>Calificación:</span>
+                  <div style={{ display: 'flex', gap: 4 }}>
+                    {[1,2,3,4,5].map(star => (
+                      <button key={star} type="button" onClick={() => setResenaForm({...resenaForm, calificacion: star})} style={{
+                        background: 'none', border: 'none', cursor: 'pointer', fontSize: 24,
+                        color: star <= resenaForm.calificacion ? 'var(--amber)' : 'var(--text3)',
+                        transition: 'color 0.15s'
+                      }}>
+                        {star <= resenaForm.calificacion ? '★' : '☆'}
+                      </button>
+                    ))}
+                  </div>
                 </div>
-              </div>
-              <input
-                type="text"
-                placeholder="Tu nombre"
-                value={resenaForm.nombre}
-                onChange={e => setResenaForm({...resenaForm, nombre: e.target.value})}
-                required
-                style={{
-                  background: 'var(--bg3)', border: '1px solid var(--border)', borderRadius: 8,
-                  padding: '8px 12px', color: 'var(--text)', fontSize: 14, outline: 'none'
-                }}
-              />
-              <textarea
-                placeholder="Cuéntanos tu experiencia (opcional)"
-                value={resenaForm.comentario}
-                onChange={e => setResenaForm({...resenaForm, comentario: e.target.value})}
-                rows={3}
-                style={{
-                  background: 'var(--bg3)', border: '1px solid var(--border)', borderRadius: 8,
-                  padding: '8px 12px', color: 'var(--text)', fontSize: 14, outline: 'none', resize: 'vertical'
-                }}
-              />
-              <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
-                <button type="button" onClick={() => setShowResenaForm(false)} style={{
-                  background: 'var(--bg3)', border: '1px solid var(--border)', borderRadius: 8,
-                  padding: '8px 16px', color: 'var(--text2)', cursor: 'pointer', fontSize: 13
-                }}>Cancelar</button>
-                <button type="submit" disabled={resenaSaving} style={{
-                  background: 'var(--accent)', border: 'none', borderRadius: 8,
-                  padding: '8px 16px', color: '#fff', cursor: 'pointer', fontWeight: 600, fontSize: 13
-                }}>{resenaSaving ? 'Enviando...' : 'Publicar reseña'}</button>
-              </div>
-            </form>
-          )}
-        </div>
+                <input
+                  type="text"
+                  placeholder="Nombre del cliente"
+                  value={resenaForm.nombre}
+                  onChange={e => setResenaForm({...resenaForm, nombre: e.target.value})}
+                  required
+                  style={{
+                    background: 'var(--bg3)', border: '1px solid var(--border)', borderRadius: 8,
+                    padding: '8px 12px', color: 'var(--text)', fontSize: 14, outline: 'none'
+                  }}
+                />
+                <textarea
+                  placeholder="Comentario (opcional)"
+                  value={resenaForm.comentario}
+                  onChange={e => setResenaForm({...resenaForm, comentario: e.target.value})}
+                  rows={2}
+                  style={{
+                    background: 'var(--bg3)', border: '1px solid var(--border)', borderRadius: 8,
+                    padding: '8px 12px', color: 'var(--text)', fontSize: 14, outline: 'none', resize: 'vertical'
+                  }}
+                />
+                <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
+                  <button type="button" onClick={() => setShowResenaForm(false)} style={{
+                    background: 'var(--bg3)', border: '1px solid var(--border)', borderRadius: 8,
+                    padding: '8px 16px', color: 'var(--text2)', cursor: 'pointer', fontSize: 13
+                  }}>Cancelar</button>
+                  <button type="submit" disabled={resenaSaving} style={{
+                    background: 'var(--accent)', border: 'none', borderRadius: 8,
+                    padding: '8px 16px', color: '#fff', cursor: 'pointer', fontWeight: 600, fontSize: 13
+                  }}>{resenaSaving ? 'Enviando...' : 'Publicar'}</button>
+                </div>
+              </form>
+            )}
+            <button onClick={handleGenerarResenas} disabled={resenaSaving} style={{
+              background: 'var(--amber)', color: '#000', border: 'none', borderRadius: 8,
+              padding: '8px 16px', cursor: 'pointer', fontWeight: 600, fontSize: 12
+            }}>
+              🎲 Generar {10} reseñas aleatorias
+            </button>
+          </div>
+        )}
 
         {resenas.length > 0 ? (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
