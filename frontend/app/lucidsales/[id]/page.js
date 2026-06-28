@@ -8,15 +8,17 @@ import { useAuthStore } from '@/store/authStore';
 import { TableSkeleton } from '@/components/Skeleton';
 
 const ESTADOS = [
-  { value: 0, label: 'Pendiente' },
+  { value: 0, label: 'Por confirmar' },
   { value: 1, label: 'Cancelado' },
-  { value: 2, label: 'Completado' }
+  { value: 2, label: 'Confirmado' },
+  { value: 3, label: 'Modificado' }
 ];
 
 const CSS_BADGE = {
   0: 'pendiente',
   1: 'red',
-  2: 'entregado'
+  2: 'entregado',
+  3: 'purple'
 };
 
 export default function LucidSalesEditPage() {

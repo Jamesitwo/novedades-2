@@ -8,9 +8,10 @@ import { TableSkeleton } from '@/components/Skeleton';
 import { on, isConnected } from '@/lib/websocket';
 
 const ESTADOS = {
-  0: { label: 'Pendiente', class: 'pendiente' },
+  0: { label: 'Por confirmar', class: 'pendiente' },
   1: { label: 'Cancelado', class: 'red' },
-  2: { label: 'Completado', class: 'entregado' }
+  2: { label: 'Confirmado', class: 'entregado' },
+  3: { label: 'Modificado', class: 'purple' }
 };
 
 export default function LucidSalesPage() {
