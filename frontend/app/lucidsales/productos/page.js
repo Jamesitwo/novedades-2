@@ -23,7 +23,8 @@ const OMIT_FIELDS = new Set([
   'Caracteristicas', 'Caracteristicas Name',
   'Disponibilidad', 'Disponibilidad Producto Lucid Bot',
   'Envio',
-  'Id Producto Edrop', 'Id Producto Rocket', 'Id Producto Venndelo', 'Id Variante Upsell',
+  'Fecha Creacion',
+  'Id Producto Aveonline', 'Id Producto Edrop', 'Id Producto Rocket', 'Id Producto Venndelo', 'Id Variante Upsell',
   'Mensaje Inicial',
   'Pais Origen', 'Peso',
   'Precio App', 'Precio Bodega', 'Precio Sugerido',
@@ -33,6 +34,7 @@ const OMIT_FIELDS = new Set([
   'Testimonios',
   'Tipo',
   'Up Sell',
+  'Url',
   'V', 'Videos'
 ]);
 
