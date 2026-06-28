@@ -303,15 +303,7 @@ function getCiudadesLocales(deptoId) {
 
 function getDepartamentosLocales() {
   try {
-    const ciudades = require('../data/lucidsales_ciudades.json');
-    const deptos = {};
-    for (const c of ciudades) {
-      if (c.state_id && !deptos[c.state_id]) {
-        deptos[c.state_id] = { id: c.state_id, ciudades: 0 };
-      }
-      if (c.state_id) deptos[c.state_id].ciudades++;
-    }
-    return Object.values(deptos);
+    return require('../data/lucidsales_departamentos.json');
   } catch (error) {
     console.error('[LucidSales] Error cargando departamentos locales:', error);
     return [];

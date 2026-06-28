@@ -305,7 +305,7 @@ export default function LucidSalesEditPage() {
               <select value={pedido.Departamento ?? ''} onChange={e => handleDepartamentoChange(e.target.value)} style={{ ...inputStyle, appearance: 'auto', cursor: 'pointer' }}>
                 <option value="">Seleccionar...</option>
                 {deptos.map(d => (
-                  <option key={d.id} value={d.id}>[{d.id}] {d.ciudades} ciudades</option>
+                  <option key={d.id} value={d.id}>{d.name}</option>
                 ))}
               </select>
             </div>

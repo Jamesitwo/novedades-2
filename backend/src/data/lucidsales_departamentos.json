@@ -1,0 +1,167 @@
+[
+  {
+    "id": 1,
+    "name": "Bogota D.C.",
+    "country_id": 47
+  },
+  {
+    "id": 2,
+    "name": "Antioquia",
+    "country_id": 47
+  },
+  {
+    "id": 3,
+    "name": "Arauca",
+    "country_id": 47
+  },
+  {
+    "id": 4,
+    "name": "Atlántico",
+    "country_id": 47
+  },
+  {
+    "id": 5,
+    "name": "Amazonas",
+    "country_id": 47
+  },
+  {
+    "id": 6,
+    "name": "Bolívar",
+    "country_id": 47
+  },
+  {
+    "id": 7,
+    "name": "Boyacá",
+    "country_id": 47
+  },
+  {
+    "id": 8,
+    "name": "Caldas",
+    "country_id": 47
+  },
+  {
+    "id": 9,
+    "name": "Caquetá",
+    "country_id": 47
+  },
+  {
+    "id": 10,
+    "name": "Casanare",
+    "country_id": 47
+  },
+  {
+    "id": 11,
+    "name": "Cauca",
+    "country_id": 47
+  },
+  {
+    "id": 12,
+    "name": "Cesar",
+    "country_id": 47
+  },
+  {
+    "id": 13,
+    "name": "Chocó",
+    "country_id": 47
+  },
+  {
+    "id": 14,
+    "name": "Córdoba",
+    "country_id": 47
+  },
+  {
+    "id": 15,
+    "name": "Cundinamarca",
+    "country_id": 47
+  },
+  {
+    "id": 16,
+    "name": "Guainía",
+    "country_id": 47
+  },
+  {
+    "id": 17,
+    "name": "Guaviare",
+    "country_id": 47
+  },
+  {
+    "id": 18,
+    "name": "Huila",
+    "country_id": 47
+  },
+  {
+    "id": 19,
+    "name": "La Guajira",
+    "country_id": 47
+  },
+  {
+    "id": 20,
+    "name": "Magdalena",
+    "country_id": 47
+  },
+  {
+    "id": 21,
+    "name": "Meta",
+    "country_id": 47
+  },
+  {
+    "id": 22,
+    "name": "Nariño",
+    "country_id": 47
+  },
+  {
+    "id": 23,
+    "name": "Norte de Santander",
+    "country_id": 47
+  },
+  {
+    "id": 24,
+    "name": "Putumayo",
+    "country_id": 47
+  },
+  {
+    "id": 25,
+    "name": "Quindío",
+    "country_id": 47
+  },
+  {
+    "id": 26,
+    "name": "Risaralda",
+    "country_id": 47
+  },
+  {
+    "id": 27,
+    "name": "San Andrés y Providencia",
+    "country_id": 47
+  },
+  {
+    "id": 28,
+    "name": "Santander",
+    "country_id": 47
+  },
+  {
+    "id": 29,
+    "name": "Sucre",
+    "country_id": 47
+  },
+  {
+    "id": 30,
+    "name": "Tolima",
+    "country_id": 47
+  },
+  {
+    "id": 31,
+    "name": "Valle del Cauca",
+    "country_id": 47
+  },
+  {
+    "id": 32,
+    "name": "Vaupés",
+    "country_id": 47
+  },
+  {
+    "id": 33,
+    "name": "Vichada",
+    "country_id": 47
+  }
+]
