@@ -4,14 +4,23 @@ import { useState, useEffect, useCallback, useMemo } from 'react';
 import api from '@/lib/api';
 import { TableSkeleton } from '@/components/Skeleton';
 
-const isEmpty = (v) => v === null || v === undefined || v === '' || v === 0 || v === '0' || (typeof v === 'object' && !Array.isArray(v) && Object.keys(v).length === 0) || (Array.isArray(v) && v.length === 0);
+const isEmpty = (v) => {
+  if (v === null || v === undefined) return true;
+  if (typeof v === 'string') {
+    const trimmed = v.trim().toLowerCase();
+    return trimmed === '' || trimmed === 'null' || trimmed === 'undefined' || trimmed === '[]' || trimmed === '{}';
+  }
+  if (v === 0 || v === '0') return true;
+  if (Array.isArray(v)) return v.length === 0;
+  if (typeof v === 'object') return Object.keys(v).length === 0;
+  return false;
+};
 
 const OMIT_FIELDS = new Set([
   'Active Integrations', 'Ads Meta Campaigns', 'Ads Meta Tags',
   'Alto', 'Ancho',
   'Bundle', 'By Id Dropi',
   'Caracteristicas', 'Caracteristicas Name',
-  'Images',
   'Mensaje Inicial',
   'Precio App', 'Precio Bodega', 'Precio Sugerido',
   'Preguntas Frecuentes', 'Preguntas Frecuentes Post Venta',
@@ -26,13 +35,94 @@ const formatLabel = (key) => key.replace(/([a-z])([A-Z])/g, '$1 $2').replace(/_/
 
 const isImgKey = (k) => /imagen|image|img|foto|picture/i.test(k);
 
-const renderVal = (val, key) => {
+const renderVal = (val, key, isTable = false) => {
   if (val === null || val === undefined) return null;
   if (typeof val === 'boolean') return val ? '✅ Sí' : '❌ No';
+  
+  if (isImgKey(key)) {
+    let urls = [];
+    try {
+      let parsed = val;
+      if (typeof val === 'string') {
+        if (val.trim().startsWith('[') || val.trim().startsWith('{')) {
+          parsed = JSON.parse(val);
+        } else {
+          urls = val.split(',').map(s => s.trim()).filter(s => s.startsWith('http'));
+        }
+      }
+      
+      if (Array.isArray(parsed)) {
+        parsed.forEach(item => {
+          if (typeof item === 'string' && item.startsWith('http')) {
+            urls.push(item);
+          } else if (item && typeof item === 'object') {
+            const url = item.src || item.url || item.URL || item.link || item.path;
+            if (url && typeof url === 'string' && url.startsWith('http')) {
+              urls.push(url);
+            }
+          }
+        });
+      } else if (parsed && typeof parsed === 'object') {
+        const url = parsed.src || parsed.url || parsed.URL || parsed.link || parsed.path;
+        if (url && typeof url === 'string' && url.startsWith('http')) {
+          urls.push(url);
+        }
+      } else if (typeof parsed === 'string' && parsed.startsWith('http')) {
+        urls.push(parsed);
+      }
+    } catch (e) {
+      if (typeof val === 'string' && val.startsWith('http')) {
+        urls.push(val);
+      }
+    }
+
+    if (urls.length > 0) {
+      if (isTable) {
+        return (
+          <img
+            src={urls[0]}
+            alt=""
+            style={{ width: 44, height: 44, borderRadius: 6, objectFit: 'cover', border: '1px solid var(--border)' }}
+            onError={e => { e.target.style.display = 'none'; }}
+          />
+        );
+      } else {
+        return (
+          <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginTop: 4 }}>
+            {urls.map((url, idx) => (
+              <a href={url} target="_blank" rel="noopener noreferrer" key={idx}>
+                <img
+                  src={url}
+                  alt=""
+                  style={{ width: 80, height: 80, borderRadius: 8, objectFit: 'cover', border: '1px solid var(--border)', cursor: 'zoom-in' }}
+                  onError={e => { e.target.style.display = 'none'; }}
+                />
+              </a>
+            ))}
+          </div>
+        );
+      }
+    }
+  }
+
   if (typeof val === 'object') return <pre style={{ fontSize: 11, margin: 0, whiteSpace: 'pre-wrap', fontFamily: 'var(--mono)', color: 'var(--text2)' }}>{JSON.stringify(val, null, 2)}</pre>;
+  
   if (typeof val === 'string' && (val.startsWith('http://') || val.startsWith('https://'))) {
-    if (isImgKey(key) || /\.(png|jpg|jpeg|gif|webp|svg|avif)(\?|$)/i.test(val)) {
-      return <img src={val} alt="" style={{ maxWidth: 120, maxHeight: 120, borderRadius: 8, objectFit: 'cover' }} onError={e => { e.target.style.display = 'none' }} />;
+    if (/\.(png|jpg|jpeg|gif|webp|svg|avif)(\?|$)/i.test(val)) {
+      return (
+        <img
+          src={val}
+          alt=""
+          style={{
+            maxWidth: isTable ? 44 : 120,
+            maxHeight: isTable ? 44 : 120,
+            borderRadius: 6,
+            objectFit: 'cover',
+            border: '1px solid var(--border)'
+          }}
+          onError={e => { e.target.style.display = 'none'; }}
+        />
+      );
     }
     return <a href={val} target="_blank" rel="noopener noreferrer" style={{ color: 'var(--accent)', fontSize: 12 }}>🔗 Abrir</a>;
   }
@@ -158,7 +248,7 @@ export default function LucidSalesProductosPage() {
                   </td>
                   {sortedColumns.map(col => (
                     <td key={col} style={{ maxWidth: 200, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                      {isEmpty(p[col]) ? '-' : renderVal(p[col], col)}
+                      {isEmpty(p[col]) ? '-' : renderVal(p[col], col, true)}
                     </td>
                   ))}
                 </tr>
@@ -208,7 +298,7 @@ export default function LucidSalesProductosPage() {
                       {formatLabel(key)}
                     </div>
                     <div style={{ flex: 1, color: 'var(--text)', wordBreak: 'break-word' }}>
-                      {renderVal(val, key)}
+                      {renderVal(val, key, false)}
                     </div>
                   </div>
                 ))}
