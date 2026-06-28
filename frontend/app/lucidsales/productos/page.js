@@ -24,10 +24,13 @@ const OMIT_FIELDS = new Set([
 
 const formatLabel = (key) => key.replace(/([a-z])([A-Z])/g, '$1 $2').replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
 
-const renderVal = (val) => {
+const isImageUrl = (v) => typeof v === 'string' && (v.startsWith('http') || v.startsWith('https')) && (/\.(png|jpg|jpeg|gif|webp|svg|avif)(\?|$)/i.test(v) || v.includes('img') || v.includes('image') || v.includes('cdn'));
+
+const renderVal = (val, key) => {
   if (val === null || val === undefined) return null;
   if (typeof val === 'boolean') return val ? '✅ Sí' : '❌ No';
   if (typeof val === 'object') return <pre style={{ fontSize: 11, margin: 0, whiteSpace: 'pre-wrap', fontFamily: 'var(--mono)', color: 'var(--text2)' }}>{JSON.stringify(val, null, 2)}</pre>;
+  if (isImageUrl(val)) return <img src={val} alt="" style={{ maxWidth: 120, maxHeight: 120, borderRadius: 8, objectFit: 'cover' }} onError={e => { e.target.style.display = 'none' }} />;
   return String(val);
 };
 
@@ -71,7 +74,7 @@ export default function LucidSalesProductosPage() {
   const columns = useMemo(() => {
     if (productos.length === 0) return [];
     const allKeys = Object.keys(productos[0]);
-    return allKeys.filter(key => !OMIT_FIELDS.has(key) && productos.some(p => !isEmpty(p[key])));
+    return allKeys.filter(key => !OMIT_FIELDS.has(formatLabel(key)) && productos.some(p => !isEmpty(p[key])));
   }, [productos]);
 
   const sortedColumns = useMemo(() => {
@@ -105,7 +108,7 @@ export default function LucidSalesProductosPage() {
         <div>
           <h2 style={{ margin: 0, fontSize: 20, fontWeight: 700 }}>LucidSales · Productos</h2>
           <div style={{ fontSize: 12, color: 'var(--text3)', marginTop: 4 }}>
-            {productos.length.toLocaleString()} productos · {columns.length} columnas
+            {productos.length.toLocaleString()} productos
           </div>
         </div>
         <button onClick={fetchProductos} className="btn btn-ghost" style={{ fontSize: 12 }}>
@@ -149,7 +152,7 @@ export default function LucidSalesProductosPage() {
                   </td>
                   {sortedColumns.map(col => (
                     <td key={col} style={{ maxWidth: 200, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                      {isEmpty(p[col]) ? '-' : renderVal(p[col])}
+                      {isEmpty(p[col]) ? '-' : renderVal(p[col], col)}
                     </td>
                   ))}
                 </tr>
@@ -181,7 +184,7 @@ export default function LucidSalesProductosPage() {
             </div>
             <div style={{ padding: 20, display: 'flex', flexDirection: 'column', gap: 2 }}>
               {Object.entries(selected)
-                .filter(([k, v]) => !OMIT_FIELDS.has(k) && !isEmpty(v))
+                .filter(([k, v]) => !OMIT_FIELDS.has(formatLabel(k)) && !isEmpty(v))
                 .sort(([a], [b]) => {
                   const ia = GROUP_ORDER.indexOf(a);
                   const ib = GROUP_ORDER.indexOf(b);
@@ -199,7 +202,7 @@ export default function LucidSalesProductosPage() {
                       {formatLabel(key)}
                     </div>
                     <div style={{ flex: 1, color: 'var(--text)', wordBreak: 'break-word' }}>
-                      {renderVal(val)}
+                      {renderVal(val, key)}
                     </div>
                   </div>
                 ))}
