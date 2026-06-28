@@ -24,13 +24,18 @@ const OMIT_FIELDS = new Set([
 
 const formatLabel = (key) => key.replace(/([a-z])([A-Z])/g, '$1 $2').replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
 
-const isImageUrl = (v) => typeof v === 'string' && (v.startsWith('http') || v.startsWith('https')) && (/\.(png|jpg|jpeg|gif|webp|svg|avif)(\?|$)/i.test(v) || v.includes('img') || v.includes('image') || v.includes('cdn'));
+const isImgKey = (k) => /imagen|image|img|foto|picture/i.test(k);
 
 const renderVal = (val, key) => {
   if (val === null || val === undefined) return null;
   if (typeof val === 'boolean') return val ? '✅ Sí' : '❌ No';
   if (typeof val === 'object') return <pre style={{ fontSize: 11, margin: 0, whiteSpace: 'pre-wrap', fontFamily: 'var(--mono)', color: 'var(--text2)' }}>{JSON.stringify(val, null, 2)}</pre>;
-  if (isImageUrl(val)) return <img src={val} alt="" style={{ maxWidth: 120, maxHeight: 120, borderRadius: 8, objectFit: 'cover' }} onError={e => { e.target.style.display = 'none' }} />;
+  if (typeof val === 'string' && (val.startsWith('http://') || val.startsWith('https://'))) {
+    if (isImgKey(key) || /\.(png|jpg|jpeg|gif|webp|svg|avif)(\?|$)/i.test(val)) {
+      return <img src={val} alt="" style={{ maxWidth: 120, maxHeight: 120, borderRadius: 8, objectFit: 'cover' }} onError={e => { e.target.style.display = 'none' }} />;
+    }
+    return <a href={val} target="_blank" rel="noopener noreferrer" style={{ color: 'var(--accent)', fontSize: 12 }}>🔗 Abrir</a>;
+  }
   return String(val);
 };
 
@@ -49,6 +54,7 @@ export default function LucidSalesProductosPage() {
     try {
       const { data } = await api.post('/api/lucidsales/productos');
       const list = Array.isArray(data) ? data : data.productos || data.data || [];
+      if (list.length > 0) console.log('[Productos] fields:', Object.keys(list[0]).filter(k => !isEmpty(list[0][k])).join(', '));
       setProductos(list);
       setSelected(null);
     } catch (err) {
