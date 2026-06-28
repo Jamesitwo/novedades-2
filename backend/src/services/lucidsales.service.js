@@ -90,7 +90,11 @@ async function apiGet(path, token) {
   const resp = await fetch(`${BASE_URL}${path}`, {
     headers: { 'x-token': token }
   });
-  return resp.json();
+  const data = await resp.json();
+  if (!resp.ok) {
+    throw new Error(data.error || data.msg || `HTTP ${resp.status}: ${resp.statusText}`);
+  }
+  return data;
 }
 
 async function apiPost(path, body, token) {
@@ -102,7 +106,11 @@ async function apiPost(path, body, token) {
     },
     body: JSON.stringify(body)
   });
-  return resp.json();
+  const data = await resp.json();
+  if (!resp.ok) {
+    throw new Error(data.error || data.msg || `HTTP ${resp.status}: ${resp.statusText}`);
+  }
+  return data;
 }
 
 async function getPedidos({ page = 1, itemsPerPage = 50, search = '', filters = '[]' } = {}) {
@@ -121,7 +129,11 @@ async function getPedidos({ page = 1, itemsPerPage = 50, search = '', filters = 
 async function getPedidoById(id) {
   const config = await getConfig();
   const { token } = await authenticate(config);
-  return apiGet(`/pedidos/get-pedido-by-id/${id}`, token);
+  const result = await apiGet(`/pedidos/get-pedido-by-id/${id}`, token);
+  if (!result || !result.id) {
+    throw new Error('Pedido no encontrado o respuesta inválida de LucidSales');
+  }
+  return result;
 }
 
 async function updatePedido(pedido) {
@@ -139,12 +151,12 @@ async function updatePedido(pedido) {
     Movil: pedido.Movil || '',
     Direccion: pedido.Direccion || '',
     verifiedAddress: pedido.verifiedAddress || '',
-    Pais: Number(pedido.Pais),
+    Pais: Number(pedido.Pais ?? 47),
     codigoPostal: pedido.codigoPostal || '',
-    Departamento: Number(pedido.Departamento),
-    Ciudad: Number(pedido.Ciudad),
+    Departamento: Number(pedido.Departamento ?? 0),
+    Ciudad: Number(pedido.Ciudad ?? 0),
     Observaciones: typeof pedido.Observaciones === 'string' ? pedido.Observaciones : JSON.stringify(pedido.Observaciones || []),
-    EstadoPedido: Number(pedido.EstadoPedido),
+    EstadoPedido: Number(pedido.EstadoPedido ?? 0),
     Json: typeof pedido.Json === 'string' ? pedido.Json : JSON.stringify(pedido.Json || []),
     SubTotal: String(pedido.SubTotal || '0.00'),
     CostoEnvio: String(pedido.CostoEnvio || '0.00'),
@@ -169,8 +181,8 @@ async function createPedido(pedido) {
     emailCliente: pedido.emailCliente || '',
     telefonoCliente: pedido.telefonoCliente || '',
     direccionCliente: pedido.direccionCliente || '',
-    ciudadCliente: Number(pedido.ciudadCliente),
-    departamentoCliente: Number(pedido.departamentoCliente),
+    ciudadCliente: Number(pedido.ciudadCliente ?? 0),
+    departamentoCliente: Number(pedido.departamentoCliente ?? 0),
     paisCliente: Number(pedido.paisCliente || 47),
     codigoPostal: pedido.codigoPostal || null,
     nitCliente: pedido.nitCliente || '',
@@ -188,10 +200,7 @@ async function cotizarEnvio(pedidoId, carrier = 'dropi') {
   const config = await getConfig();
   const { token } = await authenticate(config);
 
-  const pedido = await apiGet(`/pedidos/get-pedido-by-id/${pedidoId}`, token);
-  if (!pedido || !pedido.id) {
-    throw new Error('Pedido no encontrado');
-  }
+  const pedido = await getPedidoById(pedidoId);
 
   return apiPost(`/pedidos/quote/${carrier}`, {
     id: pedido.id,
@@ -203,10 +212,7 @@ async function confirmarIntegracion(pedidoId, carrier = 'rocket') {
   const config = await getConfig();
   const { token } = await authenticate(config);
 
-  const pedido = await apiGet(`/pedidos/get-pedido-by-id/${pedidoId}`, token);
-  if (!pedido || !pedido.id) {
-    throw new Error('Pedido no encontrado');
-  }
+  const pedido = await getPedidoById(pedidoId);
 
   return apiPost(`/pedidos/integrations/confirm/${carrier}`, {
     id: pedido.id,
@@ -218,10 +224,7 @@ async function uploadToHoko(pedidoId) {
   const config = await getConfig();
   const { token } = await authenticate(config);
 
-  const pedido = await apiGet(`/pedidos/get-pedido-by-id/${pedidoId}`, token);
-  if (!pedido || !pedido.id) {
-    throw new Error('Pedido no encontrado');
-  }
+  const pedido = await getPedidoById(pedidoId);
 
   return apiPost(`/pedidos/upload/hoko`, {
     id: pedido.id,
@@ -248,23 +251,28 @@ async function getFiltersData() {
 
 async function getPaises() {
   const resp = await fetch(`${BASE_URL}/tools/getCountries`);
-  return resp.json();
+  const data = await resp.json();
+  if (!resp.ok) throw new Error(`Error obteniendo países (${resp.status})`);
+  return data;
 }
 
 async function getDepartamentos(paisId = 47) {
   const resp = await fetch(`${BASE_URL}/tools/getCountryState?country=${paisId}`);
-  return resp.json();
+  const data = await resp.json();
+  if (!resp.ok) throw new Error(`Error obteniendo departamentos (${resp.status})`);
+  return data;
 }
 
 async function getCiudades(deptoId) {
   const resp = await fetch(`${BASE_URL}/tools/getStateCity?state=${deptoId}`);
-  return resp.json();
+  const data = await resp.json();
+  if (!resp.ok) throw new Error(`Error obteniendo ciudades (${resp.status})`);
+  return data;
 }
 
 async function verificarConexion() {
   try {
     const config = await getConfig();
-    await authenticate(config);
     const { token, shopId } = await authenticate(config);
     const result = await apiGet('/pedidos/get-filters-data?idEmpresa=' + shopId, token);
     return { conectado: true, mensaje: 'Conexión exitosa con LucidSales' };
@@ -282,11 +290,12 @@ function clearTokenCache() {
 function getCiudadesLocales(deptoId) {
   try {
     const ciudades = require('../data/lucidsales_ciudades.json');
-    if (deptoId !== undefined) {
-      return ciudades.filter(c => c.state_id === deptoId);
+    if (deptoId !== undefined && deptoId !== null) {
+      return ciudades.filter(c => c.state_id === Number(deptoId));
     }
     return ciudades;
-  } catch {
+  } catch (error) {
+    console.error('[LucidSales] Error cargando ciudades locales:', error);
     return [];
   }
 }
@@ -302,7 +311,8 @@ function getDepartamentosLocales() {
       if (c.state_id) deptos[c.state_id].ciudades++;
     }
     return Object.values(deptos);
-  } catch {
+  } catch (error) {
+    console.error('[LucidSales] Error cargando departamentos locales:', error);
     return [];
   }
 }

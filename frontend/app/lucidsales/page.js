@@ -102,8 +102,6 @@ export default function LucidSalesPage() {
     ? pedidos.filter(p => String(p.EstadoPedido) === estadoFilter)
     : pedidos;
 
-  if (!usuario) return null;
-
   return (
     <div className="content">
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>

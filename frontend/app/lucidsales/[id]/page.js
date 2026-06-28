@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import api from '@/lib/api';
@@ -13,17 +13,21 @@ const ESTADOS = [
   { value: 2, label: 'Completado' }
 ];
 
+const CSS_BADGE = {
+  0: 'pendiente',
+  1: 'red',
+  2: 'entregado'
+};
+
 export default function LucidSalesEditPage() {
   const params = useParams();
   const router = useRouter();
-  const { usuario } = useAuthStore();
   const id = params.id;
 
   const [pedido, setPedido] = useState(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
-  const [success, setSuccess] = useState('');
 
   const [deptos, setDeptos] = useState([]);
   const [ciudades, setCiudades] = useState([]);
@@ -40,6 +44,19 @@ export default function LucidSalesEditPage() {
     setTimeout(() => setToast(null), 4000);
   };
 
+  const loadCiudades = async (deptoId) => {
+    setLoadingGeo(true);
+    try {
+      const { data } = await api.get(`/api/lucidsales/ciudades-locales?deptoId=${deptoId}`);
+      setCiudades(data || []);
+    } catch (err) {
+      console.error('[LucidSales] Error loading cities:', err);
+      setCiudades([]);
+    } finally {
+      setLoadingGeo(false);
+    }
+  };
+
   useEffect(() => {
     if (!id) return;
     const fetchData = async () => {
@@ -50,37 +67,31 @@ export default function LucidSalesEditPage() {
           api.get(`/api/lucidsales/pedidos/${id}`),
           api.get('/api/lucidsales/departamentos-locales')
         ]);
-        if (pedidoRes.data && pedidoRes.data.id) {
-          setPedido(pedidoRes.data);
-          if (deptosRes.data) {
+
+        const pedidoData = pedidoRes.data;
+
+        if (pedidoData && pedidoData.id) {
+          setPedido(pedidoData);
+          if (Array.isArray(deptosRes.data)) {
             setDeptos(deptosRes.data.sort((a, b) => a.id - b.id));
           }
-          if (pedidoRes.data.Departamento) {
-            loadCiudades(pedidoRes.data.Departamento);
+          if (pedidoData.Departamento != null && pedidoData.Departamento !== 0) {
+            await loadCiudades(Number(pedidoData.Departamento));
           }
+        } else if (pedidoData && pedidoData.error) {
+          setError(pedidoData.error);
         } else {
           setError('Pedido no encontrado');
         }
       } catch (err) {
-        setError(err.response?.data?.error || 'Error al cargar el pedido');
+        console.error('[LucidSales] Error:', err);
+        setError(err.response?.data?.error || err.message || 'Error al cargar el pedido');
       } finally {
         setLoading(false);
       }
     };
     fetchData();
   }, [id]);
-
-  const loadCiudades = async (deptoId) => {
-    setLoadingGeo(true);
-    try {
-      const { data } = await api.get(`/api/lucidsales/ciudades-locales?deptoId=${deptoId}`);
-      setCiudades(data || []);
-    } catch {
-      setCiudades([]);
-    } finally {
-      setLoadingGeo(false);
-    }
-  };
 
   const handleChange = (field, value) => {
     setPedido(prev => ({ ...prev, [field]: value }));
@@ -90,22 +101,21 @@ export default function LucidSalesEditPage() {
     handleChange('Departamento', Number(deptoId));
     handleChange('Ciudad', 0);
     setCiudades([]);
-    if (deptoId) loadCiudades(deptoId);
+    if (deptoId) loadCiudades(Number(deptoId));
   };
 
   const handleSave = async () => {
     setSaving(true);
     setError('');
-    setSuccess('');
     try {
       const { data } = await api.put(`/api/lucidsales/pedidos/${id}`, pedido);
       if (data.ok) {
         showToast('Pedido actualizado correctamente');
       } else {
-        setError(data.msg || data.error || 'Error al actualizar');
+        showToast(data.msg || data.error || 'Error al actualizar', 'error');
       }
     } catch (err) {
-      setError(err.response?.data?.error || 'Error al guardar');
+      showToast(err.response?.data?.error || 'Error al guardar', 'error');
     } finally {
       setSaving(false);
     }
@@ -174,6 +184,7 @@ export default function LucidSalesEditPage() {
 
   if (!pedido) return null;
 
+  const estadoActual = ESTADOS.find(e => e.value === pedido.EstadoPedido) || ESTADOS[0];
   const obs = parseObservaciones(pedido.Observaciones);
   const productos = parseJson(pedido.Json);
 
@@ -186,8 +197,8 @@ export default function LucidSalesEditPage() {
           </Link>
           <h2 style={{ margin: '4px 0 0', fontSize: 20, fontWeight: 700 }}>
             Pedido #{pedido.idPedido}
-            <span className={`badge ${ESTADOS.find(e => e.value === pedido.EstadoPedido)?.label === 'Completado' ? 'entregado' : ESTADOS.find(e => e.value === pedido.EstadoPedido)?.label === 'Cancelado' ? 'red' : 'pendiente'}`} style={{ marginLeft: 10, verticalAlign: 'middle' }}>
-              {(ESTADOS.find(e => e.value === pedido.EstadoPedido) || ESTADOS[0]).label}
+            <span className={`badge ${CSS_BADGE[estadoActual.value] || 'pendiente'}`} style={{ marginLeft: 10, verticalAlign: 'middle' }}>
+              {estadoActual.label}
             </span>
           </h2>
         </div>
@@ -256,122 +267,49 @@ export default function LucidSalesEditPage() {
           </div>
           <div className="form-grid">
             <div className="form-group">
-              <label style={{ fontSize: 11, color: 'var(--text3)', fontWeight: 500, marginBottom: 4, display: 'block' }}>
-                Nombre
-              </label>
-              <input
-                type="text"
-                value={pedido.Nombre || ''}
-                onChange={e => handleChange('Nombre', e.target.value)}
-                style={inputStyle}
-              />
+              <label className="form-field-label">Nombre</label>
+              <input type="text" value={pedido.Nombre || ''} onChange={e => handleChange('Nombre', e.target.value)} style={inputStyle} />
             </div>
             <div className="form-group">
-              <label style={{ fontSize: 11, color: 'var(--text3)', fontWeight: 500, marginBottom: 4, display: 'block' }}>
-                Apellido
-              </label>
-              <input
-                type="text"
-                value={pedido.Apellido || ''}
-                onChange={e => handleChange('Apellido', e.target.value)}
-                style={inputStyle}
-              />
+              <label className="form-field-label">Apellido</label>
+              <input type="text" value={pedido.Apellido || ''} onChange={e => handleChange('Apellido', e.target.value)} style={inputStyle} />
             </div>
             <div className="form-group">
-              <label style={{ fontSize: 11, color: 'var(--text3)', fontWeight: 500, marginBottom: 4, display: 'block' }}>
-                Teléfono
-              </label>
-              <input
-                type="text"
-                value={pedido.Movil || ''}
-                onChange={e => handleChange('Movil', e.target.value)}
-                style={inputStyle}
-              />
+              <label className="form-field-label">Teléfono</label>
+              <input type="text" value={pedido.Movil || ''} onChange={e => handleChange('Movil', e.target.value)} style={inputStyle} />
             </div>
             <div className="form-group">
-              <label style={{ fontSize: 11, color: 'var(--text3)', fontWeight: 500, marginBottom: 4, display: 'block' }}>
-                Correo
-              </label>
-              <input
-                type="text"
-                value={pedido.Correo || ''}
-                onChange={e => handleChange('Correo', e.target.value)}
-                style={inputStyle}
-              />
+              <label className="form-field-label">Correo</label>
+              <input type="text" value={pedido.Correo || ''} onChange={e => handleChange('Correo', e.target.value)} style={inputStyle} />
             </div>
             <div className="form-group">
-              <label style={{ fontSize: 11, color: 'var(--text3)', fontWeight: 500, marginBottom: 4, display: 'block' }}>
-                NIT / Documento
-              </label>
-              <input
-                type="text"
-                value={pedido.NIT || ''}
-                onChange={e => handleChange('NIT', e.target.value)}
-                style={inputStyle}
-              />
+              <label className="form-field-label">NIT / Documento</label>
+              <input type="text" value={pedido.NIT || ''} onChange={e => handleChange('NIT', e.target.value)} style={inputStyle} />
             </div>
             <div className="form-group">
-              <label style={{ fontSize: 11, color: 'var(--text3)', fontWeight: 500, marginBottom: 4, display: 'block' }}>
-                Referencias
-              </label>
-              <input
-                type="text"
-                value={pedido.Referencias || ''}
-                onChange={e => handleChange('Referencias', e.target.value)}
-                style={inputStyle}
-              />
+              <label className="form-field-label">Referencias</label>
+              <input type="text" value={pedido.Referencias || ''} onChange={e => handleChange('Referencias', e.target.value)} style={inputStyle} />
             </div>
             <div className="form-group span2">
-              <label style={{ fontSize: 11, color: 'var(--text3)', fontWeight: 500, marginBottom: 4, display: 'block' }}>
-                Dirección
-              </label>
-              <input
-                type="text"
-                value={pedido.Direccion || ''}
-                onChange={e => handleChange('Direccion', e.target.value)}
-                style={inputStyle}
-              />
-            </div>
-
-            <div className="form-group">
-              <label style={{ fontSize: 11, color: 'var(--text3)', fontWeight: 500, marginBottom: 4, display: 'block' }}>
-                País
-              </label>
-              <input
-                type="number"
-                value={pedido.Pais || 47}
-                onChange={e => handleChange('Pais', Number(e.target.value))}
-                style={inputStyle}
-              />
+              <label className="form-field-label">Dirección</label>
+              <input type="text" value={pedido.Direccion || ''} onChange={e => handleChange('Direccion', e.target.value)} style={inputStyle} />
             </div>
             <div className="form-group">
-              <label style={{ fontSize: 11, color: 'var(--text3)', fontWeight: 500, marginBottom: 4, display: 'block' }}>
-                Departamento
-              </label>
-              <div style={{ position: 'relative' }}>
-                <select
-                  value={pedido.Departamento || ''}
-                  onChange={e => handleDepartamentoChange(e.target.value)}
-                  style={{ ...inputStyle, appearance: 'auto', cursor: 'pointer' }}
-                  disabled={loadingGeo}
-                >
-                  <option value="">Seleccionar...</option>
-                  {deptos.map(d => (
-                    <option key={d.id} value={d.id}>[{d.id}] {d.ciudades} ciudades</option>
-                  ))}
-                </select>
-              </div>
+              <label className="form-field-label">País</label>
+              <input type="number" value={pedido.Pais ?? 47} onChange={e => handleChange('Pais', Number(e.target.value))} style={inputStyle} />
             </div>
             <div className="form-group">
-              <label style={{ fontSize: 11, color: 'var(--text3)', fontWeight: 500, marginBottom: 4, display: 'block' }}>
-                Ciudad
-              </label>
-              <select
-                value={pedido.Ciudad || ''}
-                onChange={e => handleChange('Ciudad', Number(e.target.value))}
-                style={{ ...inputStyle, appearance: 'auto', cursor: 'pointer' }}
-                disabled={loadingGeo || !pedido.Departamento}
-              >
+              <label className="form-field-label">Departamento</label>
+              <select value={pedido.Departamento ?? ''} onChange={e => handleDepartamentoChange(e.target.value)} style={{ ...inputStyle, appearance: 'auto', cursor: 'pointer' }}>
+                <option value="">Seleccionar...</option>
+                {deptos.map(d => (
+                  <option key={d.id} value={d.id}>[{d.id}] {d.ciudades} ciudades</option>
+                ))}
+              </select>
+            </div>
+            <div className="form-group">
+              <label className="form-field-label">Ciudad</label>
+              <select value={pedido.Ciudad ?? ''} onChange={e => handleChange('Ciudad', Number(e.target.value))} style={{ ...inputStyle, appearance: 'auto', cursor: 'pointer' }} disabled={!pedido.Departamento}>
                 <option value="">Seleccionar...</option>
                 {ciudades.map(c => (
                   <option key={c.id} value={c.id}>{c.name}</option>
@@ -379,15 +317,8 @@ export default function LucidSalesEditPage() {
               </select>
             </div>
             <div className="form-group">
-              <label style={{ fontSize: 11, color: 'var(--text3)', fontWeight: 500, marginBottom: 4, display: 'block' }}>
-                Código postal
-              </label>
-              <input
-                type="text"
-                value={pedido.codigoPostal || ''}
-                onChange={e => handleChange('codigoPostal', e.target.value)}
-                style={inputStyle}
-              />
+              <label className="form-field-label">Código postal</label>
+              <input type="text" value={pedido.codigoPostal || ''} onChange={e => handleChange('codigoPostal', e.target.value)} style={inputStyle} />
             </div>
           </div>
         </div>
@@ -399,88 +330,42 @@ export default function LucidSalesEditPage() {
             </div>
             <div className="form-grid">
               <div className="form-group">
-                <label style={{ fontSize: 11, color: 'var(--text3)', fontWeight: 500, marginBottom: 4, display: 'block' }}>
-                  Estado
-                </label>
-                <select
-                  value={pedido.EstadoPedido ?? 0}
-                  onChange={e => handleChange('EstadoPedido', Number(e.target.value))}
-                  style={{ ...inputStyle, appearance: 'auto', cursor: 'pointer' }}
-                >
+                <label className="form-field-label">Estado</label>
+                <select value={pedido.EstadoPedido ?? 0} onChange={e => handleChange('EstadoPedido', Number(e.target.value))} style={{ ...inputStyle, appearance: 'auto', cursor: 'pointer' }}>
                   {ESTADOS.map(e => (
                     <option key={e.value} value={e.value}>{e.label}</option>
                   ))}
                 </select>
               </div>
               <div className="form-group">
-                <label style={{ fontSize: 11, color: 'var(--text3)', fontWeight: 500, marginBottom: 4, display: 'block' }}>
-                  Tipo de pago
-                </label>
-                <select
-                  value={pedido.TipoPago ?? 1}
-                  onChange={e => handleChange('TipoPago', Number(e.target.value))}
-                  style={{ ...inputStyle, appearance: 'auto', cursor: 'pointer' }}
-                >
+                <label className="form-field-label">Tipo de pago</label>
+                <select value={pedido.TipoPago ?? 1} onChange={e => handleChange('TipoPago', Number(e.target.value))} style={{ ...inputStyle, appearance: 'auto', cursor: 'pointer' }}>
                   <option value={1}>Contra entrega</option>
                   <option value={2}>Transferencia</option>
                 </select>
               </div>
               <div className="form-group">
-                <label style={{ fontSize: 11, color: 'var(--text3)', fontWeight: 500, marginBottom: 4, display: 'block' }}>
-                  Estado pago
-                </label>
-                <select
-                  value={pedido.EstadoPago ?? 0}
-                  onChange={e => handleChange('EstadoPago', Number(e.target.value))}
-                  style={{ ...inputStyle, appearance: 'auto', cursor: 'pointer' }}
-                >
+                <label className="form-field-label">Estado pago</label>
+                <select value={pedido.EstadoPago ?? 0} onChange={e => handleChange('EstadoPago', Number(e.target.value))} style={{ ...inputStyle, appearance: 'auto', cursor: 'pointer' }}>
                   <option value={0}>Pendiente</option>
                   <option value={1}>Pagado</option>
                 </select>
               </div>
               <div className="form-group">
-                <label style={{ fontSize: 11, color: 'var(--text3)', fontWeight: 500, marginBottom: 4, display: 'block' }}>
-                  Logística
-                </label>
-                <input
-                  type="text"
-                  value={pedido.logistic || ''}
-                  onChange={e => handleChange('logistic', e.target.value)}
-                  style={inputStyle}
-                />
+                <label className="form-field-label">Logística</label>
+                <input type="text" value={pedido.logistic || ''} onChange={e => handleChange('logistic', e.target.value)} style={inputStyle} />
               </div>
               <div className="form-group">
-                <label style={{ fontSize: 11, color: 'var(--text3)', fontWeight: 500, marginBottom: 4, display: 'block' }}>
-                  Subtotal
-                </label>
-                <input
-                  type="text"
-                  value={pedido.SubTotal || '0.00'}
-                  onChange={e => handleChange('SubTotal', e.target.value)}
-                  style={inputStyle}
-                />
+                <label className="form-field-label">Subtotal</label>
+                <input type="text" value={pedido.SubTotal || '0.00'} onChange={e => handleChange('SubTotal', e.target.value)} style={inputStyle} />
               </div>
               <div className="form-group">
-                <label style={{ fontSize: 11, color: 'var(--text3)', fontWeight: 500, marginBottom: 4, display: 'block' }}>
-                  Costo envío
-                </label>
-                <input
-                  type="text"
-                  value={pedido.CostoEnvio || '0.00'}
-                  onChange={e => handleChange('CostoEnvio', e.target.value)}
-                  style={inputStyle}
-                />
+                <label className="form-field-label">Costo envío</label>
+                <input type="text" value={pedido.CostoEnvio || '0.00'} onChange={e => handleChange('CostoEnvio', e.target.value)} style={inputStyle} />
               </div>
               <div className="form-group span2">
-                <label style={{ fontSize: 11, color: 'var(--text3)', fontWeight: 500, marginBottom: 4, display: 'block' }}>
-                  Total
-                </label>
-                <input
-                  type="text"
-                  value={pedido.Total || '0.00'}
-                  onChange={e => handleChange('Total', e.target.value)}
-                  style={{ ...inputStyle, fontWeight: 600, color: 'var(--accent2)', fontSize: 18 }}
-                />
+                <label className="form-field-label">Total</label>
+                <input type="text" value={pedido.Total || '0.00'} onChange={e => handleChange('Total', e.target.value)} style={{ ...inputStyle, fontWeight: 600, color: 'var(--accent2)', fontSize: 18 }} />
               </div>
             </div>
           </div>
@@ -496,8 +381,7 @@ export default function LucidSalesEditPage() {
                 {productos.map((prod, i) => (
                   <div key={i} style={{
                     display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-                    padding: '8px 12px', background: 'var(--bg3)', borderRadius: 6,
-                    fontSize: 13
+                    padding: '8px 12px', background: 'var(--bg3)', borderRadius: 6, fontSize: 13
                   }}>
                     <div>
                       <span style={{ color: 'var(--text2)', fontSize: 11, fontFamily: 'var(--mono)' }}>
@@ -537,15 +421,10 @@ export default function LucidSalesEditPage() {
                 padding: '8px 12px', background: 'var(--bg3)', borderRadius: 6,
                 fontSize: 13, borderLeft: '3px solid var(--accent)'
               }}>
-                <div style={{
-                  width: 8, height: 8, borderRadius: '50%', background: 'var(--accent)',
-                  marginTop: 4, flexShrink: 0
-                }} />
+                <div style={{ width: 8, height: 8, borderRadius: '50%', background: 'var(--accent)', marginTop: 4, flexShrink: 0 }} />
                 <div style={{ flex: 1 }}>
                   <div style={{ color: 'var(--text)' }}>{o.desc}</div>
-                  <div style={{ color: 'var(--text3)', fontSize: 11, marginTop: 2 }}>
-                    {o.update || ''}
-                  </div>
+                  <div style={{ color: 'var(--text3)', fontSize: 11, marginTop: 2 }}>{o.update || ''}</div>
                 </div>
               </div>
             ))}

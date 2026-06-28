@@ -120,7 +120,7 @@ const getCiudades = async (req, res) => {
 const getCiudadesLocales = async (req, res) => {
   try {
     const { deptoId } = req.query;
-    const result = lucidsalesService.getCiudadesLocales(deptoId ? Number(deptoId) : undefined);
+    const result = lucidsalesService.getCiudadesLocales(deptoId != null ? Number(deptoId) : undefined);
     res.json(result);
   } catch (error) {
     console.error('LucidSales getCiudadesLocales error:', error);

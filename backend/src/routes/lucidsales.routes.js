@@ -6,12 +6,12 @@ const { adminOnly } = require('../middlewares/roles.middleware');
 router.use(authMiddleware);
 
 router.get('/pedidos', ctrl.getPedidos);
-router.get('/pedidos/:id', ctrl.getPedidoById);
-router.put('/pedidos/:id', ctrl.updatePedido);
-router.post('/pedidos', ctrl.createPedido);
 router.post('/pedidos/cotizar', ctrl.cotizarEnvio);
 router.post('/pedidos/subir-dropi', ctrl.subirADropi);
 router.post('/pedidos/validate-address', ctrl.validateAddress);
+router.post('/pedidos', ctrl.createPedido);
+router.get('/pedidos/:id', ctrl.getPedidoById);
+router.put('/pedidos/:id', ctrl.updatePedido);
 router.get('/filters-data', ctrl.getFiltersData);
 
 router.get('/paises', ctrl.getPaises);
