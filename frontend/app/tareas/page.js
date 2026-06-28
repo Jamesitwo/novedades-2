@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import api from '@/lib/api';
+import { on } from '@/lib/websocket';
 import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
 import { TableSkeleton } from '@/components/Skeleton';
 
@@ -44,6 +45,14 @@ export default function TareasKanbanPage() {
 
   useEffect(() => {
     api.get('/api/usuarios/operadores').then(({ data }) => setOperadores(data)).catch(() => {});
+  }, []);
+
+  useEffect(() => {
+    const events = ['tarea:created', 'tarea:updated', 'tarea:estado-changed', 'tarea:deleted'];
+    const unsubs = events.map(evt => on(evt, () => {
+      fetchTareas();
+    }));
+    return () => unsubs.forEach(u => u());
   }, []);
 
   const onDragEnd = async (result) => {

@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useAuthStore } from '../../store/authStore';
 import { useThemeStore } from '../../store/themeStore';
+import { on, isConnected } from '../../lib/websocket';
 import api from '../../lib/api';
 
 export default function Sidebar() {
@@ -12,6 +13,7 @@ export default function Sidebar() {
   const { usuario, logout } = useAuthStore();
   const { theme, toggleTheme, initTheme } = useThemeStore();
   const [counts, setCounts] = useState({ novedadesActivas: 0, oficinaActivos: 0, devoluciones: 0 });
+  const [wsConnected, setWsConnected] = useState(false);
   const [showPasswordModal, setShowPasswordModal] = useState(false);
   const [passwordForm, setPasswordForm] = useState({ currentPassword: '', newPassword: '', confirmPassword: '' });
   const [passwordError, setPasswordError] = useState('');
@@ -36,6 +38,30 @@ export default function Sidebar() {
       }
     };
     fetchCounts();
+  }, []);
+
+  useEffect(() => {
+    const unsub1 = on('__connect__', () => setWsConnected(true));
+    const unsub2 = on('__disconnect__', () => setWsConnected(false));
+    setWsConnected(isConnected());
+    return () => { unsub1(); unsub2(); };
+  }, []);
+
+  useEffect(() => {
+    const unsub = on('dashboard:refresh', () => {
+      const fetchCounts = async () => {
+        try {
+          const { data } = await api.get('/api/dashboard/resumen');
+          setCounts({
+            novedadesActivas: data.novedades?.novedad || 0,
+            oficinaActivos: data.oficina?.pendiente_llamar || 0,
+            devoluciones: (data.novedades?.devolucion || 0) + (data.oficina?.devolucion || 0)
+          });
+        } catch {}
+      };
+      fetchCounts();
+    });
+    return () => unsub();
   }, []);
 
   const getInitials = (nombre) => {
@@ -105,6 +131,15 @@ export default function Sidebar() {
           <span className="logo-dot"></span>GestiónNovedades
         </div>
         <div className="logo-sub">v1.0 · desarrollo</div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 5, marginTop: 6, fontSize: 10 }}>
+          <span style={{
+            width: 7, height: 7, borderRadius: '50%',
+            background: wsConnected ? 'var(--green)' : 'var(--red)',
+            boxShadow: wsConnected ? '0 0 6px var(--green)' : 'none',
+            transition: 'background 0.3s'
+          }} />
+          <span style={{ color: 'var(--text3)' }}>{wsConnected ? 'En vivo' : 'Sin conexión'}</span>
+        </div>
       </div>
 
       <div className="sidebar-section">

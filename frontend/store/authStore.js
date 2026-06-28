@@ -1,4 +1,5 @@
 import { create } from 'zustand';
+import { connect, disconnect } from '../lib/websocket';
 
 export const useAuthStore = create((set) => ({
   usuario: null,
@@ -10,9 +11,11 @@ export const useAuthStore = create((set) => ({
     localStorage.setItem('token', token);
     localStorage.setItem('usuario', JSON.stringify(usuario));
     set({ token, usuario, isAuthenticated: true, initialized: true });
+    connect(token);
   },
 
   logout: () => {
+    disconnect();
     localStorage.removeItem('token');
     localStorage.removeItem('usuario');
     set({ token: null, usuario: null, isAuthenticated: false, initialized: true });
@@ -29,6 +32,7 @@ export const useAuthStore = create((set) => ({
         try {
           const usuario = JSON.parse(usuarioRaw);
           set({ token, usuario, isAuthenticated: true, initialized: true });
+          connect(token);
         } catch (e) {
           localStorage.removeItem('token');
           localStorage.removeItem('usuario');

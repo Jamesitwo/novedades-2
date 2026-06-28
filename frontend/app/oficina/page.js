@@ -6,6 +6,7 @@ import api from '@/lib/api';
 import { useAuthStore } from '@/store/authStore';
 import { TableSkeleton } from '@/components/Skeleton';
 import DetailPanel from '@/components/detail/DetailPanel';
+import { on } from '@/lib/websocket';
 
 const ESTADOS = {
   pendiente_llamar: { label: 'Pend. llamar', color: 'pendiente' },
@@ -159,6 +160,21 @@ export default function OficinaPage() {
       console.error('Error fetching operadores:', error);
     }
   };
+
+  useEffect(() => {
+    const events = ['oficina:created', 'oficina:estado-changed', 'oficina:deleted', 'oficina:transferred', 'oficina:bulk-action'];
+    const unsubs = events.map(evt => on(evt, () => {
+      fetchRef.current(pagination?.page || 1);
+      const fetchCounts = async () => {
+        try {
+          const { data } = await api.get('/api/dashboard/resumen');
+          setCounts(data.oficina);
+        } catch {}
+      };
+      fetchCounts();
+    }));
+    return () => unsubs.forEach(u => u());
+  }, []);
 
   const toggleEstado = (estado) => {
     setFiltrosEstado(prev =>

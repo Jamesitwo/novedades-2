@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import api from '@/lib/api';
+import { on } from '@/lib/websocket';
 import { useAuthStore } from '@/store/authStore';
 import { StatsSkeleton, TableSkeleton } from '@/components/Skeleton';
 import {
@@ -67,6 +68,23 @@ export default function DashboardPage() {
       }
     };
     fetchData();
+  }, [periodo, chartDays]);
+
+  useEffect(() => {
+    return on('dashboard:refresh', () => {
+      const fetchData = async () => {
+        try {
+          const [dashRes, vencRes, chartRes] = await Promise.all([
+            api.get(`/api/dashboard/resumen?periodo=${periodo}`),
+            api.get('/api/oficina/vencimientos'),
+            api.get(`/api/dashboard/chart?dias=${chartDays}`)
+          ]);
+          setData({ ...dashRes.data, vencimientos: vencRes.data });
+          setChartData(chartRes.data);
+        } catch {}
+      };
+      fetchData();
+    });
   }, [periodo, chartDays]);
 
   const formatMoney = (amount) => {

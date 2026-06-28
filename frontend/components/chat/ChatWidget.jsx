@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef, useCallback } from 'react';
 import api from '@/lib/api';
+import { on } from '@/lib/websocket';
 import MessageBubble from './MessageBubble';
 import TemplateSelector from './TemplateSelector';
 
@@ -16,8 +17,6 @@ export default function ChatWidget({ tabla, registroId, onClose }) {
   const [noLeidos, setNoLeidos] = useState(0);
   const messagesEndRef = useRef(null);
   const inputRef = useRef(null);
-  const pollRef = useRef(null);
-
   const fetchConversation = useCallback(async () => {
     try {
       const { data } = await api.get(`/api/whatsapp/${tabla}/${registroId}/mensajes`);
@@ -37,19 +36,34 @@ export default function ChatWidget({ tabla, registroId, onClose }) {
   }, [fetchConversation]);
 
   useEffect(() => {
-    pollRef.current = setInterval(async () => {
-      try {
-        const { data } = await api.get(`/api/whatsapp/${tabla}/${registroId}/mensajes`);
-        if (JSON.stringify(data.mensajes) !== JSON.stringify(mensajes)) {
-          setMensajes(data.mensajes || []);
-          setNoLeidos(data.noLeidos || 0);
-          setConversacion(prev => ({ ...prev, ...data }));
-        }
-      } catch {}
-    }, 5000);
+    const unsubMsg = on('whatsapp:message-received', (data) => {
+      if (data.tabla === tabla && data.registroId === registroId) {
+        fetchConversation();
+      }
+    });
 
-    return () => clearInterval(pollRef.current);
-  }, [tabla, registroId, mensajes]);
+    const unsubSent = on('whatsapp:message-sent', (data) => {
+      if (data.tabla === tabla && data.registroId === registroId) {
+        fetchConversation();
+      }
+    });
+
+    const unsubExpired = on('whatsapp:window-expired', (data) => {
+      if (data.tabla === tabla && data.registroId === registroId) {
+        setConversacion(prev => prev ? {
+          ...prev,
+          ventanaActiva: false,
+          record: { ...prev.record, chatActivo: false }
+        } : null);
+      }
+    });
+
+    return () => {
+      unsubMsg();
+      unsubSent();
+      unsubExpired();
+    };
+  }, [tabla, registroId, fetchConversation]);
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });

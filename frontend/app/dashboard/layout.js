@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { useAuthStore } from '../../store/authStore';
 import Sidebar from '../../components/layout/Sidebar';
 import Header from '../../components/layout/Header';
+import WebSocketProvider from '../../components/providers/WebSocketProvider';
 import useHeartbeat from '../../lib/useHeartbeat';
 
 export default function DashboardLayout({ children }) {
@@ -28,12 +29,14 @@ export default function DashboardLayout({ children }) {
   if (!isAuthenticated) return null;
 
   return (
-    <div className="layout">
-      <Sidebar />
-      <div className="main">
-        <Header />
-        {children}
+    <WebSocketProvider>
+      <div className="layout">
+        <Sidebar />
+        <div className="main">
+          <Header />
+          {children}
+        </div>
       </div>
-    </div>
+    </WebSocketProvider>
   );
 }

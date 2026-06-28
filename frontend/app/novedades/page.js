@@ -7,6 +7,7 @@ import { useAuthStore } from '@/store/authStore';
 import { TableSkeleton } from '@/components/Skeleton';
 import { useKeyboardShortcuts } from '@/lib/useKeyboardShortcuts';
 import DetailPanel from '@/components/detail/DetailPanel';
+import { on } from '@/lib/websocket';
 
 const ESTADOS = {
   novedad: { label: 'Novedad', color: 'amber' },
@@ -152,6 +153,15 @@ export default function NovedadesPage() {
 
   useEffect(() => {
     fetchCounts();
+  }, []);
+
+  useEffect(() => {
+    const events = ['novedad:created', 'novedad:estado-changed', 'novedad:deleted', 'novedad:transferred', 'novedad:bulk-action'];
+    const unsubs = events.map(evt => on(evt, () => {
+      fetchRef.current(pagination?.page || 1);
+      fetchCounts();
+    }));
+    return () => unsubs.forEach(u => u());
   }, []);
 
   const [selectedIndex, setSelectedIndex] = useState(-1);
