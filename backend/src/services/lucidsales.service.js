@@ -8,6 +8,13 @@ let shopIdCache = null;
 
 async function getConfig() {
   const config = await prisma.configuracion.findFirst();
+  console.log('[LucidSales] Config from DB:', config ? {
+    activo: config.lucidsales_activo,
+    email: config.lucidsales_email,
+    shop_id: config.lucidsales_shop_id,
+    has_token: !!config.lucidsales_token,
+    token_expires: config.lucidsales_token_expires
+  } : 'null');
   if (!config || !config.lucidsales_activo) {
     throw new Error('LucidSales no está configurado o activo');
   }
@@ -29,14 +36,20 @@ async function authenticate(config) {
     return { token: tokenCache, shopId: shopIdCache };
   }
 
+  console.log('[LucidSales] Autenticando con email:', config.lucidsales_email, 'shopId:', config.lucidsales_shop_id);
+
   const loginResp = await fetch(`${BASE_URL}/auth/login`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ email: config.lucidsales_email, password: config.lucidsales_password })
   });
-  const loginData = await loginResp.json();
+  const loginRaw = await loginResp.text();
+  let loginData;
+  try { loginData = JSON.parse(loginRaw); } catch { loginData = { ok: false, error: 'Respuesta no JSON: ' + loginRaw.slice(0, 200) }; }
+  console.log('[LucidSales] Login response status:', loginResp.status, 'ok:', loginData.ok);
+
   if (!loginData.ok || !loginData.token) {
-    throw new Error('Login LucidSales fallido: ' + (loginData.error || 'Credenciales inválidas'));
+    throw new Error(`Login LucidSales fallido (${loginResp.status}): ${JSON.stringify(loginData)}`);
   }
 
   const shopResp = await fetch(`${BASE_URL}/auth/addShopId`, {
@@ -47,9 +60,13 @@ async function authenticate(config) {
     },
     body: JSON.stringify({ id: config.lucidsales_shop_id })
   });
-  const shopData = await shopResp.json();
+  const shopRaw = await shopResp.text();
+  let shopData;
+  try { shopData = JSON.parse(shopRaw); } catch { shopData = { ok: false, error: 'Respuesta no JSON: ' + shopRaw.slice(0, 200) }; }
+  console.log('[LucidSales] addShopId response status:', shopResp.status, 'ok:', shopData.ok);
+
   if (!shopData.ok || !shopData.token) {
-    throw new Error('Activación de tienda LucidSales fallida: ' + (shopData.error || 'Error al activar tienda'));
+    throw new Error(`Activación tienda LucidSales fallida (${shopResp.status}): ${JSON.stringify(shopData)}`);
   }
 
   const expiresAt = new Date(Date.now() + 7 * 60 * 60 * 1000);
