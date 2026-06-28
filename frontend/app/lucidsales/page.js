@@ -131,9 +131,6 @@ export default function LucidSalesPage() {
               Reintentar conexión
             </button>
           )}
-          <button onClick={fetchPedidos} className="btn btn-ghost" style={{ fontSize: 12 }}>
-            ↻ Actualizar
-          </button>
         </div>
       </div>
 
