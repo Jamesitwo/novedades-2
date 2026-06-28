@@ -112,6 +112,9 @@ app.use('/api/whatsapp', whatsappRoutes);
 const wsRoutes = require('./src/routes/ws.routes');
 app.use('/api/ws', wsRoutes);
 
+const lucidsalesRoutes = require('./src/routes/lucidsales.routes');
+app.use('/api/lucidsales', lucidsalesRoutes);
+
 app.get('/api/health', (req, res) => {
   const wsService = require('./src/services/websocket.service');
   res.json({

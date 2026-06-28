@@ -116,6 +116,7 @@ export default function Sidebar() {
 
   if (usuario?.rol === 'admin') {
     menuItems.push({ href: '/dashboard/metricas', label: 'Métricas', icon: '📊' });
+    menuItems.push({ href: '/lucidsales', label: 'LucidSales', icon: '💎' });
     menuItems.push({ href: '/tareas', label: 'Tareas', icon: '📋' });
     menuItems.push({ href: '/pizdo', label: 'Pizdo', icon: '🏆' });
     menuItems.push({ href: '/usuarios', label: 'Usuarios', icon: '👥' });

@@ -14,7 +14,8 @@ export default function ConfiguracionPage() {
     empresa_nombre: '', empresa_nit: '', empresa_direccion: '', empresa_telefono: '', empresa_email: '',
     empresa_logo: '', empresa_banco: '', empresa_tipo_cuenta: '', empresa_numero_cuenta: '', empresa_titular_cuenta: '',
     factura_terminos: '', factura_resolucion: '', factura_rango_desde: '', factura_rango_hasta: '',
-    factura_vigencia: '', factura_pie_legal: '', factura_prefijo: ''
+    factura_vigencia: '', factura_pie_legal: '', factura_prefijo: '',
+    lucidsales_email: '', lucidsales_password: '', lucidsales_shop_id: '', lucidsales_activo: false
   });
   const [operadores, setOperadores] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -82,7 +83,10 @@ export default function ConfiguracionPage() {
         factura_terminos: config.factura_terminos, factura_resolucion: config.factura_resolucion,
         factura_rango_desde: config.factura_rango_desde, factura_rango_hasta: config.factura_rango_hasta,
         factura_vigencia: config.factura_vigencia, factura_pie_legal: config.factura_pie_legal,
-        factura_prefijo: config.factura_prefijo
+        factura_prefijo: config.factura_prefijo,
+        lucidsales_email: config.lucidsales_email, lucidsales_password: config.lucidsales_password,
+        lucidsales_shop_id: Number(config.lucidsales_shop_id) || null,
+        lucidsales_activo: config.lucidsales_activo
       });
       showToast('Configuración guardada correctamente');
     } catch (error) {
@@ -373,6 +377,63 @@ export default function ConfiguracionPage() {
                 placeholder="GestiónNovedades SAS" style={{ width: '100%' }} />
             </div>
           </div>
+        </div>
+      </div>
+
+      <div className="table-card" style={{ maxWidth: 700, marginTop: 16 }}>
+        <div className="table-header">
+          <span className="table-header-title">LucidSales</span>
+          <span style={{ fontSize: 11, color: 'var(--text3)' }}>Integración con panel.lucidsales.co</span>
+        </div>
+        <div style={{ padding: 20, display: 'grid', gap: 14 }}>
+          <label style={{ display: 'flex', alignItems: 'center', gap: 12, cursor: 'pointer' }}>
+            <div
+              onClick={() => setConfig(prev => ({ ...prev, lucidsales_activo: !prev.lucidsales_activo }))}
+              style={{
+                width: 48, height: 26, borderRadius: 13,
+                background: config.lucidsales_activo ? 'var(--green)' : 'var(--bg3)',
+                position: 'relative', transition: 'background 0.2s', cursor: 'pointer'
+              }}
+            >
+              <div style={{
+                width: 22, height: 22, borderRadius: '50%', background: '#fff',
+                position: 'absolute', top: 2, left: config.lucidsales_activo ? 24 : 2,
+                transition: 'left 0.2s', boxShadow: '0 1px 3px rgba(0,0,0,0.3)'
+              }} />
+            </div>
+            <span style={{ fontSize: 14 }}>Activar integración con LucidSales</span>
+          </label>
+          <p style={{ color: 'var(--text3)', fontSize: 12, marginLeft: 60, marginTop: -8 }}>
+            Habilita la sincronización de pedidos desde LucidSales hacia esta plataforma.
+          </p>
+
+          <div className="form-group">
+            <label>Email de LucidSales</label>
+            <input type="email" value={config.lucidsales_email}
+              onChange={e => setConfig(prev => ({ ...prev, lucidsales_email: e.target.value }))}
+              placeholder="tu@email.com (el mismo del login de panel.lucidsales.co)"
+              style={{ width: '100%' }} />
+          </div>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
+            <div className="form-group">
+              <label>Contraseña</label>
+              <input type="password" value={config.lucidsales_password}
+                onChange={e => setConfig(prev => ({ ...prev, lucidsales_password: e.target.value }))}
+                placeholder="Contraseña de LucidSales"
+                style={{ width: '100%' }} />
+            </div>
+            <div className="form-group">
+              <label>ID de Tienda</label>
+              <input type="number" value={config.lucidsales_shop_id}
+                onChange={e => setConfig(prev => ({ ...prev, lucidsales_shop_id: e.target.value }))}
+                placeholder="Ej: 3682"
+                style={{ width: '100%' }} />
+            </div>
+          </div>
+          <p style={{ color: 'var(--text3)', fontSize: 11, marginTop: 4 }}>
+            El ID de la tienda se obtiene del <code style={{ background: 'var(--bg3)', padding: '1px 4px', borderRadius: 3 }}>idEmpresa</code> en la respuesta del login. 
+            Es la tienda que quedará activa para gestionar pedidos.
+          </p>
         </div>
       </div>
 

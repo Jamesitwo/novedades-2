@@ -32,7 +32,8 @@ const updateConfiguracion = async (req, res) => {
       empresa_nombre, empresa_nit, empresa_direccion, empresa_telefono, empresa_email,
       empresa_logo, empresa_banco, empresa_tipo_cuenta, empresa_numero_cuenta, empresa_titular_cuenta,
       factura_terminos, factura_resolucion, factura_rango_desde, factura_rango_hasta, factura_vigencia,
-      factura_pie_legal, factura_prefijo } = req.body;
+      factura_pie_legal, factura_prefijo,
+      lucidsales_email, lucidsales_password, lucidsales_shop_id, lucidsales_activo } = req.body;
 
     let config = await prisma.configuracion.findFirst();
 
@@ -54,6 +55,17 @@ const updateConfiguracion = async (req, res) => {
     if (factura_vigencia !== undefined) extraData.factura_vigencia = factura_vigencia || null;
     if (factura_pie_legal !== undefined) extraData.factura_pie_legal = factura_pie_legal || null;
     if (factura_prefijo !== undefined) extraData.factura_prefijo = factura_prefijo || null;
+    if (lucidsales_email !== undefined) extraData.lucidsales_email = lucidsales_email || null;
+    if (lucidsales_password !== undefined) extraData.lucidsales_password = lucidsales_password || null;
+    if (lucidsales_shop_id !== undefined) extraData.lucidsales_shop_id = lucidsales_shop_id || null;
+    if (lucidsales_activo !== undefined) extraData.lucidsales_activo = lucidsales_activo;
+
+    if (req.body.lucidsales_reset === true) {
+      extraData.lucidsales_token = null;
+      extraData.lucidsales_token_expires = null;
+      const lsService = require('../services/lucidsales.service');
+      lsService.clearTokenCache();
+    }
 
     if (!config) {
       config = await prisma.configuracion.create({
