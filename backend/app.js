@@ -21,6 +21,7 @@ const etiquetasRoutes = require('./src/routes/etiquetas.routes');
 const facturasRoutes = require('./src/routes/facturas.routes');
 const garantiasRoutes = require('./src/routes/garantias.routes');
 const tareasRoutes = require('./src/routes/tareas.routes');
+const tiendaRoutes = require('./src/routes/tienda.routes');
 
 const isProduction = process.env.NODE_ENV === 'production';
 const FRONTEND_URL = process.env.FRONTEND_URL;
@@ -94,6 +95,7 @@ app.use('/api/sesiones', sesionesRoutes);
 app.use('/api/vistas', vistasRoutes);
 app.use('/api/backup', backupRoutes);
 app.use('/api/pizdo', pizdoRoutes);
+app.use('/api/tienda', tiendaRoutes);
 app.use('/api/etiquetas', etiquetasRoutes);
 app.use('/api/facturas', facturasRoutes);
 app.use('/api/garantias', garantiasRoutes);

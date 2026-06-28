@@ -29,6 +29,7 @@ model Usuario {
   sesiones              Sesion[]
   vistasGuardadas       VistaGuardada[]
   productosGanadores    ProductoGanador[]
+  productosTienda       ProductoTienda[]
   etiquetasCreadas      Etiqueta[]
   facturas              Factura[]
   garantias             Garantia[]
@@ -234,6 +235,35 @@ model ProductoGanador {
   @@index([potencial])
   @@index([categoria])
   @@index([createdAt])
+}
+
+model ProductoTienda {
+  id               String    @id @default(uuid())
+  nombre           String
+  descripcion      String?
+  categoria        String
+  precioVenta      Float     @map("precio_venta")
+  precioProveedor  Float?    @default(0) @map("precio_proveedor")
+  imagen           String?
+  imagenes         Json?     @default("[]")
+  linkCompra       String?   @map("link_compra")
+  stock            Int       @default(0)
+  ofertaActiva     Boolean   @default(false) @map("oferta_activa")
+  ofertaPrecio     Float?    @map("oferta_precio")
+  ofertaHasta      DateTime? @map("oferta_hasta")
+  ventasSimuladas  Int       @default(0) @map("ventas_simuladas")
+  activo           Boolean   @default(true)
+  destacado        Boolean   @default(false)
+  createdById      String    @map("created_by")
+  createdBy        Usuario   @relation(fields: [createdById], references: [id])
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+
+  @@index([activo])
+  @@index([destacado])
+  @@index([categoria])
+  @@index([ofertaActiva])
+  @@map("productos_tienda")
 }
 
 model Factura {

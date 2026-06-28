@@ -369,6 +369,18 @@ function notificarInfo(mensaje) {
   emitToAll('system:info', { mensaje, timestamp: new Date().toISOString() });
 }
 
+function tiendaCompraSimulada(productoNombre) {
+  if (!io) return;
+  const hace = Math.floor(Math.random() * 30) + 1;
+  const mensaje = productoNombre
+    ? `Alguien acaba de comprar "${productoNombre}"`
+    : '¡Alguien acaba de hacer una compra!';
+  io.emit('tienda:compra-simulada', {
+    mensaje,
+    hace: `${hace} min`
+  });
+}
+
 module.exports = {
   init,
   getIO,
@@ -416,5 +428,6 @@ module.exports = {
   garantiaEstadoCambiado,
 
   notificarError,
-  notificarInfo
+  notificarInfo,
+  tiendaCompraSimulada
 };
