@@ -5,7 +5,7 @@ import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import api from '@/lib/api';
 import { useAuthStore } from '@/store/authStore';
-import Skeleton from '@/components/Skeleton';
+import { TableSkeleton } from '@/components/Skeleton';
 
 const ESTADOS = [
   { value: 0, label: 'Pendiente' },
@@ -159,7 +159,7 @@ export default function LucidSalesEditPage() {
     return '$' + n.toLocaleString('es-CO');
   };
 
-  if (loading) return <div className="content"><Skeleton /></div>;
+  if (loading) return <div className="content"><TableSkeleton /></div>;
 
   if (error && !pedido) {
     return (

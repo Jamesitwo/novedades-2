@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import Link from 'next/link';
 import api from '@/lib/api';
 import { useAuthStore } from '@/store/authStore';
-import Skeleton from '@/components/Skeleton';
+import { TableSkeleton } from '@/components/Skeleton';
 import { on, isConnected } from '@/lib/websocket';
 
 const ESTADOS = {
@@ -176,7 +176,7 @@ export default function LucidSalesPage() {
       </div>
 
       {loading ? (
-        <Skeleton />
+        <TableSkeleton />
       ) : error ? (
         <div className="table-card" style={{ padding: 40, textAlign: 'center' }}>
           <div style={{ color: 'var(--red)', marginBottom: 12, fontSize: 16 }}>{error}</div>
