@@ -8,17 +8,21 @@ import Header from '../../components/layout/Header';
 
 export default function LucidSalesLayout({ children }) {
   const router = useRouter();
-  const { isInitialized, isAuthenticated } = useAuthStore();
+  const { isAuthenticated, initialized, initialize } = useAuthStore();
 
   useEffect(() => {
-    if (isInitialized && !isAuthenticated) {
+    initialize();
+  }, [initialize]);
+
+  useEffect(() => {
+    if (!initialized) return;
+    if (!isAuthenticated) {
       router.push('/login');
     }
-  }, [isInitialized, isAuthenticated, router]);
+  }, [isAuthenticated, initialized, router]);
 
-  if (!isInitialized || !isAuthenticated) {
-    return null;
-  }
+  if (!initialized) return null;
+  if (!isAuthenticated) return null;
 
   return (
     <div className="layout">
