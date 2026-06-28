@@ -56,14 +56,14 @@ const renderVal = (val, key, isTable = false) => {
           if (typeof item === 'string' && item.startsWith('http')) {
             urls.push(item);
           } else if (item && typeof item === 'object') {
-            const url = item.src || item.url || item.URL || item.link || item.path;
+            const url = item.image || item.imagen || item.src || item.url || item.URL || item.link || item.path;
             if (url && typeof url === 'string' && url.startsWith('http')) {
               urls.push(url);
             }
           }
         });
       } else if (parsed && typeof parsed === 'object') {
-        const url = parsed.src || parsed.url || parsed.URL || parsed.link || parsed.path;
+        const url = parsed.image || parsed.imagen || parsed.src || parsed.url || parsed.URL || parsed.link || parsed.path;
         if (url && typeof url === 'string' && url.startsWith('http')) {
           urls.push(url);
         }
