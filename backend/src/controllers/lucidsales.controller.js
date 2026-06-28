@@ -75,6 +75,16 @@ const validateAddress = async (req, res) => {
   }
 };
 
+const getProductos = async (req, res) => {
+  try {
+    const result = await lucidsalesService.getProductos();
+    res.json(result);
+  } catch (error) {
+    console.error('LucidSales getProductos error:', error);
+    res.status(500).json({ error: error.message || 'Error al obtener productos' });
+  }
+};
+
 const getFiltersData = async (req, res) => {
   try {
     const result = await lucidsalesService.getFiltersData();
@@ -184,6 +194,7 @@ module.exports = {
   getPaises,
   getDepartamentos,
   getCiudades,
+  getProductos,
   getCiudadesLocales,
   getDepartamentosLocales,
   verificarConexion,

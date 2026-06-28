@@ -244,6 +244,12 @@ async function validateAddress(direccion, ciudad, departamento, pais = 47) {
   }, token);
 }
 
+async function getProductos() {
+  const config = await getConfig();
+  const { token, shopId } = await authenticate(config);
+  return apiPost('/productos/getproductos', { idEmpresa: shopId }, token);
+}
+
 async function getFiltersData() {
   const config = await getConfig();
   const { token, shopId } = await authenticate(config);
@@ -342,6 +348,7 @@ module.exports = {
   getCiudades,
   verificarConexion,
   clearTokenCache,
+  getProductos,
   getCiudadesLocales,
   getDepartamentosLocales,
   crearVinculacion,

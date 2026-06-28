@@ -45,6 +45,7 @@ export default function Header() {
     if (pathname.startsWith('/facturas')) return 'Facturas';
     if (pathname.startsWith('/garantias')) return 'Garantías';
     if (pathname.startsWith('/tareas')) return 'Tareas';
+    if (pathname.startsWith('/lucidsales/productos')) return 'LucidSales · Productos';
     if (pathname.startsWith('/lucidsales')) return 'LucidSales · Pedidos';
     return '';
   };

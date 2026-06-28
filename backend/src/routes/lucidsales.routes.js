@@ -12,6 +12,7 @@ router.post('/pedidos/validate-address', ctrl.validateAddress);
 router.post('/pedidos', ctrl.createPedido);
 router.get('/pedidos/:id', ctrl.getPedidoById);
 router.put('/pedidos/:id', ctrl.updatePedido);
+router.post('/productos', ctrl.getProductos);
 router.get('/filters-data', ctrl.getFiltersData);
 
 router.get('/paises', ctrl.getPaises);
