@@ -38,12 +38,7 @@ export default function LucidSalesPage() {
       params.set('page', String(page));
       params.set('itemsPerPage', String(itemsPerPage));
       if (search) params.set('search', search);
-
-      let filters = [];
-      if (estadoFilter) {
-        filters.push({ name: 'estado', searchValues: [estadoFilter], sortOrder: 'desc' });
-      }
-      params.set('filters', JSON.stringify(filters));
+      params.set('filters', '[]');
 
       const { data } = await api.get(`/api/lucidsales/pedidos?${params.toString()}`);
       if (data.ok) {
@@ -58,7 +53,7 @@ export default function LucidSalesPage() {
     } finally {
       setLoading(false);
     }
-  }, [page, search, itemsPerPage, estadoFilter]);
+  }, [page, search, itemsPerPage]);
 
   useEffect(() => {
     fetchRef.current = fetchPedidos;
@@ -102,6 +97,10 @@ export default function LucidSalesPage() {
     setEstadoFilter(estado === estadoFilter ? '' : estado);
     setPage(1);
   };
+
+  const filteredPedidos = estadoFilter
+    ? pedidos.filter(p => String(p.EstadoPedido) === estadoFilter)
+    : pedidos;
 
   if (!usuario) return null;
 
@@ -182,7 +181,7 @@ export default function LucidSalesPage() {
           <div style={{ color: 'var(--red)', marginBottom: 12, fontSize: 16 }}>{error}</div>
           <button onClick={fetchPedidos} className="btn btn-primary">Reintentar</button>
         </div>
-      ) : pedidos.length === 0 ? (
+      ) : filteredPedidos.length === 0 ? (
         <div className="table-card" style={{ padding: 40, textAlign: 'center', color: 'var(--text3)' }}>
           No se encontraron pedidos
         </div>
@@ -206,7 +205,7 @@ export default function LucidSalesPage() {
                 </tr>
               </thead>
               <tbody>
-                {pedidos.map((p) => (
+                {filteredPedidos.map((p) => (
                   <tr key={p.id}>
                     <td className="td-mono">#{p.idPedido}</td>
                     <td className="td-name">{p.Nombre} {p.Apellido}</td>
