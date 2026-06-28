@@ -96,6 +96,8 @@ app.use('/api/vistas', vistasRoutes);
 app.use('/api/backup', backupRoutes);
 app.use('/api/pizdo', pizdoRoutes);
 app.use('/api/tienda', tiendaRoutes);
+const resenasRoutes = require('./src/routes/resenas.routes');
+app.use('/api/resenas', resenasRoutes);
 app.use('/api/etiquetas', etiquetasRoutes);
 app.use('/api/facturas', facturasRoutes);
 app.use('/api/garantias', garantiasRoutes);

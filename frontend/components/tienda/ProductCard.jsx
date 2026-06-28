@@ -36,10 +36,10 @@ export default function ProductCard({ producto }) {
 
       {producto.imagen ? (
         <img src={producto.imagen} alt={producto.nombre}
-          style={{ width: '100%', height: 180, objectFit: 'cover', background: 'var(--bg3)' }}
-          onError={(e) => { e.target.outerHTML = '<div style="width:100%;height:180px;background:var(--bg3);display:flex;align-items:center;justify-content:center;color:var(--text3);font-size:12px">Sin imagen</div>'; }} />
+          style={{ width: '100%', height: 'clamp(140px, 25vw, 180px)', objectFit: 'cover', background: 'var(--bg3)' }}
+          onError={(e) => { e.target.outerHTML = '<div style="width:100%;height:clamp(140px,25vw,180px);background:var(--bg3);display:flex;align-items:center;justify-content:center;color:var(--text3);font-size:12px">Sin imagen</div>'; }} />
       ) : (
-        <div style={{ width: '100%', height: 180, background: 'var(--bg3)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text3)', fontSize: 12 }}>Sin imagen</div>
+        <div style={{ width: '100%', height: 'clamp(140px, 25vw, 180px)', background: 'var(--bg3)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text3)', fontSize: 12 }}>Sin imagen</div>
       )}
 
       <div style={{ padding: 14 }}>

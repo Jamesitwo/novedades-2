@@ -256,6 +256,7 @@ model ProductoTienda {
   destacado        Boolean   @default(false)
   createdById      String    @map("created_by")
   createdBy        Usuario   @relation(fields: [createdById], references: [id])
+  resenas          Resena[]
   createdAt        DateTime  @default(now())
   updatedAt        DateTime  @updatedAt
 
@@ -264,6 +265,19 @@ model ProductoTienda {
   @@index([categoria])
   @@index([ofertaActiva])
   @@map("productos_tienda")
+}
+
+model Resena {
+  id          String   @id @default(uuid())
+  productoTiendaId String @map("producto_id")
+  producto    ProductoTienda @relation(fields: [productoTiendaId], references: [id], onDelete: Cascade)
+  nombre      String
+  calificacion Int
+  comentario  String?
+  createdAt   DateTime @default(now())
+
+  @@index([productoTiendaId])
+  @@map("resenas")
 }
 
 model Factura {

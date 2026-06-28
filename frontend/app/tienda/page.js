@@ -45,21 +45,46 @@ export default function TiendaPage() {
     return () => unsub();
   }, []);
 
+  useEffect(() => {
+    if (productos.length === 0) return;
+    const generateNotification = () => {
+      const randomProduct = productos[Math.floor(Math.random() * productos.length)];
+      const mins = Math.floor(Math.random() * 45) + 1;
+      setProofEvents(prev => [...prev.slice(-5), {
+        id: Date.now() + Math.random(),
+        mensaje: `Alguien compró "${randomProduct.nombre.substring(0, 30)}${randomProduct.nombre.length > 30 ? '...' : ''}"`,
+        hace: `${mins} min`
+      }]);
+    };
+    const interval = setInterval(generateNotification, 15000 + Math.random() * 20000);
+    return () => clearInterval(interval);
+  }, [productos]);
+
   const formatPrice = (n) => new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 }).format(n);
 
   return (
     <div>
+      <style dangerouslySetInnerHTML={{__html: `
+        @media (max-width: 768px) {
+          .tienda-hero { padding: 32px 12px 28px !important; border-radius: 14px !important; }
+          .tienda-hero h1 { font-size: 24px !important; }
+          .tienda-grid { grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)) !important; }
+        }
+        @media (max-width: 480px) {
+          .tienda-grid { grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)) !important; }
+        }
+      `}} />
       {/* Hero */}
-      <section style={{
+      <section className="tienda-hero" style={{
         textAlign: 'center', padding: '60px 16px 48px',
         background: 'linear-gradient(135deg, var(--accent) 0%, #7c3aed 100%)',
         borderRadius: 20, marginBottom: 40, color: '#fff'
       }}>
         <h1 style={{ fontSize: 'clamp(28px, 5vw, 44px)', fontWeight: 800, margin: '0 0 12px', letterSpacing: -1 }}>
-          🛍️ Descubre productos ganadores
+          🏆 Pizdo · Productos Ganadores
         </h1>
         <p style={{ fontSize: 16, opacity: 0.85, maxWidth: 500, margin: '0 auto 24px' }}>
-          Explora nuestro catálogo curado con los mejores productos. Ofertas por tiempo limitado.
+          Explora el catálogo curado de Pizdo. Ofertas por tiempo limitado.
         </p>
         <a href="#ofertas" style={{
           background: '#fff', color: 'var(--accent)', padding: '12px 32px', borderRadius: 30,
@@ -93,7 +118,7 @@ export default function TiendaPage() {
             <h2 style={{ fontSize: 22, fontWeight: 700, color: 'var(--red)' }}>🔥 Ofertas relámpago</h2>
             <span style={{ fontSize: 12, color: 'var(--text3)' }}>Por tiempo limitado</span>
           </div>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: 16 }}>
+          <div className="tienda-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: 16 }}>
             {ofertas.map(p => (
               <div key={p.id} style={{
                 background: 'var(--bg2)', border: '2px solid var(--red)', borderRadius: 14,
@@ -185,7 +210,7 @@ export default function TiendaPage() {
             No hay productos en esta categoría.
           </div>
         ) : (
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))', gap: 16 }}>
+          <div className="tienda-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))', gap: 16 }}>
             {productos.map(p => <ProductCard key={p.id} producto={p} />)}
           </div>
         )}

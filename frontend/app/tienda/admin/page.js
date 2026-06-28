@@ -137,9 +137,9 @@ export default function TiendaAdminPage() {
 
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
         <div>
-          <h2 style={{ fontSize: 20, fontWeight: 600 }}>Administrar Tienda</h2>
+          <h2 style={{ fontSize: 20, fontWeight: 600 }}>Administrar Pizdo</h2>
           <div style={{ fontSize: 12, color: 'var(--text3)', marginTop: 4 }}>
-            <a href="/tienda" target="_blank" style={{ color: 'var(--accent)' }}>Ver tienda publica</a>
+            <a href="/tienda" target="_blank" style={{ color: 'var(--accent)' }}>Ver Pizdo publica</a>
           </div>
         </div>
         <button onClick={() => openModal()} className="btn btn-primary">+ Nuevo producto</button>

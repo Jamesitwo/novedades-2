@@ -10,6 +10,14 @@ export default function ProductoDetallePage() {
   const id = params.id;
   const [producto, setProducto] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [resenas, setResenas] = useState([]);
+  const [promedioResenas, setPromedioResenas] = useState(0);
+  const [resenasTotal, setResenasTotal] = useState(0);
+  const [distribucion, setDistribucion] = useState({});
+  const [showResenaForm, setShowResenaForm] = useState(false);
+  const [resenaForm, setResenaForm] = useState({ nombre: '', calificacion: 5, comentario: '' });
+  const [resenaSaving, setResenaSaving] = useState(false);
+  const [resenaSuccess, setResenaSuccess] = useState(false);
 
   useEffect(() => {
     if (!id) return;
@@ -18,6 +26,39 @@ export default function ProductoDetallePage() {
       .catch(() => {})
       .finally(() => setLoading(false));
   }, [id]);
+
+  useEffect(() => {
+    if (!id) return;
+    api.get(`/api/resenas/${id}`)
+      .then(({ data }) => {
+        setResenas(data.resenas);
+        setPromedioResenas(data.promedio);
+        setResenasTotal(data.total);
+        setDistribucion(data.distribucion);
+      })
+      .catch(() => {});
+  }, [id]);
+
+  const handleResenaSubmit = async (e) => {
+    e.preventDefault();
+    if (!resenaForm.nombre.trim()) return;
+    setResenaSaving(true);
+    try {
+      await api.post(`/api/resenas/${id}`, resenaForm);
+      setResenaSuccess(true);
+      setShowResenaForm(false);
+      setResenaForm({ nombre: '', calificacion: 5, comentario: '' });
+      const { data } = await api.get(`/api/resenas/${id}`);
+      setResenas(data.resenas);
+      setPromedioResenas(data.promedio);
+      setResenasTotal(data.total);
+      setDistribucion(data.distribucion);
+      setTimeout(() => setResenaSuccess(false), 3000);
+    } catch (e) {
+    } finally {
+      setResenaSaving(false);
+    }
+  };
 
   const formatPrice = (n) => new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 }).format(n);
 
@@ -142,6 +183,144 @@ export default function ProductoDetallePage() {
           </div>
         </section>
       )}
+
+      {/* Reviews Section */}
+      <section style={{ marginTop: 48, paddingTop: 32, borderTop: '1px solid var(--border)' }}>
+        <h3 style={{ fontSize: 20, fontWeight: 700, marginBottom: 20, color: 'var(--text)' }}>
+          ⭐ Reseñas ({resenasTotal})
+        </h3>
+
+        {resenasTotal > 0 && (
+          <div style={{
+            display: 'grid', gridTemplateColumns: 'auto 1fr', gap: 24, marginBottom: 24,
+            background: 'var(--bg2)', border: '1px solid var(--border)', borderRadius: 14, padding: 20
+          }}>
+            <div style={{ textAlign: 'center' }}>
+              <div style={{ fontSize: 42, fontWeight: 800, fontFamily: 'var(--mono)', color: 'var(--amber)', lineHeight: 1 }}>
+                {promedioResenas}
+              </div>
+              <div style={{ fontSize: 16, color: 'var(--amber)', marginTop: 4 }}>
+                {'★'.repeat(Math.round(promedioResenas))}{'☆'.repeat(5 - Math.round(promedioResenas))}
+              </div>
+              <div style={{ fontSize: 11, color: 'var(--text3)', marginTop: 4 }}>{resenasTotal} reseñas</div>
+            </div>
+            <div>
+              {[5,4,3,2,1].map(star => (
+                <div key={star} style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6 }}>
+                  <span style={{ fontSize: 12, color: 'var(--text3)', width: 18 }}>{star}★</span>
+                  <div style={{
+                    flex: 1, height: 8, background: 'var(--bg3)', borderRadius: 4, overflow: 'hidden'
+                  }}>
+                    <div style={{
+                      width: `${resenasTotal > 0 ? ((distribucion[star] || 0) / resenasTotal * 100) : 0}%`,
+                      height: '100%', background: 'var(--amber)', borderRadius: 4, transition: 'width 0.5s'
+                    }} />
+                  </div>
+                  <span style={{ fontSize: 11, fontFamily: 'var(--mono)', color: 'var(--text3)', width: 24 }}>{distribucion[star] || 0}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {resenaSuccess && (
+          <div style={{
+            background: 'rgba(34,197,94,0.1)', border: '1px solid var(--green)', borderRadius: 10,
+            padding: '10px 16px', marginBottom: 16, color: 'var(--green)', fontSize: 13, textAlign: 'center'
+          }}>
+            ✅ ¡Gracias por tu reseña!
+          </div>
+        )}
+
+        <div style={{ marginBottom: 16 }}>
+          {!showResenaForm ? (
+            <button onClick={() => setShowResenaForm(true)} style={{
+              background: 'var(--accent)', color: '#fff', border: 'none', borderRadius: 10,
+              padding: '10px 20px', cursor: 'pointer', fontWeight: 600, fontSize: 13
+            }}>
+              ✏️ Escribir reseña
+            </button>
+          ) : (
+            <form onSubmit={handleResenaSubmit} style={{
+              background: 'var(--bg2)', border: '1px solid var(--border)', borderRadius: 12,
+              padding: 16, display: 'flex', flexDirection: 'column', gap: 10
+            }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                <span style={{ fontSize: 13, color: 'var(--text2)' }}>Calificación:</span>
+                <div style={{ display: 'flex', gap: 4 }}>
+                  {[1,2,3,4,5].map(star => (
+                    <button key={star} type="button" onClick={() => setResenaForm({...resenaForm, calificacion: star})} style={{
+                      background: 'none', border: 'none', cursor: 'pointer', fontSize: 24,
+                      color: star <= resenaForm.calificacion ? 'var(--amber)' : 'var(--text3)',
+                      transition: 'color 0.15s'
+                    }}>
+                      {star <= resenaForm.calificacion ? '★' : '☆'}
+                    </button>
+                  ))}
+                </div>
+              </div>
+              <input
+                type="text"
+                placeholder="Tu nombre"
+                value={resenaForm.nombre}
+                onChange={e => setResenaForm({...resenaForm, nombre: e.target.value})}
+                required
+                style={{
+                  background: 'var(--bg3)', border: '1px solid var(--border)', borderRadius: 8,
+                  padding: '8px 12px', color: 'var(--text)', fontSize: 14, outline: 'none'
+                }}
+              />
+              <textarea
+                placeholder="Cuéntanos tu experiencia (opcional)"
+                value={resenaForm.comentario}
+                onChange={e => setResenaForm({...resenaForm, comentario: e.target.value})}
+                rows={3}
+                style={{
+                  background: 'var(--bg3)', border: '1px solid var(--border)', borderRadius: 8,
+                  padding: '8px 12px', color: 'var(--text)', fontSize: 14, outline: 'none', resize: 'vertical'
+                }}
+              />
+              <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
+                <button type="button" onClick={() => setShowResenaForm(false)} style={{
+                  background: 'var(--bg3)', border: '1px solid var(--border)', borderRadius: 8,
+                  padding: '8px 16px', color: 'var(--text2)', cursor: 'pointer', fontSize: 13
+                }}>Cancelar</button>
+                <button type="submit" disabled={resenaSaving} style={{
+                  background: 'var(--accent)', border: 'none', borderRadius: 8,
+                  padding: '8px 16px', color: '#fff', cursor: 'pointer', fontWeight: 600, fontSize: 13
+                }}>{resenaSaving ? 'Enviando...' : 'Publicar reseña'}</button>
+              </div>
+            </form>
+          )}
+        </div>
+
+        {resenas.length > 0 ? (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+            {resenas.map(r => (
+              <div key={r.id} style={{
+                background: 'var(--bg2)', border: '1px solid var(--border)', borderRadius: 12, padding: 16
+              }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
+                  <span style={{ fontWeight: 600, fontSize: 14, color: 'var(--text)' }}>{r.nombre}</span>
+                  <span style={{ color: 'var(--amber)', fontSize: 14 }}>
+                    {'★'.repeat(r.calificacion)}{'☆'.repeat(5 - r.calificacion)}
+                  </span>
+                </div>
+                {r.comentario && (
+                  <p style={{ color: 'var(--text2)', fontSize: 13, lineHeight: 1.5, margin: 0 }}>{r.comentario}</p>
+                )}
+                <div style={{ fontSize: 11, color: 'var(--text3)', marginTop: 8 }}>
+                  {new Date(r.createdAt).toLocaleDateString('es-CO', { year: 'numeric', month: 'long', day: 'numeric' })}
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <div style={{ textAlign: 'center', color: 'var(--text3)', padding: 30, border: '1px dashed var(--border)', borderRadius: 12 }}>
+            Sé el primero en dejar una reseña
+          </div>
+        )}
+      </section>
     </div>
   );
 }

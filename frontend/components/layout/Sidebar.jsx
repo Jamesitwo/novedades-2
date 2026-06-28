@@ -111,7 +111,7 @@ export default function Sidebar() {
     { href: '/facturas', label: 'Facturas', icon: '📄' },
     { href: '/garantias', label: 'Garantías', icon: '📋' },
     { href: '/etiquetas', label: 'Etiquetas', icon: '🏷️' },
-    { href: '/tienda', label: 'Tienda', icon: '🛍️' },
+    { href: '/tienda', label: 'Pizdo', icon: '🏆' },
   ];
 
   if (usuario?.rol === 'admin') {
@@ -122,7 +122,7 @@ export default function Sidebar() {
     menuItems.push({ href: '/configuracion', label: 'Configuración', icon: '⚙' });
     menuItems.push({ href: '/apikey', label: 'API Keys', icon: '🔑' });
     menuItems.push({ href: '/sesiones', label: 'Sesiones', icon: '🔐' });
-    menuItems.push({ href: '/tienda/admin', label: 'Admin Tienda', icon: '🛍️' });
+    menuItems.push({ href: '/tienda/admin', label: 'Admin Pizdo', icon: '🏆' });
   }
 
   return (
