@@ -6,6 +6,22 @@ import { TableSkeleton } from '@/components/Skeleton';
 
 const isEmpty = (v) => v === null || v === undefined || v === '' || v === 0 || v === '0' || (typeof v === 'object' && !Array.isArray(v) && Object.keys(v).length === 0) || (Array.isArray(v) && v.length === 0);
 
+const OMIT_FIELDS = new Set([
+  'Active Integrations', 'Ads Meta Campaigns', 'Ads Meta Tags',
+  'Alto', 'Ancho',
+  'Bundle', 'By Id Dropi',
+  'Caracteristicas', 'Caracteristicas Name',
+  'Images',
+  'Mensaje Inicial',
+  'Precio App', 'Precio Bodega', 'Precio Sugerido',
+  'Preguntas Frecuentes', 'Preguntas Frecuentes Post Venta',
+  'Profundo',
+  'Reglas',
+  'Testimonios',
+  'Tipo',
+  'Up Sell'
+]);
+
 const formatLabel = (key) => key.replace(/([a-z])([A-Z])/g, '$1 $2').replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
 
 const renderVal = (val) => {
@@ -55,7 +71,7 @@ export default function LucidSalesProductosPage() {
   const columns = useMemo(() => {
     if (productos.length === 0) return [];
     const allKeys = Object.keys(productos[0]);
-    return allKeys.filter(key => productos.some(p => !isEmpty(p[key])));
+    return allKeys.filter(key => !OMIT_FIELDS.has(key) && productos.some(p => !isEmpty(p[key])));
   }, [productos]);
 
   const sortedColumns = useMemo(() => {
@@ -165,7 +181,7 @@ export default function LucidSalesProductosPage() {
             </div>
             <div style={{ padding: 20, display: 'flex', flexDirection: 'column', gap: 2 }}>
               {Object.entries(selected)
-                .filter(([, v]) => !isEmpty(v))
+                .filter(([k, v]) => !OMIT_FIELDS.has(k) && !isEmpty(v))
                 .sort(([a], [b]) => {
                   const ia = GROUP_ORDER.indexOf(a);
                   const ib = GROUP_ORDER.indexOf(b);
