@@ -1,5 +1,6 @@
 const { prisma } = require('../prisma/client');
 const wpService = require('../services/whatsapp.service');
+const wsService = require('../services/websocket.service');
 
 const webhookVerify = (req, res) => {
   const mode = req.query['hub.mode'];
@@ -29,6 +30,13 @@ const webhookReceive = async (req, res) => {
     const entry = req.body?.entry?.[0];
     if (entry) {
       await wpService.processIncomingMessage(entry);
+      const changes = entry?.changes?.[0];
+      const value = changes?.value;
+      if (value?.messages?.[0]) {
+        const msg = value.messages[0];
+        const from = msg.from;
+        wsService.whatsappMensajeRecibido('pedidos_novedad', null, { from, timestamp: msg.timestamp });
+      }
     }
   } catch (error) {
     console.error('[WhatsApp] Webhook processing error:', error.message);
@@ -102,6 +110,10 @@ const sendMessage = async (req, res) => {
       whatsappMsgId || null,
       req.usuario.id
     );
+
+    if (tabla && registroId) {
+      wsService.whatsappMensajeEnviado(tabla, registroId, mensaje, req.usuario?.id);
+    }
 
     return res.json({
       success: true,

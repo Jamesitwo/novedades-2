@@ -105,11 +105,19 @@ app.use('/api/cloudinary', cloudinaryRoutes);
 const whatsappRoutes = require('./src/routes/whatsapp.routes');
 app.use('/api/whatsapp', whatsappRoutes);
 
+const wsRoutes = require('./src/routes/ws.routes');
+app.use('/api/ws', wsRoutes);
+
 app.get('/api/health', (req, res) => {
+  const wsService = require('./src/services/websocket.service');
   res.json({
     status: 'ok',
     timestamp: new Date().toISOString(),
-    uptime: process.uptime()
+    uptime: process.uptime(),
+    websocket: {
+      active: true,
+      usuariosConectados: wsService.getConnectedCount()
+    }
   });
 });
 

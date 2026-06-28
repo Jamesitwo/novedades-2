@@ -1,4 +1,5 @@
 const { prisma } = require('../prisma/client');
+const wsService = require('../services/websocket.service');
 
 const getAll = async (req, res) => {
   try {
@@ -70,6 +71,7 @@ const create = async (req, res) => {
       },
       include: { creadoPor: { select: { id: true, nombre: true } }, asignado: { select: { id: true, nombre: true } } }
     });
+    wsService.tareaCreada(tarea, req.usuario);
     res.status(201).json(tarea);
   } catch (error) {
     console.error('Create tarea error:', error);
@@ -94,6 +96,7 @@ const update = async (req, res) => {
       data,
       include: { creadoPor: { select: { id: true, nombre: true } }, asignado: { select: { id: true, nombre: true } } }
     });
+    wsService.tareaActualizada(id, data, req.usuario);
     res.json(tarea);
   } catch (error) {
     console.error('Update tarea error:', error);
@@ -113,6 +116,7 @@ const cambiarEstado = async (req, res) => {
       data: { estado },
       include: { creadoPor: { select: { id: true, nombre: true } }, asignado: { select: { id: true, nombre: true } } }
     });
+    wsService.tareaEstadoCambiado(id, null, estado, req.usuario);
     res.json(tarea);
   } catch (error) {
     console.error('Cambiar estado tarea error:', error);
@@ -124,6 +128,7 @@ const remove = async (req, res) => {
   try {
     const { id } = req.params;
     await prisma.tarea.delete({ where: { id } });
+    wsService.tareaEliminada(id, req.usuario);
     res.json({ message: 'Tarea eliminada' });
   } catch (error) {
     console.error('Delete tarea error:', error);

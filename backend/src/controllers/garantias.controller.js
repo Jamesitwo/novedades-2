@@ -1,4 +1,5 @@
 const { prisma } = require('../prisma/client');
+const wsService = require('../services/websocket.service');
 const crypto = require('crypto');
 
 const generateToken = () => crypto.randomBytes(16).toString('hex');
@@ -132,6 +133,7 @@ const registrar = async (req, res) => {
       }
     });
 
+    wsService.garantiaCreada(updated);
     res.json({ message: 'Garantía registrada correctamente', id: updated.id });
   } catch (error) {
     console.error('Registrar garantia error:', error);
@@ -148,13 +150,19 @@ const cambiarEstado = async (req, res) => {
       return res.status(400).json({ error: 'Estado inválido' });
     }
 
-    const garantia = await prisma.garantia.update({
+    const garantia = await prisma.garantia.findUnique({ where: { id } });
+    if (!garantia) {
+      return res.status(404).json({ error: 'Garantía no encontrada' });
+    }
+
+    const updated = await prisma.garantia.update({
       where: { id },
       data: { estado },
       include: { creadoPor: { select: { id: true, nombre: true } } }
     });
 
-    res.json(garantia);
+    wsService.garantiaEstadoCambiado(id, garantia.estado, estado, req.usuario);
+    res.json(updated);
   } catch (error) {
     console.error('Cambiar estado garantia error:', error);
     res.status(500).json({ error: 'Error en el servidor' });

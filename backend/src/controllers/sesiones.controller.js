@@ -1,4 +1,5 @@
 const { prisma } = require('../prisma/client');
+const wsService = require('../services/websocket.service');
 
 const getAll = async (req, res) => {
   try {
@@ -28,6 +29,11 @@ const deleteSesion = async (req, res) => {
     }
 
     const { id } = req.params;
+    const sesion = await prisma.sesion.findUnique({ where: { id } });
+    if (sesion) {
+      wsService.sesionForzadaLogout(sesion.usuarioId);
+    }
+
     await prisma.sesion.update({
       where: { id },
       data: { activa: false }
@@ -51,6 +57,8 @@ const deleteAllForUsuario = async (req, res) => {
       where: { usuarioId, activa: true },
       data: { activa: false }
     });
+
+    wsService.sesionForzadaLogout(usuarioId);
 
     res.json({ message: 'Sesiones eliminadas' });
   } catch (error) {

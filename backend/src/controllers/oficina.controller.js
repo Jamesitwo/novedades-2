@@ -3,6 +3,7 @@ const { paginate } = require('../utils/paginate');
 const { registrarCambio } = require('./historial.controller');
 const { getNextOperador } = require('../utils/autoAssign');
 const wpService = require('../services/whatsapp.service');
+const wsService = require('../services/websocket.service');
 
 const getAll = async (req, res) => {
   try {
@@ -223,6 +224,7 @@ const create = async (req, res) => {
       }
     });
 
+    wsService.oficinaCreada(pedido, req.usuario);
     res.status(201).json(pedido);
   } catch (error) {
     console.error('Create oficina error:', error);
@@ -303,6 +305,7 @@ const cambiarEstado = async (req, res) => {
       }
     });
 
+    wsService.oficinaEstadoCambiado(id, actual.estado, estado, req.usuario);
     res.json(pedido);
   } catch (error) {
     console.error('Cambiar estado oficina error:', error);
@@ -338,6 +341,7 @@ const registrarIntento = async (req, res) => {
       }
     });
 
+    wsService.oficinaActualizada(id, { intentosLlamada: nuevoIntento.intentosLlamada }, req.usuario);
     res.json(nuevoIntento);
   } catch (error) {
     console.error('Registrar intento oficina error:', error);
@@ -355,6 +359,7 @@ const remove = async (req, res) => {
     await prisma.transferencia.deleteMany({ where: { registroId: id, tabla: 'pedidos_oficina' } });
     await prisma.pedidoOficina.delete({ where: { id } });
 
+    wsService.oficinaEliminada(id, req.usuario);
     res.json({ message: 'Pedido eliminado' });
   } catch (error) {
     console.error('Remove oficina error:', error);
@@ -447,6 +452,7 @@ const bulkCambiarEstado = async (req, res) => {
       prisma.pedidoOficina.updateMany({ where: { id: { in: ids } }, data: { estado } })
     ]);
 
+    wsService.oficinaBulkAction('cambiar_estado', ids, req.usuario);
     res.json({ message: `Actualizados ${ids.length} registros` });
   } catch (error) {
     console.error('Bulk cambiar estado oficina error:', error);
@@ -485,6 +491,7 @@ const bulkAsignar = async (req, res) => {
       prisma.pedidoOficina.updateMany({ where: { id: { in: ids } }, data: { asignadoId } })
     ]);
 
+    wsService.oficinaBulkAction('asignar', ids, req.usuario);
     res.json({ message: `Asignados ${ids.length} registros a ${operador.nombre}` });
   } catch (error) {
     console.error('Bulk asignar oficina error:', error);
@@ -504,6 +511,7 @@ const bulkRemove = async (req, res) => {
       prisma.pedidoOficina.deleteMany({ where: { id: { in: ids } } })
     ]);
 
+    wsService.oficinaBulkAction('eliminar', ids, req.usuario);
     res.json({ message: `Eliminados ${ids.length} registros` });
   } catch (error) {
     console.error('Bulk remove oficina error:', error);
@@ -572,6 +580,7 @@ const transferir = async (req, res) => {
       });
     }
 
+    wsService.oficinaTransferida(id, req.usuario, aUsuarioId, operadorDestino.nombre, pedidoActualizado);
     res.json(pedidoActualizado);
   } catch (error) {
     console.error('Transferir oficina error:', error);
@@ -635,6 +644,7 @@ const duplicar = async (req, res) => {
       }
     });
 
+    wsService.oficinaCreada(duplicado, req.usuario);
     res.status(201).json(duplicado);
   } catch (error) {
     console.error('Duplicar pedido error:', error);
@@ -668,6 +678,7 @@ const asignarEtiqueta = async (req, res) => {
       include: { etiqueta: { select: { id: true, nombre: true, color: true } } }
     });
 
+    wsService.oficinaEtiquetaChanged(id, req.usuario);
     res.json(etiquetas);
   } catch (error) {
     console.error('Asignar etiqueta error:', error);
@@ -688,6 +699,7 @@ const removerEtiqueta = async (req, res) => {
       include: { etiqueta: { select: { id: true, nombre: true, color: true } } }
     });
 
+    wsService.oficinaEtiquetaChanged(id, req.usuario);
     res.json(etiquetas);
   } catch (error) {
     console.error('Remover etiqueta error:', error);

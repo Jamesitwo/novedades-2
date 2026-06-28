@@ -1,6 +1,7 @@
 const bcrypt = require('bcryptjs');
 const { prisma } = require('../prisma/client');
 const { paginate } = require('../utils/paginate');
+const wsService = require('../services/websocket.service');
 
 const getAll = async (req, res) => {
   try {
@@ -103,6 +104,8 @@ const update = async (req, res) => {
         createdAt: true
       }
     });
+
+    wsService.usuarioActualizado(id, req.usuario);
 
     res.json(usuario);
   } catch (error) {

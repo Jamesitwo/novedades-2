@@ -1,4 +1,5 @@
 const { prisma } = require('../prisma/client');
+const wsService = require('../services/websocket.service');
 const PDFDocument = require('pdfkit');
 const QRCode = require('qrcode');
 
@@ -100,6 +101,7 @@ const create = async (req, res) => {
       include: { items: true, createdBy: { select: { id: true, nombre: true } } }
     });
 
+    wsService.facturaCreada(factura, req.usuario);
     res.status(201).json(factura);
   } catch (error) {
     console.error('Create factura error:', error);
@@ -164,13 +166,19 @@ const cambiarEstado = async (req, res) => {
       return res.status(400).json({ error: 'Estado inválido' });
     }
 
-    const factura = await prisma.factura.update({
+    const factura = await prisma.factura.findUnique({ where: { id } });
+    if (!factura) {
+      return res.status(404).json({ error: 'Factura no encontrada' });
+    }
+
+    const updated = await prisma.factura.update({
       where: { id },
       data: { estado },
       include: { items: true, createdBy: { select: { id: true, nombre: true } } }
     });
 
-    res.json(factura);
+    wsService.facturaEstadoCambiado(id, factura.estado, estado, req.usuario);
+    res.json(updated);
   } catch (error) {
     console.error('Cambiar estado factura error:', error);
     res.status(500).json({ error: 'Error en el servidor' });

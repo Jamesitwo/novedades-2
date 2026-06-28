@@ -1,4 +1,5 @@
 require('dotenv').config();
+const http = require('http');
 const app = require('./app');
 const { prisma } = require('./src/prisma/client');
 const { createProxyMiddleware } = require('http-proxy-middleware');
@@ -12,6 +13,11 @@ async function main() {
   try {
     await prisma.$connect();
     console.log('✅ Database connected');
+
+    const server = http.createServer(app);
+
+    const wsService = require('./src/services/websocket.service');
+    wsService.init(server);
 
     if (isProduction) {
       const frontendDir = path.join(__dirname, '..', 'frontend');
@@ -41,7 +47,8 @@ async function main() {
       try {
         app.use('/', createProxyMiddleware({
           target: `http://localhost:${nextPort}`,
-          changeOrigin: true
+          changeOrigin: true,
+          ws: true
         }));
         console.log('✅ Frontend proxy ready');
       } catch (e) {
@@ -49,10 +56,11 @@ async function main() {
       }
     }
 
-    app.listen(PORT, () => {
+    server.listen(PORT, () => {
       console.log(`🚀 Server running on port ${PORT}`);
-      if (isProduction) console.log('   Mode: production (API + Frontend)');
-      else console.log('   Mode: development (API only)');
+      console.log(`🔌 WebSocket ready on ws://localhost:${PORT}`);
+      if (isProduction) console.log('   Mode: production (API + Frontend + WebSocket)');
+      else console.log('   Mode: development (API + WebSocket)');
     });
   } catch (error) {
     console.error('❌ Failed to start server:', error);
