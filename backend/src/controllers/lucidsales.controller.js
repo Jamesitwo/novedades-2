@@ -148,6 +148,30 @@ const verificarConexion = async (req, res) => {
   }
 };
 
+const vincularPedido = async (req, res) => {
+  try {
+    const { lucidsalesPedidoId, notas } = req.body;
+    if (!lucidsalesPedidoId) {
+      return res.status(400).json({ error: 'lucidsalesPedidoId es requerido' });
+    }
+    const result = await lucidsalesService.crearVinculacion(lucidsalesPedidoId, notas);
+    res.json({ ok: true, pedido: result });
+  } catch (error) {
+    console.error('LucidSales vincularPedido error:', error);
+    res.status(500).json({ error: error.message || 'Error al vincular pedido' });
+  }
+};
+
+const listarVinculados = async (req, res) => {
+  try {
+    const result = await lucidsalesService.listVinculaciones();
+    res.json(result);
+  } catch (error) {
+    console.error('LucidSales listarVinculados error:', error);
+    res.status(500).json({ error: error.message || 'Error al listar vinculados' });
+  }
+};
+
 module.exports = {
   getPedidos,
   getPedidoById,
@@ -162,5 +186,7 @@ module.exports = {
   getCiudades,
   getCiudadesLocales,
   getDepartamentosLocales,
-  verificarConexion
+  verificarConexion,
+  vincularPedido,
+  listarVinculados
 };

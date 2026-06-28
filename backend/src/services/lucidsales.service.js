@@ -318,6 +318,23 @@ function getDepartamentosLocales() {
   }
 }
 
+async function crearVinculacion(lucidsalesPedidoId, notas) {
+  const pedido = await getPedidoById(lucidsalesPedidoId);
+  return prisma.pedidoVinculado.create({
+    data: {
+      lucidsalesPedidoId: Number(lucidsalesPedidoId),
+      lucidsalesIdPedido: pedido.idPedido || null,
+      notas: notas || null
+    }
+  });
+}
+
+async function listVinculaciones() {
+  return prisma.pedidoVinculado.findMany({
+    orderBy: { createdAt: 'desc' }
+  });
+}
+
 module.exports = {
   getPedidos,
   getPedidoById,
@@ -334,5 +351,7 @@ module.exports = {
   verificarConexion,
   clearTokenCache,
   getCiudadesLocales,
-  getDepartamentosLocales
+  getDepartamentosLocales,
+  crearVinculacion,
+  listVinculaciones
 };

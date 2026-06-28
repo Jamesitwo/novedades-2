@@ -22,4 +22,7 @@ router.get('/departamentos-locales', ctrl.getDepartamentosLocales);
 
 router.get('/verificar-conexion', ctrl.verificarConexion);
 
+router.post('/vincular', ctrl.vincularPedido);
+router.get('/vinculados', ctrl.listarVinculados);
+
 module.exports = router;
