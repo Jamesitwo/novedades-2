@@ -21,14 +21,19 @@ const OMIT_FIELDS = new Set([
   'Alto', 'Ancho',
   'Bundle', 'By Id Dropi',
   'Caracteristicas', 'Caracteristicas Name',
+  'Disponibilidad', 'Disponibilidad Producto Lucid Bot',
+  'Envio',
+  'Id Producto Edrop', 'Id Producto Rocket', 'Id Producto Venndelo', 'Id Variante Upsell',
   'Mensaje Inicial',
+  'Pais Origen', 'Peso',
   'Precio App', 'Precio Bodega', 'Precio Sugerido',
   'Preguntas Frecuentes', 'Preguntas Frecuentes Post Venta',
   'Profundo',
   'Reglas',
   'Testimonios',
   'Tipo',
-  'Up Sell'
+  'Up Sell',
+  'V', 'Videos'
 ]);
 
 const formatLabel = (key) => key.replace(/([a-z])([A-Z])/g, '$1 $2').replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
