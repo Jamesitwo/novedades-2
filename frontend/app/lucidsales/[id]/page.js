@@ -130,7 +130,48 @@ export default function LucidSalesEditPage() {
   }, [id]);
 
   const handleChange = (field, value) => {
-    setPedido(prev => ({ ...prev, [field]: value }));
+    if (field === 'SubTotal' || field === 'Total' || field === 'CostoEnvio') {
+      handleMoneyChange(field, value);
+    } else {
+      setPedido(prev => ({ ...prev, [field]: value }));
+    }
+  };
+  
+  const handleMoneyChange = (field, value) => {
+    const numVal = Number(value);
+    if (isNaN(numVal)) return;
+    const items = parseJson(pedido.Json);
+    const currentSubTotal = items.reduce((sum, p) => sum + Number(p.price || 0) * Number(p.quantity || 1), 0);
+    const currentCostoEnvio = Number(pedido.CostoEnvio || 0);
+
+    let newSubTotal, newCostoEnvio;
+
+    if (field === 'Total') {
+      newSubTotal = Math.max(0, numVal - currentCostoEnvio);
+      newCostoEnvio = currentCostoEnvio;
+    } else if (field === 'CostoEnvio') {
+      newSubTotal = currentSubTotal;
+      newCostoEnvio = numVal;
+    } else {
+      newSubTotal = numVal;
+      newCostoEnvio = currentCostoEnvio;
+    }
+
+    const update = {
+      SubTotal: String(newSubTotal),
+      CostoEnvio: String(newCostoEnvio),
+      Total: String(newSubTotal + newCostoEnvio)
+    };
+
+    if (currentSubTotal > 0 && newSubTotal !== currentSubTotal && items.length > 0) {
+      const ratio = newSubTotal / currentSubTotal;
+      items.forEach(p => {
+        p.price = Math.round(p.price * ratio);
+      });
+      update.Json = JSON.stringify(items);
+    }
+
+    setPedido(prev => ({ ...prev, ...update }));
   };
 
   const handleDepartamentoChange = (deptoId) => {
