@@ -205,7 +205,11 @@ async function cotizarEnvio(pedidoId, carrier = 'dropi') {
 
   return apiPost(`/pedidos/quote/${carrier}`, {
     id: pedido.id,
-    idPedido: pedido.idPedido
+    direccion: pedido.Direccion || '',
+    tipoPago: Number(pedido.TipoPago ?? 1),
+    ciudad: Number(pedido.Ciudad ?? 0),
+    departamento: Number(pedido.Departamento ?? 0),
+    referencias: pedido.Referencias || ''
   }, token);
 }
 

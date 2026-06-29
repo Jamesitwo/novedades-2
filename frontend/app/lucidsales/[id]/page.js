@@ -35,19 +35,10 @@ export default function LucidSalesEditPage() {
   const [ciudades, setCiudades] = useState([]);
   const [loadingGeo, setLoadingGeo] = useState(false);
 
-  const CARRIERS = [
-    { id: 'dropi', label: 'Dropi' },
-    { id: 'envia', label: 'Envia' },
-    { id: 'hoko', label: 'Hoko' },
-    { id: 'boxful', label: 'Boxful' },
-    { id: 'venndelo', label: 'Venndelo' },
-    { id: '99envios', label: '99 Envios' },
-  ];
-
   const [productosMap, setProductosMap] = useState({});
-  const [quotes, setQuotes] = useState({});
-  const [quoting, setQuoting] = useState({});
-  const [selectedCarrier, setSelectedCarrier] = useState(null);
+  const [quotes, setQuotes] = useState(null);
+  const [quoting, setQuoting] = useState(false);
+  const [selectedQuoteIdx, setSelectedQuoteIdx] = useState(null);
   const [uploading, setUploading] = useState(false);
 
   const [toast, setToast] = useState(null);
@@ -146,25 +137,27 @@ export default function LucidSalesEditPage() {
     }
   };
 
-  const handleQuote = async (carrierId) => {
-    setQuoting(prev => ({ ...prev, [carrierId]: true }));
+  const handleQuote = async () => {
+    setQuoting(true);
+    setQuotes(null);
+    setSelectedQuoteIdx(null);
     try {
-      const { data } = await api.post('/api/lucidsales/pedidos/cotizar', { pedidoId: Number(id), carrier: carrierId });
-      setQuotes(prev => ({ ...prev, [carrierId]: data }));
+      const { data } = await api.post('/api/lucidsales/pedidos/cotizar', { pedidoId: Number(id), carrier: 'dropi' });
+      setQuotes(data);
     } catch (err) {
-      setQuotes(prev => ({ ...prev, [carrierId]: { error: err.response?.data?.error || err.message } }));
+      setQuotes({ error: err.response?.data?.error || err.message });
     } finally {
-      setQuoting(prev => ({ ...prev, [carrierId]: false }));
+      setQuoting(false);
     }
   };
 
   const handleUpload = async () => {
-    if (!selectedCarrier) return;
+    if (selectedQuoteIdx == null) return;
     setUploading(true);
     try {
-      const { data } = await api.post('/api/lucidsales/pedidos/confirmar-envio', { pedidoId: Number(id), carrier: selectedCarrier });
+      const { data } = await api.post('/api/lucidsales/pedidos/confirmar-envio', { pedidoId: Number(id), carrier: 'dropi' });
       if (data.ok) {
-        showToast(`Pedido subido a ${selectedCarrier} correctamente`);
+        showToast('Pedido subido a Dropi correctamente');
       } else {
         showToast(data.msg || data.error || 'Error al subir', 'error');
       }
@@ -185,24 +178,9 @@ export default function LucidSalesEditPage() {
     catch { return []; }
   };
 
-  const renderQuotePreview = (data) => {
-    if (!data || typeof data !== 'object') return String(data);
-    const entries = Object.entries(data).filter(([k, v]) =>
-      v != null && v !== '' && !k.startsWith('_') && k !== 'ok'
-    );
-    if (entries.length === 0) return 'Cotización recibida';
-    return entries.slice(0, 4).map(([k, v]) => {
-      let display = typeof v === 'object' ? JSON.stringify(v).slice(0, 40) : String(v);
-      if (typeof v === 'number' || (!isNaN(Number(v)) && String(v).includes('.'))) {
-        display = '$' + Number(v).toLocaleString('es-CO', { minimumFractionDigits: 0, maximumFractionDigits: 0 });
-      }
-      return (
-        <div key={k} style={{ marginBottom: 2 }}>
-          <span style={{ color: 'var(--text3)' }}>{k}: </span>
-          <span style={{ color: 'var(--text)' }}>{display}</span>
-        </div>
-      );
-    });
+  const formatMoney = (val) => {
+    if (val == null || isNaN(Number(val))) return '$0';
+    return '$' + Number(val).toLocaleString('es-CO', { minimumFractionDigits: 0, maximumFractionDigits: 0 });
   };
 
   const formatMoneyShort = (val) => {
@@ -259,51 +237,69 @@ export default function LucidSalesEditPage() {
       </div>
 
       <div className="table-card" style={{ padding: 20, marginBottom: 20 }}>
-        <div style={{ fontWeight: 600, fontSize: 14, marginBottom: 16, color: 'var(--text)' }}>
-          Envío
-        </div>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: 10, marginBottom: 16 }}>
-          {CARRIERS.map(c => {
-            const hasQuote = quotes[c.id] && !quotes[c.id].error;
-            const hasError = quotes[c.id] && quotes[c.id].error;
-            return (
-              <div key={c.id} onClick={() => hasQuote && setSelectedCarrier(c.id)} style={{
-                padding: '14px 16px', borderRadius: 10, cursor: hasQuote ? 'pointer' : 'default',
-                border: selectedCarrier === c.id ? '2px solid var(--accent)' : '1px solid var(--border)',
-                background: selectedCarrier === c.id ? 'var(--accent-bg)' : 'var(--bg3)',
-                opacity: hasError ? 0.5 : 1,
-                transition: 'all 0.15s'
-              }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
-                  <div style={{ fontWeight: 600, fontSize: 13 }}>{c.label}</div>
-                  {!quotes[c.id] && !quoting[c.id] && (
-                    <button onClick={(e) => { e.stopPropagation(); handleQuote(c.id); }} className="btn btn-ghost" style={{ fontSize: 11, padding: '2px 8px' }}>
-                      Cotizar
-                    </button>
-                  )}
-                  {quoting[c.id] && <span style={{ fontSize: 11, color: 'var(--text3)' }}>Cotizando...</span>}
-                  {hasQuote && <span style={{ color: 'var(--green)', fontSize: 14 }}>✅</span>}
-                  {hasError && <span style={{ color: 'var(--red)', fontSize: 11 }}>❌</span>}
-                </div>
-                {hasQuote && (
-                  <div style={{ fontSize: 12, color: 'var(--text2)' }}>
-                    {renderQuotePreview(quotes[c.id])}
-                  </div>
-                )}
-                {hasError && (
-                  <div style={{ fontSize: 11, color: 'var(--red)', marginTop: 4 }}>{quotes[c.id].error}</div>
-                )}
-              </div>
-            );
-          })}
-        </div>
-        {selectedCarrier && (
-          <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '12px 16px', background: 'var(--bg3)', borderRadius: 8, fontSize: 13 }}>
-            <span style={{ color: 'var(--text2)' }}>Transportadora seleccionada: <strong style={{ color: 'var(--text)' }}>{CARRIERS.find(c => c.id === selectedCarrier)?.label}</strong></span>
-            <button onClick={handleUpload} disabled={uploading} className="btn btn-success" style={{ fontSize: 12, marginLeft: 'auto' }}>
-              {uploading ? 'Subiendo...' : '↑ Subir pedido'}
-            </button>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
+          <div style={{ fontWeight: 600, fontSize: 14, color: 'var(--text)' }}>
+            Cotizar envío con Dropi
           </div>
+          <button onClick={handleQuote} disabled={quoting} className="btn btn-primary" style={{ fontSize: 12 }}>
+            {quoting ? 'Cotizando...' : 'Cotizar'}
+          </button>
+        </div>
+
+        {quotes?.error && (
+          <div style={{ color: 'var(--red)', fontSize: 13, padding: 12, background: 'var(--bg3)', borderRadius: 8 }}>
+            {quotes.error}
+          </div>
+        )}
+
+        {quotes?.quotes && quotes.quotes.length > 0 && (
+          <>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginBottom: 16 }}>
+              {quotes.quotes.map((q, i) => {
+                const hasError = !!q.error;
+                const selected = selectedQuoteIdx === i;
+                return (
+                  <div key={i} onClick={() => !hasError && setSelectedQuoteIdx(i)} style={{
+                    display: 'flex', alignItems: 'center', gap: 12,
+                    padding: '12px 16px', borderRadius: 8, cursor: hasError ? 'default' : 'pointer',
+                    border: selected ? '2px solid var(--accent)' : '1px solid var(--border)',
+                    background: selected ? 'var(--accent-bg)' : 'var(--bg3)',
+                    opacity: hasError ? 0.5 : 1
+                  }}>
+                    <div style={{ width: 20 }}>
+                      {selected && <span style={{ color: 'var(--accent)' }}>✓</span>}
+                    </div>
+                    <div style={{ flex: 1 }}>
+                      <div style={{ fontWeight: 600, fontSize: 13 }}>{q.transportadora}</div>
+                      {q.objects && (
+                        <div style={{ fontSize: 12, color: 'var(--text2)', marginTop: 2 }}>
+                          {q.objects.precioEnvio != null && (
+                            <span style={{ fontWeight: 500, color: 'var(--accent2)', marginRight: 12 }}>
+                              {formatMoney(q.objects.precioEnvio)}
+                            </span>
+                          )}
+                          {q.objects.trayecto && <span style={{ marginRight: 8 }}>{q.objects.trayecto}</span>}
+                          {q.objects.seguroEnvio != null && (
+                            <span>Seguro: {formatMoney(q.objects.seguroEnvio)}</span>
+                          )}
+                        </div>
+                      )}
+                      {hasError && <div style={{ fontSize: 11, color: 'var(--red)', marginTop: 2 }}>{q.error}</div>}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+            {selectedQuoteIdx != null && (
+              <button onClick={handleUpload} disabled={uploading} className="btn btn-success" style={{ fontSize: 12 }}>
+                {uploading ? 'Subiendo...' : `↑ Subir pedido con ${quotes.quotes[selectedQuoteIdx].transportadora}`}
+              </button>
+            )}
+          </>
+        )}
+
+        {quotes && !quotes.error && (!quotes.quotes || quotes.quotes.length === 0) && (
+          <div style={{ color: 'var(--text3)', fontSize: 13 }}>No hay cotizaciones disponibles</div>
         )}
       </div>
 
