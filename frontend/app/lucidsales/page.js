@@ -119,6 +119,18 @@ export default function LucidSalesPage() {
     }
   };
 
+  const handleSyncRow = async (pedidoId) => {
+    try {
+      const { data } = await api.get(`/api/lucidsales/pedidos/${pedidoId}`);
+      if (data && data.id) {
+        await api.post('/api/lucidsales/guardar-local', { lucidsalesPedidoId: Number(pedidoId), pedido: data });
+        fetchPedidos();
+      }
+    } catch (err) {
+      console.error('Sync error:', err);
+    }
+  };
+
   return (
     <div className="content">
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
@@ -261,6 +273,7 @@ export default function LucidSalesPage() {
                       )}
                     </td>
                     <td className="row-actions">
+                      <button onClick={() => handleSyncRow(p.id)} className="action-btn" title="Sincronizar desde LucidSales" style={{ fontSize: 14 }}>⟳</button>
                       <Link href={`/lucidsales/${p.id}`} className="action-btn" title="Editar">
                         ✎
                       </Link>

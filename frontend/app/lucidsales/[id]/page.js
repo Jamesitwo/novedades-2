@@ -108,6 +108,7 @@ export default function LucidSalesEditPage() {
           if (pedidoData.Departamento != null && pedidoData.Departamento !== 0) {
             await loadCiudades(Number(pedidoData.Departamento));
           }
+          api.post('/api/lucidsales/guardar-local', { lucidsalesPedidoId: Number(id), pedido: pedidoData }).catch(() => {});
 
           const prodList = Array.isArray(prodRes.data) ? prodRes.data : prodRes.data?.productos || prodRes.data?.data || [];
           if (prodList.length > 0) {
