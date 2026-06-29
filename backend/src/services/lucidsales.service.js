@@ -213,16 +213,30 @@ async function cotizarEnvio(pedidoId, carrier = 'dropi') {
   }, token);
 }
 
-async function confirmarIntegracion(pedidoId, carrier = 'rocket') {
+async function confirmarIntegracion(pedidoId, carrier = 'rocket', quote = null) {
   const config = await getConfig();
   const { token } = await authenticate(config);
 
   const pedido = await getPedidoById(pedidoId);
 
-  return apiPost(`/pedidos/integrations/confirm/${carrier}`, {
+  const body = {
     id: pedido.id,
     idPedido: pedido.idPedido
-  }, token);
+  };
+
+  if (quote && quote.objects) {
+    body.transportadora = quote.transportadora;
+    body.precioEnvio = quote.objects.precioEnvio;
+    body.trayecto = quote.objects.trayecto;
+    body.seguroEnvio = quote.objects.seguroEnvio;
+  }
+
+  const uploadCarriers = ['hoko', 'dropi', 'envia', 'boxful', '99envios'];
+  const path = uploadCarriers.includes(carrier)
+    ? `/pedidos/upload/${carrier}`
+    : `/pedidos/integrations/confirm/${carrier}`;
+
+  return apiPost(path, body, token);
 }
 
 async function uploadToHoko(pedidoId) {

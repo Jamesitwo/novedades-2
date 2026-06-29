@@ -223,9 +223,14 @@ export default function LucidSalesEditPage() {
     if (selectedQuoteIdx == null) return;
     setUploading(true);
     try {
-      const { data } = await api.post('/api/lucidsales/pedidos/confirmar-envio', { pedidoId: Number(id), carrier: 'dropi' });
+      const selectedQuote = quotes.quotes[selectedQuoteIdx];
+      const { data } = await api.post('/api/lucidsales/pedidos/confirmar-envio', {
+        pedidoId: Number(id),
+        carrier: selectedQuote.transportadora?.toLowerCase() || 'dropi',
+        quote: selectedQuote
+      });
       if (data.ok) {
-        showToast('Pedido subido a Dropi correctamente');
+        showToast(`Pedido subido a ${selectedQuote.transportadora} correctamente`);
       } else {
         showToast(data.msg || data.error || 'Error al subir', 'error');
       }
