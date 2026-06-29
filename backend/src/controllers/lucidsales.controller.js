@@ -1,5 +1,10 @@
 const { prisma } = require('../prisma/client');
 const lucidsalesService = require('../services/lucidsales.service');
+const interrapidisimoService = require('../services/interrapidisimo.service');
+const path = require('path');
+const fs = require('fs');
+
+const ciudadesPath = path.join(__dirname, '..', 'data', 'lucidsales_ciudades.json');
 
 const getPedidos = async (req, res) => {
   try {
@@ -271,6 +276,23 @@ const removerEtiqueta = async (req, res) => {
   }
 };
 
+const buscarOficinaIR = async (req, res) => {
+  try {
+    const { ciudadId } = req.body;
+    if (!ciudadId) return res.status(400).json({ ok: false, error: 'ciudadId requerido' });
+
+    const ciudades = JSON.parse(fs.readFileSync(ciudadesPath, 'utf-8'));
+    const ciudad = ciudades.find(c => c.id === Number(ciudadId));
+    if (!ciudad) return res.status(404).json({ ok: false, error: 'Ciudad no encontrada' });
+
+    const oficinas = await interrapidisimoService.buscarOficinaPrincipal(ciudad.name);
+    res.json({ ok: true, oficinas, ciudad: ciudad.name });
+  } catch (error) {
+    console.error('buscarOficinaIR error:', error);
+    res.status(500).json({ ok: false, error: error.message || 'Error al buscar oficina' });
+  }
+};
+
 module.exports = {
   getPedidos,
   getPedidoById,
@@ -292,5 +314,6 @@ module.exports = {
   guardarLocal,
   getEtiquetas,
   asignarEtiqueta,
-  removerEtiqueta
+  removerEtiqueta,
+  buscarOficinaIR
 };

@@ -46,6 +46,9 @@ export default function LucidSalesEditPage() {
   const [etiquetas, setEtiquetas] = useState([]);
   const [todasEtiquetas, setTodasEtiquetas] = useState([]);
   const [selectedEtiqueta, setSelectedEtiqueta] = useState('');
+  const [oficinasIR, setOficinasIR] = useState([]);
+  const [buscandoIR, setBuscandoIR] = useState(false);
+  const [errorIR, setErrorIR] = useState('');
 
   const showToast = (message, type = 'success') => {
     setToast({ message, type });
@@ -190,7 +193,33 @@ export default function LucidSalesEditPage() {
     handleChange('Departamento', Number(deptoId));
     handleChange('Ciudad', 0);
     setCiudades([]);
+    setOficinasIR([]);
+    setErrorIR('');
     if (deptoId) loadCiudades(Number(deptoId));
+  };
+
+  const handleBuscarIR = async () => {
+    if (!pedido?.Ciudad) return;
+    setBuscandoIR(true);
+    setErrorIR('');
+    setOficinasIR([]);
+    try {
+      const { data } = await api.post('/api/lucidsales/interrapidisimo/oficinas', { ciudadId: pedido.Ciudad });
+      if (data.ok) {
+        setOficinasIR(data.oficinas || []);
+      } else {
+        setErrorIR(data.error || 'Error al buscar oficinas');
+      }
+    } catch (err) {
+      setErrorIR(err.response?.data?.error || err.message || 'Error de conexión');
+    } finally {
+      setBuscandoIR(false);
+    }
+  };
+
+  const handleSeleccionarOficinaIR = (ofi) => {
+    const texto = `Inter Rapidísimo - ${ofi.Nombre || ''}\nDir: ${ofi.Direccion || ''}\nTel: ${ofi.Telefono1 || ''}\nBarrio: ${ofi.Barrio || ''}`;
+    handleChange('notas', texto);
   };
 
   const handleSave = async () => {
@@ -452,7 +481,53 @@ export default function LucidSalesEditPage() {
               <label className="form-field-label">Código postal</label>
               <input type="text" value={pedido.codigoPostal || ''} onChange={e => handleChange('codigoPostal', e.target.value)} style={inputStyle} />
             </div>
+            <div className="form-group span2">
+              <label className="form-field-label">Notas</label>
+              <textarea value={pedido.notas || ''} onChange={e => handleChange('notas', e.target.value)} rows={2} style={{ ...inputStyle, resize: 'vertical', fontFamily: 'inherit' }} />
+            </div>
           </div>
+        </div>
+
+        <div className="table-card" style={{ padding: 20 }}>
+          <div style={{ fontWeight: 600, fontSize: 14, marginBottom: 12, color: 'var(--text)' }}>
+            Inter Rapidísimo
+          </div>
+          <div style={{ display: 'flex', gap: 8, alignItems: 'center', marginBottom: 10 }}>
+            <button onClick={handleBuscarIR} disabled={!pedido?.Ciudad || buscandoIR} className="btn btn-primary" style={{ fontSize: 12 }}>
+              {buscandoIR ? 'Buscando...' : 'Buscar oficina principal'}
+            </button>
+            {!pedido?.Ciudad && (
+              <span style={{ fontSize: 11, color: 'var(--text3)' }}>Selecciona una ciudad primero</span>
+            )}
+          </div>
+          {buscandoIR && <div style={{ color: 'var(--text3)', fontSize: 13 }}>Buscando oficinas...</div>}
+          {errorIR && (
+            <div style={{ color: 'var(--red)', fontSize: 13, marginTop: 4 }}>{errorIR}</div>
+          )}
+          {oficinasIR.length > 0 && (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginTop: 4 }}>
+              {oficinasIR.map((ofi, i) => (
+                <div key={ofi.IdCentroServicio || i} style={{
+                  padding: '10px 12px', background: 'var(--bg3)', borderRadius: 6,
+                  border: '1px solid var(--border)', fontSize: 13
+                }}>
+                  <div style={{ fontWeight: 600, marginBottom: 4 }}>{ofi.Nombre || 'Oficina'}</div>
+                  <div style={{ color: 'var(--text2)', lineHeight: 1.6 }}>
+                    {ofi.Direccion && <div>📍 {ofi.Direccion}</div>}
+                    {ofi.Telefono1 && <div>📞 {ofi.Telefono1}</div>}
+                    {ofi.Barrio && <div>🏘️ {ofi.Barrio}</div>}
+                    {ofi.Ciudad && <div>📍 {ofi.Ciudad.Descripcion}, {ofi.Ciudad.Departamento}</div>}
+                  </div>
+                  <button onClick={() => handleSeleccionarOficinaIR(ofi)} className="btn btn-ghost" style={{ fontSize: 11, marginTop: 8 }}>
+                    Usar esta oficina
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
+          {oficinasIR.length === 0 && !buscandoIR && !errorIR && (
+            <div style={{ color: 'var(--text3)', fontSize: 13 }}>Selecciona una ciudad y presiona "Buscar oficina principal"</div>
+          )}
         </div>
 
         <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>

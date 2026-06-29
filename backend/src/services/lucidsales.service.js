@@ -375,6 +375,7 @@ async function guardarVinculacionLocal(lucidsalesPedidoId, pedido) {
       total: String(pedido.Total || '0'),
       estadoPedido: Number(pedido.EstadoPedido ?? 0),
       referencias: pedido.Referencias || '',
+      notas: pedido.notas || null,
       jsonProductos: typeof pedido.Json === 'string' ? pedido.Json : JSON.stringify(pedido.Json || []),
     },
     create: {
@@ -386,6 +387,7 @@ async function guardarVinculacionLocal(lucidsalesPedidoId, pedido) {
       total: String(pedido.Total || '0'),
       estadoPedido: Number(pedido.EstadoPedido ?? 0),
       referencias: pedido.Referencias || '',
+      notas: pedido.notas || null,
       jsonProductos: typeof pedido.Json === 'string' ? pedido.Json : JSON.stringify(pedido.Json || []),
     }
   });
