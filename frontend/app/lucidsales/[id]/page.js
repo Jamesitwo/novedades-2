@@ -144,8 +144,18 @@ export default function LucidSalesEditPage() {
     setSaving(true);
     setError('');
     try {
-      await api.post(`/api/lucidsales/pedidos/${id}`, pedido);
+      const { data: updateResult } = await api.post(`/api/lucidsales/pedidos/${id}`, pedido);
+      if (updateResult && updateResult.ok === false) {
+        return showToast(updateResult.msg || updateResult.error || 'Error al actualizar en LucidSales', 'error');
+      }
       await api.post('/api/lucidsales/vincular', { lucidsalesPedidoId: Number(id) });
+      const { data: refreshed } = await api.get(`/api/lucidsales/pedidos/${id}`);
+      if (refreshed && refreshed.id) {
+        setPedido(refreshed);
+        if (refreshed.Departamento != null && refreshed.Departamento !== 0) {
+          await loadCiudades(Number(refreshed.Departamento));
+        }
+      }
       showToast('Pedido actualizado correctamente');
     } catch (err) {
       showToast(err.response?.data?.error || err.message || 'Error al guardar', 'error');
