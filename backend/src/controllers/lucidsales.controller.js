@@ -281,7 +281,8 @@ const buscarOficinaIR = async (req, res) => {
     const { ciudadId } = req.body;
     if (!ciudadId) return res.status(400).json({ ok: false, error: 'ciudadId requerido' });
 
-    const ciudades = JSON.parse(fs.readFileSync(ciudadesPath, 'utf-8'));
+    const raw = fs.readFileSync(ciudadesPath, 'utf-8');
+    const ciudades = JSON.parse(raw.replace(/^\uFEFF/, ''));
     const ciudad = ciudades.find(c => c.id === Number(ciudadId));
     if (!ciudad) return res.status(404).json({ ok: false, error: 'Ciudad no encontrada' });
 
