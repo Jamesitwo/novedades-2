@@ -124,15 +124,11 @@ export default function LucidSalesEditPage() {
     setSaving(true);
     setError('');
     try {
-      const { data } = await api.put(`/api/lucidsales/pedidos/${id}`, pedido);
-      if (data.ok) {
-        await api.post('/api/lucidsales/vincular', { lucidsalesPedidoId: Number(id) }).catch(() => {});
-        showToast('Pedido actualizado correctamente');
-      } else {
-        showToast(data.msg || data.error || 'Error al actualizar', 'error');
-      }
+      await api.put(`/api/lucidsales/pedidos/${id}`, pedido);
+      await api.post('/api/lucidsales/vincular', { lucidsalesPedidoId: Number(id) });
+      showToast('Pedido actualizado correctamente');
     } catch (err) {
-      showToast(err.response?.data?.error || 'Error al guardar', 'error');
+      showToast(err.response?.data?.error || err.message || 'Error al guardar', 'error');
     } finally {
       setSaving(false);
     }

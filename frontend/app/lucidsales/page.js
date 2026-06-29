@@ -28,6 +28,8 @@ export default function LucidSalesPage() {
   const [search, setSearch] = useState('');
   const [itemsPerPage] = useState(50);
   const [estadoFilter, setEstadoFilter] = useState('');
+  const [vincularId, setVincularId] = useState('');
+  const [vinculando, setVinculando] = useState(false);
 
   const fetchPedidos = useCallback(async () => {
     setLoading(true);
@@ -95,6 +97,21 @@ export default function LucidSalesPage() {
     setPage(1);
   };
 
+  const handleVincular = async (e) => {
+    e.preventDefault();
+    if (!vincularId) return;
+    setVinculando(true);
+    try {
+      await api.post('/api/lucidsales/vincular', { lucidsalesPedidoId: Number(vincularId) });
+      setVincularId('');
+      fetchPedidos();
+    } catch (err) {
+      setError(err.response?.data?.error || err.message || 'Error al vincular');
+    } finally {
+      setVinculando(false);
+    }
+  };
+
   return (
     <div className="content">
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
@@ -134,6 +151,23 @@ export default function LucidSalesPage() {
           {conexionStatus.mensaje}. Configura LucidSales en <Link href="/configuracion" style={{ color: 'var(--accent)', textDecoration: 'underline' }}>Configuración</Link>.
         </div>
       )}
+
+      <form onSubmit={handleVincular} style={{ display: 'flex', gap: 8, marginBottom: 12, alignItems: 'center' }}>
+        <input
+          type="number"
+          placeholder="ID de pedido LucidSales"
+          value={vincularId}
+          onChange={e => setVincularId(e.target.value)}
+          className="topbar-search"
+          style={{ width: 200 }}
+        />
+        <button type="submit" disabled={vinculando || !vincularId} className="btn btn-primary" style={{ fontSize: 12 }}>
+          {vinculando ? 'Vinculando...' : 'Vincular pedido'}
+        </button>
+        <button type="button" onClick={fetchPedidos} className="btn btn-ghost" style={{ fontSize: 12 }}>
+          ⟳ Refrescar
+        </button>
+      </form>
 
       <div className="filters">
         <div style={{ display: 'flex', gap: 8 }}>
