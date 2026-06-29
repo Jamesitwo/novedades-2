@@ -139,12 +139,12 @@ async function getPedidoById(id) {
 
 async function updatePedido(pedido) {
   const config = await getConfig();
-  const { token } = await authenticate(config);
+  const { token, shopId } = await authenticate(config);
 
   const body = {
     id: Number(pedido.id),
     idPedido: Number(pedido.idPedido),
-    idEmpresa: Number(pedido.idEmpresa),
+    idEmpresa: Number(shopId),
     Nombre: pedido.Nombre || '',
     Apellido: pedido.Apellido || '',
     NIT: pedido.NIT || '',

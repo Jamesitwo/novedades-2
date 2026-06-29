@@ -25,6 +25,9 @@ const getPedidoById = async (req, res) => {
 const updatePedido = async (req, res) => {
   try {
     const result = await lucidsalesService.updatePedido(req.body);
+    if (result && result.ok === false) {
+      return res.status(400).json({ error: result.msg || result.error || 'Error al actualizar en LucidSales' });
+    }
     res.json(result);
   } catch (error) {
     console.error('LucidSales updatePedido error:', error);
@@ -35,6 +38,9 @@ const updatePedido = async (req, res) => {
 const createPedido = async (req, res) => {
   try {
     const result = await lucidsalesService.createPedido(req.body);
+    if (result && result.ok === false) {
+      return res.status(400).json({ error: result.msg || result.error || 'Error al crear en LucidSales' });
+    }
     res.json(result);
   } catch (error) {
     console.error('LucidSales createPedido error:', error);
