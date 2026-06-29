@@ -194,6 +194,20 @@ const listarVinculados = async (req, res) => {
   }
 };
 
+const guardarLocal = async (req, res) => {
+  try {
+    const { lucidsalesPedidoId, pedido } = req.body;
+    if (!lucidsalesPedidoId || !pedido) {
+      return res.status(400).json({ error: 'lucidsalesPedidoId y pedido son requeridos' });
+    }
+    const result = await lucidsalesService.guardarVinculacionLocal(lucidsalesPedidoId, pedido);
+    res.json({ ok: true, pedido: result });
+  } catch (error) {
+    console.error('guardarLocal error:', error);
+    res.status(500).json({ error: error.message || 'Error al guardar localmente' });
+  }
+};
+
 const getEtiquetas = async (req, res) => {
   try {
     const { id } = req.params;
@@ -275,6 +289,7 @@ module.exports = {
   verificarConexion,
   vincularPedido,
   listarVinculados,
+  guardarLocal,
   getEtiquetas,
   asignarEtiqueta,
   removerEtiqueta

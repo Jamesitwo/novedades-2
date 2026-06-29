@@ -364,6 +364,33 @@ async function crearVinculacion(lucidsalesPedidoId, notas) {
   });
 }
 
+async function guardarVinculacionLocal(lucidsalesPedidoId, pedido) {
+  return prisma.pedidoVinculado.upsert({
+    where: { lucidsalesPedidoId: Number(lucidsalesPedidoId) },
+    update: {
+      lucidsalesIdPedido: Number(pedido.idPedido ?? lucidsalesPedidoId),
+      nombreCliente: pedido.Nombre || '',
+      apellidoCliente: pedido.Apellido || '',
+      movil: pedido.Movil || '',
+      total: String(pedido.Total || '0'),
+      estadoPedido: Number(pedido.EstadoPedido ?? 0),
+      referencias: pedido.Referencias || '',
+      jsonProductos: typeof pedido.Json === 'string' ? pedido.Json : JSON.stringify(pedido.Json || []),
+    },
+    create: {
+      lucidsalesPedidoId: Number(lucidsalesPedidoId),
+      lucidsalesIdPedido: Number(pedido.idPedido ?? lucidsalesPedidoId),
+      nombreCliente: pedido.Nombre || '',
+      apellidoCliente: pedido.Apellido || '',
+      movil: pedido.Movil || '',
+      total: String(pedido.Total || '0'),
+      estadoPedido: Number(pedido.EstadoPedido ?? 0),
+      referencias: pedido.Referencias || '',
+      jsonProductos: typeof pedido.Json === 'string' ? pedido.Json : JSON.stringify(pedido.Json || []),
+    }
+  });
+}
+
 async function listVinculaciones({ page = 1, itemsPerPage = 50, search = '', estadoFilter } = {}) {
   const where = {};
   if (search) {
@@ -439,5 +466,6 @@ module.exports = {
   getCiudadesLocales,
   getDepartamentosLocales,
   crearVinculacion,
+  guardarVinculacionLocal,
   listVinculaciones
 };

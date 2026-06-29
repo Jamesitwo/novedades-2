@@ -200,14 +200,7 @@ export default function LucidSalesEditPage() {
       if (updateResult && updateResult.ok === false) {
         return showToast(updateResult.msg || updateResult.error || 'Error al actualizar en LucidSales', 'error');
       }
-      await api.post('/api/lucidsales/vincular', { lucidsalesPedidoId: Number(id) });
-      const { data: refreshed } = await api.get(`/api/lucidsales/pedidos/${id}`);
-      if (refreshed && refreshed.id) {
-        setPedido(refreshed);
-        if (refreshed.Departamento != null && refreshed.Departamento !== 0) {
-          await loadCiudades(Number(refreshed.Departamento));
-        }
-      }
+      await api.post('/api/lucidsales/guardar-local', { lucidsalesPedidoId: Number(id), pedido });
       showToast('Pedido actualizado correctamente');
       setTimeout(() => router.push('/lucidsales'), 1200);
     } catch (err) {
