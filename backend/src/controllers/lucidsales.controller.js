@@ -53,14 +53,15 @@ const cotizarEnvio = async (req, res) => {
   }
 };
 
-const subirADropi = async (req, res) => {
+const confirmarEnvio = async (req, res) => {
   try {
-    const { pedidoId } = req.body;
-    const result = await lucidsalesService.confirmarIntegracion(pedidoId, 'rocket');
+    const { pedidoId, carrier } = req.body;
+    if (!carrier) return res.status(400).json({ error: 'carrier es requerido' });
+    const result = await lucidsalesService.confirmarIntegracion(pedidoId, carrier);
     res.json(result);
   } catch (error) {
-    console.error('LucidSales subirADropi error:', error);
-    res.status(500).json({ error: error.message || 'Error al subir a Dropi' });
+    console.error('LucidSales confirmarEnvio error:', error);
+    res.status(500).json({ error: error.message || 'Error al confirmar envío' });
   }
 };
 
@@ -188,7 +189,7 @@ module.exports = {
   updatePedido,
   createPedido,
   cotizarEnvio,
-  subirADropi,
+  confirmarEnvio,
   validateAddress,
   getFiltersData,
   getPaises,

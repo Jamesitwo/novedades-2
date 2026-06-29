@@ -7,7 +7,7 @@ router.use(authMiddleware);
 
 router.get('/pedidos', ctrl.getPedidos);
 router.post('/pedidos/cotizar', ctrl.cotizarEnvio);
-router.post('/pedidos/subir-dropi', ctrl.subirADropi);
+router.post('/pedidos/confirmar-envio', ctrl.confirmarEnvio);
 router.post('/pedidos/validate-address', ctrl.validateAddress);
 router.post('/pedidos', ctrl.createPedido);
 router.get('/pedidos/:id', ctrl.getPedidoById);
