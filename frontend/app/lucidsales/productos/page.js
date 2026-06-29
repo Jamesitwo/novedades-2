@@ -21,6 +21,7 @@ const OMIT_FIELDS = new Set([
   'Alto', 'Ancho',
   'Bundle', 'By Id Dropi',
   'Caracteristicas', 'Caracteristicas Name',
+  'Ciudad',
   'Disponibilidad', 'Disponibilidad Producto Landing Page', 'Disponibilidad Producto Lucid Bot',
   'Envio',
   'Fecha Creacion',
