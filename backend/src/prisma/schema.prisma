@@ -325,3 +325,22 @@ model Tarea {
   @@index([estado])
   @@index([asignadoId])
 }
+
+model PedidoVinculado {
+  id                    String   @id @default(uuid())
+  lucidsalesPedidoId    Int      @unique @map("lucidsales_pedido_id")
+  lucidsalesIdPedido    Int?     @map("lucidsales_id_pedido")
+  nombreCliente         String?  @map("nombre_cliente")
+  apellidoCliente       String?  @map("apellido_cliente")
+  movil                 String?
+  total                 String?
+  estadoPedido          Int      @default(0) @map("estado_pedido")
+  referencias           String?
+  jsonProductos         String?  @map("json_productos")
+  notas                 String?
+  estado                String   @default("activo")
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
+
+  @@map("pedidos_vinculados")
+}

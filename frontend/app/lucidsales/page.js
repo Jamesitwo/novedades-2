@@ -28,18 +28,19 @@ export default function LucidSalesPage() {
   const [search, setSearch] = useState('');
   const [itemsPerPage] = useState(50);
   const [estadoFilter, setEstadoFilter] = useState('');
+  const hasFetched = useRef(false);
 
-  const fetchRef = useRef(null);
-
-  const fetchPedidos = useCallback(async () => {
+  const fetchPedidos = useCallback(async (customParams) => {
     setLoading(true);
     setError('');
     try {
-      const params = new URLSearchParams();
-      params.set('page', String(page));
-      params.set('itemsPerPage', String(itemsPerPage));
-      if (search) params.set('search', search);
-      params.set('filters', '[]');
+      const params = customParams || new URLSearchParams();
+      if (!customParams) {
+        params.set('page', String(page));
+        params.set('itemsPerPage', String(itemsPerPage));
+        if (search) params.set('search', search);
+        params.set('filters', '[]');
+      }
 
       const { data } = await api.get(`/api/lucidsales/vinculados?${params.toString()}`);
       if (data.ok) {
@@ -57,10 +58,6 @@ export default function LucidSalesPage() {
   }, [page, search, itemsPerPage]);
 
   useEffect(() => {
-    fetchRef.current = fetchPedidos;
-  }, [fetchPedidos]);
-
-  useEffect(() => {
     setConnected(isConnected());
     const unsub1 = on('__connect__', () => setConnected(true));
     const unsub2 = on('__disconnect__', () => setConnected(false));
@@ -70,6 +67,15 @@ export default function LucidSalesPage() {
   useEffect(() => {
     verificarConexion();
   }, []);
+
+  // Fetch when page/search/estadoFilter change, but not on mount
+  useEffect(() => {
+    if (!hasFetched.current) {
+      hasFetched.current = true;
+      return;
+    }
+    fetchPedidos();
+  }, [page, search, estadoFilter]);
 
   const verificarConexion = async () => {
     try {
@@ -88,13 +94,11 @@ export default function LucidSalesPage() {
   const handleSearchSubmit = (e) => {
     e.preventDefault();
     setPage(1);
-    fetchRef.current();
   };
 
   const handleEstadoFilter = (estado) => {
     setEstadoFilter(estado === estadoFilter ? '' : estado);
     setPage(1);
-    fetchRef.current();
   };
 
   const filteredPedidos = estadoFilter
