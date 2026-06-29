@@ -24,13 +24,27 @@ async function getCiudadesIR() {
   return data;
 }
 
-async function buscarOficinaPrincipal(nombreCiudad) {
+async function buscarOficinaPrincipal(nombreCiudad, departamento) {
   const ciudades = await getCiudadesIR();
   const normalized = normalizarNombre(nombreCiudad);
-  const match = ciudades.find(c => normalizarNombre(c.Descripcion) === normalized);
-  if (!match) {
+
+  const candidates = ciudades.filter(c => {
+    const irName = normalizarNombre(c.Descripcion);
+    if (!irName) return false;
+    return irName.includes(normalized) || normalized.includes(irName);
+  });
+
+  if (candidates.length === 0) {
     throw new Error(`Ciudad "${nombreCiudad}" no encontrada en Inter Rapidísimo`);
   }
+
+  let match = candidates[0];
+  if (candidates.length > 1 && departamento) {
+    const deptoNorm = normalizarNombre(departamento);
+    const byDepto = candidates.find(c => normalizarNombre(c.Departamento).includes(deptoNorm));
+    if (byDepto) match = byDepto;
+  }
+
   const oficinas = await fetchIR(
     `CentroServicio_CV/ObtenerOficinaPrincipalCiudad?idCiudad=${match.IdCiudad}`
   );

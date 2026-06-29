@@ -5,6 +5,12 @@ const path = require('path');
 const fs = require('fs');
 
 const ciudadesPath = path.join(__dirname, '..', 'data', 'lucidsales_ciudades.json');
+const deptosPath = path.join(__dirname, '..', 'data', 'lucidsales_departamentos.json');
+
+function readJsonWithBOM(filePath) {
+  const raw = fs.readFileSync(filePath, 'utf-8');
+  return JSON.parse(raw.replace(/^\uFEFF/, ''));
+}
 
 const getPedidos = async (req, res) => {
   try {
@@ -281,13 +287,15 @@ const buscarOficinaIR = async (req, res) => {
     const { ciudadId } = req.body;
     if (!ciudadId) return res.status(400).json({ ok: false, error: 'ciudadId requerido' });
 
-    const raw = fs.readFileSync(ciudadesPath, 'utf-8');
-    const ciudades = JSON.parse(raw.replace(/^\uFEFF/, ''));
+    const ciudades = readJsonWithBOM(ciudadesPath);
     const ciudad = ciudades.find(c => c.id === Number(ciudadId));
     if (!ciudad) return res.status(404).json({ ok: false, error: 'Ciudad no encontrada' });
 
-    const oficinas = await interrapidisimoService.buscarOficinaPrincipal(ciudad.name);
-    res.json({ ok: true, oficinas, ciudad: ciudad.name });
+    const deptos = readJsonWithBOM(deptosPath);
+    const depto = deptos.find(d => d.id === Number(ciudad.state_id));
+
+    const oficinas = await interrapidisimoService.buscarOficinaPrincipal(ciudad.name, depto?.name);
+    res.json({ ok: true, oficinas, ciudad: ciudad.name, departamento: depto?.name });
   } catch (error) {
     console.error('buscarOficinaIR error:', error);
     res.status(500).json({ ok: false, error: error.message || 'Error al buscar oficina' });
