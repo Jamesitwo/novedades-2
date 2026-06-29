@@ -203,7 +203,6 @@ export default function LucidSalesEditPage() {
       }
       await api.post('/api/lucidsales/guardar-local', { lucidsalesPedidoId: Number(id), pedido });
       showToast('Pedido actualizado correctamente');
-      setTimeout(() => router.push('/lucidsales'), 1200);
     } catch (err) {
       showToast(err.response?.data?.error || err.message || 'Error al guardar', 'error');
     } finally {
