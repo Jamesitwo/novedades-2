@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
 import api from '@/lib/api';
 import { useAuthStore } from '@/store/authStore';
@@ -28,19 +28,17 @@ export default function LucidSalesPage() {
   const [search, setSearch] = useState('');
   const [itemsPerPage] = useState(50);
   const [estadoFilter, setEstadoFilter] = useState('');
-  const hasFetched = useRef(false);
 
-  const fetchPedidos = useCallback(async (customParams) => {
+  const fetchPedidos = useCallback(async () => {
     setLoading(true);
     setError('');
     try {
-      const params = customParams || new URLSearchParams();
-      if (!customParams) {
-        params.set('page', String(page));
-        params.set('itemsPerPage', String(itemsPerPage));
-        if (search) params.set('search', search);
-        params.set('filters', '[]');
-      }
+      const params = new URLSearchParams();
+      params.set('page', String(page));
+      params.set('itemsPerPage', String(itemsPerPage));
+      if (search) params.set('search', search);
+      if (estadoFilter !== '') params.set('estadoFilter', estadoFilter);
+      params.set('filters', '[]');
 
       const { data } = await api.get(`/api/lucidsales/vinculados?${params.toString()}`);
       if (data.ok) {
@@ -55,7 +53,7 @@ export default function LucidSalesPage() {
     } finally {
       setLoading(false);
     }
-  }, [page, search, itemsPerPage]);
+  }, [page, search, itemsPerPage, estadoFilter]);
 
   useEffect(() => {
     setConnected(isConnected());
@@ -68,14 +66,10 @@ export default function LucidSalesPage() {
     verificarConexion();
   }, []);
 
-  // Fetch when page/search/estadoFilter change, but not on mount
+  // Cargar vinculados al montar y cuando cambien page/search
   useEffect(() => {
-    if (!hasFetched.current) {
-      hasFetched.current = true;
-      return;
-    }
     fetchPedidos();
-  }, [page, search, estadoFilter]);
+  }, [fetchPedidos]);
 
   const verificarConexion = async () => {
     try {
@@ -100,10 +94,6 @@ export default function LucidSalesPage() {
     setEstadoFilter(estado === estadoFilter ? '' : estado);
     setPage(1);
   };
-
-  const filteredPedidos = estadoFilter
-    ? pedidos.filter(p => String(p.EstadoPedido) === estadoFilter)
-    : pedidos;
 
   return (
     <div className="content">
@@ -179,7 +169,7 @@ export default function LucidSalesPage() {
           <div style={{ color: 'var(--red)', marginBottom: 12, fontSize: 16 }}>{error}</div>
           <button onClick={fetchPedidos} className="btn btn-primary">Reintentar</button>
         </div>
-      ) : filteredPedidos.length === 0 ? (
+      ) : pedidos.length === 0 ? (
         <div className="table-card" style={{ padding: 40, textAlign: 'center', color: 'var(--text3)' }}>
           No se encontraron pedidos
         </div>
@@ -202,7 +192,7 @@ export default function LucidSalesPage() {
                 </tr>
               </thead>
               <tbody>
-                {filteredPedidos.map((p) => (
+                {pedidos.map((p) => (
                   <tr key={p.id}>
                     <td className="td-mono">#{p.idPedido}</td>
                     <td className="td-name">{p.Nombre} {p.Apellido}</td>

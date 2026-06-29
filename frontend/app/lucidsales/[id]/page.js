@@ -126,6 +126,7 @@ export default function LucidSalesEditPage() {
     try {
       const { data } = await api.put(`/api/lucidsales/pedidos/${id}`, pedido);
       if (data.ok) {
+        await api.post('/api/lucidsales/vincular', { lucidsalesPedidoId: Number(id) }).catch(() => {});
         showToast('Pedido actualizado correctamente');
       } else {
         showToast(data.msg || data.error || 'Error al actualizar', 'error');
