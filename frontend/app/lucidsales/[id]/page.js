@@ -42,10 +42,30 @@ export default function LucidSalesEditPage() {
   const [uploading, setUploading] = useState(false);
 
   const [toast, setToast] = useState(null);
+  const [editProdPrice, setEditProdPrice] = useState(null);
 
   const showToast = (message, type = 'success') => {
     setToast({ message, type });
     setTimeout(() => setToast(null), 4000);
+  };
+
+  const recalcTotalsFromProducts = (jsonStr) => {
+    const items = parseJson(jsonStr);
+    const subTotal = items.reduce((sum, p) => sum + Number(p.price || 0) * Number(p.quantity || 1), 0);
+    const costoEnvio = Number(pedido?.CostoEnvio || 0);
+    return {
+      SubTotal: String(subTotal),
+      CostoEnvio: String(costoEnvio),
+      Total: String(subTotal + costoEnvio)
+    };
+  };
+
+  const handleProductPriceChange = (index, newPrice) => {
+    const items = parseJson(pedido.Json);
+    items[index] = { ...items[index], price: Number(newPrice) };
+    const newJson = JSON.stringify(items);
+    const totals = recalcTotalsFromProducts(newJson);
+    setPedido(prev => ({ ...prev, Json: newJson, ...totals }));
   };
 
   const loadCiudades = async (deptoId) => {
@@ -432,9 +452,9 @@ export default function LucidSalesEditPage() {
                 {productos.map((prod, i) => (
                   <div key={i} style={{
                     display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-                    padding: '8px 12px', background: 'var(--bg3)', borderRadius: 6, fontSize: 13
+                    padding: '8px 12px', background: 'var(--bg3)', borderRadius: 6, fontSize: 13, gap: 8
                   }}>
-                    <div>
+                    <div style={{ flex: 1 }}>
                       <span style={{ color: 'var(--accent)', fontWeight: 500 }}>
                         {productosMap[String(prod.product_id)] || `Producto #${prod.product_id}`}
                       </span>
@@ -447,9 +467,25 @@ export default function LucidSalesEditPage() {
                         </span>
                       )}
                     </div>
-                    <div style={{ color: 'var(--accent2)', fontFamily: 'var(--mono)', fontWeight: 500 }}>
-                      {formatMoneyShort(prod.price)}
-                    </div>
+                    {editProdPrice === i ? (
+                      <input
+                        type="number"
+                        autoFocus
+                        value={prod.price}
+                        onChange={e => handleProductPriceChange(i, e.target.value)}
+                        onBlur={() => setEditProdPrice(null)}
+                        onKeyDown={e => e.key === 'Enter' && setEditProdPrice(null)}
+                        style={{ width: 110, ...inputStyle, textAlign: 'right', fontFamily: 'var(--mono)' }}
+                      />
+                    ) : (
+                      <div
+                        onClick={() => setEditProdPrice(i)}
+                        style={{ color: 'var(--accent2)', fontFamily: 'var(--mono)', fontWeight: 500, cursor: 'pointer', padding: '2px 6px', borderRadius: 4, border: '1px solid transparent' }}
+                        title="Click para editar precio"
+                      >
+                        {formatMoneyShort(prod.price)}
+                      </div>
+                    )}
                   </div>
                 ))}
               </div>
