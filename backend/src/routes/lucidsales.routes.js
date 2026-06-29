@@ -25,5 +25,8 @@ router.get('/verificar-conexion', ctrl.verificarConexion);
 
 router.post('/vincular', ctrl.vincularPedido);
 router.get('/vinculados', ctrl.listarVinculados);
+router.get('/vinculados/:id/etiquetas', ctrl.getEtiquetas);
+router.post('/vinculados/:id/etiquetas', ctrl.asignarEtiqueta);
+router.delete('/vinculados/:id/etiquetas/:etiquetaId', ctrl.removerEtiqueta);
 
 module.exports = router;

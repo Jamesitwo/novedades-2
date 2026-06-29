@@ -43,6 +43,9 @@ export default function LucidSalesEditPage() {
 
   const [toast, setToast] = useState(null);
   const [editProdPrice, setEditProdPrice] = useState(null);
+  const [etiquetas, setEtiquetas] = useState([]);
+  const [todasEtiquetas, setTodasEtiquetas] = useState([]);
+  const [selectedEtiqueta, setSelectedEtiqueta] = useState('');
 
   const showToast = (message, type = 'success') => {
     setToast({ message, type });
@@ -87,16 +90,18 @@ export default function LucidSalesEditPage() {
       setLoading(true);
       setError('');
       try {
-        const [pedidoRes, deptosRes, prodRes] = await Promise.all([
+        const [pedidoRes, deptosRes, prodRes, etiquetasRes] = await Promise.all([
           api.get(`/api/lucidsales/pedidos/${id}`),
           api.get('/api/lucidsales/departamentos-locales'),
-          api.post('/api/lucidsales/productos').catch(() => ({ data: [] }))
+          api.post('/api/lucidsales/productos').catch(() => ({ data: [] })),
+          api.get(`/api/lucidsales/vinculados/${id}/etiquetas`).catch(() => ({ data: [] }))
         ]);
 
         const pedidoData = pedidoRes.data;
 
         if (pedidoData && pedidoData.id) {
           setPedido(pedidoData);
+          setEtiquetas(Array.isArray(etiquetasRes.data) ? etiquetasRes.data : []);
           if (Array.isArray(deptosRes.data)) {
             setDeptos(deptosRes.data.sort((a, b) => a.id - b.id));
           }
@@ -128,6 +133,12 @@ export default function LucidSalesEditPage() {
     };
     fetchData();
   }, [id]);
+
+  useEffect(() => {
+    api.get('/api/etiquetas').then(({ data }) => {
+      if (Array.isArray(data)) setTodasEtiquetas(data);
+    }).catch(() => {});
+  }, []);
 
   const handleChange = (field, value) => {
     if (field === 'SubTotal' || field === 'Total' || field === 'CostoEnvio') {
@@ -574,6 +585,53 @@ export default function LucidSalesEditPage() {
             ))}
           </div>
         )}
+      </div>
+
+      <div className="table-card" style={{ padding: 20, marginTop: 20 }}>
+        <div style={{ fontWeight: 600, fontSize: 14, marginBottom: 12, color: 'var(--text)' }}>
+          Etiquetas
+        </div>
+        <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginBottom: 12 }}>
+          {etiquetas.length > 0 ? etiquetas.map(e => (
+            <span key={e.id} style={{
+              display: 'inline-flex', alignItems: 'center', gap: 6,
+              padding: '4px 10px', borderRadius: 12, fontSize: 12, fontWeight: 600,
+              color: '#fff', background: e.color
+            }}>
+              {e.nombre}
+              <button onClick={async () => {
+                try {
+                  await api.delete(`/api/lucidsales/vinculados/${id}/etiquetas/${e.id}`);
+                  const { data } = await api.get(`/api/lucidsales/vinculados/${id}/etiquetas`);
+                  setEtiquetas(Array.isArray(data) ? data : []);
+                } catch {}
+              }} style={{ background: 'none', border: 'none', color: '#fff', cursor: 'pointer', fontSize: 13, padding: 0, lineHeight: 1 }}>✕</button>
+            </span>
+          )) : (
+            <span style={{ color: 'var(--text3)', fontSize: 13 }}>Sin etiquetas</span>
+          )}
+        </div>
+        <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+          <select value={selectedEtiqueta} onChange={e => setSelectedEtiqueta(e.target.value)}
+            style={{ ...inputStyle, flex: 1, appearance: 'auto', cursor: 'pointer' }}>
+            <option value="">Agregar etiqueta...</option>
+            {todasEtiquetas.filter(e => !etiquetas.some(ne => ne.id === e.id)).map(e => (
+              <option key={e.id} value={e.id}>{e.nombre}</option>
+            ))}
+          </select>
+          <button disabled={!selectedEtiqueta} onClick={async () => {
+            try {
+              await api.post(`/api/lucidsales/vinculados/${id}/etiquetas`, { etiquetaId: selectedEtiqueta });
+              const { data } = await api.get(`/api/lucidsales/vinculados/${id}/etiquetas`);
+              setEtiquetas(Array.isArray(data) ? data : []);
+              setSelectedEtiqueta('');
+            } catch (err) {
+              showToast(err.response?.data?.error || 'Error al asignar etiqueta', 'error');
+            }
+          }} className="btn btn-primary" style={{ fontSize: 12 }}>
+            Agregar
+          </button>
+        </div>
       </div>
     </div>
   );

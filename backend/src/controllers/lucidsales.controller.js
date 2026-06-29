@@ -1,3 +1,4 @@
+const { prisma } = require('../prisma/client');
 const lucidsalesService = require('../services/lucidsales.service');
 
 const getPedidos = async (req, res) => {
@@ -193,6 +194,69 @@ const listarVinculados = async (req, res) => {
   }
 };
 
+const getEtiquetas = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const etiquetas = await prisma.registroEtiqueta.findMany({
+      where: { registroId: String(id), tabla: 'pedidos_vinculados' },
+      include: { etiqueta: { select: { id: true, nombre: true, color: true } } }
+    });
+    res.json(etiquetas.map(e => e.etiqueta));
+  } catch (error) {
+    console.error('getEtiquetas error:', error);
+    res.status(500).json({ error: error.message || 'Error al obtener etiquetas' });
+  }
+};
+
+const asignarEtiqueta = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { etiquetaId } = req.body;
+    const registroId = String(id);
+
+    const existente = await prisma.registroEtiqueta.findFirst({
+      where: { etiquetaId, registroId, tabla: 'pedidos_vinculados' }
+    });
+    if (existente) {
+      return res.status(400).json({ error: 'La etiqueta ya está asignada' });
+    }
+
+    await prisma.registroEtiqueta.create({
+      data: { etiquetaId, registroId, tabla: 'pedidos_vinculados' }
+    });
+
+    const etiquetas = await prisma.registroEtiqueta.findMany({
+      where: { registroId, tabla: 'pedidos_vinculados' },
+      include: { etiqueta: { select: { id: true, nombre: true, color: true } } }
+    });
+
+    res.json(etiquetas.map(e => e.etiqueta));
+  } catch (error) {
+    console.error('Asignar etiqueta error:', error);
+    res.status(500).json({ error: error.message || 'Error en el servidor' });
+  }
+};
+
+const removerEtiqueta = async (req, res) => {
+  try {
+    const { id, etiquetaId } = req.params;
+
+    await prisma.registroEtiqueta.deleteMany({
+      where: { etiquetaId, registroId: String(id), tabla: 'pedidos_vinculados' }
+    });
+
+    const etiquetas = await prisma.registroEtiqueta.findMany({
+      where: { registroId: String(id), tabla: 'pedidos_vinculados' },
+      include: { etiqueta: { select: { id: true, nombre: true, color: true } } }
+    });
+
+    res.json(etiquetas.map(e => e.etiqueta));
+  } catch (error) {
+    console.error('Remover etiqueta error:', error);
+    res.status(500).json({ error: error.message || 'Error en el servidor' });
+  }
+};
+
 module.exports = {
   getPedidos,
   getPedidoById,
@@ -210,5 +274,8 @@ module.exports = {
   getDepartamentosLocales,
   verificarConexion,
   vincularPedido,
-  listarVinculados
+  listarVinculados,
+  getEtiquetas,
+  asignarEtiqueta,
+  removerEtiqueta
 };

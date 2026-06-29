@@ -388,6 +388,19 @@ async function listVinculaciones({ page = 1, itemsPerPage = 50, search = '', est
     })
   ]);
 
+  const ids = pedidos.map(p => String(p.lucidsalesPedidoId));
+  const tagsPorId = {};
+  if (ids.length > 0) {
+    const todas = await prisma.registroEtiqueta.findMany({
+      where: { registroId: { in: ids }, tabla: 'pedidos_vinculados' },
+      include: { etiqueta: { select: { id: true, nombre: true, color: true } } }
+    });
+    todas.forEach(t => {
+      if (!tagsPorId[t.registroId]) tagsPorId[t.registroId] = [];
+      tagsPorId[t.registroId].push(t.etiqueta);
+    });
+  }
+
   return {
     ok: true,
     pedidos: pedidos.map(p => ({
@@ -399,7 +412,8 @@ async function listVinculaciones({ page = 1, itemsPerPage = 50, search = '', est
       Total: p.total || '0',
       EstadoPedido: p.estadoPedido ?? 0,
       Referencias: p.referencias || '',
-      Json: p.jsonProductos || '[]'
+      Json: p.jsonProductos || '[]',
+      _etiquetas: tagsPorId[String(p.lucidsalesPedidoId)] || []
     })),
     totalRecords: total,
     numPages: Math.ceil(total / itemsPerPage)

@@ -229,6 +229,7 @@ export default function LucidSalesPage() {
                   <th>Total</th>
                   <th>Estado</th>
                   <th>Referencias</th>
+                  <th>Etiquetas</th>
                   <th style={{ width: 80 }}></th>
                 </tr>
               </thead>
@@ -246,6 +247,18 @@ export default function LucidSalesPage() {
                     </td>
                     <td style={{ maxWidth: 150, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                       {p.Referencias || '-'}
+                    </td>
+                    <td style={{ maxWidth: 120 }}>
+                      {p._etiquetas && p._etiquetas.length > 0 && (
+                        <div style={{ display: 'flex', gap: 3, flexWrap: 'wrap' }}>
+                          {p._etiquetas.map(e => (
+                            <span key={e.id} style={{
+                              display: 'inline-block', padding: '1px 6px', borderRadius: 10,
+                              fontSize: 10, fontWeight: 600, color: '#fff', background: e.color
+                            }}>{e.nombre}</span>
+                          ))}
+                        </div>
+                      )}
                     </td>
                     <td className="row-actions">
                       <Link href={`/lucidsales/${p.id}`} className="action-btn" title="Editar">
