@@ -198,6 +198,7 @@ export default function LucidSalesEditPage() {
         }
       }
       showToast('Pedido actualizado correctamente');
+      setTimeout(() => router.push('/lucidsales'), 1200);
     } catch (err) {
       showToast(err.response?.data?.error || err.message || 'Error al guardar', 'error');
     } finally {

@@ -73,6 +73,13 @@ export default function LucidSalesPage() {
     fetchPedidos();
   }, [fetchPedidos]);
 
+  // Refrescar al volver a la página (después de editar)
+  useEffect(() => {
+    const onVisible = () => { if (!document.hidden) fetchPedidos(); };
+    document.addEventListener('visibilitychange', onVisible);
+    return () => document.removeEventListener('visibilitychange', onVisible);
+  }, [fetchPedidos]);
+
   const verificarConexion = async () => {
     try {
       const { data } = await api.get('/api/lucidsales/verificar-conexion');
