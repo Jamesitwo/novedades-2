@@ -41,7 +41,7 @@ export default function LucidSalesPage() {
       if (search) params.set('search', search);
       params.set('filters', '[]');
 
-      const { data } = await api.get(`/api/lucidsales/pedidos?${params.toString()}`);
+      const { data } = await api.get(`/api/lucidsales/vinculados?${params.toString()}`);
       if (data.ok) {
         setPedidos(data.pedidos || []);
         setTotalRecords(data.totalRecords || 0);

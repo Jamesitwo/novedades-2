@@ -175,7 +175,8 @@ const vincularPedido = async (req, res) => {
 
 const listarVinculados = async (req, res) => {
   try {
-    const result = await lucidsalesService.listVinculaciones();
+    const { page = 1, itemsPerPage = 50, search = '', estadoFilter } = req.query;
+    const result = await lucidsalesService.listVinculaciones({ page: Number(page), itemsPerPage: Number(itemsPerPage), search, estadoFilter });
     res.json(result);
   } catch (error) {
     console.error('LucidSales listarVinculados error:', error);

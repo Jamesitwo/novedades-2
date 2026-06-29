@@ -322,19 +322,74 @@ function getDepartamentosLocales() {
 
 async function crearVinculacion(lucidsalesPedidoId, notas) {
   const pedido = await getPedidoById(lucidsalesPedidoId);
-  return prisma.pedidoVinculado.create({
-    data: {
+  return prisma.pedidoVinculado.upsert({
+    where: { lucidsalesPedidoId: Number(lucidsalesPedidoId) },
+    update: {
+      lucidsalesIdPedido: pedido.idPedido || null,
+      nombreCliente: pedido.Nombre || '',
+      apellidoCliente: pedido.Apellido || '',
+      movil: pedido.Movil || '',
+      total: pedido.Total || '0',
+      estadoPedido: pedido.EstadoPedido ?? 0,
+      referencias: pedido.Referencias || '',
+      jsonProductos: typeof pedido.Json === 'string' ? pedido.Json : JSON.stringify(pedido.Json || []),
+      notas: notas || null
+    },
+    create: {
       lucidsalesPedidoId: Number(lucidsalesPedidoId),
       lucidsalesIdPedido: pedido.idPedido || null,
+      nombreCliente: pedido.Nombre || '',
+      apellidoCliente: pedido.Apellido || '',
+      movil: pedido.Movil || '',
+      total: pedido.Total || '0',
+      estadoPedido: pedido.EstadoPedido ?? 0,
+      referencias: pedido.Referencias || '',
+      jsonProductos: typeof pedido.Json === 'string' ? pedido.Json : JSON.stringify(pedido.Json || []),
       notas: notas || null
     }
   });
 }
 
-async function listVinculaciones() {
-  return prisma.pedidoVinculado.findMany({
-    orderBy: { createdAt: 'desc' }
-  });
+async function listVinculaciones({ page = 1, itemsPerPage = 50, search = '', estadoFilter } = {}) {
+  const where = {};
+  if (search) {
+    where.OR = [
+      { nombreCliente: { contains: search } },
+      { apellidoCliente: { contains: search } },
+      { movil: { contains: search } },
+      { referencias: { contains: search } },
+    ];
+  }
+  if (estadoFilter !== undefined && estadoFilter !== '' && estadoFilter !== null) {
+    where.estadoPedido = Number(estadoFilter);
+  }
+
+  const [total, pedidos] = await Promise.all([
+    prisma.pedidoVinculado.count({ where }),
+    prisma.pedidoVinculado.findMany({
+      where,
+      skip: (page - 1) * itemsPerPage,
+      take: itemsPerPage,
+      orderBy: { createdAt: 'desc' }
+    })
+  ]);
+
+  return {
+    ok: true,
+    pedidos: pedidos.map(p => ({
+      id: p.lucidsalesPedidoId,
+      idPedido: p.lucidsalesIdPedido || p.lucidsalesPedidoId,
+      Nombre: p.nombreCliente || '',
+      Apellido: p.apellidoCliente || '',
+      Movil: p.movil || '',
+      Total: p.total || '0',
+      EstadoPedido: p.estadoPedido ?? 0,
+      Referencias: p.referencias || '',
+      Json: p.jsonProductos || '[]'
+    })),
+    totalRecords: total,
+    numPages: Math.ceil(total / itemsPerPage)
+  };
 }
 
 module.exports = {
