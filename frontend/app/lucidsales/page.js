@@ -193,7 +193,6 @@ export default function LucidSalesPage() {
                   <th># Pedido</th>
                   <th>Cliente</th>
                   <th>Teléfono</th>
-                  <th>Productos</th>
                   <th>Total</th>
                   <th>Estado</th>
                   <th>Referencias</th>
@@ -206,12 +205,6 @@ export default function LucidSalesPage() {
                     <td className="td-mono">#{p.idPedido}</td>
                     <td className="td-name">{p.Nombre} {p.Apellido}</td>
                     <td>{p.Movil}</td>
-                    <td style={{ maxWidth: 200, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                      {(() => {
-                        try { return JSON.parse(p.Json || '[]').length + ' items'; }
-                        catch { return '-'; }
-                      })()}
-                    </td>
                     <td className="td-mono">{formatMoney(p.Total)}</td>
                     <td>
                       <span className={`badge ${(ESTADOS[p.EstadoPedido] || ESTADOS[0]).class}`}>
