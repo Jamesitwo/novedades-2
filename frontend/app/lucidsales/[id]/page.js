@@ -35,6 +35,7 @@ export default function LucidSalesEditPage() {
   const [ciudades, setCiudades] = useState([]);
   const [loadingGeo, setLoadingGeo] = useState(false);
 
+  const [productosMap, setProductosMap] = useState({});
   const [quoteResult, setQuoteResult] = useState(null);
   const [quoting, setQuoting] = useState(false);
   const [uploading, setUploading] = useState(false);
@@ -65,9 +66,10 @@ export default function LucidSalesEditPage() {
       setLoading(true);
       setError('');
       try {
-        const [pedidoRes, deptosRes] = await Promise.all([
+        const [pedidoRes, deptosRes, prodRes] = await Promise.all([
           api.get(`/api/lucidsales/pedidos/${id}`),
-          api.get('/api/lucidsales/departamentos-locales')
+          api.get('/api/lucidsales/departamentos-locales'),
+          api.post('/api/lucidsales/productos').catch(() => ({ data: [] }))
         ]);
 
         const pedidoData = pedidoRes.data;
@@ -79,6 +81,17 @@ export default function LucidSalesEditPage() {
           }
           if (pedidoData.Departamento != null && pedidoData.Departamento !== 0) {
             await loadCiudades(Number(pedidoData.Departamento));
+          }
+
+          const prodList = Array.isArray(prodRes.data) ? prodRes.data : prodRes.data?.productos || prodRes.data?.data || [];
+          if (prodList.length > 0) {
+            const map = {};
+            prodList.forEach(p => {
+              const key = p.id ?? p.Id;
+              const name = p.nombre || p.name || p.Nombre || p.nombreProducto || '';
+              if (key != null) map[String(key)] = name;
+            });
+            setProductosMap(map);
           }
         } else if (pedidoData && pedidoData.error) {
           setError(pedidoData.error);
@@ -386,8 +399,8 @@ export default function LucidSalesEditPage() {
                     padding: '8px 12px', background: 'var(--bg3)', borderRadius: 6, fontSize: 13
                   }}>
                     <div>
-                      <span style={{ color: 'var(--text2)', fontSize: 11, fontFamily: 'var(--mono)' }}>
-                        ID: {prod.product_id}
+                      <span style={{ color: 'var(--accent)', fontWeight: 500 }}>
+                        {productosMap[String(prod.product_id)] || `Producto #${prod.product_id}`}
                       </span>
                       <span style={{ color: 'var(--text)', marginLeft: 12 }}>
                         x{prod.quantity || 1}
