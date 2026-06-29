@@ -19,7 +19,7 @@ export default function LucidSalesPage() {
   const [pedidos, setPedidos] = useState([]);
   const [totalRecords, setTotalRecords] = useState(0);
   const [numPages, setNumPages] = useState(0);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [connected, setConnected] = useState(false);
   const [conexionStatus, setConexionStatus] = useState(null);
@@ -61,10 +61,6 @@ export default function LucidSalesPage() {
   }, [fetchPedidos]);
 
   useEffect(() => {
-    fetchPedidos();
-  }, [fetchPedidos]);
-
-  useEffect(() => {
     setConnected(isConnected());
     const unsub1 = on('__connect__', () => setConnected(true));
     const unsub2 = on('__disconnect__', () => setConnected(false));
@@ -92,11 +88,13 @@ export default function LucidSalesPage() {
   const handleSearchSubmit = (e) => {
     e.preventDefault();
     setPage(1);
+    fetchRef.current();
   };
 
   const handleEstadoFilter = (estado) => {
     setEstadoFilter(estado === estadoFilter ? '' : estado);
     setPage(1);
+    fetchRef.current();
   };
 
   const filteredPedidos = estadoFilter
