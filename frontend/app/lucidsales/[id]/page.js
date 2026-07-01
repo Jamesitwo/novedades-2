@@ -672,31 +672,46 @@ export default function LucidSalesEditPage() {
           </div>
         </div>
 
-        <div className="table-card" style={{ padding: '8px 10px' }}>
-          <span style={{ fontWeight: 600, fontSize: 12, color: 'var(--text)', marginRight: 8 }}>Inter Rapidísimo</span>
-          <button onClick={handleBuscarIR} disabled={!pedido?.Ciudad || buscandoIR} className="btn btn-primary" style={{ fontSize: 11, marginRight: 6 }}>
-            {buscandoIR ? 'Buscando...' : 'Buscar oficina'}
-          </button>
-          {!pedido?.Ciudad && !buscandoIR && (
-            <span style={{ fontSize: 10, color: 'var(--text3)' }}>Selecciona una ciudad</span>
-          )}
+        <div className="table-card" style={{ padding: 10 }}>
+          <div style={{ fontWeight: 600, fontSize: 13, marginBottom: 4, color: 'var(--text)' }}>
+            Inter Rapidísimo
+          </div>
+          <div style={{ display: 'flex', gap: 6, alignItems: 'center', marginBottom: 4 }}>
+            <button onClick={handleBuscarIR} disabled={!pedido?.Ciudad || buscandoIR} className="btn btn-primary" style={{ fontSize: 11 }}>
+              {buscandoIR ? 'Buscando...' : 'Buscar oficina principal'}
+            </button>
+            {!pedido?.Ciudad && (
+              <span style={{ fontSize: 10, color: 'var(--text3)' }}>Selecciona una ciudad</span>
+            )}
+          </div>
+          {buscandoIR && <div style={{ color: 'var(--text3)', fontSize: 11 }}>Buscando oficinas...</div>}
           {errorIR && (
-            <span style={{ color: 'var(--red)', fontSize: 11, marginLeft: 6 }}>{errorIR}</span>
+            <div style={{ color: 'var(--red)', fontSize: 11, marginTop: 2 }}>{errorIR}</div>
           )}
           {oficinasIR.length > 0 && (
-            <div style={{ marginTop: 6, display: 'flex', flexDirection: 'column', gap: 3 }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 4, marginTop: 2 }}>
               {oficinasIR.map((ofi, i) => (
-                <div key={ofi.IdCentroServicio || i} style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 11 }}>
-                  <span style={{ fontWeight: 600, color: 'var(--text)' }}>{ofi.Nombre || 'Oficina'}</span>
-                  <span style={{ color: 'var(--text2)' }}>
-                    {ofi.Direccion}{ofi.Telefono1 ? ` · ${ofi.Telefono1}` : ''}
-                  </span>
-                  <button onClick={() => handleSeleccionarOficinaIR(ofi)} className="btn btn-ghost" style={{ fontSize: 10, padding: '1px 6px', flexShrink: 0 }}>
-                    Usar
+                <div key={ofi.IdCentroServicio || i} style={{
+                  padding: '5px 8px', background: 'var(--bg3)', borderRadius: 5,
+                  border: '1px solid var(--border)', fontSize: 11
+                }}>
+                  <div style={{ fontWeight: 600, marginBottom: 2 }}>{ofi.Nombre || 'Oficina'}</div>
+                  <div style={{ color: 'var(--text2)', lineHeight: 1.4 }}>
+                    {ofi.Direccion && <span>{ofi.Direccion}</span>}
+                    {ofi.Direccion && ofi.Telefono1 && <span> · </span>}
+                    {ofi.Telefono1 && <span>{ofi.Telefono1}</span>}
+                    {ofi.Barrio && <><br/>{ofi.Barrio}</>}
+                    {ofi.Ciudad && <><br/>{ofi.Ciudad.Descripcion}, {ofi.Ciudad.Departamento}</>}
+                  </div>
+                  <button onClick={() => handleSeleccionarOficinaIR(ofi)} className="btn btn-ghost" style={{ fontSize: 10, marginTop: 4, padding: '2px 8px' }}>
+                    Usar esta oficina
                   </button>
                 </div>
               ))}
             </div>
+          )}
+          {oficinasIR.length === 0 && !buscandoIR && !errorIR && (
+            <div style={{ color: 'var(--text3)', fontSize: 11 }}>Selecciona una ciudad y presiona "Buscar oficina principal"</div>
           )}
         </div>
 
