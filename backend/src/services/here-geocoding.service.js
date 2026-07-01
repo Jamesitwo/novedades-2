@@ -74,8 +74,14 @@ async function geocode(direccion, options = {}) {
   const timeout = setTimeout(() => controller.abort(), options.timeout || 5000);
 
   try {
+    let queryDir = direccion.trim();
+    if (options.ciudad) {
+      queryDir += `, ${options.ciudad}`;
+      if (options.departamento) queryDir += `, ${options.departamento}`;
+    }
+
     const params = new URLSearchParams({
-      q: direccion.trim(),
+      q: queryDir,
       in: `countryCode:${options.pais || 'COL'}`,
       lang: 'es',
       limit: String(options.limit || 3)

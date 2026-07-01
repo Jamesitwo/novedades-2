@@ -235,9 +235,14 @@ export default function LucidSalesEditPage() {
     setValidacion(null);
     setShowValidacion(true);
     try {
+      const ciudadNombre = ciudades.find(c => c.id === Number(pedido.Ciudad))?.name || '';
+      const deptoNombre = deptos.find(d => d.id === Number(pedido.Departamento))?.name || '';
+
       const { data } = await api.post('/api/lucidsales/pedidos/validar-direccion', {
         direccion: pedido.Direccion || '',
-        codigoPostal: pedido.codigoPostal || ''
+        codigoPostal: pedido.codigoPostal || '',
+        ciudad: ciudadNombre,
+        departamento: deptoNombre
       });
       setValidacion(data);
     } catch (err) {
@@ -555,6 +560,17 @@ export default function LucidSalesEditPage() {
                     </button>
                   </div>
 
+                  {validacion.here && validacion.here.exito && validacion.here.ciudad && (
+                    <div style={{ display: 'flex', gap: 12, marginBottom: 6, fontSize: 11, color: 'var(--text2)', flexWrap: 'wrap' }}>
+                      <span>
+                        📍 {[validacion.here.ciudad, validacion.here.departamento].filter(Boolean).join(', ')}
+                      </span>
+                      {validacion.here.codigoPostal && (
+                        <span>📮 {validacion.here.codigoPostal}</span>
+                      )}
+                    </div>
+                  )}
+
                   {validacion.direccionNormalizada && validacion.direccionNormalizada !== pedido.Direccion && (
                     <div style={{
                       padding: '6px 10px', borderRadius: 6, marginBottom: 8,
@@ -611,22 +627,34 @@ export default function LucidSalesEditPage() {
 
                   {validacion.advertencias && validacion.advertencias.length > 0 && (
                     <div style={{ marginBottom: 8 }}>
-                      {validacion.advertencias.map((a, i) => (
-                        <div key={i} style={{
-                          display: 'flex', alignItems: 'flex-start', gap: 6,
-                          padding: '3px 0', color: '#f59e0b', fontSize: 11, lineHeight: 1.5
-                        }}>
-                          <span style={{ flexShrink: 0, marginTop: 1 }}>⚠</span>
-                          <div>
-                            <div>{a.mensaje}</div>
-                            {a.sugerencia && (
-                              <div style={{ color: 'var(--text3)', marginTop: 1 }}>
-                                {a.sugerencia}
-                              </div>
-                            )}
+                      {validacion.advertencias.map((a, i) => {
+                        const isCityConflict = a.codigo === 'CIUDAD_NO_COINCIDE';
+                        return (
+                          <div key={i} style={{
+                            display: 'flex', alignItems: 'flex-start', gap: 6,
+                            padding: isCityConflict ? '6px 10px' : '3px 0',
+                            color: isCityConflict ? '#e53e3e' : '#f59e0b',
+                            fontSize: isCityConflict ? 12 : 11,
+                            fontWeight: isCityConflict ? 500 : 400,
+                            lineHeight: 1.5,
+                            background: isCityConflict ? 'rgba(229,62,62,0.08)' : 'transparent',
+                            borderRadius: isCityConflict ? 6 : 0,
+                            border: isCityConflict ? '1px solid rgba(229,62,62,0.2)' : 'none',
+                          }}>
+                            <span style={{ flexShrink: 0, marginTop: 1 }}>
+                              {isCityConflict ? '🔴' : '⚠'}
+                            </span>
+                            <div>
+                              <div>{a.mensaje}</div>
+                              {a.sugerencia && (
+                                <div style={{ color: 'var(--text3)', marginTop: 1 }}>
+                                  {a.sugerencia}
+                                </div>
+                              )}
+                            </div>
                           </div>
-                        </div>
-                      ))}
+                        );
+                      })}
                     </div>
                   )}
 

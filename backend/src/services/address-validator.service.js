@@ -292,7 +292,7 @@ function validate(direccion, codigoPostal) {
   };
 }
 
-function validateFull(direccion, codigoPostal, geoResult) {
+function validateFull(direccion, codigoPostal, geoResult, pedidoCtx) {
   const local = validate(direccion, codigoPostal);
 
   const sugerencias = [];
@@ -348,24 +348,49 @@ function validateFull(direccion, codigoPostal, geoResult) {
       error: geoResult.error || null
     };
 
-    if (best && best.direccion) {
-      const hereNorm = best.direccion.replace(/,\s*Colombia$/i, '').trim();
-      const originalNorm = direccion.trim();
-      const localNorm = local.normalizada;
+    puntuacionFinal = calcularPuntuacionFinal(local.puntuacion, geoScore.score);
 
-      const isSameAsOriginal = hereNorm.toLowerCase() === originalNorm.toLowerCase();
-      const isSameAsLocal = hereNorm.toLowerCase() === localNorm.toLowerCase();
+    if (pedidoCtx && best) {
+      const { ciudad: ciudadPedido, departamento: deptoPedido } = pedidoCtx;
+      const ciudadGeo = (best.ciudad || '').toLowerCase().trim();
+      const deptoGeo = (best.departamento || '').toLowerCase().trim();
+      const ciudadPed = (ciudadPedido || '').toLowerCase().trim();
+      const deptoPed = (deptoPedido || '').toLowerCase().trim();
 
-      if (!isSameAsOriginal && !isSameAsLocal) {
-        sugerencias.push({
-          tipo: 'here_verified',
-          direccion: hereNorm,
-          label: `Verificada por HERE Maps (${Math.round(best.queryScore * 100)}%)`
-        });
+      if (ciudadPed || deptoPed) {
+        let matchCiudad = true;
+        let matchDepto = true;
+
+        if (ciudadGeo && ciudadPed) {
+          const ciudadGeoCorta = ciudadGeo.split(',')[0].trim();
+          const ciudadPedCorta = ciudadPed.split(',')[0].trim();
+          matchCiudad = ciudadGeoCorta === ciudadPedCorta || ciudadGeoCorta.includes(ciudadPedCorta) || ciudadPedCorta.includes(ciudadGeoCorta);
+        }
+
+        if (deptoGeo && deptoPed) {
+          const deptoGeoCorta = deptoGeo.split(',')[0].trim();
+          const deptoPedCorta = deptoPed.split(',')[0].trim();
+          matchDepto = deptoGeoCorta === deptoPedCorta || deptoGeoCorta.includes(deptoPedCorta) || deptoPedCorta.includes(deptoGeoCorta);
+        }
+
+        const partes = [];
+        if (!matchCiudad && ciudadGeo && ciudadPed) {
+          partes.push(`la ciudad geocodificada es "${best.ciudad}" pero el pedido indica "${ciudadPedido}"`);
+        }
+        if (!matchDepto && deptoGeo && deptoPed) {
+          partes.push(`el departamento geocodificado es "${best.departamento}" pero el pedido indica "${deptoPedido}"`);
+        }
+
+        if (partes.length > 0) {
+          local.advertencias.push({
+            codigo: 'CIUDAD_NO_COINCIDE',
+            mensaje: `La dirección no coincide con la ubicación del pedido: ${partes.join(' y ')}`,
+            sugerencia: null
+          });
+          puntuacionFinal = Math.max(0, puntuacionFinal - 20);
+        }
       }
     }
-
-    puntuacionFinal = calcularPuntuacionFinal(local.puntuacion, geoScore.score);
   }
 
   return {

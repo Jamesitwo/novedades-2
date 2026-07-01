@@ -102,17 +102,17 @@ const validateAddress = async (req, res) => {
 
 const validarDireccion = async (req, res) => {
   try {
-    const { direccion, codigoPostal } = req.body;
+    const { direccion, codigoPostal, ciudad, departamento } = req.body;
 
     let geoResult = null;
     let provider = 'none';
 
-    const googleResult = await googleGeocoding.geocode(direccion || '');
+    const googleResult = await googleGeocoding.geocode(direccion || '', { ciudad, departamento });
     if (googleResult.exito) {
       geoResult = googleResult;
       provider = 'google';
     } else {
-      const hereResult = await hereGeocoding.geocode(direccion || '');
+      const hereResult = await hereGeocoding.geocode(direccion || '', { ciudad, departamento });
       if (hereResult.exito) {
         geoResult = hereResult;
         provider = 'here';
@@ -122,7 +122,8 @@ const validarDireccion = async (req, res) => {
     const result = addressValidator.validateFull(
       direccion || '',
       codigoPostal || '',
-      geoResult
+      geoResult,
+      { ciudad, departamento }
     );
 
     result.provider = provider;
