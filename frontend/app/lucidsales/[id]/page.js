@@ -672,38 +672,37 @@ export default function LucidSalesEditPage() {
           </div>
         </div>
 
-        <div className="table-card" style={{ padding: 10 }}>
-          <div style={{ fontWeight: 600, fontSize: 13, marginBottom: 4, color: 'var(--text)' }}>
+        <div className="table-card" style={{ padding: 14 }}>
+          <div style={{ fontWeight: 600, fontSize: 14, marginBottom: 8, color: 'var(--text)' }}>
             Inter Rapidísimo
           </div>
-          <div style={{ display: 'flex', gap: 6, alignItems: 'center', marginBottom: 4 }}>
-            <button onClick={handleBuscarIR} disabled={!pedido?.Ciudad || buscandoIR} className="btn btn-primary" style={{ fontSize: 11 }}>
+          <div style={{ display: 'flex', gap: 8, alignItems: 'center', marginBottom: 6 }}>
+            <button onClick={handleBuscarIR} disabled={!pedido?.Ciudad || buscandoIR} className="btn btn-primary" style={{ fontSize: 12 }}>
               {buscandoIR ? 'Buscando...' : 'Buscar oficina principal'}
             </button>
             {!pedido?.Ciudad && (
-              <span style={{ fontSize: 10, color: 'var(--text3)' }}>Selecciona una ciudad</span>
+              <span style={{ fontSize: 11, color: 'var(--text3)' }}>Selecciona una ciudad primero</span>
             )}
           </div>
-          {buscandoIR && <div style={{ color: 'var(--text3)', fontSize: 11 }}>Buscando oficinas...</div>}
+          {buscandoIR && <div style={{ color: 'var(--text3)', fontSize: 13 }}>Buscando oficinas...</div>}
           {errorIR && (
-            <div style={{ color: 'var(--red)', fontSize: 11, marginTop: 2 }}>{errorIR}</div>
+            <div style={{ color: 'var(--red)', fontSize: 13, marginTop: 4 }}>{errorIR}</div>
           )}
           {oficinasIR.length > 0 && (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 4, marginTop: 2 }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 6, marginTop: 4 }}>
               {oficinasIR.map((ofi, i) => (
                 <div key={ofi.IdCentroServicio || i} style={{
-                  padding: '5px 8px', background: 'var(--bg3)', borderRadius: 5,
-                  border: '1px solid var(--border)', fontSize: 11
+                  padding: '6px 10px', background: 'var(--bg3)', borderRadius: 6,
+                  border: '1px solid var(--border)', fontSize: 12
                 }}>
-                  <div style={{ fontWeight: 600, marginBottom: 2 }}>{ofi.Nombre || 'Oficina'}</div>
-                  <div style={{ color: 'var(--text2)', lineHeight: 1.4 }}>
-                    {ofi.Direccion && <span>{ofi.Direccion}</span>}
-                    {ofi.Direccion && ofi.Telefono1 && <span> · </span>}
-                    {ofi.Telefono1 && <span>{ofi.Telefono1}</span>}
-                    {ofi.Barrio && <><br/>{ofi.Barrio}</>}
-                    {ofi.Ciudad && <><br/>{ofi.Ciudad.Descripcion}, {ofi.Ciudad.Departamento}</>}
+                  <div style={{ fontWeight: 600, marginBottom: 3 }}>{ofi.Nombre || 'Oficina'}</div>
+                  <div style={{ color: 'var(--text2)', lineHeight: 1.5 }}>
+                    {ofi.Direccion && <div>📍 {ofi.Direccion}</div>}
+                    {ofi.Telefono1 && <div>📞 {ofi.Telefono1}</div>}
+                    {ofi.Barrio && <div>🏘️ {ofi.Barrio}</div>}
+                    {ofi.Ciudad && <div>📍 {ofi.Ciudad.Descripcion}, {ofi.Ciudad.Departamento}</div>}
                   </div>
-                  <button onClick={() => handleSeleccionarOficinaIR(ofi)} className="btn btn-ghost" style={{ fontSize: 10, marginTop: 4, padding: '2px 8px' }}>
+                  <button onClick={() => handleSeleccionarOficinaIR(ofi)} className="btn btn-ghost" style={{ fontSize: 11, marginTop: 6 }}>
                     Usar esta oficina
                   </button>
                 </div>
@@ -711,7 +710,7 @@ export default function LucidSalesEditPage() {
             </div>
           )}
           {oficinasIR.length === 0 && !buscandoIR && !errorIR && (
-            <div style={{ color: 'var(--text3)', fontSize: 11 }}>Selecciona una ciudad y presiona "Buscar oficina principal"</div>
+            <div style={{ color: 'var(--text3)', fontSize: 13 }}>Selecciona una ciudad y presiona "Buscar oficina principal"</div>
           )}
         </div>
 
