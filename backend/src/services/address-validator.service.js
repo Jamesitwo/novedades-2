@@ -298,15 +298,6 @@ function validateFull(direccion, geoResult, pedidoCtx) {
     }
   }
 
-  const sugeridaCompacta = sugerirFormatoCompacto(direccion, local.viaDetectada);
-  if (sugeridaCompacta && sugeridaCompacta !== local.normalizada) {
-    sugerencias.push({
-      tipo: 'compacto',
-      direccion: sugeridaCompacta,
-      label: 'Formato compacto (abreviado)'
-    });
-  }
-
   let here = null;
   let puntuacionFinal = local.puntuacion;
 
@@ -330,6 +321,23 @@ function validateFull(direccion, geoResult, pedidoCtx) {
       lng: best?.lng || 0,
       error: geoResult.error || null
     };
+
+    if (best && best.direccion) {
+      const hereNorm = best.direccion.replace(/,\s*Colombia$/i, '').trim();
+      const originalNorm = direccion.trim();
+      const localNorm = local.normalizada;
+
+      const isSameAsOriginal = hereNorm.toLowerCase() === originalNorm.toLowerCase();
+      const isSameAsLocal = hereNorm.toLowerCase() === localNorm.toLowerCase();
+
+      if (!isSameAsOriginal && !isSameAsLocal) {
+        sugerencias.push({
+          tipo: 'here_verified',
+          direccion: hereNorm,
+          label: `Verificada por HERE Maps (${Math.round(best.queryScore * 100)}%)`
+        });
+      }
+    }
 
     puntuacionFinal = calcularPuntuacionFinal(local.puntuacion, geoScore.score);
 
@@ -397,20 +405,6 @@ function calcularPuntuacionFinal(scoreLocal, scoreGeo) {
   const geoPart = (scoreGeo / 50) * 100 * geoWeight;
 
   return Math.max(0, Math.min(100, Math.round(localPart + geoPart)));
-}
-
-function sugerirFormatoCompacto(direccion, via) {
-  if (!via) return null;
-  let d = direccion.trim();
-  d = d.replace(via.regex, via.abbr);
-  d = d.replace(/\s+/g, ' ');
-  d = d.replace(/#\s*/g, '#');
-  d = d.replace(/\s*-\s*/g, '-');
-  COMPLEMENTOS.forEach(c => {
-    const regex = new RegExp(`\\b${c.regex.source}`, 'i');
-    d = d.replace(regex, c.canonical);
-  });
-  return d.trim();
 }
 
 module.exports = {
