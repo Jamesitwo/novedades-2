@@ -63,6 +63,9 @@ export default function LucidSalesEditPage() {
   const [validacion, setValidacion] = useState(null);
   const [showValidacion, setShowValidacion] = useState(false);
 
+  const [showCotizador, setShowCotizador] = useState(false);
+  const [showIR, setShowIR] = useState(false);
+
   const showToast = (message, type = 'success') => {
     setToast({ message, type });
     setTimeout(() => setToast(null), 4000);
@@ -672,96 +675,111 @@ export default function LucidSalesEditPage() {
           </div>
         </div>
 
-        <div className="table-card" style={{ padding: 14 }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
-            <div style={{ fontWeight: 600, fontSize: 14, color: 'var(--text)' }}>
-              Cotizar envío con Dropi
-            </div>
-            <button onClick={handleQuote} disabled={quoting} className="btn btn-primary" style={{ fontSize: 12 }}>
+        <div className="table-card" style={{ padding: '8px 12px', cursor: 'pointer', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }} onClick={() => setShowCotizador(!showCotizador)}>
+          <span style={{ fontWeight: 600, fontSize: 13, color: 'var(--text)' }}>
+            Cotizar envío con Dropi {showCotizador ? '▲' : '▼'}
+          </span>
+          {!showCotizador && (
+            <button onClick={e => { e.stopPropagation(); setShowCotizador(true); handleQuote(); }} disabled={quoting} className="btn btn-primary" style={{ fontSize: 11 }}>
               {quoting ? 'Cotizando...' : 'Cotizar'}
             </button>
-          </div>
-
-          {quotes?.error && (
-            <div style={{ color: 'var(--red)', fontSize: 13, padding: 12, background: 'var(--bg3)', borderRadius: 8 }}>
-              {quotes.error}
-            </div>
-          )}
-
-          {quotes?.quotes && quotes.quotes.length > 0 && (
-            <>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginBottom: 16 }}>
-                {quotes.quotes.map((q, i) => {
-                  const hasError = !!q.error;
-                  const selected = selectedQuoteIdx === i;
-                  return (
-                    <div key={i} onClick={() => !hasError && setSelectedQuoteIdx(i)} style={{
-                      display: 'flex', alignItems: 'center', gap: 12,
-                      padding: '10px 14px', borderRadius: 8, cursor: hasError ? 'default' : 'pointer',
-                      border: selected ? '2px solid var(--accent)' : '1px solid var(--border)',
-                      background: selected ? 'var(--accent-bg)' : 'var(--bg3)',
-                      opacity: hasError ? 0.5 : 1
-                    }}>
-                      <div style={{ width: 20 }}>
-                        {selected && <span style={{ color: 'var(--accent)' }}>✓</span>}
-                      </div>
-                      <div style={{ flex: 1 }}>
-                        <div style={{ fontWeight: 600, fontSize: 13 }}>{q.transportadora}</div>
-                        {q.objects && (
-                          <div style={{ fontSize: 12, color: 'var(--text2)', marginTop: 2 }}>
-                            {q.objects.precioEnvio != null && (
-                              <span style={{ fontWeight: 500, color: 'var(--accent2)', marginRight: 12 }}>
-                                {formatMoney(q.objects.precioEnvio)}
-                              </span>
-                            )}
-                            {q.objects.trayecto && <span style={{ marginRight: 8 }}>{q.objects.trayecto}</span>}
-                            {q.objects.seguroEnvio != null && (
-                              <span>Seguro: {formatMoney(q.objects.seguroEnvio)}</span>
-                            )}
-                          </div>
-                        )}
-                        {hasError && <div style={{ fontSize: 11, color: 'var(--red)', marginTop: 2 }}>{q.error}</div>}
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-              {selectedQuoteIdx != null && (
-                <button onClick={handleUpload} disabled={uploading} className="btn btn-success" style={{ fontSize: 12 }}>
-                  {uploading ? 'Subiendo...' : `↑ Subir pedido con ${quotes.quotes[selectedQuoteIdx].transportadora}`}
-                </button>
-              )}
-            </>
-          )}
-
-          {quotes && !quotes.error && (!quotes.quotes || quotes.quotes.length === 0) && (
-            <div style={{ color: 'var(--text3)', fontSize: 13 }}>No hay cotizaciones disponibles</div>
           )}
         </div>
 
+        {showCotizador && (
+          <div className="table-card" style={{ padding: 14, borderTop: 'none', borderTopLeftRadius: 0, borderTopRightRadius: 0 }}>
+            <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 8 }}>
+              <button onClick={() => { if (!quoting) handleQuote(); }} disabled={quoting} className="btn btn-primary" style={{ fontSize: 11 }}>
+                {quoting ? 'Cotizando...' : quotes?.quotes ? '⟳ Re-cotizar' : 'Cotizar'}
+              </button>
+            </div>
+
+            {quotes?.error && (
+              <div style={{ color: 'var(--red)', fontSize: 13, padding: 12, background: 'var(--bg3)', borderRadius: 8 }}>
+                {quotes.error}
+              </div>
+            )}
+
+            {quotes?.quotes && quotes.quotes.length > 0 && (
+              <>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginBottom: 16 }}>
+                  {quotes.quotes.map((q, i) => {
+                    const hasError = !!q.error;
+                    const selected = selectedQuoteIdx === i;
+                    return (
+                      <div key={i} onClick={() => !hasError && setSelectedQuoteIdx(i)} style={{
+                        display: 'flex', alignItems: 'center', gap: 12,
+                        padding: '10px 14px', borderRadius: 8, cursor: hasError ? 'default' : 'pointer',
+                        border: selected ? '2px solid var(--accent)' : '1px solid var(--border)',
+                        background: selected ? 'var(--accent-bg)' : 'var(--bg3)',
+                        opacity: hasError ? 0.5 : 1
+                      }}>
+                        <div style={{ width: 20 }}>
+                          {selected && <span style={{ color: 'var(--accent)' }}>✓</span>}
+                        </div>
+                        <div style={{ flex: 1 }}>
+                          <div style={{ fontWeight: 600, fontSize: 13 }}>{q.transportadora}</div>
+                          {q.objects && (
+                            <div style={{ fontSize: 12, color: 'var(--text2)', marginTop: 2 }}>
+                              {q.objects.precioEnvio != null && (
+                                <span style={{ fontWeight: 500, color: 'var(--accent2)', marginRight: 12 }}>
+                                  {formatMoney(q.objects.precioEnvio)}
+                                </span>
+                              )}
+                              {q.objects.trayecto && <span style={{ marginRight: 8 }}>{q.objects.trayecto}</span>}
+                              {q.objects.seguroEnvio != null && (
+                                <span>Seguro: {formatMoney(q.objects.seguroEnvio)}</span>
+                              )}
+                            </div>
+                          )}
+                          {hasError && <div style={{ fontSize: 11, color: 'var(--red)', marginTop: 2 }}>{q.error}</div>}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+                {selectedQuoteIdx != null && (
+                  <button onClick={handleUpload} disabled={uploading} className="btn btn-success" style={{ fontSize: 12 }}>
+                    {uploading ? 'Subiendo...' : `↑ Subir pedido con ${quotes.quotes[selectedQuoteIdx].transportadora}`}
+                  </button>
+                )}
+              </>
+            )}
+
+            {quotes && !quotes.error && (!quotes.quotes || quotes.quotes.length === 0) && (
+              <div style={{ color: 'var(--text3)', fontSize: 13 }}>No hay cotizaciones disponibles</div>
+            )}
+          </div>
+        )}
+
         <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
           <div className="table-card" style={{ padding: 20 }}>
-            <div style={{ fontWeight: 600, fontSize: 14, marginBottom: 16, color: 'var(--text)' }}>
+            <div style={{ fontWeight: 600, fontSize: 14, marginBottom: 16, color: 'var(--text)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               Datos del pedido
-            </div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 16, padding: '6px 10px', background: 'var(--bg3)', borderRadius: 6, fontSize: 12 }}>
-              <span style={{ fontWeight: 600, color: 'var(--text)', whiteSpace: 'nowrap' }}>Inter Rapidísimo</span>
-              <button onClick={handleBuscarIR} disabled={!pedido?.Ciudad || buscandoIR} className="btn btn-primary" style={{ fontSize: 11 }}>
-                {buscandoIR ? 'Buscando...' : 'Buscar oficina'}
+              <button onClick={() => { setShowIR(!showIR); if (!showIR) handleBuscarIR(); }} className="btn btn-ghost" style={{ fontSize: 11, padding: '4px 10px' }}>
+                Inter Rapidísimo {showIR ? '▲' : '▼'}
               </button>
-              {!pedido?.Ciudad && !buscandoIR && (
-                <span style={{ fontSize: 10, color: 'var(--text3)' }}>Selecciona una ciudad</span>
-              )}
-              {buscandoIR && <span style={{ fontSize: 10, color: 'var(--text3)' }}>Buscando...</span>}
-              {errorIR && <span style={{ color: 'var(--red)', fontSize: 11 }}>{errorIR}</span>}
-              {oficinasIR.map((ofi, i) => (
-                <span key={ofi.IdCentroServicio || i} style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
-                  <span style={{ fontWeight: 600 }}>{ofi.Nombre}</span>
-                  <span style={{ color: 'var(--text2)' }}>{ofi.Direccion}{ofi.Telefono1 ? ` · ${ofi.Telefono1}` : ''}</span>
-                  <button onClick={() => handleSeleccionarOficinaIR(ofi)} className="btn btn-ghost" style={{ fontSize: 10, padding: '1px 6px' }}>Usar</button>
-                </span>
-              ))}
             </div>
+
+            {showIR && (
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 16, padding: '6px 10px', background: 'var(--bg3)', borderRadius: 6, fontSize: 12 }}>
+                <button onClick={handleBuscarIR} disabled={!pedido?.Ciudad || buscandoIR} className="btn btn-primary" style={{ fontSize: 11 }}>
+                  {buscandoIR ? 'Buscando...' : 'Buscar oficina'}
+                </button>
+                {!pedido?.Ciudad && !buscandoIR && (
+                  <span style={{ fontSize: 10, color: 'var(--text3)' }}>Selecciona una ciudad</span>
+                )}
+                {buscandoIR && <span style={{ fontSize: 10, color: 'var(--text3)' }}>Buscando...</span>}
+                {errorIR && <span style={{ color: 'var(--red)', fontSize: 11 }}>{errorIR}</span>}
+                {oficinasIR.map((ofi, i) => (
+                  <span key={ofi.IdCentroServicio || i} style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+                    <span style={{ fontWeight: 600 }}>{ofi.Nombre}</span>
+                    <span style={{ color: 'var(--text2)' }}>{ofi.Direccion}{ofi.Telefono1 ? ` · ${ofi.Telefono1}` : ''}</span>
+                    <button onClick={() => handleSeleccionarOficinaIR(ofi)} className="btn btn-ghost" style={{ fontSize: 10, padding: '1px 6px' }}>Usar</button>
+                  </span>
+                ))}
+              </div>
+            )}
             <div className="form-grid">
               <div className="form-group">
                 <label className="form-field-label">Estado</label>
