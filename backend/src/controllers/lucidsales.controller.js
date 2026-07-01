@@ -102,7 +102,7 @@ const validateAddress = async (req, res) => {
 
 const validarDireccion = async (req, res) => {
   try {
-    const { direccion, codigoPostal, ciudad, departamento } = req.body;
+    const { direccion, ciudad, departamento } = req.body;
 
     let geoResult = null;
     let provider = 'none';
@@ -121,7 +121,6 @@ const validarDireccion = async (req, res) => {
 
     const result = addressValidator.validateFull(
       direccion || '',
-      codigoPostal || '',
       geoResult,
       { ciudad, departamento }
     );

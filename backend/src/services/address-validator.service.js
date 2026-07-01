@@ -172,18 +172,6 @@ function validarEstructuraColombiana(direccion) {
   return advertencias;
 }
 
-function validarCodigoPostalColombiano(codigoPostal) {
-  if (!codigoPostal) return [];
-  if (!/^\d{6}$/.test(String(codigoPostal))) {
-    return [{
-      codigo: 'CP_INVALIDO',
-      mensaje: 'El código postal colombiano debe tener 6 dígitos',
-      sugerencia: null
-    }];
-  }
-  return [];
-}
-
 function validarComplementos(direccion) {
   const advertencias = [];
   const upper = direccion.toUpperCase();
@@ -235,7 +223,7 @@ function puntuarDireccion(direccion, via, errores, advertencias) {
   return Math.max(0, Math.min(100, score));
 }
 
-function validate(direccion, codigoPostal) {
+function validate(direccion) {
   const errores = [];
   const advertencias = [];
 
@@ -272,11 +260,6 @@ function validate(direccion, codigoPostal) {
   const advertenciasEstructura = validarEstructuraColombiana(direccion);
   advertenciasEstructura.forEach(a => advertencias.push(a));
 
-  if (codigoPostal !== undefined) {
-    const cpErrores = validarCodigoPostalColombiano(codigoPostal);
-    cpErrores.forEach(e => advertencias.push(e));
-  }
-
   const advertenciasComplementos = validarComplementos(direccion);
   advertenciasComplementos.forEach(a => advertencias.push(a));
 
@@ -292,8 +275,8 @@ function validate(direccion, codigoPostal) {
   };
 }
 
-function validateFull(direccion, codigoPostal, geoResult, pedidoCtx) {
-  const local = validate(direccion, codigoPostal);
+function validateFull(direccion, geoResult, pedidoCtx) {
+  const local = validate(direccion);
 
   const sugerencias = [];
 

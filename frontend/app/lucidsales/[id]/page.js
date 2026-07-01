@@ -240,7 +240,6 @@ export default function LucidSalesEditPage() {
 
       const { data } = await api.post('/api/lucidsales/pedidos/validar-direccion', {
         direccion: pedido.Direccion || '',
-        codigoPostal: pedido.codigoPostal || '',
         ciudad: ciudadNombre,
         departamento: deptoNombre
       });
@@ -565,9 +564,6 @@ export default function LucidSalesEditPage() {
                       <span>
                         📍 {[validacion.here.ciudad, validacion.here.departamento].filter(Boolean).join(', ')}
                       </span>
-                      {validacion.here.codigoPostal && (
-                        <span>📮 {validacion.here.codigoPostal}</span>
-                      )}
                     </div>
                   )}
 
@@ -678,7 +674,7 @@ export default function LucidSalesEditPage() {
                               </div>
                               {isHere && validacion.here?.ciudad && (
                                 <div style={{ fontSize: 10, color: 'var(--text3)', marginTop: 1 }}>
-                                  {[validacion.here.ciudad, validacion.here.departamento, validacion.here.codigoPostal].filter(Boolean).join(', ')}
+                                  {[validacion.here.ciudad, validacion.here.departamento].filter(Boolean).join(', ')}
                                 </div>
                               )}
                               <div style={{
