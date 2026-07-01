@@ -1,6 +1,9 @@
 const { prisma } = require('../prisma/client');
 const lucidsalesService = require('../services/lucidsales.service');
 const interrapidisimoService = require('../services/interrapidisimo.service');
+const addressValidator = require('../services/address-validator.service');
+const googleGeocoding = require('../services/google-geocoding.service');
+const hereGeocoding = require('../services/here-geocoding.service');
 const path = require('path');
 const fs = require('fs');
 
@@ -93,6 +96,40 @@ const validateAddress = async (req, res) => {
     res.json(result);
   } catch (error) {
     console.error('LucidSales validateAddress error:', error);
+    res.status(500).json({ error: error.message || 'Error al validar dirección' });
+  }
+};
+
+const validarDireccion = async (req, res) => {
+  try {
+    const { direccion, codigoPostal } = req.body;
+
+    let geoResult = null;
+    let provider = 'none';
+
+    const googleResult = await googleGeocoding.geocode(direccion || '');
+    if (googleResult.exito) {
+      geoResult = googleResult;
+      provider = 'google';
+    } else {
+      const hereResult = await hereGeocoding.geocode(direccion || '');
+      if (hereResult.exito) {
+        geoResult = hereResult;
+        provider = 'here';
+      }
+    }
+
+    const result = addressValidator.validateFull(
+      direccion || '',
+      codigoPostal || '',
+      geoResult
+    );
+
+    result.provider = provider;
+
+    res.json(result);
+  } catch (error) {
+    console.error('validarDireccion error:', error);
     res.status(500).json({ error: error.message || 'Error al validar dirección' });
   }
 };
@@ -310,6 +347,7 @@ module.exports = {
   cotizarEnvio,
   confirmarEnvio,
   validateAddress,
+  validarDireccion,
   getFiltersData,
   getPaises,
   getDepartamentos,

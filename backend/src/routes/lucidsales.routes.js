@@ -9,6 +9,7 @@ router.get('/pedidos', ctrl.getPedidos);
 router.post('/pedidos/cotizar', ctrl.cotizarEnvio);
 router.post('/pedidos/confirmar-envio', ctrl.confirmarEnvio);
 router.post('/pedidos/validate-address', ctrl.validateAddress);
+router.post('/pedidos/validar-direccion', ctrl.validarDireccion);
 router.post('/pedidos', ctrl.createPedido);
 router.get('/pedidos/:id', ctrl.getPedidoById);
 router.post('/pedidos/:id', ctrl.updatePedido);

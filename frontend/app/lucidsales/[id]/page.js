@@ -21,6 +21,15 @@ const CSS_BADGE = {
   3: 'purple'
 };
 
+const GEOFIX_BADGE = {
+  exact: { label: 'Dirección exacta', bg: 'rgba(34,200,122,0.12)', color: '#22c87a', border: 'rgba(34,200,122,0.3)' },
+  houseNumber: { label: 'Número encontrado', bg: 'rgba(34,200,122,0.08)', color: '#22c87a', border: 'rgba(34,200,122,0.2)' },
+  street: { label: 'Calle encontrada', bg: 'rgba(245,158,11,0.1)', color: '#f59e0b', border: 'rgba(245,158,11,0.25)' },
+  intersection: { label: 'Intersección', bg: 'rgba(245,158,11,0.07)', color: '#f59e0b', border: 'rgba(245,158,11,0.15)' },
+  locality: { label: 'Ciudad/Barrio', bg: 'rgba(139,139,155,0.1)', color: '#8b8b9b', border: 'rgba(139,139,155,0.2)' },
+  area: { label: 'Zona aproximada', bg: 'rgba(139,139,155,0.07)', color: '#8b8b9b', border: 'rgba(139,139,155,0.12)' }
+};
+
 export default function LucidSalesEditPage() {
   const params = useParams();
   const router = useRouter();
@@ -49,6 +58,10 @@ export default function LucidSalesEditPage() {
   const [oficinasIR, setOficinasIR] = useState([]);
   const [buscandoIR, setBuscandoIR] = useState(false);
   const [errorIR, setErrorIR] = useState('');
+
+  const [validando, setValidando] = useState(false);
+  const [validacion, setValidacion] = useState(null);
+  const [showValidacion, setShowValidacion] = useState(false);
 
   const showToast = (message, type = 'success') => {
     setToast({ message, type });
@@ -215,6 +228,30 @@ export default function LucidSalesEditPage() {
     } finally {
       setBuscandoIR(false);
     }
+  };
+
+  const handleValidarDireccion = async () => {
+    setValidando(true);
+    setValidacion(null);
+    setShowValidacion(true);
+    try {
+      const { data } = await api.post('/api/lucidsales/pedidos/validar-direccion', {
+        direccion: pedido.Direccion || '',
+        codigoPostal: pedido.codigoPostal || ''
+      });
+      setValidacion(data);
+    } catch (err) {
+      setValidacion({ valida: false, errores: [{ codigo: 'ERROR', mensaje: err.response?.data?.error || err.message }], advertencias: [], sugerencias: [], puntuacion: 0 });
+    } finally {
+      setValidando(false);
+    }
+  };
+
+  const handleAplicarDireccion = (nuevaDireccion) => {
+    if (!nuevaDireccion) return;
+    setPedido(prev => ({ ...prev, Direccion: nuevaDireccion }));
+    setShowValidacion(false);
+    setValidacion(null);
   };
 
   const handleSeleccionarOficinaIR = (ofi) => {
@@ -453,7 +490,197 @@ export default function LucidSalesEditPage() {
             </div>
             <div className="form-group span2">
               <label className="form-field-label">Dirección</label>
-              <input type="text" value={pedido.Direccion || ''} onChange={e => handleChange('Direccion', e.target.value)} style={inputStyle} />
+              <div style={{ display: 'flex', gap: 6 }}>
+                <input
+                  type="text"
+                  value={pedido.Direccion || ''}
+                  onChange={e => {
+                    handleChange('Direccion', e.target.value);
+                    if (validacion) setValidacion(null);
+                  }}
+                  style={{ ...inputStyle, flex: 1 }}
+                  placeholder="Cra 12 # 45-67, Barrio..."
+                />
+                <button
+                  onClick={handleValidarDireccion}
+                  disabled={validando || !pedido.Direccion}
+                  className="btn btn-ghost"
+                  style={{ fontSize: 11, whiteSpace: 'nowrap', padding: '0 12px' }}
+                  title="Validar dirección"
+                >
+                  {validando ? '✓✓' : '✓ Validar'}
+                </button>
+              </div>
+              {showValidacion && validacion && (
+                <div style={{
+                  marginTop: 8, padding: 12, borderRadius: 8,
+                  background: 'var(--bg3)', border: '1px solid var(--border)',
+                  fontSize: 12
+                }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                      <span style={{ fontWeight: 600 }}>Resultado</span>
+                      <span style={{
+                        display: 'inline-flex', alignItems: 'center', gap: 4,
+                        fontWeight: 600,
+                        color: validacion.puntuacion >= 80 ? 'var(--green)' :
+                               validacion.puntuacion >= 50 ? 'var(--yellow, #f59e0b)' : 'var(--red)'
+                      }}>
+                        {validacion.puntuacion != null ? `${validacion.puntuacion}/100` : '-'}
+                      </span>
+                      {validacion.here && validacion.here.exito && validacion.here.geoLevel && (
+                        <span style={{
+                          display: 'inline-flex', alignItems: 'center', gap: 3,
+                          padding: '2px 8px', borderRadius: 10, fontSize: 10, fontWeight: 600,
+                          background: GEOFIX_BADGE[validacion.here.geoLevel]?.bg || 'var(--bg2)',
+                          color: GEOFIX_BADGE[validacion.here.geoLevel]?.color || 'var(--text3)',
+                          border: `1px solid ${GEOFIX_BADGE[validacion.here.geoLevel]?.border || 'var(--border)'}`
+                        }}>
+                          {validacion.here.houseNumberType === 'PA' ? '📍' : ''}
+                          {GEOFIX_BADGE[validacion.here.geoLevel]?.label || validacion.here.geoLevel}
+                        </span>
+                      )}
+                      {validacion.provider && validacion.provider !== 'none' && (
+                        <span style={{
+                          fontSize: 9, color: 'var(--text3)', background: 'var(--bg2)',
+                          padding: '1px 5px', borderRadius: 4, fontWeight: 500
+                        }}>
+                          {validacion.provider === 'google' ? '🌍 Google' : '🗺️ HERE'}
+                        </span>
+                      )}
+                    </div>
+                    <button onClick={() => setShowValidacion(false)}
+                      style={{ background: 'none', border: 'none', color: 'var(--text3)', cursor: 'pointer', fontSize: 14 }}>
+                      ✕
+                    </button>
+                  </div>
+
+                  {validacion.direccionNormalizada && validacion.direccionNormalizada !== pedido.Direccion && (
+                    <div style={{
+                      padding: '6px 10px', borderRadius: 6, marginBottom: 8,
+                      background: 'var(--accent-bg, rgba(91,110,245,0.1))',
+                      border: '1px solid var(--accent, #5b6ef5)'
+                    }}>
+                      <div style={{ fontSize: 10, color: 'var(--text3)', marginBottom: 2 }}>Dirección normalizada:</div>
+                      <div style={{ fontFamily: 'var(--mono)', fontSize: 13, color: 'var(--text)' }}>
+                        {validacion.direccionNormalizada}
+                      </div>
+                      <button
+                        onClick={() => handleAplicarDireccion(validacion.direccionNormalizada)}
+                        className="btn btn-ghost"
+                        style={{ fontSize: 10, marginTop: 6, padding: '2px 10px' }}
+                      >
+                        Aplicar
+                      </button>
+                    </div>
+                  )}
+
+                  {validacion.viaDetectada && (
+                    <div style={{ display: 'flex', gap: 12, marginBottom: 8, color: 'var(--text2)' }}>
+                      <span>Vía: <strong style={{ color: 'var(--text)' }}>{validacion.viaDetectada.nombre}</strong> ({validacion.viaDetectada.abreviacion})</span>
+                    </div>
+                  )}
+
+                  {validacion.errores && validacion.errores.length > 0 && (
+                    <div style={{ marginBottom: 8 }}>
+                      {validacion.errores.map((e, i) => (
+                        <div key={i} style={{
+                          display: 'flex', alignItems: 'flex-start', gap: 6,
+                          padding: '4px 0', color: 'var(--red)', fontSize: 11, lineHeight: 1.5
+                        }}>
+                          <span style={{ flexShrink: 0, marginTop: 1 }}>✕</span>
+                          <div>
+                            <div>{e.mensaje}</div>
+                            {e.sugerencia && (
+                              <div style={{ color: 'var(--text3)', marginTop: 1 }}>
+                                {e.sugerencia}
+                                <button
+                                  onClick={() => handleAplicarDireccion(e.sugerencia)}
+                                  className="btn btn-ghost"
+                                  style={{ fontSize: 10, marginLeft: 6, padding: '1px 8px' }}
+                                >
+                                  Usar
+                                </button>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+
+                  {validacion.advertencias && validacion.advertencias.length > 0 && (
+                    <div style={{ marginBottom: 8 }}>
+                      {validacion.advertencias.map((a, i) => (
+                        <div key={i} style={{
+                          display: 'flex', alignItems: 'flex-start', gap: 6,
+                          padding: '3px 0', color: '#f59e0b', fontSize: 11, lineHeight: 1.5
+                        }}>
+                          <span style={{ flexShrink: 0, marginTop: 1 }}>⚠</span>
+                          <div>
+                            <div>{a.mensaje}</div>
+                            {a.sugerencia && (
+                              <div style={{ color: 'var(--text3)', marginTop: 1 }}>
+                                {a.sugerencia}
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+
+                  {validacion.sugerencias && validacion.sugerencias.length > 0 && (
+                    <div style={{ marginTop: 8 }}>
+                      <div style={{ fontSize: 10, color: 'var(--text3)', marginBottom: 4, fontWeight: 600 }}>
+                        Sugerencias:
+                      </div>
+                      {validacion.sugerencias.map((s, i) => {
+                        const isHere = s.tipo === 'here_verified';
+                        return (
+                          <div key={i} style={{
+                            display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+                            padding: '6px 10px', borderRadius: 6, marginBottom: 4,
+                            background: isHere ? 'rgba(34,200,122,0.06)' : 'var(--bg2, rgba(255,255,255,0.03))',
+                            border: isHere ? '1px solid rgba(34,200,122,0.25)' : '1px solid var(--border)'
+                          }}>
+                            <div>
+                              <div style={{ fontFamily: 'var(--mono)', fontSize: 12, color: 'var(--text)' }}>
+                                {s.direccion}
+                              </div>
+                              {isHere && validacion.here?.ciudad && (
+                                <div style={{ fontSize: 10, color: 'var(--text3)', marginTop: 1 }}>
+                                  {[validacion.here.ciudad, validacion.here.departamento, validacion.here.codigoPostal].filter(Boolean).join(', ')}
+                                </div>
+                              )}
+                              <div style={{
+                                fontSize: 10, marginTop: isHere ? 3 : 1,
+                                color: isHere ? 'var(--green)' : 'var(--text3)',
+                                fontWeight: isHere ? 600 : 400
+                              }}>
+                                {isHere ? '✓ ' : ''}{s.label}
+                              </div>
+                            </div>
+                            <button
+                              onClick={() => handleAplicarDireccion(s.direccion)}
+                              className={isHere ? 'btn btn-success' : 'btn btn-primary'}
+                              style={{ fontSize: 10, padding: '3px 10px', flexShrink: 0 }}
+                            >
+                              Aplicar
+                            </button>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )}
+
+                  {validacion.valida && validacion.puntuacion >= 90 && (
+                    <div style={{ color: 'var(--green)', fontSize: 12, fontWeight: 500, marginTop: 4 }}>
+                      ✓ La dirección tiene un formato correcto
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
             <div className="form-group">
               <label className="form-field-label">País</label>
