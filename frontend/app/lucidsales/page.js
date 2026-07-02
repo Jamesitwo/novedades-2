@@ -273,6 +273,11 @@ export default function LucidSalesPage() {
                       )}
                     </td>
                     <td className="row-actions">
+                      {p.conversacionLink && (
+                        <a href={p.conversacionLink} target="_blank" rel="noopener noreferrer" className="action-btn" title="Abrir chat" style={{ fontSize: 14 }}>
+                          💬
+                        </a>
+                      )}
                       <button onClick={() => handleSyncRow(p.id)} className="action-btn" title="Sincronizar desde LucidSales" style={{ fontSize: 14 }}>⟳</button>
                       <Link href={`/lucidsales/${p.id}`} className="action-btn" title="Editar">
                         ✎

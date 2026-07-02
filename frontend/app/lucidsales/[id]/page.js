@@ -496,6 +496,15 @@ export default function LucidSalesEditPage() {
               <label className="form-field-label">Teléfono</label>
               <input type="text" value={pedido.Movil || ''} onChange={e => handleChange('Movil', e.target.value)} style={inputStyle} />
             </div>
+            {pedido.conversacionLink && (
+              <div className="form-group">
+                <label className="form-field-label">Chat</label>
+                <a href={pedido.conversacionLink} target="_blank" rel="noopener noreferrer"
+                  style={{ ...inputStyle, display: 'flex', alignItems: 'center', gap: 6, color: 'var(--accent)', textDecoration: 'none', fontWeight: 500 }}>
+                  💬 Abrir conversación
+                </a>
+              </div>
+            )}
             <div className="form-group">
               <label className="form-field-label">Correo</label>
               <input type="text" value={pedido.Correo || ''} onChange={e => handleChange('Correo', e.target.value)} style={inputStyle} />

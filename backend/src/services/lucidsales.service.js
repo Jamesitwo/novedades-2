@@ -347,6 +347,7 @@ async function crearVinculacion(lucidsalesPedidoId, notas) {
       estadoPedido: pedido.EstadoPedido ?? 0,
       referencias: pedido.Referencias || '',
       jsonProductos: typeof pedido.Json === 'string' ? pedido.Json : JSON.stringify(pedido.Json || []),
+      conversacionLink: pedido.conversacionLink || pedido.ConversacionLink || pedido.linkConversacion || null,
       notas: notas || null
     },
     create: {
@@ -359,6 +360,7 @@ async function crearVinculacion(lucidsalesPedidoId, notas) {
       estadoPedido: pedido.EstadoPedido ?? 0,
       referencias: pedido.Referencias || '',
       jsonProductos: typeof pedido.Json === 'string' ? pedido.Json : JSON.stringify(pedido.Json || []),
+      conversacionLink: pedido.conversacionLink || pedido.ConversacionLink || pedido.linkConversacion || null,
       notas: notas || null
     }
   });
@@ -377,6 +379,7 @@ async function guardarVinculacionLocal(lucidsalesPedidoId, pedido) {
       referencias: pedido.Referencias || '',
       notas: pedido.notas || null,
       jsonProductos: typeof pedido.Json === 'string' ? pedido.Json : JSON.stringify(pedido.Json || []),
+      conversacionLink: pedido.conversacionLink || pedido.ConversacionLink || pedido.linkConversacion || null,
     },
     create: {
       lucidsalesPedidoId: Number(lucidsalesPedidoId),
@@ -389,6 +392,7 @@ async function guardarVinculacionLocal(lucidsalesPedidoId, pedido) {
       referencias: pedido.Referencias || '',
       notas: pedido.notas || null,
       jsonProductos: typeof pedido.Json === 'string' ? pedido.Json : JSON.stringify(pedido.Json || []),
+      conversacionLink: pedido.conversacionLink || pedido.ConversacionLink || pedido.linkConversacion || null,
     }
   });
 }
@@ -441,6 +445,7 @@ async function listVinculaciones({ page = 1, itemsPerPage = 50, search = '', est
       Total: p.total || '0',
       EstadoPedido: p.estadoPedido ?? 0,
       Referencias: p.referencias || '',
+      conversacionLink: p.conversacionLink || null,
       Json: p.jsonProductos || '[]',
       _etiquetas: tagsPorId[String(p.lucidsalesPedidoId)] || []
     })),

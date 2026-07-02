@@ -193,6 +193,7 @@ model PedidoVinculado {
   estadoPedido          Int      @default(0) @map("estado_pedido")
   referencias           String?
   jsonProductos         String?  @map("json_productos")
+  conversacionLink      String?  @map("conversacion_link")
   notas                 String?
   estado                String   @default("activo")
   createdAt             DateTime @default(now())
