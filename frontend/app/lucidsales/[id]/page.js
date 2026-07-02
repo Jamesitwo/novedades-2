@@ -1114,10 +1114,10 @@ export default function LucidSalesEditPage() {
                   </div>
                 ))}
               </div>
-              <button onClick={handleAddProduct} className="btn btn-ghost" style={{ marginTop: 8, fontSize: 12, width: '100%', justifyContent: 'center' }}>
-                + Agregar producto
-              </button>
             )}
+            <button onClick={handleAddProduct} className="btn btn-ghost" style={{ marginTop: 8, fontSize: 12, width: '100%', justifyContent: 'center' }}>
+              + Agregar producto
+            </button>
           </div>
         </div>
       </div>
