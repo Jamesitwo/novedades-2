@@ -336,6 +336,37 @@ function getDepartamentosLocales() {
   }
 }
 
+async function crearVinculacionDirecta(lucidsalesPedidoId, pedidoData, notas) {
+  return prisma.pedidoVinculado.upsert({
+    where: { lucidsalesPedidoId: Number(lucidsalesPedidoId) },
+    update: {
+      lucidsalesIdPedido: pedidoData.idPedido || null,
+      nombreCliente: pedidoData.Nombre || '',
+      apellidoCliente: pedidoData.Apellido || '',
+      movil: pedidoData.Movil || '',
+      total: pedidoData.Total || '0',
+      estadoPedido: pedidoData.EstadoPedido ?? 0,
+      referencias: pedidoData.Referencias || '',
+      jsonProductos: typeof pedidoData.Json === 'string' ? pedidoData.Json : JSON.stringify(pedidoData.Json || []),
+      conversacionLink: pedidoData.botInbox || pedidoData.conversacionLink || pedidoData.ConversacionLink || pedidoData.linkConversacion || null,
+      notas: notas || null
+    },
+    create: {
+      lucidsalesPedidoId: Number(lucidsalesPedidoId),
+      lucidsalesIdPedido: pedidoData.idPedido || null,
+      nombreCliente: pedidoData.Nombre || '',
+      apellidoCliente: pedidoData.Apellido || '',
+      movil: pedidoData.Movil || '',
+      total: pedidoData.Total || '0',
+      estadoPedido: pedidoData.EstadoPedido ?? 0,
+      referencias: pedidoData.Referencias || '',
+      jsonProductos: typeof pedidoData.Json === 'string' ? pedidoData.Json : JSON.stringify(pedidoData.Json || []),
+      conversacionLink: pedidoData.botInbox || pedidoData.conversacionLink || pedidoData.ConversacionLink || pedidoData.linkConversacion || null,
+      notas: notas || null
+    }
+  });
+}
+
 async function crearVinculacion(lucidsalesPedidoId, notas) {
   const pedido = await getPedidoById(lucidsalesPedidoId);
   return prisma.pedidoVinculado.upsert({
@@ -475,6 +506,7 @@ module.exports = {
   getCiudadesLocales,
   getDepartamentosLocales,
   crearVinculacion,
+  crearVinculacionDirecta,
   guardarVinculacionLocal,
   listVinculaciones
 };

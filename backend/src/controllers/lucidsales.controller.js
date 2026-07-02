@@ -333,7 +333,7 @@ const duplicarPedido = async (req, res) => {
       return res.status(500).json({ error: 'Pedido creado en LucidSales pero no se pudo obtener su ID. Revisa los logs del servidor.' });
     }
 
-    await lucidsalesService.crearVinculacion(nuevoId, `Duplicado del pedido #${original.idPedido || id}`);
+    await lucidsalesService.crearVinculacionDirecta(nuevoId, original, `Duplicado del pedido #${original.idPedido || id}`);
     res.json({ ok: true, nuevoId });
   } catch (error) {
     console.error('LucidSales duplicarPedido error:', error);
