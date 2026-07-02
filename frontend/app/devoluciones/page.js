@@ -97,7 +97,7 @@ export default function DevolucionesPage() {
         </p>
       </div>
 
-      <div className="stats-grid" style={{ marginBottom: 24 }}>
+      <div className="stats-grid" style={{ marginBottom: 24, gridTemplateColumns: 'repeat(3, 1fr)' }}>
         <div className="stat-card c-purple">
           <div className="stat-label">Total Devoluciones</div>
           <div className="stat-value purple">{totalDevoluciones}</div>
@@ -160,7 +160,7 @@ export default function DevolucionesPage() {
       ) : (
         <>
           {(filtroOrigen === 'todos' || filtroOrigen === 'novedades') && novedadesFiltradas.length > 0 && (
-            <div className="table-card" style={{ marginBottom: 20 }}>
+            <div className="table-card" style={{ marginBottom: 20, overflowX: 'auto' }}>
               <div className="table-header">
                 <span className="table-header-title">⚠ Novedades ({novedadesFiltradas.length})</span>
               </div>
@@ -213,7 +213,7 @@ export default function DevolucionesPage() {
           )}
 
           {(filtroOrigen === 'todos' || filtroOrigen === 'oficina') && oficinaFiltrada.length > 0 && (
-            <div className="table-card">
+            <div className="table-card" style={{ overflowX: 'auto' }}>
               <div className="table-header">
                 <span className="table-header-title">📦 Oficina ({oficinaFiltrada.length})</span>
               </div>
