@@ -10,6 +10,33 @@ import {
 
 const CHART_COLORS = ['#f59e0b', '#6366f1', '#14b8a6', '#22c55e', '#a855f7', '#ef4444', '#3b82f6', '#ec4899'];
 
+const COL_INFO = {
+  'Asignados': 'Novedades + Oficina asignadas al operador',
+  'Resueltos': 'Novedades solucionadas + Oficina entregadas (va_a_recoger)',
+  'Tasa': '(Resueltos ÷ Asignados) × 100. Combina novedades y oficina.',
+  'Intentos': 'Llamadas y mensajes registrados (IntentoContacto)',
+  'Contactos': 'Intentos con resultado "contactado" (cliente respondió)',
+  'Transf.': 'Transferencias enviadas (ámbar) / recibidas (azul) entre operadores',
+  'Creados': 'Registros creados por el operador (novedades + oficina)',
+  'Dinero': 'Suma de totalAPagar solucionado + precio oficina recogida',
+  'Prom. Res.': 'Tiempo promedio (horas) entre creación y resolución de novedades y oficina',
+  'Tiempo Act.': 'Minutos acumulados de actividad en la plataforma (heartbeat cada 60s)',
+};
+
+const InfoBadge = ({ label }) => (
+  <span title={COL_INFO[label]} style={{
+    cursor: 'help', display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+    width: 15, height: 15, borderRadius: '50%', fontSize: 10, fontWeight: 600,
+    background: 'var(--bg4)', color: 'var(--text3)', marginLeft: 3, flexShrink: 0
+  }}>?</span>
+);
+
+const SplitBadge = ({ n, o, nLabel, oLabel }) => (
+  <span style={{ fontSize: 10, color: 'var(--text3)', display: 'block', lineHeight: 1.4 }}>
+    {nLabel || 'N'}:{n || 0} {oLabel || 'O'}:{o || 0}
+  </span>
+);
+
 export default function MetricasPage() {
   const [metricas, setMetricas] = useState(null);
   const [tiempoActivo, setTiempoActivo] = useState(null);
@@ -278,34 +305,34 @@ export default function MetricasPage() {
                     Operador <SortIcon field="operador" />
                   </th>
                   <th onClick={() => handleSort('totalAsignados')} style={{ cursor: 'pointer', textAlign: 'center' }}>
-                    Asignados <SortIcon field="totalAsignados" />
+                    Asignados <InfoBadge label="Asignados" /> <SortIcon field="totalAsignados" />
                   </th>
                   <th onClick={() => handleSort('totalResueltos')} style={{ cursor: 'pointer', textAlign: 'center' }}>
-                    Resueltos <SortIcon field="totalResueltos" />
+                    Resueltos <InfoBadge label="Resueltos" /> <SortIcon field="totalResueltos" />
                   </th>
                   <th onClick={() => handleSort('tasaResolucion')} style={{ cursor: 'pointer', textAlign: 'center' }}>
-                    Tasa <SortIcon field="tasaResolucion" />
+                    Tasa <InfoBadge label="Tasa" /> <SortIcon field="tasaResolucion" />
                   </th>
                   <th onClick={() => handleSort('intentosContacto')} style={{ cursor: 'pointer', textAlign: 'center' }}>
-                    Intentos <SortIcon field="intentosContacto" />
+                    Intentos <InfoBadge label="Intentos" /> <SortIcon field="intentosContacto" />
                   </th>
                   <th onClick={() => handleSort('contactosExitosos')} style={{ cursor: 'pointer', textAlign: 'center' }}>
-                    Contactos <SortIcon field="contactosExitosos" />
+                    Contactos <InfoBadge label="Contactos" /> <SortIcon field="contactosExitosos" />
                   </th>
                   <th onClick={() => handleSort('transferenciasEnviadas')} style={{ cursor: 'pointer', textAlign: 'center' }}>
-                    Transf. <SortIcon field="transferenciasEnviadas" />
+                    Transf. <InfoBadge label="Transf." /> <SortIcon field="transferenciasEnviadas" />
                   </th>
                   <th onClick={() => handleSort('registrosCreados')} style={{ cursor: 'pointer', textAlign: 'center' }}>
-                    Creados <SortIcon field="registrosCreados" />
+                    Creados <InfoBadge label="Creados" /> <SortIcon field="registrosCreados" />
                   </th>
                   <th onClick={() => handleSort('dineroManejado')} style={{ cursor: 'pointer', textAlign: 'right' }}>
-                    Dinero <SortIcon field="dineroManejado" />
+                    Dinero <InfoBadge label="Dinero" /> <SortIcon field="dineroManejado" />
                   </th>
                   <th onClick={() => handleSort('promedioResolucionHoras')} style={{ cursor: 'pointer', textAlign: 'center' }}>
-                    Prom. Res. <SortIcon field="promedioResolucionHoras" />
+                    Prom. Res. <InfoBadge label="Prom. Res." /> <SortIcon field="promedioResolucionHoras" />
                   </th>
                   <th onClick={() => handleSort('tiempoActivoMinutos')} style={{ cursor: 'pointer', textAlign: 'center' }}>
-                    Tiempo Act. <SortIcon field="tiempoActivoMinutos" />
+                    Tiempo Act. <InfoBadge label="Tiempo Act." /> <SortIcon field="tiempoActivoMinutos" />
                   </th>
                 </tr>
               </thead>
@@ -327,8 +354,14 @@ export default function MetricasPage() {
                         </div>
                       </div>
                     </td>
-                    <td style={{ textAlign: 'center', fontFamily: 'var(--mono)' }}>{m.totalAsignados}</td>
-                    <td style={{ textAlign: 'center', fontFamily: 'var(--mono)', fontWeight: 600, color: 'var(--green)' }}>{m.totalResueltos}</td>
+                    <td style={{ textAlign: 'center', fontFamily: 'var(--mono)' }}>
+                      {m.totalAsignados}
+                      <SplitBadge n={m.novedadesAsignadas} o={m.oficinaAsignadas} />
+                    </td>
+                    <td style={{ textAlign: 'center', fontFamily: 'var(--mono)', fontWeight: 600, color: 'var(--green)' }}>
+                      {m.totalResueltos}
+                      <SplitBadge n={m.novedadesResueltas} o={m.oficinaRecogidas} />
+                    </td>
                     <td style={{ textAlign: 'center' }}>
                       <div style={{
                         display: 'inline-block',
@@ -351,12 +384,17 @@ export default function MetricasPage() {
                       <span style={{ color: 'var(--text3)' }}> / </span>
                       <span style={{ color: 'var(--accent2)' }}>{m.transferenciasRecibidas}</span>
                     </td>
-                    <td style={{ textAlign: 'center', fontFamily: 'var(--mono)' }}>{m.registrosCreados}</td>
+                    <td style={{ textAlign: 'center', fontFamily: 'var(--mono)' }}>
+                      {m.registrosCreados}
+                      <SplitBadge n={m.registrosNovedadCreados} o={m.registrosOficinaCreados} />
+                    </td>
                     <td style={{ textAlign: 'right', fontFamily: 'var(--mono)', color: 'var(--green)' }}>
                       {formatMoney(m.dineroManejado)}
+                      <SplitBadge n={formatMoney(m.dineroNovedad || 0)} o={formatMoney(m.dineroOficina || 0)} nLabel="" oLabel="" />
                     </td>
                     <td style={{ textAlign: 'center', fontFamily: 'var(--mono)', fontSize: 12 }}>
                       {m.promedioResolucionHoras > 0 ? `${m.promedioResolucionHoras}h` : '-'}
+                      <SplitBadge n={m.promResNovedadHoras ? `${m.promResNovedadHoras}h` : '-'} o={m.promResOficinaHoras ? `${m.promResOficinaHoras}h` : '-'} nLabel="" oLabel="" />
                     </td>
                     <td style={{ textAlign: 'center', fontFamily: 'var(--mono)', fontSize: 12, color: 'var(--accent2)' }}>
                       {Math.floor(m.tiempoActivoMinutos / 60)}h {m.tiempoActivoMinutos % 60}m

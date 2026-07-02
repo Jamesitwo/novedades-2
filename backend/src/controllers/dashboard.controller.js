@@ -391,19 +391,28 @@ const getMetricasOperadores = async (req, res) => {
         })
       ]);
       const dineroManejado = (dineroNovedad._sum.totalAPagar || 0) + (dineroOficina._sum.precio || 0);
+      const dineroNovedadVal = dineroNovedad._sum.totalAPagar || 0;
+      const dineroOficinaVal = dineroOficina._sum.precio || 0;
 
       let promedioResolucionHoras = 0;
-      const todasResueltas = [
-        ...novedadesResueltasData.map(n => ({
-          horas: (new Date(n.updatedAt) - new Date(n.createdAt)) / 3600000
-        })),
-        ...oficinaResueltasData.map(o => ({
-          horas: (new Date(o.updatedAt) - new Date(o.createdAt)) / 3600000
-        }))
-      ];
+      let promResNovedadHoras = 0;
+      let promResOficinaHoras = 0;
+      const novedadesHoras = novedadesResueltasData.map(n => ({
+        horas: (new Date(n.updatedAt) - new Date(n.createdAt)) / 3600000
+      }));
+      const oficinaHoras = oficinaResueltasData.map(o => ({
+        horas: (new Date(o.updatedAt) - new Date(o.createdAt)) / 3600000
+      }));
+      const todasResueltas = [...novedadesHoras, ...oficinaHoras];
       if (todasResueltas.length > 0) {
         const totalHoras = todasResueltas.reduce((acc, r) => acc + r.horas, 0);
         promedioResolucionHoras = Math.round((totalHoras / todasResueltas.length) * 10) / 10;
+      }
+      if (novedadesHoras.length > 0) {
+        promResNovedadHoras = Math.round((novedadesHoras.reduce((a, r) => a + r.horas, 0) / novedadesHoras.length) * 10) / 10;
+      }
+      if (oficinaHoras.length > 0) {
+        promResOficinaHoras = Math.round((oficinaHoras.reduce((a, r) => a + r.horas, 0) / oficinaHoras.length) * 10) / 10;
       }
 
       const totalAsignados = novedadesAsignadas + oficinaAsignadas;
@@ -428,8 +437,14 @@ const getMetricasOperadores = async (req, res) => {
         transferenciasEnviadas,
         transferenciasRecibidas,
         registrosCreados,
+        registrosNovedadCreados,
+        registrosOficinaCreados,
         dineroManejado,
+        dineroNovedad: dineroNovedadVal,
+        dineroOficina: dineroOficinaVal,
         promedioResolucionHoras,
+        promResNovedadHoras,
+        promResOficinaHoras,
         tiempoActivoMinutos
       };
     }));
