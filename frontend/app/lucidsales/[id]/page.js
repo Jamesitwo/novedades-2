@@ -128,6 +128,16 @@ export default function LucidSalesEditPage() {
     setEditProdMode(null);
   };
 
+  const handleAddProduct = () => {
+    const items = parseJson(pedido.Json);
+    const firstEntry = Object.keys(productosMap)[0];
+    items.push({ product_id: firstEntry || '0', price: 0, quantity: 1, variations: [] });
+    const newJson = JSON.stringify(items);
+    const totals = recalcTotalsFromProducts(newJson);
+    setPedido(prev => ({ ...prev, Json: newJson, ...totals }));
+    setEditProdMode(items.length - 1);
+  };
+
   const loadCiudades = async (deptoId) => {
     setLoadingGeo(true);
     try {
@@ -537,8 +547,11 @@ export default function LucidSalesEditPage() {
           {quotes?.error && (
             <div style={{ color: 'var(--red)', fontSize: 13, padding: 12, background: 'var(--bg3)', borderRadius: 8 }}>
               {quotes.error}
-            </div>
-          )}
+              </div>
+              <button onClick={handleAddProduct} className="btn btn-ghost" style={{ marginTop: 8, fontSize: 12, width: '100%', justifyContent: 'center' }}>
+                + Agregar producto
+              </button>
+            )}
 
           {quotes?.quotes && quotes.quotes.length > 0 && (
             <>
