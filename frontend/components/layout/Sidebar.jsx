@@ -20,6 +20,8 @@ export default function Sidebar() {
   const [passwordLoading, setPasswordLoading] = useState(false);
   const [passwordSuccess, setPasswordSuccess] = useState(false);
 
+  const [openSections, setOpenSections] = useState({ pedidos: false, pizdo: false, admin: false });
+
   useEffect(() => {
     initTheme();
   }, []);
@@ -101,31 +103,43 @@ export default function Sidebar() {
     }
   };
 
-  const menuItems = [
+  const mainItems = [
     { href: '/dashboard', label: 'Dashboard', icon: '▣' },
     { href: '/novedades', label: 'Novedades', icon: '⚠', badge: counts.novedadesActivas > 0 ? counts.novedadesActivas : null, badgeColor: 'amber' },
     { href: '/oficina', label: 'En oficina', icon: '📦', badge: counts.oficinaActivos > 0 ? counts.oficinaActivos : null },
     { href: '/devoluciones', label: 'Devoluciones', icon: '↩️', badge: counts.devoluciones > 0 ? counts.devoluciones : null, badgeColor: 'purple' },
+  ];
+
+  const pedidosItems = [
     { href: '/solucionados', label: 'Solucionados', icon: '✅' },
     { href: '/recoger', label: 'Por Recoger', icon: '📦' },
     { href: '/facturas', label: 'Facturas', icon: '📄' },
     { href: '/garantias', label: 'Garantías', icon: '📋' },
     { href: '/etiquetas', label: 'Etiquetas', icon: '🏷️' },
-    { href: '/tienda', label: 'Pizdo', icon: '🏆' },
   ];
 
-  if (usuario?.rol === 'admin') {
-    menuItems.push({ href: '/dashboard/metricas', label: 'Métricas', icon: '📊' });
-    menuItems.push({ href: '/lucidsales', label: 'LucidSales', icon: '💎' });
-    menuItems.push({ href: '/lucidsales/productos', label: 'Productos', icon: '📦' });
-    menuItems.push({ href: '/tareas', label: 'Tareas', icon: '📋' });
-    menuItems.push({ href: '/pizdo', label: 'Pizdo', icon: '🏆' });
-    menuItems.push({ href: '/usuarios', label: 'Usuarios', icon: '👥' });
-    menuItems.push({ href: '/configuracion', label: 'Configuración', icon: '⚙' });
-    menuItems.push({ href: '/apikey', label: 'API Keys', icon: '🔑' });
-    menuItems.push({ href: '/sesiones', label: 'Sesiones', icon: '🔐' });
-    menuItems.push({ href: '/tienda/admin', label: 'Admin Pizdo', icon: '🏆' });
-  }
+  const pizdoItems = [
+    { href: '/tienda', label: 'Tienda', icon: '🛒' },
+    ...(usuario?.rol === 'admin' ? [
+      { href: '/tienda/admin', label: 'Admin Tienda', icon: '⚙' },
+    ] : []),
+  ];
+
+  const adminItems = usuario?.rol === 'admin' ? [
+    { href: '/dashboard/metricas', label: 'Métricas', icon: '📊' },
+    { href: '/lucidsales', label: 'LucidSales', icon: '💎' },
+    { href: '/lucidsales/productos', label: 'Prod. LucidSales', icon: '📦' },
+    { href: '/pizdo', label: 'Productos Ganadores', icon: '🏆' },
+    { href: '/tareas', label: 'Tareas', icon: '📋' },
+    { href: '/usuarios', label: 'Usuarios', icon: '👥' },
+    { href: '/configuracion', label: 'Configuración', icon: '⚙' },
+    { href: '/apikey', label: 'API Keys', icon: '🔑' },
+    { href: '/sesiones', label: 'Sesiones', icon: '🔐' },
+  ] : [];
+
+  const toggleSection = (key) => {
+    setOpenSections(prev => ({ ...prev, [key]: !prev[key] }));
+  };
 
   return (
     <>
@@ -146,9 +160,8 @@ export default function Sidebar() {
         </div>
       </div>
 
-      <div className="sidebar-section">
-        <div className="sidebar-label">Principal</div>
-        {menuItems.map((item) => (
+      <nav className="sidebar-section">
+        {mainItems.map((item) => (
           <Link
             key={item.href}
             href={item.href}
@@ -159,7 +172,56 @@ export default function Sidebar() {
             {item.badge && <span className={`nav-badge ${item.badgeColor || ''}`}>{item.badge}</span>}
           </Link>
         ))}
-      </div>
+
+        <div className="sidebar-label" onClick={() => toggleSection('pedidos')} style={{ cursor: 'pointer', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <span>Pedidos</span>
+          <span style={{ fontSize: 10 }}>{openSections.pedidos ? '▲' : '▼'}</span>
+        </div>
+        {openSections.pedidos && pedidosItems.map((item) => (
+          <Link
+            key={item.href}
+            href={item.href}
+            className={`nav-item ${pathname.startsWith(item.href) ? 'active' : ''}`}
+          >
+            <span className="icon">{item.icon}</span>
+            <span>{item.label}</span>
+          </Link>
+        ))}
+
+        <div className="sidebar-label" onClick={() => toggleSection('pizdo')} style={{ cursor: 'pointer', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <span>Pizdo</span>
+          <span style={{ fontSize: 10 }}>{openSections.pizdo ? '▲' : '▼'}</span>
+        </div>
+        {openSections.pizdo && pizdoItems.map((item) => (
+          <Link
+            key={item.href}
+            href={item.href}
+            className={`nav-item ${pathname.startsWith(item.href) ? 'active' : ''}`}
+          >
+            <span className="icon">{item.icon}</span>
+            <span>{item.label}</span>
+          </Link>
+        ))}
+
+        {adminItems.length > 0 && (
+          <>
+            <div className="sidebar-label" onClick={() => toggleSection('admin')} style={{ cursor: 'pointer', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <span>Administración</span>
+              <span style={{ fontSize: 10 }}>{openSections.admin ? '▲' : '▼'}</span>
+            </div>
+            {openSections.admin && adminItems.map((item) => (
+              <Link
+                key={item.href}
+                href={item.href}
+                className={`nav-item ${pathname.startsWith(item.href) ? 'active' : ''}`}
+              >
+                <span className="icon">{item.icon}</span>
+                <span>{item.label}</span>
+              </Link>
+            ))}
+          </>
+        )}
+        </nav>
 
       <div className="sidebar-bottom">
         <div className="user-card">
