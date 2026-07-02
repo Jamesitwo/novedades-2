@@ -290,14 +290,17 @@ const getRendimientoOperadores = async (req, res) => {
         prisma.pedidoOficina.count({ where: { ...whereOficina, asignadoId: op.id, estado: 'va_a_recoger' } })
       ]);
 
+      const totalAsignados = novedadesAsignadas + oficinaAsignadas;
+      const totalResueltos = novedadesResueltas + oficinaRecogidas;
+
       return {
         operador: op.nombre,
         novedadesAsignadas,
         novedadesResueltas,
         oficinaAsignadas,
         oficinaRecogidas,
-        totalAtendido: novedadesAsignadas + oficinaAsignadas,
-        tasaExito: novedadesAsignadas > 0 ? Math.round((novedadesResueltas / novedadesAsignadas) * 100) : 0
+        totalAtendido: totalAsignados,
+        tasaExito: totalAsignados > 0 ? Math.round((totalResueltos / totalAsignados) * 100) : 0
       };
     }));
 
