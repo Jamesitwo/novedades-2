@@ -231,6 +231,38 @@ const vincularPedido = async (req, res) => {
   }
 };
 
+const vincularYActualizar = async (req, res) => {
+  try {
+    const { lucidsalesPedidoId, notas, ...camposActualizar } = req.body;
+    if (!lucidsalesPedidoId) {
+      return res.status(400).json({ error: 'lucidsalesPedidoId es requerido' });
+    }
+
+    console.log(`[LucidSales] vincularYActualizar: id=${lucidsalesPedidoId} campos=`, Object.keys(camposActualizar));
+
+    const pedidoBase = await lucidsalesService.crearVinculacion(lucidsalesPedidoId, notas);
+
+    const pedidoCompleto = await lucidsalesService.getPedidoById(lucidsalesPedidoId);
+    const pedidoActualizado = { ...pedidoCompleto, ...camposActualizar };
+
+    if (notas !== undefined) {
+      pedidoActualizado.notas = notas;
+    }
+
+    const updateResult = await lucidsalesService.updatePedido(pedidoActualizado);
+    if (updateResult && updateResult.ok === false) {
+      return res.status(400).json({ error: updateResult.msg || updateResult.error || 'Error al actualizar en LucidSales' });
+    }
+
+    await lucidsalesService.guardarVinculacionLocal(lucidsalesPedidoId, pedidoActualizado);
+
+    res.json({ ok: true, pedido: pedidoBase, actualizado: true });
+  } catch (error) {
+    console.error('LucidSales vincularYActualizar error:', error);
+    res.status(500).json({ error: error.message || 'Error al vincular y actualizar pedido' });
+  }
+};
+
 const listarVinculados = async (req, res) => {
   try {
     const { page = 1, itemsPerPage = 50, search = '', estadoFilter } = req.query;
@@ -357,6 +389,7 @@ module.exports = {
   getDepartamentosLocales,
   verificarConexion,
   vincularPedido,
+  vincularYActualizar,
   listarVinculados,
   guardarLocal,
   getEtiquetas,

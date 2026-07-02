@@ -25,6 +25,7 @@ router.get('/departamentos-locales', ctrl.getDepartamentosLocales);
 router.get('/verificar-conexion', ctrl.verificarConexion);
 
 router.post('/vincular', ctrl.vincularPedido);
+router.post('/vincular-y-actualizar', ctrl.vincularYActualizar);
 router.post('/guardar-local', ctrl.guardarLocal);
 router.post('/interrapidisimo/oficinas', ctrl.buscarOficinaIR);
 router.get('/vinculados', ctrl.listarVinculados);
