@@ -87,30 +87,45 @@ async function authenticate(config) {
 }
 
 async function apiGet(path, token) {
-  const resp = await fetch(`${BASE_URL}${path}`, {
-    headers: { 'x-token': token }
-  });
-  const data = await resp.json();
-  if (!resp.ok) {
-    throw new Error(data.error || data.msg || `HTTP ${resp.status}: ${resp.statusText}`);
+  const url = `${BASE_URL}${path}`;
+  console.log(`[LucidSales] GET ${url}`);
+  try {
+    const resp = await fetch(url, { headers: { 'x-token': token } });
+    const data = await resp.json();
+    if (!resp.ok) {
+      throw new Error(data.error || data.msg || `HTTP ${resp.status}: ${resp.statusText}`);
+    }
+    return data;
+  } catch (error) {
+    console.error(`[LucidSales] apiGet FAIL ${url}:`, error.message);
+    if (error.cause?.code === 'ECONNREFUSED' || error.message?.includes('ECONNREFUSED') || error.message?.includes('fetch failed')) {
+      throw new Error(`No se pudo conectar a LucidSales (panel.lucidsales.co). Verifica conexión a internet.`);
+    }
+    throw error;
   }
-  return data;
 }
 
 async function apiPost(path, body, token) {
-  const resp = await fetch(`${BASE_URL}${path}`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'x-token': token
-    },
-    body: JSON.stringify(body)
-  });
-  const data = await resp.json();
-  if (!resp.ok) {
-    throw new Error(data.error || data.msg || `HTTP ${resp.status}: ${resp.statusText}`);
+  const url = `${BASE_URL}${path}`;
+  console.log(`[LucidSales] POST ${url}`);
+  try {
+    const resp = await fetch(url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'x-token': token },
+      body: JSON.stringify(body)
+    });
+    const data = await resp.json();
+    if (!resp.ok) {
+      throw new Error(data.error || data.msg || `HTTP ${resp.status}: ${resp.statusText}`);
+    }
+    return data;
+  } catch (error) {
+    console.error(`[LucidSales] apiPost FAIL ${url}:`, error.message);
+    if (error.cause?.code === 'ECONNREFUSED' || error.message?.includes('ECONNREFUSED') || error.message?.includes('fetch failed')) {
+      throw new Error(`No se pudo conectar a LucidSales (panel.lucidsales.co). Verifica conexión a internet.`);
+    }
+    throw error;
   }
-  return data;
 }
 
 async function getPedidos({ page = 1, itemsPerPage = 50, search = '', filters = '[]' } = {}) {
@@ -214,10 +229,17 @@ async function cotizarEnvio(pedidoId, carrier = 'dropi') {
 }
 
 async function confirmarIntegracion(pedidoId, carrier = 'rocket', quote = null) {
+  console.log(\`[LucidSales] confirmarIntegracion: pedidoId=\${pedidoId} carrier=\${carrier}\`);
   const config = await getConfig();
   const { token } = await authenticate(config);
 
-  const pedido = await getPedidoById(pedidoId);
+  let pedido;
+  try {
+    pedido = await getPedidoById(pedidoId);
+  } catch (e) {
+    console.error('[LucidSales] confirmarIntegracion: error al obtener pedido:', e.message);
+    throw new Error(\`No se pudo obtener el pedido #\${pedidoId} de LucidSales (verifica conexión): \${e.message}\`);
+  }
 
   const body = {
     id: pedido.id,
@@ -230,6 +252,15 @@ async function confirmarIntegracion(pedidoId, carrier = 'rocket', quote = null) 
     body.trayecto = quote.objects.trayecto;
     body.seguroEnvio = quote.objects.seguroEnvio;
   }
+
+  const uploadCarriers = ['hoko', 'dropi', 'envia', 'boxful', '99envios'];
+  const path = uploadCarriers.includes(carrier)
+    ? \`/pedidos/upload/\${carrier}\`
+    : \`/pedidos/integrations/confirm/\${carrier}\`;
+
+  console.log(\`[LucidSales] confirmarIntegracion: POST \${path}\`);
+  return apiPost(path, body, token);
+}
 
   const uploadCarriers = ['hoko', 'dropi', 'envia', 'boxful', '99envios'];
   const path = uploadCarriers.includes(carrier)
