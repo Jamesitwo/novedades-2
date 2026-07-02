@@ -290,6 +290,8 @@ const duplicarPedido = async (req, res) => {
       return res.status(404).json({ error: 'Pedido original no encontrado en LucidSales' });
     }
 
+    const refUnica = `DUP-${original.idPedido || id}-${Date.now()}`;
+
     const nuevoPedido = {
       nombreCliente: original.Nombre || '',
       apellidoCliente: original.Apellido || '',
@@ -305,7 +307,7 @@ const duplicarPedido = async (req, res) => {
       subTotal: Number(original.SubTotal || 0),
       costoEnvio: Number(original.CostoEnvio || 0),
       total: Number(original.Total || 0),
-      Referencias: original.Referencias || ''
+      Referencias: refUnica
     };
 
     const result = await lucidsalesService.createPedido(nuevoPedido);
@@ -321,11 +323,8 @@ const duplicarPedido = async (req, res) => {
     }
 
     if (!nuevoId) {
-      const pedidos = await lucidsalesService.getPedidos({ search: nuevoPedido.telefonoCliente, itemsPerPage: 3 });
-      const match = pedidos?.pedidos?.find(p =>
-        p.Nombre?.toLowerCase() === (original.Nombre || '').toLowerCase() &&
-        p.Apellido?.toLowerCase() === (original.Apellido || '').toLowerCase()
-      );
+      const pedidos = await lucidsalesService.getPedidos({ search: refUnica, itemsPerPage: 3 });
+      const match = pedidos?.pedidos?.[0];
       if (match?.id) nuevoId = match.id;
     }
 
