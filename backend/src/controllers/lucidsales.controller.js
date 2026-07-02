@@ -313,12 +313,28 @@ const duplicarPedido = async (req, res) => {
       return res.status(400).json({ error: result.msg || result.error || 'Error al crear pedido duplicado en LucidSales' });
     }
 
-    const nuevoId = result.pedido?.id || result.id;
-    if (nuevoId) {
-      await lucidsalesService.crearVinculacion(nuevoId, `Duplicado del pedido #${original.idPedido || id}`);
+    console.log('[LucidSales] duplicarPedido create result:', JSON.stringify(result).slice(0, 300));
+
+    let nuevoId = result?.pedido?.id || result?.id || result?.pedidoId || result?.data?.id;
+    if (!nuevoId && result?.pedido && typeof result.pedido === 'string') {
+      nuevoId = parseInt(result.pedido, 10) || null;
     }
 
-    res.json({ ok: true, nuevoId, pedido: result.pedido || result });
+    if (!nuevoId) {
+      const pedidos = await lucidsalesService.getPedidos({ search: nuevoPedido.telefonoCliente, itemsPerPage: 3 });
+      const match = pedidos?.pedidos?.find(p =>
+        p.Nombre?.toLowerCase() === (original.Nombre || '').toLowerCase() &&
+        p.Apellido?.toLowerCase() === (original.Apellido || '').toLowerCase()
+      );
+      if (match?.id) nuevoId = match.id;
+    }
+
+    if (!nuevoId) {
+      return res.status(500).json({ error: 'Pedido creado en LucidSales pero no se pudo obtener su ID. Revisa los logs del servidor.' });
+    }
+
+    await lucidsalesService.crearVinculacion(nuevoId, `Duplicado del pedido #${original.idPedido || id}`);
+    res.json({ ok: true, nuevoId });
   } catch (error) {
     console.error('LucidSales duplicarPedido error:', error);
     res.status(500).json({ error: error.message || 'Error al duplicar pedido' });
