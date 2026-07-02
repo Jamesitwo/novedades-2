@@ -127,7 +127,7 @@ export default function LucidSalesEditPage() {
 
         const pedidoData = pedidoRes.data;
 
-        if (pedidoData && pedidoData.id) {
+          if (pedidoData && pedidoData.id) {
           setPedido(pedidoData);
           setEtiquetas(Array.isArray(etiquetasRes.data) ? etiquetasRes.data : []);
           if (Array.isArray(deptosRes.data)) {
@@ -136,7 +136,13 @@ export default function LucidSalesEditPage() {
           if (pedidoData.Departamento != null && pedidoData.Departamento !== 0) {
             await loadCiudades(Number(pedidoData.Departamento));
           }
-          api.post('/api/lucidsales/guardar-local', { lucidsalesPedidoId: Number(id), pedido: pedidoData }).catch(() => {});
+
+          try {
+            const localRes = await api.post('/api/lucidsales/guardar-local', { lucidsalesPedidoId: Number(id), pedido: pedidoData });
+            if (localRes.data?.pedido?.conversacionLink) {
+              setPedido(prev => ({ ...prev, conversacionLink: localRes.data.pedido.conversacionLink }));
+            }
+          } catch {}
 
           const prodList = Array.isArray(prodRes.data) ? prodRes.data : prodRes.data?.productos || prodRes.data?.data || [];
           if (prodList.length > 0) {
@@ -504,15 +510,17 @@ export default function LucidSalesEditPage() {
               <label className="form-field-label">Teléfono</label>
               <input type="text" value={pedido.Movil || ''} onChange={e => handleChange('Movil', e.target.value)} style={inputStyle} />
             </div>
-            {pedido.conversacionLink && (
-              <div className="form-group">
-                <label className="form-field-label">Chat</label>
-                <a href={pedido.conversacionLink} target="_blank" rel="noopener noreferrer"
-                  style={{ ...inputStyle, display: 'flex', alignItems: 'center', gap: 6, color: 'var(--accent)', textDecoration: 'none', fontWeight: 500 }}>
-                  💬 Abrir conversación
-                </a>
+            <div className="form-group">
+              <label className="form-field-label">Link conversación</label>
+              <div style={{ display: 'flex', gap: 6 }}>
+                <input type="text" value={pedido.conversacionLink || ''} onChange={e => handleChange('conversacionLink', e.target.value)} style={{ ...inputStyle, flex: 1 }} placeholder="https://wa.me/..." />
+                {pedido.conversacionLink && (
+                  <a href={pedido.conversacionLink} target="_blank" rel="noopener noreferrer" className="btn btn-ghost" style={{ fontSize: 12, whiteSpace: 'nowrap', textDecoration: 'none' }}>
+                    💬 Abrir
+                  </a>
+                )}
               </div>
-            )}
+            </div>
             <div className="form-group">
               <label className="form-field-label">Correo</label>
               <input type="text" value={pedido.Correo || ''} onChange={e => handleChange('Correo', e.target.value)} style={inputStyle} />
