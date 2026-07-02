@@ -333,7 +333,19 @@ const duplicarPedido = async (req, res) => {
       return res.status(500).json({ error: 'Pedido creado en LucidSales pero no se pudo obtener su ID. Revisa los logs del servidor.' });
     }
 
-    await lucidsalesService.crearVinculacionDirecta(nuevoId, original, `Duplicado del pedido #${original.idPedido || id}`);
+    console.log('[LucidSales] duplicarPedido: vinculando nuevoId=', nuevoId);
+
+    try {
+      await lucidsalesService.crearVinculacionDirecta(nuevoId, original, `Duplicado del pedido #${original.idPedido || id}`);
+      console.log('[LucidSales] duplicarPedido: vinculacion exitosa');
+    } catch (vinError) {
+      console.error('[LucidSales] duplicarPedido: error al vincular:', vinError.message);
+      return res.status(500).json({ error: `Pedido creado (#${nuevoId}) pero fallo la vinculacion: ${vinError.message}` });
+    }
+
+    const verificar = await prisma.pedidoVinculado.findUnique({ where: { lucidsalesPedidoId: Number(nuevoId) } });
+    console.log('[LucidSales] duplicarPedido: verificado en DB:', verificar ? 'SI' : 'NO');
+
     res.json({ ok: true, nuevoId });
   } catch (error) {
     console.error('LucidSales duplicarPedido error:', error);
