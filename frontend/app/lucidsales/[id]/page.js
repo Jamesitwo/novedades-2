@@ -547,11 +547,8 @@ export default function LucidSalesEditPage() {
           {quotes?.error && (
             <div style={{ color: 'var(--red)', fontSize: 13, padding: 12, background: 'var(--bg3)', borderRadius: 8 }}>
               {quotes.error}
-              </div>
-              <button onClick={handleAddProduct} className="btn btn-ghost" style={{ marginTop: 8, fontSize: 12, width: '100%', justifyContent: 'center' }}>
-                + Agregar producto
-              </button>
-            )}
+            </div>
+          )}
 
           {quotes?.quotes && quotes.quotes.length > 0 && (
             <>
@@ -1117,6 +1114,9 @@ export default function LucidSalesEditPage() {
                   </div>
                 ))}
               </div>
+              <button onClick={handleAddProduct} className="btn btn-ghost" style={{ marginTop: 8, fontSize: 12, width: '100%', justifyContent: 'center' }}>
+                + Agregar producto
+              </button>
             )}
           </div>
         </div>
