@@ -130,6 +130,7 @@ export default function LucidSalesEditPage() {
 
           if (pedidoData && pedidoData.id) {
           setPedido(pedidoData);
+          if (pedidoData.idPedidoDropi) setUploaded(true);
           setEtiquetas(Array.isArray(etiquetasRes.data) ? etiquetasRes.data : []);
           if (Array.isArray(deptosRes.data)) {
             setDeptos(deptosRes.data.sort((a, b) => a.id - b.id));
