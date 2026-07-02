@@ -228,19 +228,16 @@ async function cotizarEnvio(pedidoId, carrier = 'dropi') {
   }, token);
 }
 
-async function confirmarIntegracion(pedidoId, carrier = 'dropi', quote = null) {
+async function confirmarIntegracion(pedidoId, carrier = 'dropi', opts = {}) {
   const config = await getConfig();
   const { token } = await authenticate(config);
 
-  let body = { id: pedidoId };
-
-  if (quote && quote.transportadora_id != null) {
-    body.transportadora_id = Number(quote.transportadora_id);
-  } else if (quote && quote.id) {
-    body.transportadora_id = Number(quote.id);
+  const body = { id: pedidoId };
+  if (opts.transportadora_id != null) {
+    body.transportadora_id = Number(opts.transportadora_id);
   }
 
-  const uploadCarriers = ['hoko', 'dropi', 'envia', 'boxful', '99envios'];
+  const uploadCarriers = ['hoko', 'dropi', 'envia', 'boxful', '99envios', 'interrapidisimo'];
   const path = uploadCarriers.includes(carrier)
     ? `/pedidos/upload/${carrier}`
     : `/pedidos/integrations/confirm/${carrier}`;
