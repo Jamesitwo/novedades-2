@@ -286,8 +286,7 @@ export default function LucidSalesEditPage() {
     setOficinasIR([]);
   };
 
-  const handleUpload = async () => {
-    if (selectedQuoteIdx == null) return;
+  const handleSave = async () => {
     setSaving(true);
     setError('');
     try {
