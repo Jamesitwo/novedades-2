@@ -406,7 +406,7 @@ export default function LucidSalesEditPage() {
         </div>
       </div>
 
-      <div className="table-card" style={{ padding: '8px 14px', marginBottom: 20, cursor: 'pointer', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }} onClick={() => setShowCotizador(!showCotizador)}>
+      <div className="table-card" style={{ padding: '8px 14px', marginBottom: 20, cursor: 'pointer', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }} onClick={() => { if (!quotes) { handleQuote(); } else { setShowCotizador(!showCotizador); } }}>
         <span style={{ fontWeight: 600, fontSize: 13, color: 'var(--text)' }}>
           Cotizar envío con Dropi {showCotizador ? '▲' : '▼'}
           {!showCotizador && quotes?.quotes?.length > 0 && (
@@ -420,7 +420,7 @@ export default function LucidSalesEditPage() {
         </button>
       </div>
 
-      {showCotizador && (
+      {showCotizador && quotes && (
         <div className="table-card" style={{ padding: 14, marginBottom: 20, borderTop: 'none', borderTopLeftRadius: 0, borderTopRightRadius: 0 }}>
 
           {quotes?.error && (
