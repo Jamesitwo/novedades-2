@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import api from '@/lib/api';
@@ -66,6 +66,14 @@ export default function LucidSalesEditPage() {
   const [showCotizador, setShowCotizador] = useState(false);
   const [showIR, setShowIR] = useState(false);
   const [camposModificados, setCamposModificados] = useState(new Set());
+
+  const direccionRef = useRef(null);
+
+  const getOverlayPos = () => {
+    const rect = direccionRef.current?.getBoundingClientRect();
+    if (!rect) return { top: '50%', left: '50%', transform: 'translate(-50%, -50%)' };
+    return { position: 'fixed', top: rect.bottom + 4, left: rect.left, width: rect.width, transform: 'none' };
+  };
 
   const showToast = (message, type = 'success') => {
     setToast({ message, type });
@@ -517,7 +525,7 @@ export default function LucidSalesEditPage() {
               <label className="form-field-label">Referencias</label>
               <input type="text" value={pedido.Referencias || ''} onChange={e => handleChange('Referencias', e.target.value)} style={inputStyle} />
             </div>
-            <div className="form-group span2" style={{ position: 'relative' }}>
+            <div className="form-group span2" ref={direccionRef}>
               <label className="form-field-label">Dirección</label>
               <div style={{ display: 'flex', gap: 6 }}>
                 <input
@@ -554,8 +562,8 @@ export default function LucidSalesEditPage() {
                     position: 'fixed', inset: 0, zIndex: 99
                   }} />
                   <div style={{
-                    position: 'absolute', top: '100%', left: 0, right: 0, zIndex: 100,
-                    marginTop: 4, padding: 12, borderRadius: 8,
+                    ...getOverlayPos(), zIndex: 100,
+                    marginTop: 0, padding: 12, borderRadius: 8,
                     background: 'var(--bg2)', border: '1px solid var(--border)',
                     fontSize: 12, boxShadow: '0 12px 40px rgba(0,0,0,0.35)',
                     maxHeight: '65vh', overflowY: 'auto'
@@ -752,8 +760,8 @@ export default function LucidSalesEditPage() {
                     position: 'fixed', inset: 0, zIndex: 99
                   }} />
                   <div style={{
-                    position: 'absolute', top: '100%', left: 0, right: 0, zIndex: 100,
-                    marginTop: 4, padding: 12, borderRadius: 8,
+                    ...getOverlayPos(), zIndex: 100,
+                    marginTop: 0, padding: 12, borderRadius: 8,
                     background: 'var(--bg2)', border: '1px solid var(--border)',
                     fontSize: 12, boxShadow: '0 12px 40px rgba(0,0,0,0.35)',
                     maxHeight: '65vh', overflowY: 'auto'
