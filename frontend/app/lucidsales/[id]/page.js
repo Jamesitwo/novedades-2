@@ -1193,10 +1193,8 @@ export default function LucidSalesEditPage() {
           </button>
         </div>
       </div>
-    </div>
-
-    {showSplitModal && (
-      <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.7)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 10000 }}>
+      {showSplitModal && (
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.7)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 10000 }}>
         <div style={{ background: 'var(--bg2)', borderRadius: 14, width: 'min(480px, 92vw)', boxShadow: '0 20px 60px rgba(0,0,0,0.5)', border: '1px solid var(--border)' }}>
           <div style={{ padding: '16px 20px', borderBottom: '1px solid var(--border)', fontWeight: 600, fontSize: 16 }}>
             Dividir pedido en órdenes separadas
@@ -1258,6 +1256,7 @@ export default function LucidSalesEditPage() {
         </div>
       </div>
     )}
+    </div>
   );
 }
 
