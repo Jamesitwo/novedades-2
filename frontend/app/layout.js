@@ -1,4 +1,5 @@
 import './globals.css';
+import AuthHeartbeat from '@/components/providers/AuthHeartbeat';
 
 export const metadata = {
   title: 'Gestión Novedades',
@@ -15,7 +16,7 @@ export default function RootLayout({ children }) {
       </head>
       <body>
         <div className="sidebar-overlay" />
-        {children}
+        <AuthHeartbeat>{children}</AuthHeartbeat>
       </body>
     </html>
   );

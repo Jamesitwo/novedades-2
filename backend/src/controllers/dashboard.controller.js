@@ -55,7 +55,7 @@ const getResumen = async (req, res) => {
     ] = await Promise.all([
       prisma.pedidoNovedad.findMany({
         where: whereNovedad,
-        select: { estado: true, totalAPagar: true, transportadora: true, motivoNovedad: true }
+        select: { estado: true, totalAPagar: true, transportadora: true, motivoNovedad: true, producto: true }
       }),
       prisma.pedidoOficina.findMany({
         where: whereOficina,
@@ -415,7 +415,7 @@ const getTiempoActivo = async (req, res) => {
     const { periodo = 'hoy', fechaDesde, fechaHasta } = req.query;
     const { start, end } = getDateRange(periodo, fechaDesde, fechaHasta);
 
-    const where = start ? { createdAt: { gte: start, lte: end } } : {};
+    const where = start ? { ultimaAct: { gte: start, lte: end } } : {};
 
     const sesiones = await prisma.sesion.findMany({
       where: { ...where, minutosActivos: { gt: 0 } },

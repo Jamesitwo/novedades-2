@@ -6,13 +6,10 @@ import { useAuthStore } from '../../store/authStore';
 import Sidebar from '../../components/layout/Sidebar';
 import Header from '../../components/layout/Header';
 import WebSocketProvider from '../../components/providers/WebSocketProvider';
-import useHeartbeat from '../../lib/useHeartbeat';
 
 export default function DashboardLayout({ children }) {
   const router = useRouter();
   const { isAuthenticated, initialized, initialize } = useAuthStore();
-
-  useHeartbeat();
 
   useEffect(() => {
     initialize();
