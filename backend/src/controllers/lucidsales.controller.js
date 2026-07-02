@@ -248,13 +248,23 @@ const vincularYActualizar = async (req, res) => {
 
     console.log(`[LucidSales] vincularYActualizar: id=${lucidsalesPedidoId} campos=`, Object.keys(camposFiltrados));
 
-    const pedidoBase = await lucidsalesService.crearVinculacion(lucidsalesPedidoId, notas);
+    const pedidoBase = await lucidsalesService.crearVinculacion(lucidsalesPedidoId);
 
     const pedidoCompleto = await lucidsalesService.getPedidoById(lucidsalesPedidoId);
     const pedidoActualizado = { ...pedidoCompleto, ...camposFiltrados };
 
-    if (notas !== undefined) {
-      pedidoActualizado.notas = notas;
+    if (notas) {
+      let observaciones = [];
+      try {
+        observaciones = typeof pedidoCompleto.Observaciones === 'string'
+          ? JSON.parse(pedidoCompleto.Observaciones)
+          : (pedidoCompleto.Observaciones || []);
+      } catch { observaciones = []; }
+      observaciones.push({
+        desc: notas,
+        update: new Date().toISOString()
+      });
+      pedidoActualizado.Observaciones = JSON.stringify(observaciones);
     }
 
     const updateResult = await lucidsalesService.updatePedido(pedidoActualizado);
