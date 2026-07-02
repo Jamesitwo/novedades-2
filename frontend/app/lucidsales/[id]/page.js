@@ -334,6 +334,11 @@ export default function LucidSalesEditPage() {
     setUploading(true);
     try {
       const selectedQuote = quotes.quotes[selectedQuoteIdx];
+
+      await api.post(`/api/lucidsales/pedidos/${id}`, pedido);
+      await api.post('/api/lucidsales/guardar-local', { lucidsalesPedidoId: Number(id), pedido });
+      setCamposModificados(new Set());
+
       const { data } = await api.post('/api/lucidsales/pedidos/confirmar-envio', {
         pedidoId: Number(id),
         transportadora_id: selectedQuote.transportadora_id
@@ -345,7 +350,7 @@ export default function LucidSalesEditPage() {
         showToast(data.msg || data.error || 'Error al subir', 'error');
       }
     } catch (err) {
-      showToast(err.response?.data?.error || 'Error al subir', 'error');
+      showToast(err.response?.data?.error || err.message || 'Error al subir', 'error');
     } finally {
       setUploading(false);
     }
