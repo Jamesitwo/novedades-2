@@ -337,6 +337,7 @@ const getMetricasOperadores = async (req, res) => {
         registrosNovedadCreados,
         registrosOficinaCreados,
         novedadesResueltasData,
+        oficinaResueltasData,
         sesionesActivas
       ] = await Promise.all([
         prisma.pedidoNovedad.count({ where: { ...whereNovedad, asignadoId: op.id } }),
@@ -353,6 +354,10 @@ const getMetricasOperadores = async (req, res) => {
           where: { ...whereNovedad, asignadoId: op.id, estado: 'solucionado' },
           select: { createdAt: true, updatedAt: true }
         }),
+        prisma.pedidoOficina.findMany({
+          where: { ...whereOficina, asignadoId: op.id, estado: 'va_a_recoger' },
+          select: { createdAt: true, updatedAt: true }
+        }),
         prisma.sesion.findMany({
           where: { usuarioId: op.id, activa: true },
           select: { minutosActivos: true }
@@ -361,18 +366,30 @@ const getMetricasOperadores = async (req, res) => {
 
       const registrosCreados = registrosNovedadCreados + registrosOficinaCreados;
 
-      const dineroManejado = await prisma.pedidoNovedad.aggregate({
-        where: { ...whereNovedad, asignadoId: op.id, estado: 'solucionado' },
-        _sum: { totalAPagar: true }
-      });
+      const [dineroNovedad, dineroOficina] = await Promise.all([
+        prisma.pedidoNovedad.aggregate({
+          where: { ...whereNovedad, asignadoId: op.id, estado: 'solucionado' },
+          _sum: { totalAPagar: true }
+        }),
+        prisma.pedidoOficina.aggregate({
+          where: { ...whereOficina, asignadoId: op.id, estado: 'va_a_recoger' },
+          _sum: { precio: true }
+        })
+      ]);
+      const dineroManejado = (dineroNovedad._sum.totalAPagar || 0) + (dineroOficina._sum.precio || 0);
 
       let promedioResolucionHoras = 0;
-      if (novedadesResueltasData.length > 0) {
-        const totalHoras = novedadesResueltasData.reduce((acc, n) => {
-          const horas = (new Date(n.updatedAt) - new Date(n.createdAt)) / 3600000;
-          return acc + horas;
-        }, 0);
-        promedioResolucionHoras = Math.round((totalHoras / novedadesResueltasData.length) * 10) / 10;
+      const todasResueltas = [
+        ...novedadesResueltasData.map(n => ({
+          horas: (new Date(n.updatedAt) - new Date(n.createdAt)) / 3600000
+        })),
+        ...oficinaResueltasData.map(o => ({
+          horas: (new Date(o.updatedAt) - new Date(o.createdAt)) / 3600000
+        }))
+      ];
+      if (todasResueltas.length > 0) {
+        const totalHoras = todasResueltas.reduce((acc, r) => acc + r.horas, 0);
+        promedioResolucionHoras = Math.round((totalHoras / todasResueltas.length) * 10) / 10;
       }
 
       const totalAsignados = novedadesAsignadas + oficinaAsignadas;
@@ -397,7 +414,7 @@ const getMetricasOperadores = async (req, res) => {
         transferenciasEnviadas,
         transferenciasRecibidas,
         registrosCreados,
-        dineroManejado: dineroManejado._sum.totalAPagar || 0,
+        dineroManejado,
         promedioResolucionHoras,
         tiempoActivoMinutos
       };
