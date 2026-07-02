@@ -318,6 +318,16 @@ export default function LucidSalesEditPage() {
 
   const handleUpload = async () => {
     if (selectedQuoteIdx == null) return;
+
+    if (pedido.TipoPago === 2) {
+      const confirmado = window.confirm(
+        '⚠ Este pedido es por TRANSFERENCIA.\n\n' +
+        '¿Ya verificaste que el cliente realizó la transferencia?\n\n' +
+        'Presiona Aceptar solo si el pago ya fue recibido.'
+      );
+      if (!confirmado) return;
+    }
+
     setUploading(true);
     try {
       const selectedQuote = quotes.quotes[selectedQuoteIdx];
@@ -836,20 +846,43 @@ export default function LucidSalesEditPage() {
                   ))}
                 </select>
               </div>
-              <div className="form-group">
-                <label className="form-field-label">Tipo de pago</label>
-                <select value={pedido.TipoPago ?? 1} onChange={e => handleChange('TipoPago', Number(e.target.value))} style={{ ...inputStyle, appearance: 'auto', cursor: 'pointer' }}>
+              <div className="form-group" style={pedido.TipoPago === 2 ? {
+                padding: 8, borderRadius: 6,
+                background: 'rgba(229,62,62,0.08)',
+                border: '1px solid rgba(229,62,62,0.35)'
+              } : {}}>
+                <label className="form-field-label" style={pedido.TipoPago === 2 ? { color: '#e53e3e', fontWeight: 600 } : {}}>
+                  ⚠ Tipo de pago
+                </label>
+                <select value={pedido.TipoPago ?? 1} onChange={e => handleChange('TipoPago', Number(e.target.value))} style={{ ...inputStyle, appearance: 'auto', cursor: 'pointer', borderColor: pedido.TipoPago === 2 ? 'rgba(229,62,62,0.5)' : undefined }}>
                   <option value={1}>Contra entrega</option>
                   <option value={2}>Transferencia</option>
                 </select>
               </div>
-              <div className="form-group">
-                <label className="form-field-label">Estado pago</label>
-                <select value={pedido.EstadoPago ?? 0} onChange={e => handleChange('EstadoPago', Number(e.target.value))} style={{ ...inputStyle, appearance: 'auto', cursor: 'pointer' }}>
+              <div className="form-group" style={pedido.TipoPago === 2 ? {
+                padding: 8, borderRadius: 6,
+                background: 'rgba(229,62,62,0.08)',
+                border: '1px solid rgba(229,62,62,0.35)'
+              } : {}}>
+                <label className="form-field-label" style={pedido.TipoPago === 2 ? { color: '#e53e3e', fontWeight: 600 } : {}}>
+                  {pedido.EstadoPago === 0 ? '⚠ Validar pago' : '✓ Estado pago'}
+                </label>
+                <select value={pedido.EstadoPago ?? 0} onChange={e => handleChange('EstadoPago', Number(e.target.value))} style={{ ...inputStyle, appearance: 'auto', cursor: 'pointer', borderColor: pedido.TipoPago === 2 ? 'rgba(229,62,62,0.5)' : undefined }}>
                   <option value={0}>Pendiente</option>
                   <option value={1}>Pagado</option>
                 </select>
               </div>
+              {pedido.TipoPago === 2 && pedido.EstadoPago === 0 && (
+                <div className="form-group span2" style={{ gridColumn: '1 / -1' }}>
+                  <div style={{
+                    padding: '8px 12px', borderRadius: 6, fontSize: 12,
+                    background: 'rgba(229,62,62,0.08)', border: '1px solid rgba(229,62,62,0.3)',
+                    color: '#e53e3e', fontWeight: 500
+                  }}>
+                    ⚠ Este pedido es por transferencia y el pago está pendiente. Verifica que el cliente haya transferido antes de subir el envío.
+                  </div>
+                </div>
+              )}
               <div className="form-group">
                 <label className="form-field-label">Logística</label>
                 <input type="text" value={pedido.logistic || ''} onChange={e => handleChange('logistic', e.target.value)} style={inputStyle} />
