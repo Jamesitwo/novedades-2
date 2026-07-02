@@ -65,6 +65,7 @@ export default function LucidSalesEditPage() {
 
   const [showCotizador, setShowCotizador] = useState(false);
   const [showIR, setShowIR] = useState(false);
+  const [uploaded, setUploaded] = useState(false);
   const [camposModificados, setCamposModificados] = useState(new Set());
 
   const direccionRef = useRef(null);
@@ -336,6 +337,7 @@ export default function LucidSalesEditPage() {
         transportadora_id: selectedQuote.transportadora_id
       });
       if (data.ok) {
+        setUploaded(true);
         showToast(`Pedido subido a ${selectedQuote.transportadora} correctamente`);
       } else {
         showToast(data.msg || data.error || 'Error al subir', 'error');
@@ -415,21 +417,23 @@ export default function LucidSalesEditPage() {
         </div>
       </div>
 
-      <div className="table-card" style={{ padding: '8px 14px', marginBottom: 20, cursor: 'pointer', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }} onClick={() => { if (!quotes) { handleQuote(); } else { setShowCotizador(!showCotizador); } }}>
+      <div className="table-card" style={{ padding: '8px 14px', marginBottom: 20, cursor: uploaded ? 'default' : 'pointer', display: 'flex', justifyContent: 'space-between', alignItems: 'center', opacity: uploaded ? 0.7 : 1 }} onClick={() => { if (uploaded) return; if (!quotes) { handleQuote(); } else { setShowCotizador(!showCotizador); } }}>
         <span style={{ fontWeight: 600, fontSize: 13, color: 'var(--text)' }}>
-          Cotizar envío con Dropi {showCotizador ? '▲' : '▼'}
-          {!showCotizador && quotes?.quotes?.length > 0 && (
+          {uploaded ? '✓ Pedido subido' : `Cotizar envío con Dropi ${showCotizador ? '▲' : '▼'}`}
+          {!uploaded && !showCotizador && quotes?.quotes?.length > 0 && (
             <span style={{ fontWeight: 400, color: 'var(--text2)', fontSize: 11, marginLeft: 8 }}>
               · {quotes.quotes.length} cotización{quotes.quotes.length > 1 ? 'es' : ''}
             </span>
           )}
         </span>
-        <button onClick={e => { e.stopPropagation(); handleQuote(); }} disabled={quoting} className="btn btn-primary" style={{ fontSize: 11 }}>
-          {quoting ? 'Cotizando...' : quotes?.quotes ? '⟳ Re-cotizar' : 'Cotizar'}
-        </button>
+        {!uploaded && (
+          <button onClick={e => { e.stopPropagation(); handleQuote(); }} disabled={quoting} className="btn btn-primary" style={{ fontSize: 11 }}>
+            {quoting ? 'Cotizando...' : quotes?.quotes ? '⟳ Re-cotizar' : 'Cotizar'}
+          </button>
+        )}
       </div>
 
-      {showCotizador && quotes && (
+      {!uploaded && showCotizador && quotes && (
         <div className="table-card" style={{ padding: 14, marginBottom: 20, borderTop: 'none', borderTopLeftRadius: 0, borderTopRightRadius: 0 }}>
 
           {quotes?.error && (
