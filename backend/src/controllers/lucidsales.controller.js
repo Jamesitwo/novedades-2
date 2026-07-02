@@ -281,6 +281,50 @@ const vincularYActualizar = async (req, res) => {
   }
 };
 
+const duplicarPedido = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const original = await lucidsalesService.getPedidoById(id);
+    if (!original || !original.id) {
+      return res.status(404).json({ error: 'Pedido original no encontrado en LucidSales' });
+    }
+
+    const nuevoPedido = {
+      nombreCliente: original.Nombre || '',
+      apellidoCliente: original.Apellido || '',
+      emailCliente: original.Correo || '',
+      telefonoCliente: original.Movil || '',
+      direccionCliente: original.Direccion || '',
+      ciudadCliente: Number(original.Ciudad ?? 0),
+      departamentoCliente: Number(original.Departamento ?? 0),
+      paisCliente: Number(original.Pais || 47),
+      codigoPostal: original.codigoPostal || null,
+      nitCliente: original.NIT || '',
+      json: original.Json || '[]',
+      subTotal: Number(original.SubTotal || 0),
+      costoEnvio: Number(original.CostoEnvio || 0),
+      total: Number(original.Total || 0),
+      Referencias: original.Referencias || ''
+    };
+
+    const result = await lucidsalesService.createPedido(nuevoPedido);
+    if (result && result.ok === false) {
+      return res.status(400).json({ error: result.msg || result.error || 'Error al crear pedido duplicado en LucidSales' });
+    }
+
+    const nuevoId = result.pedido?.id || result.id;
+    if (nuevoId) {
+      await lucidsalesService.crearVinculacion(nuevoId, `Duplicado del pedido #${original.idPedido || id}`);
+    }
+
+    res.json({ ok: true, nuevoId, pedido: result.pedido || result });
+  } catch (error) {
+    console.error('LucidSales duplicarPedido error:', error);
+    res.status(500).json({ error: error.message || 'Error al duplicar pedido' });
+  }
+};
+
 const listarVinculados = async (req, res) => {
   try {
     const { page = 1, itemsPerPage = 50, search = '', estadoFilter } = req.query;
@@ -408,6 +452,7 @@ module.exports = {
   verificarConexion,
   vincularPedido,
   vincularYActualizar,
+  duplicarPedido,
   listarVinculados,
   guardarLocal,
   getEtiquetas,

@@ -286,7 +286,8 @@ export default function LucidSalesEditPage() {
     setOficinasIR([]);
   };
 
-  const handleSave = async () => {
+  const handleUpload = async () => {
+    if (selectedQuoteIdx == null) return;
     setSaving(true);
     setError('');
     try {
@@ -356,6 +357,24 @@ export default function LucidSalesEditPage() {
     }
   };
 
+  const handleDuplicate = async () => {
+    if (!window.confirm('¿Crear una copia de este pedido para volver a subirlo?')) return;
+    setUploading(true);
+    try {
+      const { data } = await api.post(`/api/lucidsales/pedidos/${id}/duplicar`);
+      if (data.ok && data.nuevoId) {
+        showToast(`Pedido duplicado como #${data.nuevoId}`);
+        router.push(`/lucidsales/${data.nuevoId}`);
+      } else {
+        showToast(data.error || 'Error al duplicar', 'error');
+      }
+    } catch (err) {
+      showToast(err.response?.data?.error || 'Error al duplicar', 'error');
+    } finally {
+      setUploading(false);
+    }
+  };
+
   const parseObservaciones = (obs) => {
     try { return typeof obs === 'string' ? JSON.parse(obs) : obs || []; }
     catch { return []; }
@@ -413,6 +432,11 @@ export default function LucidSalesEditPage() {
           </h2>
         </div>
         <div style={{ display: 'flex', gap: 8 }}>
+          {uploaded && (
+            <button onClick={handleDuplicate} className="btn btn-ghost" style={{ fontSize: 12 }}>
+              🔄 Duplicar
+            </button>
+          )}
           <button
             onClick={handleSave}
             disabled={saving}
