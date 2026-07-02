@@ -130,8 +130,8 @@ export default function LucidSalesEditPage() {
 
           if (pedidoData && pedidoData.id) {
           setPedido(pedidoData);
-          const dropiId = pedidoData.idPedidoDropi;
-          if (dropiId && String(dropiId) !== '0' && String(dropiId) !== 'null') setUploaded(true);
+          const yaSubido = pedidoData.idPedidoDropi && String(pedidoData.idPedidoDropi) !== '0' && pedidoData.idPedidoDropi !== 0;
+          if (yaSubido) setUploaded(true);
           setEtiquetas(Array.isArray(etiquetasRes.data) ? etiquetasRes.data : []);
           if (Array.isArray(deptosRes.data)) {
             setDeptos(deptosRes.data.sort((a, b) => a.id - b.id));
