@@ -558,7 +558,8 @@ export default function LucidSalesEditPage() {
                     marginTop: 4, padding: 12, borderRadius: 8,
                     background: 'var(--bg2)', border: '1px solid var(--border)',
                     fontSize: 12, boxShadow: '0 12px 40px rgba(0,0,0,0.35)',
-                }}>
+                    maxHeight: '65vh', overflowY: 'auto'
+                  }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                       <span style={{ fontWeight: 600 }}>Resultado</span>
@@ -754,7 +755,8 @@ export default function LucidSalesEditPage() {
                     position: 'absolute', top: '100%', left: 0, right: 0, zIndex: 100,
                     marginTop: 4, padding: 12, borderRadius: 8,
                     background: 'var(--bg2)', border: '1px solid var(--border)',
-                    fontSize: 12, boxShadow: '0 12px 40px rgba(0,0,0,0.35)'
+                    fontSize: 12, boxShadow: '0 12px 40px rgba(0,0,0,0.35)',
+                    maxHeight: '65vh', overflowY: 'auto'
                   }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
                       <span style={{ fontWeight: 600, fontSize: 13 }}>🏢 Inter Rapidísimo</span>
