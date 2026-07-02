@@ -63,6 +63,9 @@ export default function LucidSalesEditPage() {
   const [validacion, setValidacion] = useState(null);
   const [showValidacion, setShowValidacion] = useState(false);
 
+  const [showCotizador, setShowCotizador] = useState(false);
+  const [camposModificados, setCamposModificados] = useState(new Set());
+
   const showToast = (message, type = 'success') => {
     setToast({ message, type });
     setTimeout(() => setToast(null), 4000);
@@ -163,6 +166,7 @@ export default function LucidSalesEditPage() {
     } else {
       setPedido(prev => ({ ...prev, [field]: value }));
     }
+    setCamposModificados(prev => { const next = new Set(prev); next.add(field); return next; });
   };
   
   const handleMoneyChange = (field, value) => {
@@ -272,6 +276,7 @@ export default function LucidSalesEditPage() {
         return showToast(updateResult.msg || updateResult.error || 'Error al actualizar en LucidSales', 'error');
       }
       await api.post('/api/lucidsales/guardar-local', { lucidsalesPedidoId: Number(id), pedido });
+      setCamposModificados(new Set());
       showToast('Pedido actualizado correctamente');
     } catch (err) {
       showToast(err.response?.data?.error || err.message || 'Error al guardar', 'error');
@@ -284,6 +289,7 @@ export default function LucidSalesEditPage() {
     setQuoting(true);
     setQuotes(null);
     setSelectedQuoteIdx(null);
+    setShowCotizador(true);
     try {
       const { data } = await api.post('/api/lucidsales/pedidos/cotizar', { pedidoId: Number(id), carrier: 'dropi' });
       setQuotes(data);
@@ -360,7 +366,7 @@ export default function LucidSalesEditPage() {
 
   return (
     <div className="content">
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
+      <div style={{ position: 'sticky', top: 0, zIndex: 50, background: 'var(--bg)', paddingBottom: 16, borderBottom: '1px solid var(--border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <div>
           <Link href="/lucidsales" style={{ color: 'var(--accent)', fontSize: 13, textDecoration: 'none' }}>
             ‹ Volver a pedidos
@@ -379,77 +385,85 @@ export default function LucidSalesEditPage() {
             className="btn btn-primary"
             style={{ fontSize: 12 }}
           >
-            {saving ? 'Guardando...' : 'Guardar cambios'}
+            {saving ? 'Guardando...' : `Guardar cambios${camposModificados.size > 0 ? ` (${camposModificados.size})` : ''}`}
           </button>
         </div>
       </div>
 
-      <div className="table-card" style={{ padding: 20, marginBottom: 20 }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
-          <div style={{ fontWeight: 600, fontSize: 14, color: 'var(--text)' }}>
-            Cotizar envío con Dropi
-          </div>
-          <button onClick={handleQuote} disabled={quoting} className="btn btn-primary" style={{ fontSize: 12 }}>
-            {quoting ? 'Cotizando...' : 'Cotizar'}
-          </button>
-        </div>
+      <div className="table-card" style={{ padding: '8px 14px', marginBottom: 20, cursor: 'pointer', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }} onClick={() => setShowCotizador(!showCotizador)}>
+        <span style={{ fontWeight: 600, fontSize: 13, color: 'var(--text)' }}>
+          Cotizar envío con Dropi {showCotizador ? '▲' : '▼'}
+          {!showCotizador && quotes?.quotes?.length > 0 && (
+            <span style={{ fontWeight: 400, color: 'var(--text2)', fontSize: 11, marginLeft: 8 }}>
+              · {quotes.quotes.length} cotización{quotes.quotes.length > 1 ? 'es' : ''}
+            </span>
+          )}
+        </span>
+        <button onClick={e => { e.stopPropagation(); handleQuote(); }} disabled={quoting} className="btn btn-primary" style={{ fontSize: 11 }}>
+          {quoting ? 'Cotizando...' : quotes?.quotes ? '⟳ Re-cotizar' : 'Cotizar'}
+        </button>
+      </div>
 
-        {quotes?.error && (
-          <div style={{ color: 'var(--red)', fontSize: 13, padding: 12, background: 'var(--bg3)', borderRadius: 8 }}>
-            {quotes.error}
-          </div>
-        )}
+      {showCotizador && (
+        <div className="table-card" style={{ padding: 14, marginBottom: 20, borderTop: 'none', borderTopLeftRadius: 0, borderTopRightRadius: 0 }}>
 
-        {quotes?.quotes && quotes.quotes.length > 0 && (
-          <>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginBottom: 16 }}>
-              {quotes.quotes.map((q, i) => {
-                const hasError = !!q.error;
-                const selected = selectedQuoteIdx === i;
-                return (
-                  <div key={i} onClick={() => !hasError && setSelectedQuoteIdx(i)} style={{
-                    display: 'flex', alignItems: 'center', gap: 12,
-                    padding: '12px 16px', borderRadius: 8, cursor: hasError ? 'default' : 'pointer',
-                    border: selected ? '2px solid var(--accent)' : '1px solid var(--border)',
-                    background: selected ? 'var(--accent-bg)' : 'var(--bg3)',
-                    opacity: hasError ? 0.5 : 1
-                  }}>
-                    <div style={{ width: 20 }}>
-                      {selected && <span style={{ color: 'var(--accent)' }}>✓</span>}
-                    </div>
-                    <div style={{ flex: 1 }}>
-                      <div style={{ fontWeight: 600, fontSize: 13 }}>{q.transportadora}</div>
-                      {q.objects && (
-                        <div style={{ fontSize: 12, color: 'var(--text2)', marginTop: 2 }}>
-                          {q.objects.precioEnvio != null && (
-                            <span style={{ fontWeight: 500, color: 'var(--accent2)', marginRight: 12 }}>
-                              {formatMoney(q.objects.precioEnvio)}
-                            </span>
-                          )}
-                          {q.objects.trayecto && <span style={{ marginRight: 8 }}>{q.objects.trayecto}</span>}
-                          {q.objects.seguroEnvio != null && (
-                            <span>Seguro: {formatMoney(q.objects.seguroEnvio)}</span>
-                          )}
-                        </div>
-                      )}
-                      {hasError && <div style={{ fontSize: 11, color: 'var(--red)', marginTop: 2 }}>{q.error}</div>}
-                    </div>
-                  </div>
-                );
-              })}
+          {quotes?.error && (
+            <div style={{ color: 'var(--red)', fontSize: 13, padding: 12, background: 'var(--bg3)', borderRadius: 8 }}>
+              {quotes.error}
             </div>
-            {selectedQuoteIdx != null && (
-              <button onClick={handleUpload} disabled={uploading} className="btn btn-success" style={{ fontSize: 12 }}>
-                {uploading ? 'Subiendo...' : `↑ Subir pedido con ${quotes.quotes[selectedQuoteIdx].transportadora}`}
-              </button>
-            )}
-          </>
-        )}
+          )}
 
-        {quotes && !quotes.error && (!quotes.quotes || quotes.quotes.length === 0) && (
-          <div style={{ color: 'var(--text3)', fontSize: 13 }}>No hay cotizaciones disponibles</div>
-        )}
-      </div>
+          {quotes?.quotes && quotes.quotes.length > 0 && (
+            <>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginBottom: 16 }}>
+                {quotes.quotes.map((q, i) => {
+                  const hasError = !!q.error;
+                  const selected = selectedQuoteIdx === i;
+                  return (
+                    <div key={i} onClick={() => !hasError && setSelectedQuoteIdx(i)} style={{
+                      display: 'flex', alignItems: 'center', gap: 12,
+                      padding: '10px 14px', borderRadius: 8, cursor: hasError ? 'default' : 'pointer',
+                      border: selected ? '2px solid var(--accent)' : '1px solid var(--border)',
+                      background: selected ? 'var(--accent-bg)' : 'var(--bg3)',
+                      opacity: hasError ? 0.5 : 1
+                    }}>
+                      <div style={{ width: 20 }}>
+                        {selected && <span style={{ color: 'var(--accent)' }}>✓</span>}
+                      </div>
+                      <div style={{ flex: 1 }}>
+                        <div style={{ fontWeight: 600, fontSize: 13 }}>{q.transportadora}</div>
+                        {q.objects && (
+                          <div style={{ fontSize: 12, color: 'var(--text2)', marginTop: 2 }}>
+                            {q.objects.precioEnvio != null && (
+                              <span style={{ fontWeight: 500, color: 'var(--accent2)', marginRight: 12 }}>
+                                {formatMoney(q.objects.precioEnvio)}
+                              </span>
+                            )}
+                            {q.objects.trayecto && <span style={{ marginRight: 8 }}>{q.objects.trayecto}</span>}
+                            {q.objects.seguroEnvio != null && (
+                              <span>Seguro: {formatMoney(q.objects.seguroEnvio)}</span>
+                            )}
+                          </div>
+                        )}
+                        {hasError && <div style={{ fontSize: 11, color: 'var(--red)', marginTop: 2 }}>{q.error}</div>}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+              {selectedQuoteIdx != null && (
+                <button onClick={handleUpload} disabled={uploading} className="btn btn-success" style={{ fontSize: 12 }}>
+                  {uploading ? 'Subiendo...' : `↑ Subir pedido con ${quotes.quotes[selectedQuoteIdx].transportadora}`}
+                </button>
+              )}
+            </>
+          )}
+
+          {quotes && !quotes.error && (!quotes.quotes || quotes.quotes.length === 0) && (
+            <div style={{ color: 'var(--text3)', fontSize: 13 }}>No hay cotizaciones disponibles</div>
+          )}
+        </div>
+      )}
 
       {toast && (
         <div style={{
@@ -492,7 +506,7 @@ export default function LucidSalesEditPage() {
               <label className="form-field-label">Referencias</label>
               <input type="text" value={pedido.Referencias || ''} onChange={e => handleChange('Referencias', e.target.value)} style={inputStyle} />
             </div>
-            <div className="form-group span2">
+            <div className="form-group span2" style={{ position: 'relative' }}>
               <label className="form-field-label">Dirección</label>
               <div style={{ display: 'flex', gap: 6 }}>
                 <input
@@ -516,10 +530,15 @@ export default function LucidSalesEditPage() {
                 </button>
               </div>
               {showValidacion && validacion && (
-                <div style={{
-                  marginTop: 8, padding: 12, borderRadius: 8,
-                  background: 'var(--bg3)', border: '1px solid var(--border)',
-                  fontSize: 12
+                <>
+                  <div onClick={() => setShowValidacion(false)} style={{
+                    position: 'fixed', inset: 0, zIndex: 99
+                  }} />
+                  <div style={{
+                    position: 'absolute', top: '100%', left: 0, right: 0, zIndex: 100,
+                    marginTop: 4, padding: 12, borderRadius: 8,
+                    background: 'var(--bg2)', border: '1px solid var(--border)',
+                    fontSize: 12, boxShadow: '0 12px 40px rgba(0,0,0,0.35)',
                 }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
@@ -703,12 +722,9 @@ export default function LucidSalesEditPage() {
                       ✓ La dirección tiene un formato correcto
                     </div>
                   )}
-                </div>
+                  </div>
+                </>
               )}
-            </div>
-            <div className="form-group">
-              <label className="form-field-label">País</label>
-              <input type="number" value={pedido.Pais ?? 47} onChange={e => handleChange('Pais', Number(e.target.value))} style={inputStyle} />
             </div>
             <div className="form-group">
               <label className="form-field-label">Departamento</label>
@@ -728,10 +744,6 @@ export default function LucidSalesEditPage() {
                 ))}
               </select>
             </div>
-            <div className="form-group">
-              <label className="form-field-label">Código postal</label>
-              <input type="text" value={pedido.codigoPostal || ''} onChange={e => handleChange('codigoPostal', e.target.value)} style={inputStyle} />
-            </div>
             <div className="form-group span2">
               <label className="form-field-label">Notas</label>
               <textarea value={pedido.notas || ''} onChange={e => handleChange('notas', e.target.value)} rows={2} style={{ ...inputStyle, resize: 'vertical', fontFamily: 'inherit' }} />
@@ -739,52 +751,29 @@ export default function LucidSalesEditPage() {
           </div>
         </div>
 
-        <div className="table-card" style={{ padding: 20 }}>
-          <div style={{ fontWeight: 600, fontSize: 14, marginBottom: 12, color: 'var(--text)' }}>
-            Inter Rapidísimo
-          </div>
-          <div style={{ display: 'flex', gap: 8, alignItems: 'center', marginBottom: 10 }}>
-            <button onClick={handleBuscarIR} disabled={!pedido?.Ciudad || buscandoIR} className="btn btn-primary" style={{ fontSize: 12 }}>
-              {buscandoIR ? 'Buscando...' : 'Buscar oficina principal'}
-            </button>
-            {!pedido?.Ciudad && (
-              <span style={{ fontSize: 11, color: 'var(--text3)' }}>Selecciona una ciudad primero</span>
-            )}
-          </div>
-          {buscandoIR && <div style={{ color: 'var(--text3)', fontSize: 13 }}>Buscando oficinas...</div>}
-          {errorIR && (
-            <div style={{ color: 'var(--red)', fontSize: 13, marginTop: 4 }}>{errorIR}</div>
-          )}
-          {oficinasIR.length > 0 && (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginTop: 4 }}>
-              {oficinasIR.map((ofi, i) => (
-                <div key={ofi.IdCentroServicio || i} style={{
-                  padding: '10px 12px', background: 'var(--bg3)', borderRadius: 6,
-                  border: '1px solid var(--border)', fontSize: 13
-                }}>
-                  <div style={{ fontWeight: 600, marginBottom: 4 }}>{ofi.Nombre || 'Oficina'}</div>
-                  <div style={{ color: 'var(--text2)', lineHeight: 1.6 }}>
-                    {ofi.Direccion && <div>📍 {ofi.Direccion}</div>}
-                    {ofi.Telefono1 && <div>📞 {ofi.Telefono1}</div>}
-                    {ofi.Barrio && <div>🏘️ {ofi.Barrio}</div>}
-                    {ofi.Ciudad && <div>📍 {ofi.Ciudad.Descripcion}, {ofi.Ciudad.Departamento}</div>}
-                  </div>
-                  <button onClick={() => handleSeleccionarOficinaIR(ofi)} className="btn btn-ghost" style={{ fontSize: 11, marginTop: 8 }}>
-                    Usar esta oficina
-                  </button>
-                </div>
-              ))}
-            </div>
-          )}
-          {oficinasIR.length === 0 && !buscandoIR && !errorIR && (
-            <div style={{ color: 'var(--text3)', fontSize: 13 }}>Selecciona una ciudad y presiona "Buscar oficina principal"</div>
-          )}
-        </div>
-
         <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
           <div className="table-card" style={{ padding: 20 }}>
-            <div style={{ fontWeight: 600, fontSize: 14, marginBottom: 16, color: 'var(--text)' }}>
+            <div style={{ fontWeight: 600, fontSize: 14, marginBottom: 12, color: 'var(--text)' }}>
               Datos del pedido
+            </div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 14, padding: '5px 10px', background: 'var(--bg3)', borderRadius: 6, fontSize: 12 }}>
+              <span style={{ fontWeight: 600, color: 'var(--text)', whiteSpace: 'nowrap' }}>🏢 IR</span>
+              <button onClick={handleBuscarIR} disabled={!pedido?.Ciudad || buscandoIR} className="btn btn-primary" style={{ fontSize: 11 }}>
+                {buscandoIR ? 'Buscando...' : 'Buscar oficina'}
+              </button>
+              {!pedido?.Ciudad && !buscandoIR && (
+                <span style={{ fontSize: 10, color: 'var(--text3)' }}>Selecciona una ciudad</span>
+              )}
+              {buscandoIR && <span style={{ fontSize: 10, color: 'var(--text3)' }}>Buscando...</span>}
+              {errorIR && <span style={{ color: 'var(--red)', fontSize: 11 }}>{errorIR}</span>}
+              {oficinasIR.map((ofi, i) => (
+                <span key={ofi.IdCentroServicio || i} style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+                  <span style={{ fontWeight: 600 }}>{ofi.Nombre}</span>
+                  <span style={{ color: 'var(--text2)' }}>{ofi.Direccion}{ofi.Telefono1 ? ` · ${ofi.Telefono1}` : ''}</span>
+                  <button onClick={() => handleSeleccionarOficinaIR(ofi)} className="btn btn-ghost" style={{ fontSize: 10, padding: '1px 6px' }}>Usar</button>
+                </span>
+              ))}
+            </div>
             </div>
             <div className="form-grid">
               <div className="form-group">
