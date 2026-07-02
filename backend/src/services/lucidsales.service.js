@@ -347,7 +347,7 @@ async function crearVinculacion(lucidsalesPedidoId, notas) {
       estadoPedido: pedido.EstadoPedido ?? 0,
       referencias: pedido.Referencias || '',
       jsonProductos: typeof pedido.Json === 'string' ? pedido.Json : JSON.stringify(pedido.Json || []),
-      conversacionLink: pedido.conversacionLink || pedido.ConversacionLink || pedido.linkConversacion || null,
+      conversacionLink: pedido.botInbox || pedido.conversacionLink || pedido.ConversacionLink || pedido.linkConversacion || null,
       notas: notas || null
     },
     create: {
@@ -360,7 +360,7 @@ async function crearVinculacion(lucidsalesPedidoId, notas) {
       estadoPedido: pedido.EstadoPedido ?? 0,
       referencias: pedido.Referencias || '',
       jsonProductos: typeof pedido.Json === 'string' ? pedido.Json : JSON.stringify(pedido.Json || []),
-      conversacionLink: pedido.conversacionLink || pedido.ConversacionLink || pedido.linkConversacion || null,
+      conversacionLink: pedido.botInbox || pedido.conversacionLink || pedido.ConversacionLink || pedido.linkConversacion || null,
       notas: notas || null
     }
   });
@@ -379,7 +379,7 @@ async function guardarVinculacionLocal(lucidsalesPedidoId, pedido) {
       referencias: pedido.Referencias || '',
       notas: pedido.notas || null,
       jsonProductos: typeof pedido.Json === 'string' ? pedido.Json : JSON.stringify(pedido.Json || []),
-      conversacionLink: pedido.conversacionLink || pedido.ConversacionLink || pedido.linkConversacion || null,
+      conversacionLink: pedido.botInbox || pedido.conversacionLink || pedido.ConversacionLink || pedido.linkConversacion || null,
     },
     create: {
       lucidsalesPedidoId: Number(lucidsalesPedidoId),
@@ -392,7 +392,7 @@ async function guardarVinculacionLocal(lucidsalesPedidoId, pedido) {
       referencias: pedido.Referencias || '',
       notas: pedido.notas || null,
       jsonProductos: typeof pedido.Json === 'string' ? pedido.Json : JSON.stringify(pedido.Json || []),
-      conversacionLink: pedido.conversacionLink || pedido.ConversacionLink || pedido.linkConversacion || null,
+      conversacionLink: pedido.botInbox || pedido.conversacionLink || pedido.ConversacionLink || pedido.linkConversacion || null,
     }
   });
 }
