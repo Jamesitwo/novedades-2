@@ -614,26 +614,6 @@ export default function LucidSalesEditPage() {
                     </div>
                   )}
 
-                  {validacion.direccionNormalizada && validacion.direccionNormalizada !== pedido.Direccion && (
-                    <div style={{
-                      padding: '6px 10px', borderRadius: 6, marginBottom: 8,
-                      background: 'var(--accent-bg, rgba(91,110,245,0.1))',
-                      border: '1px solid var(--accent, #5b6ef5)'
-                    }}>
-                      <div style={{ fontSize: 10, color: 'var(--text3)', marginBottom: 2 }}>Dirección normalizada:</div>
-                      <div style={{ fontFamily: 'var(--mono)', fontSize: 13, color: 'var(--text)' }}>
-                        {validacion.direccionNormalizada}
-                      </div>
-                      <button
-                        onClick={() => handleAplicarDireccion(validacion.direccionNormalizada)}
-                        className="btn btn-ghost"
-                        style={{ fontSize: 10, marginTop: 6, padding: '2px 10px' }}
-                      >
-                        Aplicar
-                      </button>
-                    </div>
-                  )}
-
                   {validacion.viaDetectada && (
                     <div style={{ display: 'flex', gap: 12, marginBottom: 8, color: 'var(--text2)' }}>
                       <span>Vía: <strong style={{ color: 'var(--text)' }}>{validacion.viaDetectada.nombre}</strong> ({validacion.viaDetectada.abreviacion})</span>
