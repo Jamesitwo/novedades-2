@@ -228,29 +228,16 @@ async function cotizarEnvio(pedidoId, carrier = 'dropi') {
   }, token);
 }
 
-async function confirmarIntegracion(pedidoId, carrier = 'rocket', quote = null) {
-  console.log(`[LucidSales] confirmarIntegracion: pedidoId=${pedidoId} carrier=${carrier}`);
+async function confirmarIntegracion(pedidoId, carrier = 'dropi', quote = null) {
   const config = await getConfig();
   const { token } = await authenticate(config);
 
-  let pedido;
-  try {
-    pedido = await getPedidoById(pedidoId);
-  } catch (e) {
-    console.error('[LucidSales] confirmarIntegracion: error al obtener pedido:', e.message);
-    throw new Error(`No se pudo obtener el pedido #${pedidoId} de LucidSales (verifica conexión): ${e.message}`);
-  }
+  let body = { id: pedidoId };
 
-  const body = {
-    id: pedido.id,
-    idPedido: pedido.idPedido
-  };
-
-  if (quote && quote.objects) {
-    body.transportadora = quote.transportadora;
-    body.precioEnvio = quote.objects.precioEnvio;
-    body.trayecto = quote.objects.trayecto;
-    body.seguroEnvio = quote.objects.seguroEnvio;
+  if (quote && quote.transportadora_id != null) {
+    body.transportadora_id = Number(quote.transportadora_id);
+  } else if (quote && quote.id) {
+    body.transportadora_id = Number(quote.id);
   }
 
   const uploadCarriers = ['hoko', 'dropi', 'envia', 'boxful', '99envios'];
@@ -258,7 +245,7 @@ async function confirmarIntegracion(pedidoId, carrier = 'rocket', quote = null) 
     ? `/pedidos/upload/${carrier}`
     : `/pedidos/integrations/confirm/${carrier}`;
 
-  console.log(`[LucidSales] confirmarIntegracion: POST ${path}`);
+  console.log(`[LucidSales] confirmarIntegracion: POST ${path} body:`, JSON.stringify(body));
   return apiPost(path, body, token);
 }
 
