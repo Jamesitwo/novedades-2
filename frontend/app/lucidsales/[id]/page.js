@@ -52,6 +52,7 @@ export default function LucidSalesEditPage() {
 
   const [toast, setToast] = useState(null);
   const [editProdPrice, setEditProdPrice] = useState(null);
+  const [editProdMode, setEditProdMode] = useState(null);
   const [etiquetas, setEtiquetas] = useState([]);
   const [todasEtiquetas, setTodasEtiquetas] = useState([]);
   const [selectedEtiqueta, setSelectedEtiqueta] = useState('');
@@ -98,6 +99,31 @@ export default function LucidSalesEditPage() {
     const newJson = JSON.stringify(items);
     const totals = recalcTotalsFromProducts(newJson);
     setPedido(prev => ({ ...prev, Json: newJson, ...totals }));
+  };
+
+  const handleProductChange = (index, newProductId) => {
+    const items = parseJson(pedido.Json);
+    items[index] = { ...items[index], product_id: newProductId };
+    const newJson = JSON.stringify(items);
+    const totals = recalcTotalsFromProducts(newJson);
+    setPedido(prev => ({ ...prev, Json: newJson, ...totals }));
+  };
+
+  const handleQuantityChange = (index, newQty) => {
+    const items = parseJson(pedido.Json);
+    items[index] = { ...items[index], quantity: Number(newQty) || 1 };
+    const newJson = JSON.stringify(items);
+    const totals = recalcTotalsFromProducts(newJson);
+    setPedido(prev => ({ ...prev, Json: newJson, ...totals }));
+  };
+
+  const handleRemoveProduct = (index) => {
+    let items = parseJson(pedido.Json);
+    items = items.filter((_, i) => i !== index);
+    const newJson = JSON.stringify(items);
+    const totals = recalcTotalsFromProducts(newJson);
+    setPedido(prev => ({ ...prev, Json: newJson, ...totals }));
+    setEditProdMode(null);
   };
 
   const loadCiudades = async (deptoId) => {
@@ -945,39 +971,92 @@ export default function LucidSalesEditPage() {
               <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
                 {productos.map((prod, i) => (
                   <div key={i} style={{
-                    display: 'flex', justifyContent: 'space-between', alignItems: 'center',
                     padding: '8px 12px', background: 'var(--bg3)', borderRadius: 6, fontSize: 13, gap: 8
                   }}>
-                    <div style={{ flex: 1 }}>
-                      <span style={{ color: 'var(--accent)', fontWeight: 500 }}>
-                        {productosMap[String(prod.product_id)] || `Producto #${prod.product_id}`}
-                      </span>
-                      <span style={{ color: 'var(--text)', marginLeft: 12 }}>
-                        x{prod.quantity || 1}
-                      </span>
-                      {prod.variations && prod.variations.length > 0 && (
-                        <span style={{ color: 'var(--text3)', fontSize: 11, marginLeft: 8 }}>
-                          ({prod.variations.join(', ')})
-                        </span>
-                      )}
-                    </div>
-                    {editProdPrice === i ? (
-                      <input
-                        type="number"
-                        autoFocus
-                        value={prod.price}
-                        onChange={e => handleProductPriceChange(i, e.target.value)}
-                        onBlur={() => setEditProdPrice(null)}
-                        onKeyDown={e => e.key === 'Enter' && setEditProdPrice(null)}
-                        style={{ width: 110, ...inputStyle, textAlign: 'right', fontFamily: 'var(--mono)' }}
-                      />
+                    {editProdMode === i ? (
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                          <select
+                            value={prod.product_id || ''}
+                            onChange={e => handleProductChange(i, e.target.value)}
+                            style={{ ...inputStyle, flex: 1, fontSize: 12, appearance: 'auto', cursor: 'pointer' }}
+                          >
+                            <option value="">Seleccionar producto</option>
+                            {Object.entries(productosMap).map(([id, name]) => (
+                              <option key={id} value={id}>{name || `#${id}`}</option>
+                            ))}
+                          </select>
+                        </div>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                          <span style={{ fontSize: 11, color: 'var(--text3)' }}>Cant:</span>
+                          <input
+                            type="number"
+                            min="1"
+                            value={prod.quantity || 1}
+                            onChange={e => handleQuantityChange(i, e.target.value)}
+                            style={{ width: 60, ...inputStyle, fontSize: 12, textAlign: 'center' }}
+                          />
+                          <span style={{ fontSize: 11, color: 'var(--text3)' }}>Precio:</span>
+                          <input
+                            type="number"
+                            value={prod.price}
+                            onChange={e => handleProductPriceChange(i, e.target.value)}
+                            style={{ width: 100, ...inputStyle, fontSize: 12, textAlign: 'right', fontFamily: 'var(--mono)' }}
+                          />
+                          <button
+                            onClick={() => setEditProdMode(null)}
+                            className="btn btn-primary"
+                            style={{ fontSize: 11, padding: '3px 8px', flexShrink: 0 }}
+                          >
+                            ✓ Listo
+                          </button>
+                          <button
+                            onClick={() => handleRemoveProduct(i)}
+                            className="btn btn-ghost"
+                            style={{ fontSize: 10, padding: '3px 6px', color: 'var(--red)', flexShrink: 0 }}
+                          >
+                            ✕
+                          </button>
+                        </div>
+                      </div>
                     ) : (
-                      <div
-                        onClick={() => setEditProdPrice(i)}
-                        style={{ color: 'var(--accent2)', fontFamily: 'var(--mono)', fontWeight: 500, cursor: 'pointer', padding: '2px 6px', borderRadius: 4, border: '1px solid transparent' }}
-                        title="Click para editar precio"
-                      >
-                        {formatMoneyShort(prod.price)}
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', cursor: 'pointer' }}
+                        onClick={() => setEditProdMode(i)}>
+                        <div style={{ flex: 1 }}>
+                          <span style={{ color: 'var(--accent)', fontWeight: 500 }}>
+                            {productosMap[String(prod.product_id)] || `Producto #${prod.product_id}`}
+                          </span>
+                          <span style={{ color: 'var(--text)', marginLeft: 12 }}>
+                            x{prod.quantity || 1}
+                          </span>
+                          {prod.variations && prod.variations.length > 0 && (
+                            <span style={{ color: 'var(--text3)', fontSize: 11, marginLeft: 8 }}>
+                              ({prod.variations.join(', ')})
+                            </span>
+                          )}
+                        </div>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                          {editProdPrice === i ? (
+                            <input
+                              type="number"
+                              autoFocus
+                              value={prod.price}
+                              onChange={e => handleProductPriceChange(i, e.target.value)}
+                              onClick={e => e.stopPropagation()}
+                              onBlur={() => setEditProdPrice(null)}
+                              onKeyDown={e => e.key === 'Enter' && setEditProdPrice(null)}
+                              style={{ width: 110, ...inputStyle, textAlign: 'right', fontFamily: 'var(--mono)' }}
+                            />
+                          ) : (
+                            <div
+                              onClick={e => { e.stopPropagation(); setEditProdPrice(i); }}
+                              style={{ color: 'var(--accent2)', fontFamily: 'var(--mono)', fontWeight: 500, padding: '2px 6px', borderRadius: 4, border: '1px solid transparent' }}
+                              title="Click para editar precio"
+                            >
+                              {formatMoneyShort(prod.price)}
+                            </div>
+                          )}
+                        </div>
                       </div>
                     )}
                   </div>
