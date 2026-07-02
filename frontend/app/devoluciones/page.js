@@ -1,9 +1,9 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import Link from 'next/link';
 import api from '@/lib/api';
 import { useAuthStore } from '@/store/authStore';
+import DetailPanel from '@/components/detail/DetailPanel';
 
 const ESTADOS = {
   devolucion: { label: 'Devolución', color: 'purple' }
@@ -16,6 +16,7 @@ export default function DevolucionesPage() {
   const [loading, setLoading] = useState(true);
   const [filtroOrigen, setFiltroOrigen] = useState('todos');
   const [search, setSearch] = useState('');
+  const [detailPanel, setDetailPanel] = useState(null);
   const [searchTimeout, setSearchTimeout] = useState(null);
   const [toast, setToast] = useState(null);
 
@@ -202,7 +203,7 @@ export default function DevolucionesPage() {
                       </td>
                       <td>
                         <div className="row-actions">
-                          <Link href={`/novedades/${item.id}`} className="action-btn">Ver</Link>
+                          <button onClick={() => setDetailPanel({ id: item.id, tipo: 'novedad' })} className="action-btn">Ver</button>
                         </div>
                       </td>
                     </tr>
@@ -260,7 +261,7 @@ export default function DevolucionesPage() {
                         </td>
                         <td>
                           <div className="row-actions">
-                            <Link href={`/oficina/${item.id}`} className="action-btn">Ver</Link>
+                            <button onClick={() => setDetailPanel({ id: item.id, tipo: 'oficina' })} className="action-btn">Ver</button>
                           </div>
                         </td>
                       </tr>
@@ -271,6 +272,14 @@ export default function DevolucionesPage() {
             </div>
           )}
         </>
+      )}
+      {detailPanel && (
+        <DetailPanel
+          id={detailPanel.id}
+          tipo={detailPanel.tipo}
+          onClose={() => setDetailPanel(null)}
+          onUpdate={() => {}}
+        />
       )}
     </div>
   );
