@@ -59,7 +59,7 @@ const getResumen = async (req, res) => {
       }),
       prisma.pedidoOficina.findMany({
         where: whereOficina,
-        select: { estado: true, precio: true }
+        select: { estado: true, precio: true, producto: true }
       }),
       prisma.pedidoNovedad.groupBy({
         by: ['transportadora'],
@@ -113,7 +113,14 @@ const getResumen = async (req, res) => {
 
     const productosConMasNovedades = {};
     todasNovedades.forEach(n => {
-      const producto = n.producto ? (n.producto.length > 30 ? n.producto.substring(0, 30) + '...' : n.producto) : 'Sin producto';
+      const producto = n.producto ? (n.producto.length > 50 ? n.producto.substring(0, 50) : n.producto) : 'Sin producto';
+      if (!productosConMasNovedades[producto]) {
+        productosConMasNovedades[producto] = { nombre: producto, cantidad: 0 };
+      }
+      productosConMasNovedades[producto].cantidad++;
+    });
+    todasOficina.forEach(o => {
+      const producto = o.producto ? (o.producto.length > 50 ? o.producto.substring(0, 50) : o.producto) : 'Sin producto';
       if (!productosConMasNovedades[producto]) {
         productosConMasNovedades[producto] = { nombre: producto, cantidad: 0 };
       }
@@ -273,7 +280,7 @@ const getRendimientoOperadores = async (req, res) => {
     const whereOficina = start ? { createdAt: { gte: start, lte: end } } : {};
 
     const operadores = await prisma.usuario.findMany({
-      where: { rol: { in: ['operador', 'operador_asignado'] }, activo: true },
+      where: { rol: { in: ['admin', 'operador', 'operador_asignado'] }, activo: true },
       select: { id: true, nombre: true }
     });
 
@@ -362,7 +369,11 @@ const getMetricasOperadores = async (req, res) => {
           select: { createdAt: true, updatedAt: true }
         }),
         prisma.sesion.findMany({
-          where: { usuarioId: op.id, activa: true },
+          where: {
+            usuarioId: op.id,
+            ...(start ? { ultimaAct: { gte: start, lte: end } } : {}),
+            minutosActivos: { gt: 0 }
+          },
           select: { minutosActivos: true }
         })
       ]);
@@ -625,8 +636,8 @@ const getResumenDiario = async (req, res) => {
         oficinaCreadas: totalOficinaCreadas,
         oficinaResueltas: totalOficinaResueltas,
         oficinaPendientes: oficinasNoResueltas,
-        tasaNovedades: totalNovedadesCreadas > 0 ? Math.round((totalNovedadesResueltas / totalNovedadesCreadas) * 100) : 0,
-        tasaOficina: totalOficinaCreadas > 0 ? Math.round((totalOficinaResueltas / totalOficinaCreadas) * 100) : 0
+      tasaNovedades: totalNovedadesCreadas > 0 ? Math.min(100, Math.round((totalNovedadesResueltas / totalNovedadesCreadas) * 100)) : 0,
+      tasaOficina: totalOficinaCreadas > 0 ? Math.min(100, Math.round((totalOficinaResueltas / totalOficinaCreadas) * 100)) : 0
       },
       diario
     });

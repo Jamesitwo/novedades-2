@@ -86,11 +86,11 @@ const heartbeat = async (req, res) => {
       where: { id: sesion.id },
       data: {
         ultimaAct: ahora,
-        minutosActivos: sesion.minutosActivos + minutosSumar
+        minutosActivos: { increment: minutosSumar }
       }
     });
 
-    res.json({ ok: true, minutosActivos: sesion.minutosActivos + minutosSumar });
+    res.json({ ok: true, minutosSumar });
   } catch (error) {
     console.error('Heartbeat error:', error);
     res.status(500).json({ error: 'Error en el servidor' });

@@ -148,7 +148,7 @@ export default function DashboardPage() {
       {/* Stats row */}
       <div className="grid-3" style={{ marginBottom: 20 }}>
         <div className="stat-card c-amber">
-          <div className="stat-label">Total Novedades</div>
+          <div className="stat-label">Dinero Novedades</div>
           <div style={{ fontSize: 24, fontWeight: 600, color: 'var(--amber)', fontFamily: 'var(--mono)', marginTop: 6 }}>{formatMoney(estadisticas?.totalDinero || 0)}</div>
         </div>
         <div className="stat-card c-green">
