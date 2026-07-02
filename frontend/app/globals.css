@@ -105,9 +105,9 @@ input, select, textarea { font-family: var(--font); }
 }
 
 .sidebar-label {
-  font-size: 10px;
+  font-size: 12px;
   text-transform: uppercase;
-  letter-spacing: 0.08em;
+  letter-spacing: 0.06em;
   color: var(--text3);
   padding: 0 6px;
   margin-bottom: 4px;
