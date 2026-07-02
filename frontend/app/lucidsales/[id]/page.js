@@ -333,7 +333,6 @@ export default function LucidSalesEditPage() {
       const selectedQuote = quotes.quotes[selectedQuoteIdx];
       const { data } = await api.post('/api/lucidsales/pedidos/confirmar-envio', {
         pedidoId: Number(id),
-        carrier: selectedQuote.transportadora_minuscula || selectedQuote.transportadora?.toLowerCase() || 'dropi',
         transportadora_id: selectedQuote.transportadora_id
       });
       if (data.ok) {

@@ -76,9 +76,9 @@ const cotizarEnvio = async (req, res) => {
 
 const confirmarEnvio = async (req, res) => {
   try {
-    const { pedidoId, carrier, transportadora_id } = req.body;
-    if (!carrier) return res.status(400).json({ error: 'carrier es requerido' });
-    const result = await lucidsalesService.confirmarIntegracion(pedidoId, carrier, { transportadora_id });
+    const { pedidoId, transportadora_id } = req.body;
+    if (!pedidoId) return res.status(400).json({ error: 'pedidoId es requerido' });
+    const result = await lucidsalesService.confirmarIntegracion(pedidoId, transportadora_id);
     if (result && result.ok === false) {
       return res.status(400).json({ error: result.msg || result.error || 'Error al confirmar envío en LucidSales' });
     }

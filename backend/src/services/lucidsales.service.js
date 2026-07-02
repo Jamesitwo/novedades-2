@@ -228,22 +228,17 @@ async function cotizarEnvio(pedidoId, carrier = 'dropi') {
   }, token);
 }
 
-async function confirmarIntegracion(pedidoId, carrier = 'dropi', opts = {}) {
+async function confirmarIntegracion(pedidoId, transportadora_id) {
   const config = await getConfig();
   const { token } = await authenticate(config);
 
   const body = { id: pedidoId };
-  if (opts.transportadora_id != null) {
-    body.transportadora_id = Number(opts.transportadora_id);
+  if (transportadora_id != null) {
+    body.transportadora_id = Number(transportadora_id);
   }
 
-  const uploadCarriers = ['hoko', 'dropi', 'envia', 'boxful', '99envios', 'interrapidisimo'];
-  const path = uploadCarriers.includes(carrier)
-    ? `/pedidos/upload/${carrier}`
-    : `/pedidos/integrations/confirm/${carrier}`;
-
-  console.log(`[LucidSales] confirmarIntegracion: POST ${path} body:`, JSON.stringify(body));
-  return apiPost(path, body, token);
+  console.log(`[LucidSales] confirmarIntegracion: POST /pedidos/upload/dropi body:`, JSON.stringify(body));
+  return apiPost('/pedidos/upload/dropi', body, token);
 }
 
 async function uploadToHoko(pedidoId) {
