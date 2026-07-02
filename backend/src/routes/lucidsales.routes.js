@@ -14,6 +14,7 @@ router.post('/pedidos', ctrl.createPedido);
 router.get('/pedidos/:id', ctrl.getPedidoById);
 router.post('/pedidos/:id', ctrl.updatePedido);
 router.post('/pedidos/:id/duplicar', ctrl.duplicarPedido);
+router.post('/pedidos/:id/subir-dividido', ctrl.subirDividido);
 router.post('/productos', ctrl.getProductos);
 router.get('/filters-data', ctrl.getFiltersData);
 

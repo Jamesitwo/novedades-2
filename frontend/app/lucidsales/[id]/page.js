@@ -68,6 +68,8 @@ export default function LucidSalesEditPage() {
   const [showIR, setShowIR] = useState(false);
   const [uploaded, setUploaded] = useState(false);
   const [camposModificados, setCamposModificados] = useState(new Set());
+  const [showSplitModal, setShowSplitModal] = useState(false);
+  const [splitResults, setSplitResults] = useState(null);
 
   const direccionRef = useRef(null);
 
@@ -348,6 +350,12 @@ export default function LucidSalesEditPage() {
   const handleUpload = async () => {
     if (selectedQuoteIdx == null) return;
 
+    const productos = parseJson(pedido.Json);
+    if (productos.length >= 2) {
+      setShowSplitModal(true);
+      return;
+    }
+
     if (pedido.TipoPago === 2) {
       const confirmado = window.confirm(
         '⚠ Este pedido es por TRANSFERENCIA.\n\n' +
@@ -395,6 +403,40 @@ export default function LucidSalesEditPage() {
       }
     } catch (err) {
       showToast(err.response?.data?.error || 'Error al duplicar', 'error');
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  const handleSplitUpload = async () => {
+    setShowSplitModal(false);
+    setUploading(true);
+    const productos = parseJson(pedido.Json);
+
+    setSplitResults({ total: productos.length, exitos: 0, fallos: 0, items: productos.map(p => ({ ...p, status: 'subiendo' })) });
+
+    try {
+      await api.post(`/api/lucidsales/pedidos/${id}`, pedido);
+      await api.post('/api/lucidsales/guardar-local', { lucidsalesPedidoId: Number(id), pedido });
+      setCamposModificados(new Set());
+
+      const selectedQuote = quotes.quotes[selectedQuoteIdx];
+      const { data } = await api.post(`/api/lucidsales/pedidos/${id}/subir-dividido`, {
+        transportadora_id: selectedQuote.transportadora_id
+      });
+
+      const updated = productos.map((p, i) => {
+        const res = data.resultados?.find(r => String(r.producto) === String(p.product_id));
+        return { ...p, status: res?.exito ? 'ok' : res?.error ? 'error' : 'error', error: res?.error };
+      });
+
+      setSplitResults({ total: data.total, exitos: data.exitos, fallos: data.fallos, items: updated });
+      if (data.fallos === 0) setUploaded(true);
+    } catch (err) {
+      setSplitResults(prev => ({
+        ...prev, error: err.response?.data?.error || err.message,
+        items: prev.items.map(p => ({ ...p, status: 'error' }))
+      }));
     } finally {
       setUploading(false);
     }
@@ -1139,6 +1181,70 @@ export default function LucidSalesEditPage() {
         </div>
       </div>
     </div>
+
+    {showSplitModal && (
+      <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.7)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 10000 }}>
+        <div style={{ background: 'var(--bg2)', borderRadius: 14, width: 'min(480px, 92vw)', boxShadow: '0 20px 60px rgba(0,0,0,0.5)', border: '1px solid var(--border)' }}>
+          <div style={{ padding: '16px 20px', borderBottom: '1px solid var(--border)', fontWeight: 600, fontSize: 16 }}>
+            Dividir pedido en órdenes separadas
+          </div>
+          <div style={{ padding: 20 }}>
+            <div style={{ fontSize: 13, color: 'var(--text2)', marginBottom: 16, lineHeight: 1.6 }}>
+              Este pedido tiene <strong>{productos.length} productos</strong>. Dropi no permite subir productos de diferentes proveedores en una sola orden.
+              Se crearán órdenes independientes con los mismos datos del cliente.
+            </div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 6, marginBottom: 20 }}>
+              {productos.map((p, i) => (
+                <div key={i} style={{ display: 'flex', justifyContent: 'space-between', padding: '6px 10px', background: 'var(--bg3)', borderRadius: 6, fontSize: 12 }}>
+                  <span style={{ color: 'var(--text)' }}>{productosMap[String(p.product_id)] || `Producto #${p.product_id}`} ×{p.quantity || 1}</span>
+                  <span style={{ color: 'var(--accent2)', fontFamily: 'var(--mono)' }}>{formatMoneyShort(p.price * (p.quantity || 1))}</span>
+                </div>
+              ))}
+            </div>
+            {splitResults ? (
+              <div style={{ marginBottom: 16 }}>
+                {splitResults.error && (
+                  <div style={{ color: 'var(--red)', fontSize: 12, marginBottom: 8 }}>{splitResults.error}</div>
+                )}
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+                  {splitResults.items.map((p, i) => (
+                    <div key={i} style={{ fontSize: 12, display: 'flex', alignItems: 'center', gap: 6 }}>
+                      <span>{p.status === 'ok' ? '✅' : p.status === 'error' ? '❌' : '⏳'}</span>
+                      <span style={{ color: 'var(--text)' }}>{productosMap[String(p.product_id)] || `Producto #${p.product_id}`}</span>
+                      {p.error && <span style={{ color: 'var(--red)', fontSize: 10 }}>{p.error}</span>}
+                    </div>
+                  ))}
+                </div>
+                {splitResults.fallos === 0 && splitResults.exitos > 0 && (
+                  <div style={{ marginTop: 12, color: 'var(--green)', fontWeight: 600, fontSize: 13 }}>
+                    ¡{splitResults.exitos}/{splitResults.total} pedidos subidos correctamente!
+                  </div>
+                )}
+              </div>
+            ) : (
+              <div style={{ fontSize: 13, color: 'var(--amber)', marginBottom: 16 }}>
+                ⚠ Se crearán {productos.length} pedidos y se subirán a Dropi automáticamente.
+              </div>
+            )}
+            <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
+              {!splitResults && (
+                <>
+                  <button onClick={() => setShowSplitModal(false)} className="btn btn-ghost">Cancelar</button>
+                  <button onClick={handleSplitUpload} className="btn btn-primary" style={{ fontSize: 12 }}>
+                    Dividir y subir
+                  </button>
+                </>
+              )}
+              {splitResults && (
+                <button onClick={() => { setShowSplitModal(false); setSplitResults(null); }} className="btn btn-primary">
+                  Cerrar
+                </button>
+              )}
+            </div>
+          </div>
+        </div>
+      </div>
+    )}
   );
 }
 

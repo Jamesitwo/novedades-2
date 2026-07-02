@@ -352,6 +352,93 @@ const duplicarPedido = async (req, res) => {
   }
 };
 
+const subirDividido = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { transportadora_id } = req.body;
+
+    const original = await lucidsalesService.getPedidoById(id);
+    if (!original || !original.id) {
+      return res.status(404).json({ error: 'Pedido original no encontrado en LucidSales' });
+    }
+
+    let productos = [];
+    try {
+      productos = typeof original.Json === 'string' ? JSON.parse(original.Json) : (original.Json || []);
+    } catch { productos = []; }
+
+    if (productos.length < 2) {
+      return res.status(400).json({ error: 'El pedido debe tener al menos 2 productos para dividir' });
+    }
+
+    const resultados = [];
+    for (let i = 0; i < productos.length; i++) {
+      const prod = productos[i];
+      const refUnica = `DUP-${original.idPedido || id}-P${i + 1}-${Date.now()}`;
+      const jsonSingle = JSON.stringify([{ ...prod }]);
+
+      try {
+        const nuevoPedido = {
+          nombreCliente: original.Nombre || '',
+          apellidoCliente: original.Apellido || '',
+          emailCliente: original.Correo || '',
+          telefonoCliente: original.Movil || '',
+          direccionCliente: original.Direccion || '',
+          ciudadCliente: Number(original.Ciudad ?? 0),
+          departamentoCliente: Number(original.Departamento ?? 0),
+          paisCliente: Number(original.Pais || 47),
+          codigoPostal: original.codigoPostal || null,
+          nitCliente: original.NIT || '',
+          json: jsonSingle,
+          subTotal: Number(prod.price || 0) * Number(prod.quantity || 1),
+          costoEnvio: 0,
+          total: Number(prod.price || 0) * Number(prod.quantity || 1),
+          Referencias: refUnica
+        };
+
+        const createResult = await lucidsalesService.createPedido(nuevoPedido);
+        if (createResult && createResult.ok === false) {
+          resultados.push({ producto: prod.product_id, error: createResult.msg || createResult.error || 'Error al crear' });
+          continue;
+        }
+
+        let nuevoId = createResult?.pedido?.id || createResult?.id || createResult?.pedidoId || createResult?.data?.id;
+        if (!nuevoId) {
+          const pedidos = await lucidsalesService.getPedidos({ search: refUnica, itemsPerPage: 3 });
+          const match = pedidos?.pedidos?.[0];
+          if (match?.id) nuevoId = match.id;
+        }
+
+        if (!nuevoId) {
+          resultados.push({ producto: prod.product_id, error: 'No se pudo obtener ID del pedido creado' });
+          continue;
+        }
+
+        const uploadResult = await lucidsalesService.confirmarIntegracion(nuevoId, 'dropi', { transportadora_id });
+        if (uploadResult && uploadResult.ok === false) {
+          resultados.push({ producto: prod.product_id, pedidoId: nuevoId, error: uploadResult.msg || uploadResult.error || 'Error al subir' });
+          continue;
+        }
+
+        await lucidsalesService.crearVinculacionDirecta(nuevoId, original,
+          `Producto ${i + 1}/${productos.length} del pedido #${original.idPedido || id}`);
+
+        resultados.push({ producto: prod.product_id, pedidoId: nuevoId, exito: true });
+      } catch (err) {
+        resultados.push({ producto: prod.product_id, error: err.message });
+      }
+    }
+
+    const exitos = resultados.filter(r => r.exito).length;
+    const fallos = resultados.filter(r => r.error).length;
+
+    res.json({ ok: true, total: productos.length, exitos, fallos, resultados });
+  } catch (error) {
+    console.error('LucidSales subirDividido error:', error);
+    res.status(500).json({ error: error.message || 'Error al dividir y subir pedido' });
+  }
+};
+
 const listarVinculados = async (req, res) => {
   try {
     const { page = 1, itemsPerPage = 50, search = '', estadoFilter } = req.query;
@@ -480,6 +567,7 @@ module.exports = {
   vincularPedido,
   vincularYActualizar,
   duplicarPedido,
+  subirDividido,
   listarVinculados,
   guardarLocal,
   getEtiquetas,
