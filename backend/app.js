@@ -129,6 +129,12 @@ app.get('/api/health', (req, res) => {
 });
 
 app.use((err, req, res, next) => {
+  if (err.type === 'entity.parse.failed' || err.message?.includes('JSON')) {
+    return res.status(400).json({
+      error: 'JSON inválido en el body del request. Verifica comillas, comas y formato.',
+      detalle: err.message
+    });
+  }
   console.error(err.stack);
   const statusCode = err.status || 500;
   const message = isProduction && statusCode === 500

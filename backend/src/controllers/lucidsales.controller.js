@@ -238,12 +238,20 @@ const vincularYActualizar = async (req, res) => {
       return res.status(400).json({ error: 'lucidsalesPedidoId es requerido' });
     }
 
-    console.log(`[LucidSales] vincularYActualizar: id=${lucidsalesPedidoId} campos=`, Object.keys(camposActualizar));
+    const camposPermitidos = ['Nombre','Apellido','Movil','Direccion','Referencias','Total','SubTotal','CostoEnvio','Correo','NIT','Ciudad','Departamento','Pais','EstadoPedido','codigoPostal','logistic'];
+    const camposFiltrados = {};
+    for (const [k, v] of Object.entries(camposActualizar)) {
+      if (camposPermitidos.includes(k) && v !== undefined) {
+        camposFiltrados[k] = v;
+      }
+    }
+
+    console.log(`[LucidSales] vincularYActualizar: id=${lucidsalesPedidoId} campos=`, Object.keys(camposFiltrados));
 
     const pedidoBase = await lucidsalesService.crearVinculacion(lucidsalesPedidoId, notas);
 
     const pedidoCompleto = await lucidsalesService.getPedidoById(lucidsalesPedidoId);
-    const pedidoActualizado = { ...pedidoCompleto, ...camposActualizar };
+    const pedidoActualizado = { ...pedidoCompleto, ...camposFiltrados };
 
     if (notas !== undefined) {
       pedidoActualizado.notas = notas;
