@@ -404,8 +404,6 @@ async function guardarVinculacionLocal(lucidsalesPedidoId, pedido, usuarioId, as
     create: { lucidsalesPedidoId: Number(lucidsalesPedidoId), ...data }
   });
 }
-  });
-}
 
 async function listVinculaciones({ page = 1, itemsPerPage = 50, search = '', estadoFilter, asignadoId } = {}) {
   const where = {};
