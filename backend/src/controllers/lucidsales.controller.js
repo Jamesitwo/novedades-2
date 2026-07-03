@@ -155,21 +155,31 @@ const productosStock = async (req, res) => {
     const productosList = await lucidsalesService.getProductos();
     const todos = Array.isArray(productosList) ? productosList : (productosList?.productos || productosList?.data || []);
 
-    await Promise.all(todos.filter(p => productIds.includes(String(p.id ?? p.Id))).map(async (prod) => {
-      const productoId = String(prod.id ?? prod.Id);
-      const dropiId = prod.idProductoDropi;
-      if (!dropiId || dropiId === '0') {
-        stockMap[productoId] = null;
-        return;
+    const idToDropi = {};
+    todos.forEach(p => {
+      const key = String(p.id ?? p.Id);
+      if (p.idProductoDropi && String(p.idProductoDropi) !== '0') {
+        idToDropi[key] = p.idProductoDropi;
       }
-      try {
+    });
+
+    const batchSize = 5;
+    const requested = productIds.filter(id => idToDropi[id]);
+    for (let i = 0; i < requested.length; i += batchSize) {
+      const batch = requested.slice(i, i + batchSize);
+      const results = await Promise.allSettled(batch.map(async (productoId) => {
+        const dropiId = idToDropi[productoId];
         const result = await lucidsalesService.validateDropiId(dropiId);
-        const stock = result?.product?.stock;
-        stockMap[productoId] = stock !== undefined ? Number(stock) : null;
-      } catch {
-        stockMap[productoId] = null;
-      }
-    }));
+        return { productoId, stock: result?.product?.stock ?? null };
+      }));
+      results.forEach(r => {
+        if (r.status === 'fulfilled') {
+          stockMap[r.value.productoId] = r.value.stock !== undefined ? Number(r.value.stock) : null;
+        } else {
+          stockMap[r.value?.productoId || productIds[0]] = null;
+        }
+      });
+    }
 
     res.json({ ok: true, stock: stockMap });
   } catch (error) {
