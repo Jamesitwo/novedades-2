@@ -30,6 +30,10 @@ export default function LucidSalesPage() {
   const [estadoFilter, setEstadoFilter] = useState('');
   const [vincularId, setVincularId] = useState('');
   const [vinculando, setVinculando] = useState(false);
+  const [etiquetaId, setEtiquetaId] = useState('');
+  const [etiquetas, setEtiquetas] = useState([]);
+  const [asignadoId, setAsignadoId] = useState('');
+  const [operadores, setOperadores] = useState([]);
 
   const fetchPedidos = useCallback(async () => {
     setLoading(true);
@@ -40,6 +44,8 @@ export default function LucidSalesPage() {
       params.set('itemsPerPage', String(itemsPerPage));
       if (search) params.set('search', search);
       if (estadoFilter !== '') params.set('estadoFilter', estadoFilter);
+      if (etiquetaId) params.set('etiquetaId', etiquetaId);
+      if (asignadoId) params.set('asignadoId', asignadoId);
       params.set('filters', '[]');
 
       const { data } = await api.get(`/api/lucidsales/vinculados?${params.toString()}`);
@@ -55,7 +61,7 @@ export default function LucidSalesPage() {
     } finally {
       setLoading(false);
     }
-  }, [page, search, itemsPerPage, estadoFilter]);
+  }, [page, search, itemsPerPage, estadoFilter, etiquetaId, asignadoId]);
 
   useEffect(() => {
     setConnected(isConnected());
@@ -66,6 +72,12 @@ export default function LucidSalesPage() {
 
   useEffect(() => {
     verificarConexion();
+    api.get('/api/etiquetas').then(({ data }) => {
+      if (Array.isArray(data)) setEtiquetas(data);
+    }).catch(() => {});
+    api.get('/api/usuarios/operadores').then(({ data }) => {
+      if (Array.isArray(data)) setOperadores(data);
+    }).catch(() => {});
   }, []);
 
   // Cargar vinculados al montar y cuando cambien page/search
@@ -206,6 +218,42 @@ export default function LucidSalesPage() {
           >
             👤 Asignados a mí
           </button>
+          <select
+            value={etiquetaId}
+            onChange={e => { setEtiquetaId(e.target.value); setPage(1); }}
+            style={{
+              background: etiquetaId ? 'var(--accent)' : 'var(--bg3)',
+              border: `1px solid ${etiquetaId ? 'var(--accent)' : 'var(--border)'}`,
+              borderRadius: 20, padding: '6px 12px', fontSize: 12,
+              color: etiquetaId ? '#fff' : 'var(--text2)',
+              outline: 'none', cursor: 'pointer', fontFamily: 'inherit',
+              appearance: 'auto', maxWidth: 130
+            }}
+          >
+            <option value="">🏷️ Etiqueta</option>
+            {etiquetas.map(e => (
+              <option key={e.id} value={e.id}>{e.nombre}</option>
+            ))}
+          </select>
+          {usuario?.rol === 'admin' && (
+            <select
+              value={asignadoId}
+              onChange={e => { setAsignadoId(e.target.value); setPage(1); }}
+              style={{
+                background: asignadoId ? 'var(--accent)' : 'var(--bg3)',
+                border: `1px solid ${asignadoId ? 'var(--accent)' : 'var(--border)'}`,
+                borderRadius: 20, padding: '6px 12px', fontSize: 12,
+                color: asignadoId ? '#fff' : 'var(--text2)',
+                outline: 'none', cursor: 'pointer', fontFamily: 'inherit',
+                appearance: 'auto', maxWidth: 150
+              }}
+            >
+              <option value="">👤 Asignado</option>
+              {operadores.map(op => (
+                <option key={op.id} value={op.id}>{op.nombre}</option>
+              ))}
+            </select>
+          )}
         </div>
         <div className="filters-right">
           <form onSubmit={handleSearchSubmit} style={{ display: 'flex', gap: 6 }}>

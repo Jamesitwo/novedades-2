@@ -448,11 +448,21 @@ const subirDividido = async (req, res) => {
 
 const listarVinculados = async (req, res) => {
   try {
-    const { page = 1, itemsPerPage = 50, search = '', estadoFilter } = req.query;
-    const opts = { page: Number(page), itemsPerPage: Number(itemsPerPage), search, estadoFilter };
+    const { page = 1, itemsPerPage = 50, search = '', estadoFilter, etiquetaId, asignadoId } = req.query;
+    const opts = { page: Number(page), itemsPerPage: Number(itemsPerPage), search, estadoFilter, etiquetaId, asignadoId };
     if (estadoFilter === 'asignados') {
       opts.asignadoId = req.usuario.id;
       opts.estadoFilter = undefined;
+    }
+    if (asignadoId && req.usuario.rol === 'admin') {
+      opts.asignadoId = asignadoId;
+    }
+    if (etiquetaId) {
+      const registrosConEtiqueta = await prisma.registroEtiqueta.findMany({
+        where: { etiquetaId, tabla: 'pedidos_vinculados' },
+        select: { registroId: true }
+      });
+      opts.lucidsalesPedidoIds = registrosConEtiqueta.map(r => Number(r.registroId));
     }
     const result = await lucidsalesService.listVinculaciones(opts);
     res.json(result);

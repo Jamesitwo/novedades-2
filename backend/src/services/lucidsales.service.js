@@ -405,7 +405,7 @@ async function guardarVinculacionLocal(lucidsalesPedidoId, pedido, usuarioId, as
   });
 }
 
-async function listVinculaciones({ page = 1, itemsPerPage = 50, search = '', estadoFilter, asignadoId } = {}) {
+async function listVinculaciones({ page = 1, itemsPerPage = 50, search = '', estadoFilter, asignadoId, lucidsalesPedidoIds } = {}) {
   const where = {};
   if (search) {
     where.OR = [
@@ -420,6 +420,9 @@ async function listVinculaciones({ page = 1, itemsPerPage = 50, search = '', est
   }
   if (asignadoId) {
     where.asignadoId = asignadoId;
+  }
+  if (lucidsalesPedidoIds && lucidsalesPedidoIds.length > 0) {
+    where.lucidsalesPedidoId = { in: lucidsalesPedidoIds };
   }
 
   const [total, pedidos] = await Promise.all([
