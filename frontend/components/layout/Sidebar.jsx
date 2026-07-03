@@ -103,28 +103,6 @@ export default function Sidebar() {
     }
   };
 
-  const mainItems = [
-    { href: '/dashboard', label: 'Dashboard', icon: '▣' },
-    { href: '/novedades', label: 'Novedades', icon: '⚠', badge: counts.novedadesActivas > 0 ? counts.novedadesActivas : null, badgeColor: 'amber' },
-    { href: '/oficina', label: 'En oficina', icon: '📦', badge: counts.oficinaActivos > 0 ? counts.oficinaActivos : null },
-    { href: '/devoluciones', label: 'Devoluciones', icon: '↩️', badge: counts.devoluciones > 0 ? counts.devoluciones : null, badgeColor: 'purple' },
-  ];
-
-  const pedidosItems = [
-    { href: '/solucionados', label: 'Solucionados', icon: '✅' },
-    { href: '/recoger', label: 'Por Recoger', icon: '📦' },
-    { href: '/facturas', label: 'Facturas', icon: '📄' },
-    { href: '/garantias', label: 'Garantías', icon: '📋' },
-    { href: '/etiquetas', label: 'Etiquetas', icon: '🏷️' },
-  ];
-
-  const pizdoItems = [
-    { href: '/tienda', label: 'Tienda', icon: '🛒' },
-    ...(usuario?.rol === 'admin' ? [
-      { href: '/tienda/admin', label: 'Admin Tienda', icon: '⚙' },
-    ] : []),
-  ];
-
   const isAdmin = usuario?.rol === 'admin';
   const canNov = isAdmin || usuario?.gestionaNovedades !== false;
   const canOfi = isAdmin || usuario?.gestionaOficina !== false;
