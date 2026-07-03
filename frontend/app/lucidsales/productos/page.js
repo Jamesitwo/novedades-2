@@ -140,12 +140,30 @@ const renderVal = (val, key, isTable = false) => {
 
 const GROUP_ORDER = ['id', 'idEmpresa', 'nombre', 'name', 'nombreCliente', 'sku', 'precio', 'price', 'costo', 'stock', 'categoria', 'category', 'descripcion', 'description', 'imagen', 'image', 'link', 'estado', 'status', 'activo', 'createdAt', 'updatedAt'];
 
+const STOCK_THRESHOLD = 20;
+
+const getStock = (p) => {
+  const stock = p.stock ?? p.Stock ?? p.StockProducto ?? p.inventario ?? p.Inventario;
+  const n = Number(stock);
+  return isNaN(n) ? null : n;
+};
+
+const getStockStyle = (s) => {
+  if (s === null) return {};
+  if (s === 0) return { background: 'rgba(229,62,62,0.15)', color: '#e53e3e', fontWeight: 700 };
+  if (s <= 5) return { background: 'rgba(229,62,62,0.06)', color: '#e53e3e', fontWeight: 600 };
+  if (s <= STOCK_THRESHOLD) return { background: 'rgba(245,158,11,0.06)', color: '#f59e0b', fontWeight: 500 };
+  return {};
+};
+
 export default function LucidSalesProductosPage() {
   const [productos, setProductos] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [search, setSearch] = useState('');
   const [selected, setSelected] = useState(null);
+  const [lastUpdate, setLastUpdate] = useState(null);
+  const [showAlert, setShowAlert] = useState(true);
 
   const fetchProductos = useCallback(async () => {
     setLoading(true);
@@ -156,6 +174,7 @@ export default function LucidSalesProductosPage() {
       if (list.length > 0) console.log('[Productos] fields:', Object.keys(list[0]).filter(k => !isEmpty(list[0][k])).join(', '));
       setProductos(list);
       setSelected(null);
+      setLastUpdate(new Date());
     } catch (err) {
       setError(err.response?.data?.error || err.message || 'Error al obtener productos');
     } finally {
@@ -165,6 +184,11 @@ export default function LucidSalesProductosPage() {
 
   useEffect(() => {
     fetchProductos();
+  }, [fetchProductos]);
+
+  useEffect(() => {
+    const interval = setInterval(fetchProductos, 5 * 60 * 1000);
+    return () => clearInterval(interval);
   }, [fetchProductos]);
 
   const processed = useMemo(() => {
@@ -194,6 +218,19 @@ export default function LucidSalesProductosPage() {
     return sorted;
   }, [columns]);
 
+  const lowStock = useMemo(() => {
+    const agotados = [];
+    const bajo = [];
+    productos.forEach(p => {
+      const s = getStock(p);
+      if (s === 0) agotados.push({ ...p, _stock: s });
+      else if (s !== null && s <= STOCK_THRESHOLD) bajo.push({ ...p, _stock: s });
+    });
+    return { agotados, bajo, total: agotados.length + bajo.length };
+  }, [productos]);
+
+  const timeAgo = lastUpdate ? Math.floor((Date.now() - lastUpdate.getTime()) / 60000) : null;
+
   if (loading) return <div className="content"><TableSkeleton /></div>;
 
   if (error) {
@@ -214,6 +251,9 @@ export default function LucidSalesProductosPage() {
           <h2 style={{ margin: 0, fontSize: 20, fontWeight: 700 }}>LucidSales · Productos</h2>
           <div style={{ fontSize: 12, color: 'var(--text3)', marginTop: 4 }}>
             {productos.length.toLocaleString()} productos
+            {timeAgo !== null && (
+              <span> · 🟢 actualizado hace {timeAgo < 1 ? 'menos de 1 min' : `${timeAgo} min`}</span>
+            )}
           </div>
         </div>
         <button onClick={fetchProductos} className="btn btn-ghost" style={{ fontSize: 12 }}>
@@ -231,6 +271,36 @@ export default function LucidSalesProductosPage() {
           style={{ width: '100%' }}
         />
       </div>
+
+      {showAlert && lowStock.total > 0 && (
+        <div style={{
+          display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+          padding: '10px 16px', borderRadius: 8, marginBottom: 14,
+          background: 'rgba(229,62,62,0.08)', border: '1px solid rgba(229,62,62,0.3)',
+          fontSize: 13
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+            {lowStock.agotados.length > 0 && (
+              <span style={{ color: '#e53e3e', fontWeight: 600 }}>
+                🔴 {lowStock.agotados.length} agotado{lowStock.agotados.length > 1 ? 's' : ''}
+              </span>
+            )}
+            {lowStock.bajo.length > 0 && (
+              <span style={{ color: '#f59e0b', fontWeight: 500 }}>
+                ⚠ {lowStock.bajo.length} con stock bajo (≤{STOCK_THRESHOLD})
+              </span>
+            )}
+          </div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+            {timeAgo !== null && (
+              <span style={{ fontSize: 11, color: 'var(--text3)' }}>
+                🟢 Actualizado hace {timeAgo < 1 ? 'menos de 1 min' : `${timeAgo} min`}
+              </span>
+            )}
+            <button onClick={() => setShowAlert(false)} style={{ background: 'none', border: 'none', color: 'var(--text3)', cursor: 'pointer', fontSize: 14 }}>✕</button>
+          </div>
+        </div>
+      )}
 
       <div className="table-card" style={{ overflow: 'auto' }}>
         <table style={{ fontSize: 13 }}>
@@ -250,18 +320,22 @@ export default function LucidSalesProductosPage() {
                 </td>
               </tr>
             ) : (
-              processed.map((p, i) => (
-                <tr key={p.id || i} onClick={() => setSelected(p)} style={{ cursor: 'pointer' }}>
-                  <td style={{ textAlign: 'center', color: 'var(--accent)', fontWeight: 600 }}>
-                    ▶
-                  </td>
-                  {sortedColumns.map(col => (
-                    <td key={col} style={{ maxWidth: 200, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                      {isEmpty(p[col]) ? '-' : renderVal(p[col], col, true)}
-                    </td>
-                  ))}
-                </tr>
-              ))
+              processed.map((p, i) => {
+                  const stockVal = getStock(p);
+                  const stockStyle = getStockStyle(stockVal);
+                  return (
+                    <tr key={p.id || i} onClick={() => setSelected(p)} style={{ cursor: 'pointer', ...stockStyle }}>
+                      <td style={{ textAlign: 'center', color: 'var(--accent)', fontWeight: 600 }}>
+                        ▶
+                      </td>
+                      {sortedColumns.map(col => (
+                        <td key={col} style={{ maxWidth: 200, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                          {isEmpty(p[col]) ? '-' : renderVal(p[col], col, true)}
+                        </td>
+                      ))}
+                    </tr>
+                  );
+                })
             )}
           </tbody>
         </table>
