@@ -201,13 +201,20 @@ export default function LucidSalesEditPage() {
             setProductosMap(map);
 
             const productIds = [...new Set(parseJson(pedidoData.Json).map(p => String(p.product_id)).filter(Boolean))];
+            console.log('[Stock] productIds del pedido:', productIds);
             if (productIds.length > 0) {
               try {
                 const stockRes = await api.post('/api/lucidsales/productos-stock', { productIds });
+                console.log('[Stock] respuesta API:', JSON.stringify(stockRes.data));
                 if (stockRes.data?.ok && stockRes.data.stock) {
                   setProductosStock(stockRes.data.stock);
+                  console.log('[Stock] guardado en state:', stockRes.data.stock);
+                } else {
+                  console.log('[Stock] API no devolvió stock válido');
                 }
-              } catch {}
+              } catch (err) {
+                console.error('[Stock] error al llamar API:', err.message);
+              }
             }
           }
         } else if (pedidoData && pedidoData.error) {
@@ -542,6 +549,8 @@ export default function LucidSalesEditPage() {
     ...prod,
     _stock: productosStock[String(prod.product_id)]
   }));
+  console.log('[Stock] productosStock state:', JSON.stringify(productosStock));
+  console.log('[Stock] bajoStock:', bajoStock.length, bajoStock.map(p => ({ id: p.product_id, stock: p._stock })));
 
   return (
     <div className="content">
