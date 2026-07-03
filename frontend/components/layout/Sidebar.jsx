@@ -125,9 +125,32 @@ export default function Sidebar() {
     ] : []),
   ];
 
-  const showLucidsales = usuario?.rol === 'admin' || usuario?.accesoLucidsales === true;
+  const isAdmin = usuario?.rol === 'admin';
+  const canNov = isAdmin || usuario?.gestionaNovedades !== false;
+  const canOfi = isAdmin || usuario?.gestionaOficina !== false;
+  const showLucidsales = isAdmin || usuario?.accesoLucidsales === true;
 
-  const adminItems = usuario?.rol === 'admin' ? [
+  const mainItems = [
+    { href: '/dashboard', label: 'Dashboard', icon: '▣' },
+    ...(canNov ? [{ href: '/novedades', label: 'Novedades', icon: '⚠', badge: counts.novedadesActivas > 0 ? counts.novedadesActivas : null, badgeColor: 'amber' }] : []),
+    ...(canOfi ? [{ href: '/oficina', label: 'En oficina', icon: '📦', badge: counts.oficinaActivos > 0 ? counts.oficinaActivos : null }] : []),
+    ...(canNov || canOfi ? [{ href: '/devoluciones', label: 'Devoluciones', icon: '↩️', badge: counts.devoluciones > 0 ? counts.devoluciones : null, badgeColor: 'purple' }] : []),
+  ];
+
+  const pedidosItems = [
+    ...(canNov ? [{ href: '/solucionados', label: 'Solucionados', icon: '✅' }] : []),
+    ...(canOfi ? [{ href: '/recoger', label: 'Por Recoger', icon: '📦' }] : []),
+    { href: '/facturas', label: 'Facturas', icon: '📄' },
+    { href: '/garantias', label: 'Garantías', icon: '📋' },
+    { href: '/etiquetas', label: 'Etiquetas', icon: '🏷️' },
+  ];
+
+  const pizdoItems = [
+    ...(showLucidsales || isAdmin ? [{ href: '/tienda', label: 'Tienda', icon: '🛒' }] : []),
+    ...(isAdmin ? [{ href: '/tienda/admin', label: 'Admin Tienda', icon: '⚙' }] : []),
+  ];
+
+  const adminItems = isAdmin ? [
     { href: '/dashboard/metricas', label: 'Métricas', icon: '📊' },
     { href: '/pizdo', label: 'Productos Ganadores', icon: '🏆' },
     { href: '/tareas', label: 'Tareas', icon: '📋' },

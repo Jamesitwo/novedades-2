@@ -21,7 +21,7 @@ const login = async (req, res) => {
 
     const usuario = await prisma.usuario.findUnique({
       where: { email },
-      select: { id: true, nombre: true, email: true, password: true, rol: true, activo: true, accesoLucidsales: true }
+      select: { id: true, nombre: true, email: true, password: true, rol: true, activo: true, accesoLucidsales: true, gestionaNovedades: true, gestionaOficina: true }
     });
 
     if (!usuario || !usuario.activo) {

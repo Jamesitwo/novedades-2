@@ -10,7 +10,7 @@ export default function UsuariosPage() {
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
   const [editingUser, setEditingUser] = useState(null);
-  const [formData, setFormData] = useState({ nombre: '', email: '', password: '', rol: 'operador', accesoLucidsales: false });
+  const [formData, setFormData] = useState({ nombre: '', email: '', password: '', rol: 'operador', accesoLucidsales: false, gestionaNovedades: true, gestionaOficina: true });
   const [error, setError] = useState('');
 
   const fetchUsuarios = async () => {
@@ -30,14 +30,14 @@ export default function UsuariosPage() {
 
   const openCreateModal = () => {
     setEditingUser(null);
-    setFormData({ nombre: '', email: '', password: '', rol: 'operador', accesoLucidsales: false });
+    setFormData({ nombre: '', email: '', password: '', rol: 'operador', accesoLucidsales: false, gestionaNovedades: true, gestionaOficina: true });
     setError('');
     setShowModal(true);
   };
 
   const openEditModal = (usuario) => {
     setEditingUser(usuario);
-    setFormData({ nombre: usuario.nombre, email: usuario.email, password: '', rol: usuario.rol, accesoLucidsales: usuario.accesoLucidsales || false });
+    setFormData({ nombre: usuario.nombre, email: usuario.email, password: '', rol: usuario.rol, accesoLucidsales: usuario.accesoLucidsales || false, gestionaNovedades: usuario.gestionaNovedades !== false, gestionaOficina: usuario.gestionaOficina !== false });
     setError('');
     setShowModal(true);
   };
@@ -98,6 +98,8 @@ export default function UsuariosPage() {
               <th>Rol</th>
               <th>Estado</th>
               <th>LucidSales</th>
+              <th>Novedades</th>
+              <th>Oficina</th>
               <th>Visibilidad</th>
               <th></th>
             </tr>
@@ -116,6 +118,16 @@ export default function UsuariosPage() {
                 <td>
                   <span className={`badge ${usuario.accesoLucidsales ? 'activo' : 'inactivo'}`} style={{ fontSize: 11 }}>
                     {usuario.accesoLucidsales ? 'Sí' : 'No'}
+                  </span>
+                </td>
+                <td>
+                  <span className={`badge ${usuario.gestionaNovedades !== false ? 'activo' : 'inactivo'}`} style={{ fontSize: 11 }}>
+                    {usuario.gestionaNovedades !== false ? 'Sí' : 'No'}
+                  </span>
+                </td>
+                <td>
+                  <span className={`badge ${usuario.gestionaOficina !== false ? 'activo' : 'inactivo'}`} style={{ fontSize: 11 }}>
+                    {usuario.gestionaOficina !== false ? 'Sí' : 'No'}
                   </span>
                 </td>
                 <td>
@@ -212,6 +224,28 @@ export default function UsuariosPage() {
                     <option key={rol} value={rol}>{rol}</option>
                   ))}
                 </select>
+              </div>
+
+              <div className="form-group">
+                <label style={{ display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer' }}>
+                  <input
+                    type="checkbox"
+                    checked={formData.gestionaNovedades !== false}
+                    onChange={(e) => setFormData({ ...formData, gestionaNovedades: e.target.checked })}
+                  />
+                  Gestiona Novedades
+                </label>
+              </div>
+
+              <div className="form-group">
+                <label style={{ display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer' }}>
+                  <input
+                    type="checkbox"
+                    checked={formData.gestionaOficina !== false}
+                    onChange={(e) => setFormData({ ...formData, gestionaOficina: e.target.checked })}
+                  />
+                  Gestiona Oficina
+                </label>
               </div>
 
               <div className="form-group">

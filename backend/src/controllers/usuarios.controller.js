@@ -20,6 +20,8 @@ const getAll = async (req, res) => {
           activo: true,
           verSoloAsignados: true,
           accesoLucidsales: true,
+          gestionaNovedades: true,
+          gestionaOficina: true,
           createdAt: true
         },
         orderBy: { createdAt: 'desc' }

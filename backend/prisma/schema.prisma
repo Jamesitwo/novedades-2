@@ -16,6 +16,8 @@ model Usuario {
   activo           Boolean  @default(true)
   verSoloAsignados Boolean  @default(false) @map("ver_solo_asignados")
   accesoLucidsales Boolean  @default(false) @map("acceso_lucidsales")
+  gestionaNovedades Boolean  @default(true) @map("gestiona_novedades")
+  gestionaOficina   Boolean  @default(true) @map("gestiona_oficina")
   createdAt        DateTime @default(now())
   updatedAt        DateTime @updatedAt
 
