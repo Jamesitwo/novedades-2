@@ -205,15 +205,13 @@ export default function LucidSalesEditPage() {
             if (productIds.length > 0) {
               try {
                 const stockRes = await api.post('/api/lucidsales/productos-stock', { productIds });
-                console.log('[Stock] respuesta API:', JSON.stringify(stockRes.data));
                 if (stockRes.data?.ok && stockRes.data.stock) {
                   setProductosStock(stockRes.data.stock);
-                  console.log('[Stock] guardado en state:', stockRes.data.stock);
                 } else {
-                  console.log('[Stock] API no devolvió stock válido');
+                  console.warn('[Stock] Respuesta inesperada:', stockRes.data);
                 }
               } catch (err) {
-                console.error('[Stock] error al llamar API:', err.message);
+                console.error('[Stock] Error al obtener stock:', err?.response?.data?.error || err.message);
               }
             }
           }

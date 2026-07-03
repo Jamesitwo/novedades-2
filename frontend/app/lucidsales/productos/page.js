@@ -168,6 +168,7 @@ export default function LucidSalesProductosPage() {
   const fetchProductos = useCallback(async () => {
     setLoading(true);
     setError('');
+    setStockMap({});
     try {
       const { data } = await api.post('/api/lucidsales/productos');
       const list = Array.isArray(data) ? data : data.productos || data.data || [];
@@ -182,8 +183,12 @@ export default function LucidSalesProductosPage() {
           const stockRes = await api.post('/api/lucidsales/productos-stock', { productIds: ids });
           if (stockRes.data?.ok && stockRes.data.stock) {
             setStockMap(stockRes.data.stock);
+          } else {
+            console.warn('[Stock] Respuesta inesperada:', stockRes.data);
           }
-        } catch {}
+        } catch (err) {
+          console.error('[Stock] Error al obtener stock:', err?.response?.data?.error || err.message);
+        }
       }
     } catch (err) {
       setError(err.response?.data?.error || err.message || 'Error al obtener productos');
