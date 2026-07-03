@@ -194,6 +194,10 @@ export default function LucidSalesEditPage() {
           if (prodList.length > 0) {
             const map = {};
             const stock = {};
+            if (prodList.length > 0) {
+              console.log('[Edit] Producto fields:', Object.keys(prodList[0]).join(', '));
+              console.log('[Edit] nameProductoDropi:', prodList[0].nameProductoDropi);
+            }
             prodList.forEach(p => {
               const key = p.id ?? p.Id;
               const name = p.nombre || p.name || p.Nombre || p.nombreProducto || '';
