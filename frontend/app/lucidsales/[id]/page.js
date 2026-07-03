@@ -505,9 +505,11 @@ export default function LucidSalesEditPage() {
   };
 
   const getStockValue = (p) => {
-    const raw = p.stock ?? p.Stock ?? p.StockProducto ?? p.inventario ?? p.Inventario;
-    if (raw !== null && raw !== undefined && raw !== '' && !isNaN(Number(raw))) return Number(raw);
-    const dropiName = p.nameProductoDropi || '';
+    const raw = p.stock ?? p.Stock ?? p.StockProducto ?? p.inventario ?? p.Inventario ?? p.Cantidad;
+    if (raw !== null && raw !== undefined && raw !== '' && !isNaN(Number(raw))) {
+      return Number(raw);
+    }
+    const dropiName = p.nameProductoDropi || p.NameProductoDropi || '';
     const match = dropiName.match(/Stock:\s*(\d+)/);
     if (match) return Number(match[1]);
     return null;
