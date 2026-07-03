@@ -152,16 +152,23 @@ const productosStock = async (req, res) => {
     }
 
     const stockMap = {};
-    await Promise.all(productIds.map(async (productoId) => {
+    const productosList = await lucidsalesService.getProductos();
+    const todos = Array.isArray(productosList) ? productosList : (productosList?.productos || productosList?.data || []);
+
+    await Promise.all(todos.filter(p => productIds.includes(String(p.id ?? p.Id))).map(async (prod) => {
+      const productoId = String(prod.id ?? prod.Id);
+      const dropiId = prod.idProductoDropi;
+      if (!dropiId || dropiId === '0') {
+        stockMap[productoId] = null;
+        return;
+      }
       try {
-        const result = await lucidsalesService.getProductoIndividual(productoId);
-        const producto = result?.producto || result;
-        if (producto) {
-          const dropiName = producto.nameProductoDropi || producto.NameProductoDropi || '';
-          const match = dropiName.match(/Stock:\s*(\d+)/);
-          stockMap[String(productoId)] = match ? Number(match[1]) : null;
-        }
-      } catch { stockMap[String(productoId)] = null; }
+        const result = await lucidsalesService.validateDropiId(dropiId);
+        const stock = result?.product?.stock;
+        stockMap[productoId] = stock !== undefined ? Number(stock) : null;
+      } catch {
+        stockMap[productoId] = null;
+      }
     }));
 
     res.json({ ok: true, stock: stockMap });

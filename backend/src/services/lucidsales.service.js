@@ -276,6 +276,12 @@ async function getProductoIndividual(productoId) {
   return apiGet(`/productos/getproducto/${productoId}`, token);
 }
 
+async function validateDropiId(dropiProductId) {
+  const config = await getConfig();
+  const { token } = await authenticate(config);
+  return apiGet(`/productos/validateDropiId/${dropiProductId}`, token);
+}
+
 async function getFiltersData() {
   const config = await getConfig();
   const { token, shopId } = await authenticate(config);
@@ -497,6 +503,7 @@ module.exports = {
   clearTokenCache,
   getProductos,
   getProductoIndividual,
+  validateDropiId,
   getCiudadesLocales,
   getDepartamentosLocales,
   crearVinculacion,
