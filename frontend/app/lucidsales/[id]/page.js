@@ -45,6 +45,7 @@ export default function LucidSalesEditPage() {
   const [loadingGeo, setLoadingGeo] = useState(false);
 
   const [productosMap, setProductosMap] = useState({});
+  const [productosStock, setProductosStock] = useState({});
   const [quotes, setQuotes] = useState(null);
   const [quoting, setQuoting] = useState(false);
   const [selectedQuoteIdx, setSelectedQuoteIdx] = useState(null);
@@ -192,12 +193,17 @@ export default function LucidSalesEditPage() {
           const prodList = Array.isArray(prodRes.data) ? prodRes.data : prodRes.data?.productos || prodRes.data?.data || [];
           if (prodList.length > 0) {
             const map = {};
+            const stock = {};
             prodList.forEach(p => {
               const key = p.id ?? p.Id;
               const name = p.nombre || p.name || p.Nombre || p.nombreProducto || '';
-              if (key != null) map[String(key)] = name;
+              if (key != null) {
+                map[String(key)] = name;
+                stock[String(key)] = getStockValue(p);
+              }
             });
             setProductosMap(map);
+            setProductosStock(stock);
           }
         } else if (pedidoData && pedidoData.error) {
           setError(pedidoData.error);
@@ -494,6 +500,15 @@ export default function LucidSalesEditPage() {
     return '$' + n.toLocaleString('es-CO');
   };
 
+  const getStockValue = (p) => {
+    const raw = p.stock ?? p.Stock ?? p.StockProducto ?? p.inventario ?? p.Inventario;
+    if (raw !== null && raw !== undefined && raw !== '' && !isNaN(Number(raw))) return Number(raw);
+    const dropiName = p.nameProductoDropi || '';
+    const match = dropiName.match(/Stock:\s*(\d+)/);
+    if (match) return Number(match[1]);
+    return null;
+  };
+
   if (loading) return <div className="content"><TableSkeleton /></div>;
 
   if (error && !pedido) {
@@ -512,6 +527,14 @@ export default function LucidSalesEditPage() {
   const estadoActual = ESTADOS.find(e => e.value === pedido.EstadoPedido) || ESTADOS[0];
   const obs = parseObservaciones(pedido.Observaciones);
   const productos = parseJson(pedido.Json);
+
+  const bajoStock = productos.filter(prod => {
+    const stock = productosStock[String(prod.product_id)];
+    return stock !== undefined && stock !== null && stock <= 20;
+  }).map(prod => ({
+    ...prod,
+    _stock: productosStock[String(prod.product_id)]
+  }));
 
   return (
     <div className="content">
@@ -543,6 +566,27 @@ export default function LucidSalesEditPage() {
           </button>
         </div>
       </div>
+
+      {bajoStock.length > 0 && (
+        <div style={{
+          display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap',
+          padding: '10px 16px', borderRadius: 8, marginBottom: 16,
+          background: 'rgba(229,62,62,0.08)', border: '1px solid rgba(229,62,62,0.3)',
+          fontSize: 13
+        }}>
+          <span style={{ fontWeight: 600, whiteSpace: 'nowrap' }}>⚠ Stock bajo:</span>
+          {bajoStock.map((p, i) => (
+            <span key={i} style={{
+              fontWeight: 500,
+              color: p._stock === 0 ? '#e53e3e' : '#f59e0b',
+              whiteSpace: 'nowrap'
+            }}>
+              {productosMap[String(p.product_id)] || `#${p.product_id}`}
+              {p._stock === 0 ? ' — AGOTADO' : ` — ${p._stock} unid.`}{i < bajoStock.length - 1 ? ' ·' : ''}
+            </span>
+          ))}
+        </div>
+      )}
 
       <div className="table-card" style={{ padding: '8px 14px', marginBottom: 20, cursor: uploaded ? 'default' : 'pointer', display: 'flex', justifyContent: 'space-between', alignItems: 'center', opacity: uploaded ? 0.7 : 1 }} onClick={() => { if (uploaded) return; if (!quotes) { handleQuote(); } else { setShowCotizador(!showCotizador); } }}>
         <span style={{ fontWeight: 600, fontSize: 13, color: 'var(--text)' }}>
