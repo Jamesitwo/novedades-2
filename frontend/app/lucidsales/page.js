@@ -201,7 +201,7 @@ export default function LucidSalesPage() {
       </form>
 
       <div className="filters">
-        <div style={{ display: 'flex', gap: 8 }}>
+        <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
           {Object.entries(ESTADOS).map(([k, v]) => (
             <button
               key={k}
@@ -214,21 +214,14 @@ export default function LucidSalesPage() {
           <button
             onClick={() => handleEstadoFilter('asignados')}
             className={`filter-tab ${estadoFilter === 'asignados' ? 'active' : ''}`}
-            style={{ borderColor: estadoFilter === 'asignados' ? 'var(--accent)' : undefined }}
           >
             👤 Asignados a mí
           </button>
           <select
             value={etiquetaId}
             onChange={e => { setEtiquetaId(e.target.value); setPage(1); }}
-            style={{
-              background: etiquetaId ? 'var(--accent)' : 'var(--bg3)',
-              border: `1px solid ${etiquetaId ? 'var(--accent)' : 'var(--border)'}`,
-              borderRadius: 20, padding: '6px 12px', fontSize: 12,
-              color: etiquetaId ? '#fff' : 'var(--text2)',
-              outline: 'none', cursor: 'pointer', fontFamily: 'inherit',
-              appearance: 'auto', maxWidth: 130
-            }}
+            className={`filter-tab ${etiquetaId ? 'active' : ''}`}
+            style={{ appearance: 'auto', cursor: 'pointer', paddingRight: 26 }}
           >
             <option value="">🏷️ Etiqueta</option>
             {etiquetas.map(e => (
@@ -239,14 +232,8 @@ export default function LucidSalesPage() {
             <select
               value={asignadoId}
               onChange={e => { setAsignadoId(e.target.value); setPage(1); }}
-              style={{
-                background: asignadoId ? 'var(--accent)' : 'var(--bg3)',
-                border: `1px solid ${asignadoId ? 'var(--accent)' : 'var(--border)'}`,
-                borderRadius: 20, padding: '6px 12px', fontSize: 12,
-                color: asignadoId ? '#fff' : 'var(--text2)',
-                outline: 'none', cursor: 'pointer', fontFamily: 'inherit',
-                appearance: 'auto', maxWidth: 150
-              }}
+              className={`filter-tab ${asignadoId ? 'active' : ''}`}
+              style={{ appearance: 'auto', cursor: 'pointer', paddingRight: 26 }}
             >
               <option value="">👤 Asignado</option>
               {operadores.map(op => (
