@@ -570,6 +570,22 @@ const buscarOficinaIR = async (req, res) => {
   }
 };
 
+const desvincularPedido = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const idNum = Number(id);
+
+    await prisma.registroEtiqueta.deleteMany({ where: { registroId: String(idNum), tabla: 'pedidos_vinculados' } });
+    await prisma.pedidoVinculado.delete({ where: { lucidsalesPedidoId: idNum } });
+
+    res.json({ ok: true, message: 'Pedido desvinculado correctamente' });
+  } catch (error) {
+    console.error('desvincularPedido error:', error);
+    if (error.code === 'P2025') return res.status(404).json({ error: 'Pedido no encontrado' });
+    res.status(500).json({ error: error.message || 'Error al desvincular' });
+  }
+};
+
 module.exports = {
   getPedidos,
   getPedidoById,
@@ -596,5 +612,6 @@ module.exports = {
   getEtiquetas,
   asignarEtiqueta,
   removerEtiqueta,
-  buscarOficinaIR
+  buscarOficinaIR,
+  desvincularPedido
 };

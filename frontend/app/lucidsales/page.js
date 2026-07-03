@@ -143,6 +143,16 @@ export default function LucidSalesPage() {
     }
   };
 
+  const handleDesvincular = async (pedidoId) => {
+    if (!window.confirm('¿Desvincular este pedido? Se eliminará de la lista de Pizdo (el pedido sigue existiendo en LucidSales).')) return;
+    try {
+      await api.delete(`/api/lucidsales/vinculados/${pedidoId}`);
+      fetchPedidos();
+    } catch (err) {
+      setError(err.response?.data?.error || 'Error al desvincular');
+    }
+  };
+
   return (
     <div className="content">
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
@@ -332,6 +342,11 @@ export default function LucidSalesPage() {
                       <Link href={`/lucidsales/${p.id}`} className="action-btn" title="Editar">
                         ✎
                       </Link>
+                      {usuario?.rol === 'admin' && (
+                        <button onClick={() => handleDesvincular(p.id)} className="action-btn" title="Desvincular" style={{ fontSize: 14, color: 'var(--red)' }}>
+                          ✕
+                        </button>
+                      )}
                     </td>
                   </tr>
                 ))}

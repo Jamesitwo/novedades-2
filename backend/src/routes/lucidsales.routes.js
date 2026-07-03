@@ -34,5 +34,6 @@ router.get('/vinculados', ctrl.listarVinculados);
 router.get('/vinculados/:id/etiquetas', ctrl.getEtiquetas);
 router.post('/vinculados/:id/etiquetas', ctrl.asignarEtiqueta);
 router.delete('/vinculados/:id/etiquetas/:etiquetaId', ctrl.removerEtiqueta);
+router.delete('/vinculados/:id', adminOnly, ctrl.desvincularPedido);
 
 module.exports = router;
