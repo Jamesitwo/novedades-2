@@ -37,6 +37,8 @@ model Usuario {
   tareasCreadas         Tarea[]           @relation("TareaCreador")
   tareasAsignadas       Tarea[]           @relation("TareaAsignado")
   mensajesWhatsapp      MensajeWhatsApp[]
+  pedidosVinculados      PedidoVinculado[]     @relation("VinculadoCreador")
+  pedidosVinculadosAsig  PedidoVinculado[]     @relation("VinculadoAsignado")
 }
 
 model PedidoNovedad {
@@ -196,9 +198,9 @@ model PedidoVinculado {
   jsonProductos         String?  @map("json_productos")
   conversacionLink      String?  @map("conversacion_link")
   createdById           String?  @map("created_by")
-  createdBy             Usuario? @relation(fields: [createdById], references: [id])
+  createdBy             Usuario? @relation("VinculadoCreador", fields: [createdById], references: [id])
   asignadoId            String?  @map("asignado_id")
-  asignado              Usuario? @relation(fields: [asignadoId], references: [id])
+  asignado              Usuario? @relation("VinculadoAsignado", fields: [asignadoId], references: [id])
   notas                 String?
   estado                String   @default("activo")
   createdAt             DateTime @default(now())
