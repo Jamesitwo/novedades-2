@@ -464,11 +464,11 @@ const listarVinculados = async (req, res) => {
 
 const guardarLocal = async (req, res) => {
   try {
-    const { lucidsalesPedidoId, pedido } = req.body;
+    const { lucidsalesPedidoId, pedido, asignadoId } = req.body;
     if (!lucidsalesPedidoId || !pedido) {
       return res.status(400).json({ error: 'lucidsalesPedidoId y pedido son requeridos' });
     }
-    const result = await lucidsalesService.guardarVinculacionLocal(lucidsalesPedidoId, pedido);
+    const result = await lucidsalesService.guardarVinculacionLocal(lucidsalesPedidoId, pedido, req.usuario.id, asignadoId);
     res.json({ ok: true, pedido: result });
   } catch (error) {
     console.error('guardarLocal error:', error);

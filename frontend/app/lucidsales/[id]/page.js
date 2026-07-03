@@ -59,6 +59,7 @@ export default function LucidSalesEditPage() {
   const [oficinasIR, setOficinasIR] = useState([]);
   const [buscandoIR, setBuscandoIR] = useState(false);
   const [errorIR, setErrorIR] = useState('');
+  const [operadores, setOperadores] = useState([]);
 
   const [validando, setValidando] = useState(false);
   const [validacion, setValidacion] = useState(null);
@@ -183,6 +184,9 @@ export default function LucidSalesEditPage() {
             if (localRes.data?.pedido?.conversacionLink) {
               setPedido(prev => ({ ...prev, conversacionLink: localRes.data.pedido.conversacionLink }));
             }
+            if (localRes.data?.pedido?.asignadoId) {
+              setPedido(prev => ({ ...prev, _asignadoId: localRes.data.pedido.asignadoId }));
+            }
           } catch {}
 
           const prodList = Array.isArray(prodRes.data) ? prodRes.data : prodRes.data?.productos || prodRes.data?.data || [];
@@ -213,6 +217,9 @@ export default function LucidSalesEditPage() {
   useEffect(() => {
     api.get('/api/etiquetas').then(({ data }) => {
       if (Array.isArray(data)) setTodasEtiquetas(data);
+    }).catch(() => {});
+    api.get('/api/usuarios/operadores').then(({ data }) => {
+      if (Array.isArray(data)) setOperadores(data);
     }).catch(() => {});
   }, []);
 
@@ -332,7 +339,11 @@ export default function LucidSalesEditPage() {
       if (updateResult && updateResult.ok === false) {
         return showToast(updateResult.msg || updateResult.error || 'Error al actualizar en LucidSales', 'error');
       }
-      await api.post('/api/lucidsales/guardar-local', { lucidsalesPedidoId: Number(id), pedido });
+      await api.post('/api/lucidsales/guardar-local', {
+        lucidsalesPedidoId: Number(id),
+        pedido,
+        asignadoId: pedido._asignadoId || undefined
+      });
       setCamposModificados(new Set());
       showToast('Pedido actualizado correctamente');
     } catch (err) {
@@ -380,7 +391,11 @@ export default function LucidSalesEditPage() {
       const selectedQuote = quotes.quotes[selectedQuoteIdx];
 
       await api.post(`/api/lucidsales/pedidos/${id}`, pedido);
-      await api.post('/api/lucidsales/guardar-local', { lucidsalesPedidoId: Number(id), pedido });
+      await api.post('/api/lucidsales/guardar-local', {
+        lucidsalesPedidoId: Number(id),
+        pedido,
+        asignadoId: pedido._asignadoId || undefined
+      });
       setCamposModificados(new Set());
 
       const { data } = await api.post('/api/lucidsales/pedidos/confirmar-envio', {
@@ -427,7 +442,11 @@ export default function LucidSalesEditPage() {
 
     try {
       await api.post(`/api/lucidsales/pedidos/${id}`, pedido);
-      await api.post('/api/lucidsales/guardar-local', { lucidsalesPedidoId: Number(id), pedido });
+      await api.post('/api/lucidsales/guardar-local', {
+        lucidsalesPedidoId: Number(id),
+        pedido,
+        asignadoId: pedido._asignadoId || undefined
+      });
       setCamposModificados(new Set());
 
       const selectedQuote = quotes.quotes[selectedQuoteIdx];
@@ -948,12 +967,21 @@ export default function LucidSalesEditPage() {
             <div style={{ fontWeight: 600, fontSize: 14, marginBottom: 12, color: 'var(--text)' }}>
               Datos del pedido
             </div>
-            <div className="form-grid">
+              <div className="form-grid">
               <div className="form-group">
                 <label className="form-field-label">Estado</label>
                 <select value={pedido.EstadoPedido ?? 0} onChange={e => handleChange('EstadoPedido', Number(e.target.value))} style={{ ...inputStyle, appearance: 'auto', cursor: 'pointer' }}>
                   {ESTADOS.map(e => (
                     <option key={e.value} value={e.value}>{e.label}</option>
+                  ))}
+                </select>
+              </div>
+              <div className="form-group">
+                <label className="form-field-label">Asignado</label>
+                <select value={pedido._asignadoId || ''} onChange={e => handleChange('_asignadoId', e.target.value)} style={{ ...inputStyle, appearance: 'auto', cursor: 'pointer' }}>
+                  <option value="">Sin asignar</option>
+                  {operadores.map(op => (
+                    <option key={op.id} value={op.id}>{op.nombre}</option>
                   ))}
                 </select>
               </div>

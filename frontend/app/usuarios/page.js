@@ -10,7 +10,7 @@ export default function UsuariosPage() {
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
   const [editingUser, setEditingUser] = useState(null);
-  const [formData, setFormData] = useState({ nombre: '', email: '', password: '', rol: 'operador' });
+  const [formData, setFormData] = useState({ nombre: '', email: '', password: '', rol: 'operador', accesoLucidsales: false });
   const [error, setError] = useState('');
 
   const fetchUsuarios = async () => {
@@ -30,14 +30,14 @@ export default function UsuariosPage() {
 
   const openCreateModal = () => {
     setEditingUser(null);
-    setFormData({ nombre: '', email: '', password: '', rol: 'operador' });
+    setFormData({ nombre: '', email: '', password: '', rol: 'operador', accesoLucidsales: false });
     setError('');
     setShowModal(true);
   };
 
   const openEditModal = (usuario) => {
     setEditingUser(usuario);
-    setFormData({ nombre: usuario.nombre, email: usuario.email, password: '', rol: usuario.rol });
+    setFormData({ nombre: usuario.nombre, email: usuario.email, password: '', rol: usuario.rol, accesoLucidsales: usuario.accesoLucidsales || false });
     setError('');
     setShowModal(true);
   };
@@ -97,6 +97,7 @@ export default function UsuariosPage() {
               <th>Email</th>
               <th>Rol</th>
               <th>Estado</th>
+              <th>LucidSales</th>
               <th>Visibilidad</th>
               <th></th>
             </tr>
@@ -110,6 +111,11 @@ export default function UsuariosPage() {
                 <td>
                   <span className={`badge ${usuario.activo ? 'activo' : 'inactivo'}`}>
                     {usuario.activo ? 'Activo' : 'Inactivo'}
+                  </span>
+                </td>
+                <td>
+                  <span className={`badge ${usuario.accesoLucidsales ? 'activo' : 'inactivo'}`} style={{ fontSize: 11 }}>
+                    {usuario.accesoLucidsales ? 'Sí' : 'No'}
                   </span>
                 </td>
                 <td>
@@ -206,6 +212,17 @@ export default function UsuariosPage() {
                     <option key={rol} value={rol}>{rol}</option>
                   ))}
                 </select>
+              </div>
+
+              <div className="form-group">
+                <label style={{ display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer' }}>
+                  <input
+                    type="checkbox"
+                    checked={formData.accesoLucidsales}
+                    onChange={(e) => setFormData({ ...formData, accesoLucidsales: e.target.checked })}
+                  />
+                  Acceso a LucidSales
+                </label>
               </div>
 
               <div className="form-actions">

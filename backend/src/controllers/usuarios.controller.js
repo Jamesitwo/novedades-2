@@ -19,6 +19,7 @@ const getAll = async (req, res) => {
           rol: true,
           activo: true,
           verSoloAsignados: true,
+          accesoLucidsales: true,
           createdAt: true
         },
         orderBy: { createdAt: 'desc' }

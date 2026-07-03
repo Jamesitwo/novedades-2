@@ -41,6 +41,7 @@ export default function MetricasPage() {
   const [metricas, setMetricas] = useState(null);
   const [tiempoActivo, setTiempoActivo] = useState(null);
   const [resumenDiario, setResumenDiario] = useState(null);
+  const [metricasLucidsales, setMetricasLucidsales] = useState(null);
   const [loading, setLoading] = useState(true);
   const [periodo, setPeriodo] = useState('mes');
   const [fechaDesde, setFechaDesde] = useState('');
@@ -73,6 +74,7 @@ export default function MetricasPage() {
         setMetricas(results[0].data);
         setTiempoActivo(results[1].data);
         setResumenDiario(isCustomRange ? results[2].data : null);
+        setResumenDiario(isCustomRange ? results[2].data : null);
       } catch (error) {
         console.error('Error fetching metricas:', error);
       } finally {
@@ -80,6 +82,9 @@ export default function MetricasPage() {
       }
     };
     fetchData();
+    api.get(`/api/dashboard/metricas-lucidsales?${isCustomRange ? `fechaDesde=${fechaDesde}&fechaHasta=${fechaHasta}` : `periodo=${periodo}`}`)
+      .then(({ data }) => setMetricasLucidsales(data))
+      .catch(() => {});
   }, [periodo, fechaDesde, fechaHasta, isCustomRange]);
 
   const formatMoney = (amount) => {
@@ -230,6 +235,16 @@ export default function MetricasPage() {
           }}
         >
           Resumen Diario
+        </button>
+        <button
+          onClick={() => setTab('lucidsales')}
+          style={{
+            padding: '6px 16px', borderRadius: 6, fontSize: 12, fontWeight: 500, cursor: 'pointer',
+            border: 'none', background: tab === 'lucidsales' ? 'var(--accent)' : 'transparent',
+            color: tab === 'lucidsales' ? '#fff' : 'var(--text2)', transition: 'all 0.15s'
+          }}
+        >
+          LucidSales
         </button>
       </div>
 
@@ -686,6 +701,44 @@ export default function MetricasPage() {
             </div>
           )}
         </>
+      )}
+
+      {tab === 'lucidsales' && (
+        <div className="table-card">
+          <div className="table-header">
+            <span className="table-header-title">Vinculaciones LucidSales</span>
+            <span style={{ fontSize: 11, color: 'var(--text3)' }}>
+              {isCustomRange ? `${fechaDesde} → ${fechaHasta}` : `Período: ${periodo}`}
+            </span>
+          </div>
+          <div style={{ overflowX: 'auto' }}>
+            <table>
+              <thead>
+                <tr>
+                  <th>Operador</th>
+                  <th style={{ textAlign: 'center' }}>Creados</th>
+                  <th style={{ textAlign: 'center' }}>Asignados</th>
+                </tr>
+              </thead>
+              <tbody>
+                {metricasLucidsales && metricasLucidsales.length > 0 ? metricasLucidsales.map((m, i) => (
+                  <tr key={m.operadorId}>
+                    <td>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                        <span style={{ fontSize: 10, color: i < 3 ? 'var(--accent)' : 'var(--text3)', fontWeight: 600 }}>{i + 1}</span>
+                        <span className="td-name">{m.operador}</span>
+                      </div>
+                    </td>
+                    <td style={{ textAlign: 'center', fontFamily: 'var(--mono)', fontWeight: 600, color: 'var(--accent)' }}>{m.vinculadosCreados}</td>
+                    <td style={{ textAlign: 'center', fontFamily: 'var(--mono)' }}>{m.vinculadosAsignados}</td>
+                  </tr>
+                )) : (
+                  <tr><td colSpan={3} style={{ textAlign: 'center', color: 'var(--text3)', padding: 24 }}>Sin datos en este período</td></tr>
+                )}
+              </tbody>
+            </table>
+          </div>
+        </div>
       )}
     </div>
   );

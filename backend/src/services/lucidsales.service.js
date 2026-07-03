@@ -381,34 +381,29 @@ async function crearVinculacion(lucidsalesPedidoId, notas, usuarioId, asignadoId
   });
 }
 
-async function guardarVinculacionLocal(lucidsalesPedidoId, pedido) {
+async function guardarVinculacionLocal(lucidsalesPedidoId, pedido, usuarioId, asignadoId) {
+  const data = {
+    lucidsalesIdPedido: Number(pedido.idPedido ?? lucidsalesPedidoId),
+    nombreCliente: pedido.Nombre || '',
+    apellidoCliente: pedido.Apellido || '',
+    movil: pedido.Movil || '',
+    total: String(pedido.Total || '0'),
+    estadoPedido: Number(pedido.EstadoPedido ?? 0),
+    referencias: pedido.Referencias || '',
+    jsonProductos: typeof pedido.Json === 'string' ? pedido.Json : JSON.stringify(pedido.Json || []),
+    conversacionLink: pedido.conversacionLink || pedido.ConversacionLink || pedido.linkConversacion || null,
+    notas: pedido.notas || null,
+    asignadoId: asignadoId || null
+  };
+  if (usuarioId && !data.createdById) {
+    data.createdById = usuarioId;
+  }
   return prisma.pedidoVinculado.upsert({
     where: { lucidsalesPedidoId: Number(lucidsalesPedidoId) },
-    update: {
-      lucidsalesIdPedido: Number(pedido.idPedido ?? lucidsalesPedidoId),
-      nombreCliente: pedido.Nombre || '',
-      apellidoCliente: pedido.Apellido || '',
-      movil: pedido.Movil || '',
-      total: String(pedido.Total || '0'),
-      estadoPedido: Number(pedido.EstadoPedido ?? 0),
-      referencias: pedido.Referencias || '',
-      notas: pedido.notas || null,
-      jsonProductos: typeof pedido.Json === 'string' ? pedido.Json : JSON.stringify(pedido.Json || []),
-      conversacionLink: pedido.botInbox || pedido.conversacionLink || pedido.ConversacionLink || pedido.linkConversacion || null,
-    },
-    create: {
-      lucidsalesPedidoId: Number(lucidsalesPedidoId),
-      lucidsalesIdPedido: Number(pedido.idPedido ?? lucidsalesPedidoId),
-      nombreCliente: pedido.Nombre || '',
-      apellidoCliente: pedido.Apellido || '',
-      movil: pedido.Movil || '',
-      total: String(pedido.Total || '0'),
-      estadoPedido: Number(pedido.EstadoPedido ?? 0),
-      referencias: pedido.Referencias || '',
-      notas: pedido.notas || null,
-      jsonProductos: typeof pedido.Json === 'string' ? pedido.Json : JSON.stringify(pedido.Json || []),
-      conversacionLink: pedido.botInbox || pedido.conversacionLink || pedido.ConversacionLink || pedido.linkConversacion || null,
-    }
+    update: data,
+    create: { lucidsalesPedidoId: Number(lucidsalesPedidoId), ...data }
+  });
+}
   });
 }
 
