@@ -144,10 +144,13 @@ const STOCK_THRESHOLD = 20;
 
 const getStock = (p) => {
   const raw = p.stock ?? p.Stock ?? p.StockProducto ?? p.inventario ?? p.Inventario;
-  if (raw === null || raw === undefined || raw === '') return null;
-  const n = Number(raw);
-  if (isNaN(n)) return null;
-  return n;
+  if (raw !== null && raw !== undefined && raw !== '' && !isNaN(Number(raw))) {
+    return Number(raw);
+  }
+  const dropiName = p.nameProductoDropi || '';
+  const match = dropiName.match(/Stock:\s*(\d+)/);
+  if (match) return Number(match[1]);
+  return null;
 };
 
 const getStockStyle = (s) => {
