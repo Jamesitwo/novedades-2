@@ -226,36 +226,50 @@ export default function UsuariosPage() {
                 </select>
               </div>
 
-              <div className="form-group">
-                <label style={{ display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer' }}>
-                  <input
-                    type="checkbox"
-                    checked={formData.gestionaNovedades !== false}
-                    onChange={(e) => setFormData({ ...formData, gestionaNovedades: e.target.checked })}
-                  />
-                  Gestiona Novedades
+              <div className="form-group" style={{ display: 'flex', flexDirection: 'column', gap: 10, marginTop: 4 }}>
+                <label style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', cursor: 'pointer', padding: '8px 12px', borderRadius: 8, background: formData.gestionaNovedades !== false ? 'rgba(34,197,94,0.08)' : 'var(--bg3)', border: '1px solid var(--border)' }}>
+                  <span style={{ fontSize: 13, fontWeight: 500 }}>⚠ Gestiona Novedades</span>
+                  <span style={{
+                    width: 40, height: 22, borderRadius: 11, background: formData.gestionaNovedades !== false ? 'var(--green)' : 'var(--bg4)',
+                    position: 'relative', transition: 'background 0.2s', flexShrink: 0
+                  }}>
+                    <span style={{
+                      position: 'absolute', top: 2, left: formData.gestionaNovedades !== false ? 20 : 2,
+                      width: 18, height: 18, borderRadius: '50%', background: '#fff',
+                      transition: 'left 0.2s', boxShadow: '0 1px 3px rgba(0,0,0,0.3)'
+                    }} />
+                  </span>
+                  <input type="checkbox" checked={formData.gestionaNovedades !== false} onChange={(e) => setFormData({ ...formData, gestionaNovedades: e.target.checked })} style={{ display: 'none' }} />
                 </label>
-              </div>
 
-              <div className="form-group">
-                <label style={{ display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer' }}>
-                  <input
-                    type="checkbox"
-                    checked={formData.gestionaOficina !== false}
-                    onChange={(e) => setFormData({ ...formData, gestionaOficina: e.target.checked })}
-                  />
-                  Gestiona Oficina
+                <label style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', cursor: 'pointer', padding: '8px 12px', borderRadius: 8, background: formData.gestionaOficina !== false ? 'rgba(34,197,94,0.08)' : 'var(--bg3)', border: '1px solid var(--border)' }}>
+                  <span style={{ fontSize: 13, fontWeight: 500 }}>📦 Gestiona Oficina</span>
+                  <span style={{
+                    width: 40, height: 22, borderRadius: 11, background: formData.gestionaOficina !== false ? 'var(--green)' : 'var(--bg4)',
+                    position: 'relative', transition: 'background 0.2s', flexShrink: 0
+                  }}>
+                    <span style={{
+                      position: 'absolute', top: 2, left: formData.gestionaOficina !== false ? 20 : 2,
+                      width: 18, height: 18, borderRadius: '50%', background: '#fff',
+                      transition: 'left 0.2s', boxShadow: '0 1px 3px rgba(0,0,0,0.3)'
+                    }} />
+                  </span>
+                  <input type="checkbox" checked={formData.gestionaOficina !== false} onChange={(e) => setFormData({ ...formData, gestionaOficina: e.target.checked })} style={{ display: 'none' }} />
                 </label>
-              </div>
 
-              <div className="form-group">
-                <label style={{ display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer' }}>
-                  <input
-                    type="checkbox"
-                    checked={formData.accesoLucidsales}
-                    onChange={(e) => setFormData({ ...formData, accesoLucidsales: e.target.checked })}
-                  />
-                  Acceso a LucidSales
+                <label style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', cursor: 'pointer', padding: '8px 12px', borderRadius: 8, background: formData.accesoLucidsales ? 'rgba(34,197,94,0.08)' : 'var(--bg3)', border: '1px solid var(--border)' }}>
+                  <span style={{ fontSize: 13, fontWeight: 500 }}>💎 Acceso a LucidSales</span>
+                  <span style={{
+                    width: 40, height: 22, borderRadius: 11, background: formData.accesoLucidsales ? 'var(--green)' : 'var(--bg4)',
+                    position: 'relative', transition: 'background 0.2s', flexShrink: 0
+                  }}>
+                    <span style={{
+                      position: 'absolute', top: 2, left: formData.accesoLucidsales ? 20 : 2,
+                      width: 18, height: 18, borderRadius: '50%', background: '#fff',
+                      transition: 'left 0.2s', boxShadow: '0 1px 3px rgba(0,0,0,0.3)'
+                    }} />
+                  </span>
+                  <input type="checkbox" checked={formData.accesoLucidsales} onChange={(e) => setFormData({ ...formData, accesoLucidsales: e.target.checked })} style={{ display: 'none' }} />
                 </label>
               </div>
 
