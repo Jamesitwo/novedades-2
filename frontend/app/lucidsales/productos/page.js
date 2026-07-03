@@ -142,19 +142,8 @@ const GROUP_ORDER = ['id', 'idEmpresa', 'nombre', 'name', 'nombreCliente', 'sku'
 
 const STOCK_THRESHOLD = 20;
 
-const getStock = (p) => {
-  const raw = p.stock ?? p.Stock ?? p.StockProducto ?? p.inventario ?? p.Inventario;
-  if (raw !== null && raw !== undefined && raw !== '' && !isNaN(Number(raw))) {
-    return Number(raw);
-  }
-  const dropiName = p.nameProductoDropi || '';
-  const match = dropiName.match(/Stock:\s*(\d+)/);
-  if (match) return Number(match[1]);
-  return null;
-};
-
 const getStockStyle = (s) => {
-  if (s === null) return {};
+  if (s === null || s === undefined) return {};
   if (s === 0) return { background: 'rgba(229,62,62,0.15)', color: '#e53e3e', fontWeight: 700 };
   if (s <= 5) return { background: 'rgba(229,62,62,0.06)', color: '#e53e3e', fontWeight: 600 };
   if (s <= STOCK_THRESHOLD) return { background: 'rgba(245,158,11,0.06)', color: '#f59e0b', fontWeight: 500 };
@@ -163,12 +152,18 @@ const getStockStyle = (s) => {
 
 export default function LucidSalesProductosPage() {
   const [productos, setProductos] = useState([]);
+  const [stockMap, setStockMap] = useState({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [search, setSearch] = useState('');
   const [selected, setSelected] = useState(null);
   const [lastUpdate, setLastUpdate] = useState(null);
   const [showAlert, setShowAlert] = useState(true);
+
+  const getStock = (p) => {
+    const id = String(p.id ?? p.Id ?? '');
+    return stockMap[id] ?? null;
+  };
 
   const fetchProductos = useCallback(async () => {
     setLoading(true);
@@ -180,6 +175,16 @@ export default function LucidSalesProductosPage() {
       setProductos(list);
       setSelected(null);
       setLastUpdate(new Date());
+
+      const ids = list.map(p => String(p.id ?? p.Id)).filter(Boolean);
+      if (ids.length > 0) {
+        try {
+          const stockRes = await api.post('/api/lucidsales/productos-stock', { productIds: ids });
+          if (stockRes.data?.ok && stockRes.data.stock) {
+            setStockMap(stockRes.data.stock);
+          }
+        } catch {}
+      }
     } catch (err) {
       setError(err.response?.data?.error || err.message || 'Error al obtener productos');
     } finally {
@@ -232,7 +237,7 @@ export default function LucidSalesProductosPage() {
       else if (s !== null && s <= STOCK_THRESHOLD) bajo.push({ ...p, _stock: s });
     });
     return { agotados, bajo, total: agotados.length + bajo.length };
-  }, [productos]);
+  }, [productos, stockMap]);
 
   const timeAgo = lastUpdate ? Math.floor((Date.now() - lastUpdate.getTime()) / 60000) : null;
 
