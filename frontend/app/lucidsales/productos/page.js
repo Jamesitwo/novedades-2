@@ -143,9 +143,11 @@ const GROUP_ORDER = ['id', 'idEmpresa', 'nombre', 'name', 'nombreCliente', 'sku'
 const STOCK_THRESHOLD = 20;
 
 const getStock = (p) => {
-  const stock = p.stock ?? p.Stock ?? p.StockProducto ?? p.inventario ?? p.Inventario;
-  const n = Number(stock);
-  return isNaN(n) ? null : n;
+  const raw = p.stock ?? p.Stock ?? p.StockProducto ?? p.inventario ?? p.Inventario;
+  if (raw === null || raw === undefined || raw === '') return null;
+  const n = Number(raw);
+  if (isNaN(n)) return null;
+  return n;
 };
 
 const getStockStyle = (s) => {
