@@ -15,6 +15,7 @@ model Usuario {
   rol              String   @default("operador")
   activo           Boolean  @default(true)
   verSoloAsignados Boolean  @default(false) @map("ver_solo_asignados")
+  accesoLucidsales Boolean  @default(false) @map("acceso_lucidsales")
   createdAt        DateTime @default(now())
   updatedAt        DateTime @updatedAt
 
@@ -194,6 +195,10 @@ model PedidoVinculado {
   referencias           String?
   jsonProductos         String?  @map("json_productos")
   conversacionLink      String?  @map("conversacion_link")
+  createdById           String?  @map("created_by")
+  createdBy             Usuario? @relation(fields: [createdById], references: [id])
+  asignadoId            String?  @map("asignado_id")
+  asignado              Usuario? @relation(fields: [asignadoId], references: [id])
   notas                 String?
   estado                String   @default("activo")
   createdAt             DateTime @default(now())
@@ -206,6 +211,7 @@ model Configuracion {
   id                        String  @id @default(uuid())
   auto_asignar_novedades    Boolean @default(false) @map("auto_asignar_novedades")
   auto_asignar_oficina      Boolean @default(false) @map("auto_asignar_oficina")
+  auto_asignar_lucidsales   Boolean @default(false) @map("auto_asignar_lucidsales")
   metodo_asignacion         String  @default("round_robin") @map("metodo_asignacion")
   operadores_incluidos      String  @default("[]") @map("operadores_incluidos")
   ultimo_indice_round_robin Int     @default(0) @map("ultimo_indice_round_robin")

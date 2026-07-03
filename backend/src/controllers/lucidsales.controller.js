@@ -223,7 +223,9 @@ const vincularPedido = async (req, res) => {
     if (!lucidsalesPedidoId) {
       return res.status(400).json({ error: 'lucidsalesPedidoId es requerido' });
     }
-    const result = await lucidsalesService.crearVinculacion(lucidsalesPedidoId, notas);
+    const { getNextOperador } = require('../utils/autoAssign');
+    const asignadoId = await getNextOperador('lucidsales');
+    const result = await lucidsalesService.crearVinculacion(lucidsalesPedidoId, notas, req.usuario.id, asignadoId);
     res.json({ ok: true, pedido: result });
   } catch (error) {
     console.error('LucidSales vincularPedido error:', error);
@@ -335,7 +337,9 @@ const duplicarPedido = async (req, res) => {
     console.log('[LucidSales] duplicarPedido: vinculando nuevoId=', nuevoId);
 
     try {
-      await lucidsalesService.crearVinculacionDirecta(nuevoId, original, `Duplicado del pedido #${original.idPedido || id}`);
+      const { getNextOperador } = require('../utils/autoAssign');
+    const asignadoId = await getNextOperador('lucidsales');
+    await lucidsalesService.crearVinculacionDirecta(nuevoId, original, `Duplicado del pedido #${original.idPedido || id}`, req.usuario.id, asignadoId);
       console.log('[LucidSales] duplicarPedido: vinculacion exitosa');
     } catch (vinError) {
       console.error('[LucidSales] duplicarPedido: error al vincular:', vinError.message);
@@ -370,6 +374,9 @@ const subirDividido = async (req, res) => {
     if (productos.length < 2) {
       return res.status(400).json({ error: 'El pedido debe tener al menos 2 productos para dividir' });
     }
+
+    const { getNextOperador } = require('../utils/autoAssign');
+    const asignadoId = await getNextOperador('lucidsales');
 
     const resultados = [];
     for (let i = 0; i < productos.length; i++) {
@@ -421,7 +428,7 @@ const subirDividido = async (req, res) => {
         }
 
         await lucidsalesService.crearVinculacionDirecta(nuevoId, original,
-          `Producto ${i + 1}/${productos.length} del pedido #${original.idPedido || id}`);
+          `Producto ${i + 1}/${productos.length} del pedido #${original.idPedido || id}`, req.usuario.id, asignadoId);
 
         resultados.push({ producto: prod.product_id, pedidoId: nuevoId, exito: true });
       } catch (err) {
@@ -442,7 +449,12 @@ const subirDividido = async (req, res) => {
 const listarVinculados = async (req, res) => {
   try {
     const { page = 1, itemsPerPage = 50, search = '', estadoFilter } = req.query;
-    const result = await lucidsalesService.listVinculaciones({ page: Number(page), itemsPerPage: Number(itemsPerPage), search, estadoFilter });
+    const opts = { page: Number(page), itemsPerPage: Number(itemsPerPage), search, estadoFilter };
+    if (estadoFilter === 'asignados') {
+      opts.asignadoId = req.usuario.id;
+      opts.estadoFilter = undefined;
+    }
+    const result = await lucidsalesService.listVinculaciones(opts);
     res.json(result);
   } catch (error) {
     console.error('LucidSales listarVinculados error:', error);

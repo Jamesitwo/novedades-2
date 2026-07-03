@@ -4,7 +4,12 @@ const getNextOperador = async (tabla) => {
   const config = await prisma.configuracion.findFirst();
   if (!config) return null;
 
-  const field = tabla === 'novedades' ? 'auto_asignar_novedades' : 'auto_asignar_oficina';
+  const fieldMap = {
+    novedades: 'auto_asignar_novedades',
+    oficina: 'auto_asignar_oficina',
+    lucidsales: 'auto_asignar_lucidsales'
+  };
+  const field = fieldMap[tabla];
   if (!config[field]) return null;
 
   const operadoresIncluidos = JSON.parse(config.operadores_incluidos || '[]');
@@ -21,7 +26,8 @@ const getNextOperador = async (tabla) => {
   if (activos.length === 0) return null;
 
   if (config.metodo_asignacion === 'menor_carga') {
-    const model = tabla === 'novedades' ? 'pedidoNovedad' : 'pedidoOficina';
+    const modelMap = { novedades: 'pedidoNovedad', oficina: 'pedidoOficina', lucidsales: 'pedidoVinculado' };
+    const model = modelMap[tabla];
     const counts = await Promise.all(activos.map(async (op) => {
       const count = await prisma[model].count({ where: { asignadoId: op.id } });
       return { op, count };

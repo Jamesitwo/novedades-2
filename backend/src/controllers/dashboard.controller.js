@@ -662,4 +662,47 @@ const getResumenDiario = async (req, res) => {
   }
 };
 
-module.exports = { getResumen, getHoy, getChartData, getRendimientoOperadores, getMetricasOperadores, getTiempoActivo, getResumenDiario };
+const getMetricasLucidsales = async (req, res) => {
+  try {
+    const { periodo = 'mes', fechaDesde, fechaHasta } = req.query;
+    const { start, end } = getDateRange(periodo, fechaDesde, fechaHasta);
+
+    const whereDate = start ? { createdAt: { gte: start, lte: end } } : {};
+
+    const operadores = await prisma.usuario.findMany({
+      where: { activo: true },
+      select: { id: true, nombre: true, rol: true }
+    });
+
+    const metricas = await Promise.all(operadores.map(async (op) => {
+      const [vinculadosCreados, vinculadosAsignados, vinculadosSubidos] = await Promise.all([
+        prisma.pedidoVinculado.count({ where: { ...whereDate, createdById: op.id } }),
+        prisma.pedidoVinculado.count({ where: { ...whereDate, asignadoId: op.id } }),
+        prisma.pedidoVinculado.count({ where: { ...whereDate, createdById: op.id, notas: { contains: 'Producto' } } })
+      ]);
+
+      const totales = await prisma.pedidoVinculado.aggregate({
+        where: { ...whereDate, createdById: op.id },
+        _count: { id: true }
+      });
+
+      return {
+        operadorId: op.id,
+        operador: op.nombre,
+        rol: op.rol,
+        vinculadosCreados,
+        vinculadosAsignados,
+        totalVinculados: totales._count.id
+      };
+    }));
+
+    res.json(metricas.filter(m => m.totalVinculados > 0 || m.vinculadosAsignados > 0).sort((a, b) => b.totalVinculados - a.totalVinculados));
+  } catch (error) {
+    console.error('Get metricas lucidsales error:', error);
+    res.status(500).json({ error: 'Error en el servidor' });
+  }
+};
+
+module.exports = { getResumen, getHoy, getChartData, getRendimientoOperadores, getMetricasOperadores, getTiempoActivo,   getResumenDiario,
+  getMetricasLucidsales
+};

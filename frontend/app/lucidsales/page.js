@@ -199,6 +199,13 @@ export default function LucidSalesPage() {
               {v.label}
             </button>
           ))}
+          <button
+            onClick={() => handleEstadoFilter('asignados')}
+            className={`filter-tab ${estadoFilter === 'asignados' ? 'active' : ''}`}
+            style={{ borderColor: estadoFilter === 'asignados' ? 'var(--accent)' : undefined }}
+          >
+            👤 Asignados a mí
+          </button>
         </div>
         <div className="filters-right">
           <form onSubmit={handleSearchSubmit} style={{ display: 'flex', gap: 6 }}>
@@ -240,6 +247,7 @@ export default function LucidSalesPage() {
                   <th>Teléfono</th>
                   <th>Total</th>
                   <th>Estado</th>
+                  <th>Asignado</th>
                   <th>Referencias</th>
                   <th>Etiquetas</th>
                   <th style={{ width: 80 }}></th>
@@ -256,6 +264,13 @@ export default function LucidSalesPage() {
                       <span className={`badge ${(ESTADOS[p.EstadoPedido] || ESTADOS[0]).class}`}>
                         {(ESTADOS[p.EstadoPedido] || ESTADOS[0]).label}
                       </span>
+                    </td>
+                    <td style={{ fontSize: 12 }}>
+                      {p.asignado ? (
+                        <span style={{ color: 'var(--accent)', fontWeight: 500 }}>{p.asignado.nombre}</span>
+                      ) : (
+                        <span style={{ color: 'var(--text3)' }}>—</span>
+                      )}
                     </td>
                     <td style={{ maxWidth: 150, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                       {p.Referencias || '-'}

@@ -20,7 +20,7 @@ export default function Sidebar() {
   const [passwordLoading, setPasswordLoading] = useState(false);
   const [passwordSuccess, setPasswordSuccess] = useState(false);
 
-  const [openSections, setOpenSections] = useState({ pedidos: false, pizdo: false, admin: false });
+  const [openSections, setOpenSections] = useState({ pedidos: false, pizdo: false, lucidsales: false, admin: false });
 
   useEffect(() => {
     initTheme();
@@ -125,16 +125,21 @@ export default function Sidebar() {
     ] : []),
   ];
 
+  const showLucidsales = usuario?.rol === 'admin' || usuario?.accesoLucidsales === true;
+
   const adminItems = usuario?.rol === 'admin' ? [
     { href: '/dashboard/metricas', label: 'Métricas', icon: '📊' },
-    { href: '/lucidsales', label: 'LucidSales', icon: '💎' },
-    { href: '/lucidsales/productos', label: 'Prod. LucidSales', icon: '📦' },
     { href: '/pizdo', label: 'Productos Ganadores', icon: '🏆' },
     { href: '/tareas', label: 'Tareas', icon: '📋' },
     { href: '/usuarios', label: 'Usuarios', icon: '👥' },
     { href: '/configuracion', label: 'Configuración', icon: '⚙' },
     { href: '/apikey', label: 'API Keys', icon: '🔑' },
     { href: '/sesiones', label: 'Sesiones', icon: '🔐' },
+  ] : [];
+
+  const lucidsalesItems = showLucidsales ? [
+    { href: '/lucidsales', label: 'LucidSales', icon: '💎' },
+    { href: '/lucidsales/productos', label: 'Prod. LucidSales', icon: '📦' },
   ] : [];
 
   const toggleSection = (key) => {
@@ -202,6 +207,25 @@ export default function Sidebar() {
             <span>{item.label}</span>
           </Link>
         ))}
+
+        {lucidsalesItems.length > 0 && (
+          <>
+            <div className="sidebar-label" onClick={() => toggleSection('lucidsales')} style={{ cursor: 'pointer', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <span>LucidSales</span>
+              <span style={{ fontSize: 10 }}>{openSections.lucidsales ? '▲' : '▼'}</span>
+            </div>
+            {openSections.lucidsales && lucidsalesItems.map((item) => (
+              <Link
+                key={item.href}
+                href={item.href}
+                className={`nav-item ${pathname.startsWith(item.href) ? 'active' : ''}`}
+              >
+                <span className="icon">{item.icon}</span>
+                <span>{item.label}</span>
+              </Link>
+            ))}
+          </>
+        )}
 
         {adminItems.length > 0 && (
           <>

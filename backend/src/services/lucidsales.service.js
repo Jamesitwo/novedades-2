@@ -336,66 +336,48 @@ function getDepartamentosLocales() {
   }
 }
 
-async function crearVinculacionDirecta(lucidsalesPedidoId, pedidoData, notas) {
+async function crearVinculacionDirecta(lucidsalesPedidoId, pedidoData, notas, usuarioId, asignadoId) {
+  const data = {
+    lucidsalesIdPedido: pedidoData.idPedido || null,
+    nombreCliente: pedidoData.Nombre || '',
+    apellidoCliente: pedidoData.Apellido || '',
+    movil: pedidoData.Movil || '',
+    total: pedidoData.Total || '0',
+    estadoPedido: pedidoData.EstadoPedido ?? 0,
+    referencias: pedidoData.Referencias || '',
+    jsonProductos: typeof pedidoData.Json === 'string' ? pedidoData.Json : JSON.stringify(pedidoData.Json || []),
+    conversacionLink: pedidoData.botInbox || pedidoData.conversacionLink || pedidoData.ConversacionLink || pedidoData.linkConversacion || null,
+    notas: notas || null,
+    createdById: usuarioId || null,
+    asignadoId: asignadoId || null
+  };
   return prisma.pedidoVinculado.upsert({
     where: { lucidsalesPedidoId: Number(lucidsalesPedidoId) },
-    update: {
-      lucidsalesIdPedido: pedidoData.idPedido || null,
-      nombreCliente: pedidoData.Nombre || '',
-      apellidoCliente: pedidoData.Apellido || '',
-      movil: pedidoData.Movil || '',
-      total: pedidoData.Total || '0',
-      estadoPedido: pedidoData.EstadoPedido ?? 0,
-      referencias: pedidoData.Referencias || '',
-      jsonProductos: typeof pedidoData.Json === 'string' ? pedidoData.Json : JSON.stringify(pedidoData.Json || []),
-      conversacionLink: pedidoData.botInbox || pedidoData.conversacionLink || pedidoData.ConversacionLink || pedidoData.linkConversacion || null,
-      notas: notas || null
-    },
-    create: {
-      lucidsalesPedidoId: Number(lucidsalesPedidoId),
-      lucidsalesIdPedido: pedidoData.idPedido || null,
-      nombreCliente: pedidoData.Nombre || '',
-      apellidoCliente: pedidoData.Apellido || '',
-      movil: pedidoData.Movil || '',
-      total: pedidoData.Total || '0',
-      estadoPedido: pedidoData.EstadoPedido ?? 0,
-      referencias: pedidoData.Referencias || '',
-      jsonProductos: typeof pedidoData.Json === 'string' ? pedidoData.Json : JSON.stringify(pedidoData.Json || []),
-      conversacionLink: pedidoData.botInbox || pedidoData.conversacionLink || pedidoData.ConversacionLink || pedidoData.linkConversacion || null,
-      notas: notas || null
-    }
+    update: data,
+    create: { lucidsalesPedidoId: Number(lucidsalesPedidoId), ...data }
   });
 }
 
-async function crearVinculacion(lucidsalesPedidoId, notas) {
+async function crearVinculacion(lucidsalesPedidoId, notas, usuarioId, asignadoId) {
   const pedido = await getPedidoById(lucidsalesPedidoId);
+  const data = {
+    lucidsalesIdPedido: pedido.idPedido || null,
+    nombreCliente: pedido.Nombre || '',
+    apellidoCliente: pedido.Apellido || '',
+    movil: pedido.Movil || '',
+    total: pedido.Total || '0',
+    estadoPedido: pedido.EstadoPedido ?? 0,
+    referencias: pedido.Referencias || '',
+    jsonProductos: typeof pedido.Json === 'string' ? pedido.Json : JSON.stringify(pedido.Json || []),
+    conversacionLink: pedido.botInbox || pedido.conversacionLink || pedido.ConversacionLink || pedido.linkConversacion || null,
+    notas: notas || null,
+    createdById: usuarioId || null,
+    asignadoId: asignadoId || null
+  };
   return prisma.pedidoVinculado.upsert({
     where: { lucidsalesPedidoId: Number(lucidsalesPedidoId) },
-    update: {
-      lucidsalesIdPedido: pedido.idPedido || null,
-      nombreCliente: pedido.Nombre || '',
-      apellidoCliente: pedido.Apellido || '',
-      movil: pedido.Movil || '',
-      total: pedido.Total || '0',
-      estadoPedido: pedido.EstadoPedido ?? 0,
-      referencias: pedido.Referencias || '',
-      jsonProductos: typeof pedido.Json === 'string' ? pedido.Json : JSON.stringify(pedido.Json || []),
-      conversacionLink: pedido.botInbox || pedido.conversacionLink || pedido.ConversacionLink || pedido.linkConversacion || null,
-      notas: notas || null
-    },
-    create: {
-      lucidsalesPedidoId: Number(lucidsalesPedidoId),
-      lucidsalesIdPedido: pedido.idPedido || null,
-      nombreCliente: pedido.Nombre || '',
-      apellidoCliente: pedido.Apellido || '',
-      movil: pedido.Movil || '',
-      total: pedido.Total || '0',
-      estadoPedido: pedido.EstadoPedido ?? 0,
-      referencias: pedido.Referencias || '',
-      jsonProductos: typeof pedido.Json === 'string' ? pedido.Json : JSON.stringify(pedido.Json || []),
-      conversacionLink: pedido.botInbox || pedido.conversacionLink || pedido.ConversacionLink || pedido.linkConversacion || null,
-      notas: notas || null
-    }
+    update: data,
+    create: { lucidsalesPedidoId: Number(lucidsalesPedidoId), ...data }
   });
 }
 
@@ -430,7 +412,7 @@ async function guardarVinculacionLocal(lucidsalesPedidoId, pedido) {
   });
 }
 
-async function listVinculaciones({ page = 1, itemsPerPage = 50, search = '', estadoFilter } = {}) {
+async function listVinculaciones({ page = 1, itemsPerPage = 50, search = '', estadoFilter, asignadoId } = {}) {
   const where = {};
   if (search) {
     where.OR = [
@@ -443,6 +425,9 @@ async function listVinculaciones({ page = 1, itemsPerPage = 50, search = '', est
   if (estadoFilter !== undefined && estadoFilter !== '' && estadoFilter !== null) {
     where.estadoPedido = Number(estadoFilter);
   }
+  if (asignadoId) {
+    where.asignadoId = asignadoId;
+  }
 
   const [total, pedidos] = await Promise.all([
     prisma.pedidoVinculado.count({ where }),
@@ -450,6 +435,10 @@ async function listVinculaciones({ page = 1, itemsPerPage = 50, search = '', est
       where,
       skip: (page - 1) * itemsPerPage,
       take: itemsPerPage,
+      include: {
+        asignado: { select: { id: true, nombre: true } },
+        createdBy: { select: { id: true, nombre: true } }
+      },
       orderBy: { createdAt: 'desc' }
     })
   ]);
@@ -480,6 +469,8 @@ async function listVinculaciones({ page = 1, itemsPerPage = 50, search = '', est
       Referencias: p.referencias || '',
       conversacionLink: p.conversacionLink || null,
       Json: p.jsonProductos || '[]',
+      asignado: p.asignado || null,
+      creador: p.createdBy || null,
       _etiquetas: tagsPorId[String(p.lucidsalesPedidoId)] || []
     })),
     totalRecords: total,
