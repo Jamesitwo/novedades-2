@@ -317,6 +317,7 @@ export default function LucidSalesProductosPage() {
           <thead>
             <tr>
               <th style={{ width: 50 }}></th>
+              <th style={{ width: 80, textAlign: 'center' }}>Stock</th>
               {sortedColumns.map(col => (
                 <th key={col} style={{ whiteSpace: 'nowrap' }}>{formatLabel(col)}</th>
               ))}
@@ -325,7 +326,7 @@ export default function LucidSalesProductosPage() {
           <tbody>
             {processed.length === 0 ? (
               <tr>
-                <td colSpan={sortedColumns.length + 1} style={{ textAlign: 'center', color: 'var(--text3)', padding: 40 }}>
+                <td colSpan={sortedColumns.length + 2} style={{ textAlign: 'center', color: 'var(--text3)', padding: 40 }}>
                   {search ? 'No se encontraron productos' : 'Sin productos'}
                 </td>
               </tr>
@@ -337,6 +338,9 @@ export default function LucidSalesProductosPage() {
                     <tr key={p.id || i} onClick={() => setSelected(p)} style={{ cursor: 'pointer', ...stockStyle }}>
                       <td style={{ textAlign: 'center', color: 'var(--accent)', fontWeight: 600 }}>
                         ▶
+                      </td>
+                      <td style={{ textAlign: 'center', fontFamily: 'var(--mono)', fontWeight: 600 }}>
+                        {stockVal !== null && stockVal !== undefined ? (stockVal === 0 ? 'AGOTADO' : stockVal) : '-'}
                       </td>
                       {sortedColumns.map(col => (
                         <td key={col} style={{ maxWidth: 200, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
