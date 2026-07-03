@@ -421,7 +421,7 @@ async function listVinculaciones({ page = 1, itemsPerPage = 50, search = '', est
   if (asignadoId) {
     where.asignadoId = asignadoId;
   }
-  if (lucidsalesPedidoIds && lucidsalesPedidoIds.length > 0) {
+  if (lucidsalesPedidoIds) {
     where.lucidsalesPedidoId = { in: lucidsalesPedidoIds };
   }
 

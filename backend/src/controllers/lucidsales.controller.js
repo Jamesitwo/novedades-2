@@ -462,7 +462,8 @@ const listarVinculados = async (req, res) => {
         where: { etiquetaId, tabla: 'pedidos_vinculados' },
         select: { registroId: true }
       });
-      opts.lucidsalesPedidoIds = registrosConEtiqueta.map(r => Number(r.registroId));
+      const ids = registrosConEtiqueta.map(r => Number(r.registroId));
+      opts.lucidsalesPedidoIds = ids.length > 0 ? ids : [-1];
     }
     const result = await lucidsalesService.listVinculaciones(opts);
     res.json(result);
