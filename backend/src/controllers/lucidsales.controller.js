@@ -144,6 +144,33 @@ const getProductos = async (req, res) => {
   }
 };
 
+const productosStock = async (req, res) => {
+  try {
+    const { productIds } = req.body;
+    if (!productIds || !Array.isArray(productIds) || productIds.length === 0) {
+      return res.status(400).json({ error: 'productIds (array) es requerido' });
+    }
+
+    const stockMap = {};
+    await Promise.all(productIds.map(async (productoId) => {
+      try {
+        const result = await lucidsalesService.getProductoIndividual(productoId);
+        const producto = result?.producto || result;
+        if (producto) {
+          const dropiName = producto.nameProductoDropi || producto.NameProductoDropi || '';
+          const match = dropiName.match(/Stock:\s*(\d+)/);
+          stockMap[String(productoId)] = match ? Number(match[1]) : null;
+        }
+      } catch { stockMap[String(productoId)] = null; }
+    }));
+
+    res.json({ ok: true, stock: stockMap });
+  } catch (error) {
+    console.error('LucidSales productosStock error:', error);
+    res.status(500).json({ error: error.message || 'Error al obtener stock' });
+  }
+};
+
 const getFiltersData = async (req, res) => {
   try {
     const result = await lucidsalesService.getFiltersData();
@@ -600,6 +627,7 @@ module.exports = {
   getDepartamentos,
   getCiudades,
   getProductos,
+  productosStock,
   getCiudadesLocales,
   getDepartamentosLocales,
   verificarConexion,

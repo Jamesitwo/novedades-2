@@ -270,6 +270,12 @@ async function getProductos() {
   return apiPost('/productos/getproductos', { idEmpresa: shopId }, token);
 }
 
+async function getProductoIndividual(productoId) {
+  const config = await getConfig();
+  const { token } = await authenticate(config);
+  return apiGet(`/productos/getproducto/${productoId}`, token);
+}
+
 async function getFiltersData() {
   const config = await getConfig();
   const { token, shopId } = await authenticate(config);
@@ -490,6 +496,7 @@ module.exports = {
   verificarConexion,
   clearTokenCache,
   getProductos,
+  getProductoIndividual,
   getCiudadesLocales,
   getDepartamentosLocales,
   crearVinculacion,

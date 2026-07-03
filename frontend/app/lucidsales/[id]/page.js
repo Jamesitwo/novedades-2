@@ -193,21 +193,22 @@ export default function LucidSalesEditPage() {
           const prodList = Array.isArray(prodRes.data) ? prodRes.data : prodRes.data?.productos || prodRes.data?.data || [];
           if (prodList.length > 0) {
             const map = {};
-            const stock = {};
-            if (prodList.length > 0) {
-              console.log('[Edit] Producto fields:', Object.keys(prodList[0]).join(', '));
-              console.log('[Edit] nameProductoDropi:', prodList[0].nameProductoDropi);
-            }
             prodList.forEach(p => {
               const key = p.id ?? p.Id;
               const name = p.nombre || p.name || p.Nombre || p.nombreProducto || '';
-              if (key != null) {
-                map[String(key)] = name;
-                stock[String(key)] = getStockValue(p);
-              }
+              if (key != null) map[String(key)] = name;
             });
             setProductosMap(map);
-            setProductosStock(stock);
+
+            const productIds = [...new Set(parseJson(pedidoData.Json).map(p => String(p.product_id)).filter(Boolean))];
+            if (productIds.length > 0) {
+              try {
+                const stockRes = await api.post('/api/lucidsales/productos-stock', { productIds });
+                if (stockRes.data?.ok && stockRes.data.stock) {
+                  setProductosStock(stockRes.data.stock);
+                }
+              } catch {}
+            }
           }
         } else if (pedidoData && pedidoData.error) {
           setError(pedidoData.error);
