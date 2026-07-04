@@ -106,6 +106,15 @@ export default function LucidSalesPage() {
     return '$' + Number(val).toLocaleString('es-CO', { minimumFractionDigits: 0, maximumFractionDigits: 0 });
   };
 
+  const getProductoLabel = (p) => {
+    try {
+      const items = typeof p.Json === 'string' ? JSON.parse(p.Json) : (p.Json || []);
+      if (items.length === 0) return '—';
+      if (items.length === 1) return `#${items[0].product_id}`;
+      return `${items.length} productos`;
+    } catch { return '—'; }
+  };
+
   const handleSearchSubmit = (e) => {
     e.preventDefault();
     setPage(1);
@@ -292,6 +301,7 @@ export default function LucidSalesPage() {
                   <th>Teléfono</th>
                   <th>Total</th>
                   <th>Estado</th>
+                  <th>Producto</th>
                   <th>Asignado</th>
                   <th>Referencias</th>
                   <th>Etiquetas</th>
@@ -309,6 +319,9 @@ export default function LucidSalesPage() {
                       <span className={`badge ${(ESTADOS[p.EstadoPedido] || ESTADOS[0]).class}`}>
                         {(ESTADOS[p.EstadoPedido] || ESTADOS[0]).label}
                       </span>
+                    </td>
+                    <td style={{ fontSize: 12, maxWidth: 160, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                      {getProductoLabel(p)}
                     </td>
                     <td style={{ fontSize: 12 }}>
                       {p.asignado ? (
