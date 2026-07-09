@@ -799,6 +799,7 @@ export default function LucidsalesDetailPanel({ id, ids, currentIndex, onClose, 
                   <div style={{ ...fieldStyle('Total'), fontWeight: 600, color: 'var(--accent2)', fontSize: 16 }}>
                     {formatMoney(pedido.Total)}
                   </div>
+                  </div>
                 </div>
               </div>
             )}
