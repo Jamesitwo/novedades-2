@@ -856,19 +856,6 @@ export default function LucidsalesDetailPanel({ id, ids, currentIndex, onClose, 
                               <span style={{ color: 'var(--text)', fontSize: 11 }}>x{prod.quantity || 1}</span>
                               {prod.variations?.length > 0 && <span style={{ color: 'var(--text3)', fontSize: 10 }}>({prod.variations.join(', ')})</span>}
                               {stockBadge}
-                              <button
-                                onClick={(e) => handleRefreshStock(prod.product_id, e)}
-                                disabled={refreshingStock[prod.product_id]}
-                                style={{
-                                  background: 'var(--bg2)', border: '1px solid var(--accent)', borderRadius: 4,
-                                  cursor: refreshingStock[prod.product_id] ? 'default' : 'pointer',
-                                  fontSize: 10, padding: '1px 5px', color: 'var(--accent)', fontWeight: 600,
-                                  opacity: refreshingStock[prod.product_id] ? 0.5 : 1
-                                }}
-                                title="Actualizar stock de Dropi"
-                              >
-                                {refreshingStock[prod.product_id] ? '⏳' : '↻ Stock'}
-                              </button>
                             </div>
                           </div>
                           <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexShrink: 0 }}>
@@ -881,6 +868,15 @@ export default function LucidsalesDetailPanel({ id, ids, currentIndex, onClose, 
                                 {formatMoneyShort(prod.price)}
                               </div>
                             )}
+                            <button
+                              onClick={(e) => handleRefreshStock(prod.product_id, e)}
+                              disabled={refreshingStock[prod.product_id]}
+                              className="btn btn-ghost"
+                              style={{ fontSize: 10, padding: '2px 6px' }}
+                              title="Actualizar stock desde Dropi"
+                            >
+                              {refreshingStock[prod.product_id] ? '⏳' : '↻'}
+                            </button>
                           </div>
                         </div>
                       );
