@@ -307,9 +307,8 @@ export default function LucidsalesDetailPanel({ id, ids, currentIndex, onClose, 
       if (data.ok) {
         setUploaded(true);
         setPedido(prev => ({ ...prev, EstadoPedido: 2 }));
-        setCamposModificados(new Set());
         showToast(`Pedido subido y confirmado a ${q.transportadora}`);
-      else showToast(data.msg || data.error || 'Error al subir', 'error');
+      } else showToast(data.msg || data.error || 'Error al subir', 'error');
     } catch (err) {
       showToast(err.response?.data?.error || err.message || 'Error al subir', 'error');
     } finally { setUploading(false); }
