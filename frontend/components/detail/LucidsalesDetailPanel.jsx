@@ -860,14 +860,14 @@ export default function LucidsalesDetailPanel({ id, ids, currentIndex, onClose, 
                                 onClick={(e) => handleRefreshStock(prod.product_id, e)}
                                 disabled={refreshingStock[prod.product_id]}
                                 style={{
-                                  background: 'none', border: '1px solid var(--border)', borderRadius: 3,
+                                  background: 'var(--bg2)', border: '1px solid var(--accent)', borderRadius: 4,
                                   cursor: refreshingStock[prod.product_id] ? 'default' : 'pointer',
-                                  fontSize: 10, padding: '1px 4px', color: 'var(--text3)',
-                                  opacity: refreshingStock[prod.product_id] ? 0.5 : 0.6
+                                  fontSize: 10, padding: '1px 5px', color: 'var(--accent)', fontWeight: 600,
+                                  opacity: refreshingStock[prod.product_id] ? 0.5 : 1
                                 }}
                                 title="Actualizar stock de Dropi"
                               >
-                                {refreshingStock[prod.product_id] ? '⏳' : '↻'}
+                                {refreshingStock[prod.product_id] ? '⏳' : '↻ Stock'}
                               </button>
                             </div>
                           </div>
