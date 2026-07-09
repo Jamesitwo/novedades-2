@@ -12,9 +12,13 @@ const GRAPH_API_BASE = `https://graph.facebook.com/${API_VERSION}`;
 const FETCH_TIMEOUT_MS = 30_000;
 
 function fetchWithTimeout(url, options = {}) {
-  const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), FETCH_TIMEOUT_MS);
-  return fetch(url, { ...options, signal: controller.signal }).finally(() => clearTimeout(timeout));
+  try {
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), FETCH_TIMEOUT_MS);
+    return fetch(url, { ...options, signal: controller.signal }).finally(() => clearTimeout(timeout));
+  } catch {
+    return fetch(url, options);
+  }
 }
 
 async function graphPost(path, body) {

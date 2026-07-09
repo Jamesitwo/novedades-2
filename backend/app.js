@@ -4,7 +4,15 @@ const cors = require('cors');
 const helmet = require('helmet');
 const morgan = require('morgan');
 const rateLimit = require('express-rate-limit');
-const { randomUUID } = require('crypto');
+const crypto = require('crypto');
+
+function generateRequestId() {
+  try {
+    return crypto.randomUUID ? crypto.randomUUID() : require('crypto').randomBytes(16).toString('hex');
+  } catch {
+    return Date.now().toString(36) + Math.random().toString(36).slice(2, 10);
+  }
+}
 
 const authRoutes = require('./src/routes/auth.routes');
 const usuariosRoutes = require('./src/routes/usuarios.routes');
@@ -33,28 +41,17 @@ app.set('trust proxy', 1);
 
 app.use(helmet({
   crossOriginResourcePolicy: { policy: 'cross-origin' },
-  contentSecurityPolicy: {
-    directives: {
-      defaultSrc: ["'self'"],
-      scriptSrc: ["'self'", "'unsafe-inline'", "'unsafe-eval'"],
-      styleSrc: ["'self'", "'unsafe-inline'"],
-      imgSrc: ["'self'", "data:", "https://res.cloudinary.com"],
-      connectSrc: ["'self'", "ws:", "wss:", "https://graph.facebook.com"],
-      fontSrc: ["'self'"],
-      frameAncestors: ["'none'"],
-    },
-  },
+  contentSecurityPolicy: false
 }));
 
 app.use(cors({
   origin: function (origin, callback) {
     if (!origin) return callback(null, true);
     if (FRONTEND_URL && origin === FRONTEND_URL) return callback(null, true);
-    if (!isProduction && ['http://localhost:3000', 'http://127.0.0.1:3000', 'http://[::1]:3000'].includes(origin)) return callback(null, true);
-    if (!isProduction && origin.startsWith('http://localhost:')) return callback(null, true);
+    if (['http://localhost:3000', 'http://127.0.0.1:3000', 'http://[::1]:3000'].includes(origin)) return callback(null, true);
     if (isProduction && !FRONTEND_URL) {
-      console.error('[CORS] FRONTEND_URL no configurado en produccion. Rechazando origen:', origin);
-      return callback(new Error('CORS: FRONTEND_URL no configurado'));
+      console.warn('[CORS] FRONTEND_URL not set in production, allowing all origins');
+      return callback(null, true);
     }
     callback(new Error('Not allowed by CORS'));
   },
@@ -69,7 +66,7 @@ app.use(express.json({
 }));
 
 app.use((req, res, next) => {
-  req.id = req.headers['x-request-id'] || randomUUID();
+  req.id = req.headers['x-request-id'] || generateRequestId();
   res.setHeader('X-Request-Id', req.id);
   const start = Date.now();
   res.on('finish', () => {

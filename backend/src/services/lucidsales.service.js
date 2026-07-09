@@ -9,9 +9,14 @@ let shopIdCache = null;
 let authPromise = null;
 
 function fetchWithTimeout(url, options = {}) {
-  const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), options.timeout || FETCH_TIMEOUT_MS);
-  return fetch(url, { ...options, signal: controller.signal }).finally(() => clearTimeout(timeout));
+  const ms = options.timeout || FETCH_TIMEOUT_MS;
+  try {
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), ms);
+    return fetch(url, { ...options, signal: controller.signal }).finally(() => clearTimeout(timeout));
+  } catch {
+    return fetch(url, options);
+  }
 }
 
 async function getConfig() {
