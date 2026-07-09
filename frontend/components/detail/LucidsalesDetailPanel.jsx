@@ -648,6 +648,20 @@ export default function LucidsalesDetailPanel({ id, ids, currentIndex, onClose, 
                             </div>
                           );
                         })}
+                        {validacion.here?.exito && validacion.here.lat && validacion.here.lng && (
+                          <div style={{ marginTop: 8, borderRadius: 6, overflow: 'hidden', border: '1px solid var(--border)' }}>
+                            <img
+                              src={`https://staticmap.openstreetmap.de/staticmap.php?center=${validacion.here.lat},${validacion.here.lng}&zoom=17&size=400x200&markers=${validacion.here.lat},${validacion.here.lng},red-pushpin`}
+                              alt="Mapa de la direccion"
+                              style={{ width: '100%', display: 'block' }}
+                            />
+                            <a href={`https://www.google.com/maps?q=${validacion.here.lat},${validacion.here.lng}`}
+                              target="_blank" rel="noopener noreferrer"
+                              style={{ display: 'block', textAlign: 'center', padding: '6px 0', fontSize: 10, color: 'var(--accent)', textDecoration: 'none', background: 'var(--bg3)' }}>
+                              📍 Ver en Google Maps ↗
+                            </a>
+                          </div>
+                        )}
                         {validacion.sugerencias?.map((s, i) => {
                           const isHere = s.tipo === 'here_verified';
                           return (
