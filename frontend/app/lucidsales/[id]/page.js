@@ -1,10 +1,9 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import api from '@/lib/api';
-import { useAuthStore } from '@/store/authStore';
 import { TableSkeleton } from '@/components/Skeleton';
 
 const ESTADOS = [
@@ -22,10 +21,10 @@ const CSS_BADGE = {
 };
 
 const GEOFIX_BADGE = {
-  exact: { label: 'Dirección exacta', bg: 'rgba(34,200,122,0.12)', color: '#22c87a', border: 'rgba(34,200,122,0.3)' },
-  houseNumber: { label: 'Número encontrado', bg: 'rgba(34,200,122,0.08)', color: '#22c87a', border: 'rgba(34,200,122,0.2)' },
+  exact: { label: 'Direccion exacta', bg: 'rgba(34,200,122,0.12)', color: '#22c87a', border: 'rgba(34,200,122,0.3)' },
+  houseNumber: { label: 'Numero encontrado', bg: 'rgba(34,200,122,0.08)', color: '#22c87a', border: 'rgba(34,200,122,0.2)' },
   street: { label: 'Calle encontrada', bg: 'rgba(245,158,11,0.1)', color: '#f59e0b', border: 'rgba(245,158,11,0.25)' },
-  intersection: { label: 'Intersección', bg: 'rgba(245,158,11,0.07)', color: '#f59e0b', border: 'rgba(245,158,11,0.15)' },
+  intersection: { label: 'Interseccion', bg: 'rgba(245,158,11,0.07)', color: '#f59e0b', border: 'rgba(245,158,11,0.15)' },
   locality: { label: 'Ciudad/Barrio', bg: 'rgba(139,139,155,0.1)', color: '#8b8b9b', border: 'rgba(139,139,155,0.2)' },
   area: { label: 'Zona aproximada', bg: 'rgba(139,139,155,0.07)', color: '#8b8b9b', border: 'rgba(139,139,155,0.12)' }
 };
@@ -36,6 +35,7 @@ export default function LucidSalesEditPage() {
   const id = params.id;
 
   const [pedido, setPedido] = useState(null);
+  const [originalPedido, setOriginalPedido] = useState(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
@@ -73,6 +73,14 @@ export default function LucidSalesEditPage() {
   const [showSplitModal, setShowSplitModal] = useState(false);
   const [splitResults, setSplitResults] = useState(null);
 
+  const [openSections, setOpenSections] = useState({
+    direccion: true,
+    pedido: true,
+    productos: true,
+    observaciones: false,
+    etiquetas: false
+  });
+
   const direccionRef = useRef(null);
 
   const getOverlayPos = () => {
@@ -81,9 +89,30 @@ export default function LucidSalesEditPage() {
     return { position: 'fixed', top: rect.bottom + 4, left: rect.left, width: rect.width, transform: 'none' };
   };
 
-  const showToast = (message, type = 'success') => {
+  const showToast = useCallback((message, type = 'success') => {
     setToast({ message, type });
     setTimeout(() => setToast(null), 4000);
+  }, []);
+
+  const toggleSection = (key) => {
+    setOpenSections(prev => ({ ...prev, [key]: !prev[key] }));
+  };
+
+  // ---- unsafe changes guard ----
+  useEffect(() => {
+    if (camposModificados.size === 0) return;
+    const handler = (e) => {
+      e.preventDefault();
+      e.returnValue = '';
+    };
+    window.addEventListener('beforeunload', handler);
+    return () => window.removeEventListener('beforeunload', handler);
+  }, [camposModificados.size]);
+
+  // ---- product helpers ----
+  const parseJson = (json) => {
+    try { return typeof json === 'string' ? JSON.parse(json) : json || []; }
+    catch { return []; }
   };
 
   const recalcTotalsFromProducts = (jsonStr) => {
@@ -103,6 +132,7 @@ export default function LucidSalesEditPage() {
     const newJson = JSON.stringify(items);
     const totals = recalcTotalsFromProducts(newJson);
     setPedido(prev => ({ ...prev, Json: newJson, ...totals }));
+    markModified('Json');
   };
 
   const handleProductChange = (index, newProductId) => {
@@ -111,6 +141,7 @@ export default function LucidSalesEditPage() {
     const newJson = JSON.stringify(items);
     const totals = recalcTotalsFromProducts(newJson);
     setPedido(prev => ({ ...prev, Json: newJson, ...totals }));
+    markModified('Json');
   };
 
   const handleQuantityChange = (index, newQty) => {
@@ -119,6 +150,7 @@ export default function LucidSalesEditPage() {
     const newJson = JSON.stringify(items);
     const totals = recalcTotalsFromProducts(newJson);
     setPedido(prev => ({ ...prev, Json: newJson, ...totals }));
+    markModified('Json');
   };
 
   const handleRemoveProduct = (index) => {
@@ -128,6 +160,7 @@ export default function LucidSalesEditPage() {
     const totals = recalcTotalsFromProducts(newJson);
     setPedido(prev => ({ ...prev, Json: newJson, ...totals }));
     setEditProdMode(null);
+    markModified('Json');
   };
 
   const handleAddProduct = () => {
@@ -138,15 +171,21 @@ export default function LucidSalesEditPage() {
     const totals = recalcTotalsFromProducts(newJson);
     setPedido(prev => ({ ...prev, Json: newJson, ...totals }));
     setEditProdMode(items.length - 1);
+    markModified('Json');
+    setOpenSections(prev => ({ ...prev, productos: true }));
   };
 
+  const markModified = (field) => {
+    setCamposModificados(prev => { const next = new Set(prev); next.add(field); return next; });
+  };
+
+  // ---- data loading ----
   const loadCiudades = async (deptoId) => {
     setLoadingGeo(true);
     try {
       const { data } = await api.get(`/api/lucidsales/ciudades-locales?deptoId=${deptoId}`);
       setCiudades(data || []);
     } catch (err) {
-      console.error('[LucidSales] Error loading cities:', err);
       setCiudades([]);
     } finally {
       setLoadingGeo(false);
@@ -167,9 +206,9 @@ export default function LucidSalesEditPage() {
         ]);
 
         const pedidoData = pedidoRes.data;
-
-          if (pedidoData && pedidoData.id) {
+        if (pedidoData && pedidoData.id) {
           setPedido(pedidoData);
+          setOriginalPedido(JSON.parse(JSON.stringify(pedidoData)));
           const yaSubido = pedidoData.idPedidoDropi && String(pedidoData.idPedidoDropi) !== '0' && pedidoData.idPedidoDropi !== 0;
           if (yaSubido) setUploaded(true);
           setEtiquetas(Array.isArray(etiquetasRes.data) ? etiquetasRes.data : []);
@@ -183,7 +222,11 @@ export default function LucidSalesEditPage() {
           try {
             const localRes = await api.post('/api/lucidsales/guardar-local', { lucidsalesPedidoId: Number(id), pedido: pedidoData });
             if (localRes.data?.pedido?.conversacionLink) {
-              setPedido(prev => ({ ...prev, conversacionLink: localRes.data.pedido.conversacionLink }));
+              setPedido(prev => {
+                const updated = { ...prev, conversacionLink: localRes.data.pedido.conversacionLink };
+                setOriginalPedido(prev => prev ? { ...prev, conversacionLink: localRes.data.pedido.conversacionLink } : null);
+                return updated;
+              });
             }
             if (localRes.data?.pedido?.asignadoId) {
               setPedido(prev => ({ ...prev, _asignadoId: localRes.data.pedido.asignadoId }));
@@ -201,18 +244,13 @@ export default function LucidSalesEditPage() {
             setProductosMap(map);
 
             const productIds = [...new Set(parseJson(pedidoData.Json).map(p => String(p.product_id)).filter(Boolean))];
-            console.log('[Stock] productIds del pedido:', productIds);
             if (productIds.length > 0) {
               try {
                 const stockRes = await api.post('/api/lucidsales/productos-stock', { productIds });
                 if (stockRes.data?.ok && stockRes.data.stock) {
                   setProductosStock(stockRes.data.stock);
-                } else {
-                  console.warn('[Stock] Respuesta inesperada:', stockRes.data);
                 }
-              } catch (err) {
-                console.error('[Stock] Error al obtener stock:', err?.response?.data?.error || err.message);
-              }
+              } catch {}
             }
           }
         } else if (pedidoData && pedidoData.error) {
@@ -221,7 +259,6 @@ export default function LucidSalesEditPage() {
           setError('Pedido no encontrado');
         }
       } catch (err) {
-        console.error('[LucidSales] Error:', err);
         setError(err.response?.data?.error || err.message || 'Error al cargar el pedido');
       } finally {
         setLoading(false);
@@ -239,15 +276,16 @@ export default function LucidSalesEditPage() {
     }).catch(() => {});
   }, []);
 
+  // ---- field change handlers ----
   const handleChange = (field, value) => {
     if (field === 'SubTotal' || field === 'Total' || field === 'CostoEnvio') {
       handleMoneyChange(field, value);
     } else {
       setPedido(prev => ({ ...prev, [field]: value }));
     }
-    setCamposModificados(prev => { const next = new Set(prev); next.add(field); return next; });
+    markModified(field);
   };
-  
+
   const handleMoneyChange = (field, value) => {
     const numVal = Number(value);
     if (isNaN(numVal)) return;
@@ -256,7 +294,6 @@ export default function LucidSalesEditPage() {
     const currentCostoEnvio = Number(pedido.CostoEnvio || 0);
 
     let newSubTotal, newCostoEnvio;
-
     if (field === 'Total') {
       newSubTotal = Math.max(0, numVal - currentCostoEnvio);
       newCostoEnvio = currentCostoEnvio;
@@ -276,10 +313,9 @@ export default function LucidSalesEditPage() {
 
     if (currentSubTotal > 0 && newSubTotal !== currentSubTotal && items.length > 0) {
       const ratio = newSubTotal / currentSubTotal;
-      items.forEach(p => {
-        p.price = Math.round(p.price * ratio);
-      });
+      items.forEach(p => { p.price = Math.round(p.price * ratio); });
       update.Json = JSON.stringify(items);
+      markModified('Json');
     }
 
     setPedido(prev => ({ ...prev, ...update }));
@@ -301,13 +337,10 @@ export default function LucidSalesEditPage() {
     setOficinasIR([]);
     try {
       const { data } = await api.post('/api/lucidsales/interrapidisimo/oficinas', { ciudadId: pedido.Ciudad });
-      if (data.ok) {
-        setOficinasIR(data.oficinas || []);
-      } else {
-        setErrorIR(data.error || 'Error al buscar oficinas');
-      }
+      if (data.ok) { setOficinasIR(data.oficinas || []); }
+      else { setErrorIR(data.error || 'Error al buscar oficinas'); }
     } catch (err) {
-      setErrorIR(err.response?.data?.error || err.message || 'Error de conexión');
+      setErrorIR(err.response?.data?.error || err.message || 'Error de conexion');
     } finally {
       setBuscandoIR(false);
     }
@@ -320,7 +353,6 @@ export default function LucidSalesEditPage() {
     try {
       const ciudadNombre = ciudades.find(c => c.id === Number(pedido.Ciudad))?.name || '';
       const deptoNombre = deptos.find(d => d.id === Number(pedido.Departamento))?.name || '';
-
       const { data } = await api.post('/api/lucidsales/pedidos/validar-direccion', {
         direccion: pedido.Direccion || '',
         ciudad: ciudadNombre,
@@ -336,7 +368,7 @@ export default function LucidSalesEditPage() {
 
   const handleAplicarDireccion = (nuevaDireccion) => {
     if (!nuevaDireccion) return;
-    setPedido(prev => ({ ...prev, Direccion: nuevaDireccion }));
+    handleChange('Direccion', nuevaDireccion);
     setShowValidacion(false);
     setValidacion(null);
   };
@@ -360,6 +392,7 @@ export default function LucidSalesEditPage() {
         pedido,
         asignadoId: pedido._asignadoId || undefined
       });
+      setOriginalPedido(JSON.parse(JSON.stringify(pedido)));
       setCamposModificados(new Set());
       showToast('Pedido actualizado correctamente');
     } catch (err) {
@@ -386,17 +419,13 @@ export default function LucidSalesEditPage() {
 
   const handleUpload = async () => {
     if (selectedQuoteIdx == null) return;
-
     const productos = parseJson(pedido.Json);
-    if (productos.length >= 2) {
-      setShowSplitModal(true);
-      return;
-    }
+    if (productos.length >= 2) { setShowSplitModal(true); return; }
 
     if (pedido.TipoPago === 2) {
       const confirmado = window.confirm(
-        '⚠ Este pedido es por TRANSFERENCIA.\n\n' +
-        '¿Ya verificaste que el cliente realizó la transferencia?\n\n' +
+        'Este pedido es por TRANSFERENCIA.\n\n' +
+        'Ya verificaste que el cliente realizo la transferencia?\n\n' +
         'Presiona Aceptar solo si el pago ya fue recibido.'
       );
       if (!confirmado) return;
@@ -405,19 +434,11 @@ export default function LucidSalesEditPage() {
     setUploading(true);
     try {
       const selectedQuote = quotes.quotes[selectedQuoteIdx];
-
       await api.post(`/api/lucidsales/pedidos/${id}`, pedido);
-      await api.post('/api/lucidsales/guardar-local', {
-        lucidsalesPedidoId: Number(id),
-        pedido,
-        asignadoId: pedido._asignadoId || undefined
-      });
+      await api.post('/api/lucidsales/guardar-local', { lucidsalesPedidoId: Number(id), pedido, asignadoId: pedido._asignadoId || undefined });
       setCamposModificados(new Set());
 
-      const { data } = await api.post('/api/lucidsales/pedidos/confirmar-envio', {
-        pedidoId: Number(id),
-        transportadora_id: selectedQuote.transportadora_id
-      });
+      const { data } = await api.post('/api/lucidsales/pedidos/confirmar-envio', { pedidoId: Number(id), transportadora_id: selectedQuote.transportadora_id });
       if (data.ok) {
         setUploaded(true);
         showToast(`Pedido subido a ${selectedQuote.transportadora} correctamente`);
@@ -432,7 +453,7 @@ export default function LucidSalesEditPage() {
   };
 
   const handleDuplicate = async () => {
-    if (!window.confirm('¿Crear una copia de este pedido para volver a subirlo?')) return;
+    if (!window.confirm('Crear una copia de este pedido para volver a subirlo?')) return;
     setUploading(true);
     try {
       const { data } = await api.post(`/api/lucidsales/pedidos/${id}/duplicar`);
@@ -453,22 +474,15 @@ export default function LucidSalesEditPage() {
     setShowSplitModal(false);
     setUploading(true);
     const productos = parseJson(pedido.Json);
-
     setSplitResults({ total: productos.length, exitos: 0, fallos: 0, items: productos.map(p => ({ ...p, status: 'subiendo' })) });
 
     try {
       await api.post(`/api/lucidsales/pedidos/${id}`, pedido);
-      await api.post('/api/lucidsales/guardar-local', {
-        lucidsalesPedidoId: Number(id),
-        pedido,
-        asignadoId: pedido._asignadoId || undefined
-      });
+      await api.post('/api/lucidsales/guardar-local', { lucidsalesPedidoId: Number(id), pedido, asignadoId: pedido._asignadoId || undefined });
       setCamposModificados(new Set());
 
       const selectedQuote = quotes.quotes[selectedQuoteIdx];
-      const { data } = await api.post(`/api/lucidsales/pedidos/${id}/subir-dividido`, {
-        transportadora_id: selectedQuote.transportadora_id
-      });
+      const { data } = await api.post(`/api/lucidsales/pedidos/${id}/subir-dividido`, { transportadora_id: selectedQuote.transportadora_id });
 
       const updated = productos.map((p, i) => {
         const res = data.resultados?.find(r => String(r.producto) === String(p.product_id));
@@ -478,10 +492,7 @@ export default function LucidSalesEditPage() {
       setSplitResults({ total: data.total, exitos: data.exitos, fallos: data.fallos, items: updated });
       if (data.fallos === 0) setUploaded(true);
     } catch (err) {
-      setSplitResults(prev => ({
-        ...prev, error: err.response?.data?.error || err.message,
-        items: prev.items.map(p => ({ ...p, status: 'error' }))
-      }));
+      setSplitResults(prev => ({ ...prev, error: err.response?.data?.error || err.message, items: prev.items.map(p => ({ ...p, status: 'error' })) }));
     } finally {
       setUploading(false);
     }
@@ -489,11 +500,6 @@ export default function LucidSalesEditPage() {
 
   const parseObservaciones = (obs) => {
     try { return typeof obs === 'string' ? JSON.parse(obs) : obs || []; }
-    catch { return []; }
-  };
-
-  const parseJson = (json) => {
-    try { return typeof json === 'string' ? JSON.parse(json) : json || []; }
     catch { return []; }
   };
 
@@ -512,17 +518,31 @@ export default function LucidSalesEditPage() {
 
   const getStockValue = (p) => {
     const raw = p.stock ?? p.Stock ?? p.StockProducto ?? p.inventario ?? p.Inventario ?? p.Cantidad;
-    if (raw !== null && raw !== undefined && raw !== '' && !isNaN(Number(raw))) {
-      return Number(raw);
-    }
+    if (raw !== null && raw !== undefined && raw !== '' && !isNaN(Number(raw))) return Number(raw);
     const dropiName = p.nameProductoDropi || p.NameProductoDropi || '';
     const match = dropiName.match(/Stock:\s*(\d+)/);
     if (match) return Number(match[1]);
     return null;
   };
 
-  if (loading) return <div className="content"><TableSkeleton /></div>;
+  // ---- field helper ----
+  const fieldStyle = (fieldName, extraStyle = {}) => ({
+    background: 'var(--bg3)',
+    border: camposModificados.has(fieldName) ? '2px solid var(--green)' : '1px solid var(--border)',
+    borderRadius: 6,
+    padding: '8px 10px',
+    color: 'var(--text)',
+    fontSize: 13,
+    width: '100%',
+    boxSizing: 'border-box',
+    outline: 'none',
+    fontFamily: 'inherit',
+    transition: 'border-color 0.2s',
+    ...extraStyle
+  });
 
+  // ---- render ----
+  if (loading) return <div className="content"><TableSkeleton /></div>;
   if (error && !pedido) {
     return (
       <div className="content">
@@ -533,7 +553,6 @@ export default function LucidSalesEditPage() {
       </div>
     );
   }
-
   if (!pedido) return null;
 
   const estadoActual = ESTADOS.find(e => e.value === pedido.EstadoPedido) || ESTADOS[0];
@@ -543,19 +562,15 @@ export default function LucidSalesEditPage() {
   const bajoStock = productos.filter(prod => {
     const stock = productosStock[String(prod.product_id)];
     return stock !== undefined && stock !== null && stock <= 20;
-  }).map(prod => ({
-    ...prod,
-    _stock: productosStock[String(prod.product_id)]
-  }));
-  console.log('[Stock] productosStock state:', JSON.stringify(productosStock));
-  console.log('[Stock] bajoStock:', bajoStock.length, bajoStock.map(p => ({ id: p.product_id, stock: p._stock })));
+  }).map(prod => ({ ...prod, _stock: productosStock[String(prod.product_id)] }));
 
   return (
     <div className="content">
+      {/* --- HEADER --- */}
       <div style={{ position: 'sticky', top: 0, zIndex: 50, background: 'var(--bg)', paddingBottom: 16, borderBottom: '1px solid var(--border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <div>
           <Link href="/lucidsales" style={{ color: 'var(--accent)', fontSize: 13, textDecoration: 'none' }}>
-            ‹ Volver a pedidos
+            ← Volver a pedidos
           </Link>
           <h2 style={{ margin: '4px 0 0', fontSize: 20, fontWeight: 700 }}>
             Pedido #{pedido.idPedido}
@@ -566,7 +581,7 @@ export default function LucidSalesEditPage() {
         </div>
         <div style={{ display: 'flex', gap: 8 }}>
           {uploaded && (
-            <button onClick={handleDuplicate} className="btn btn-ghost" style={{ fontSize: 12 }}>
+            <button onClick={handleDuplicate} disabled={uploading} className="btn btn-ghost" style={{ fontSize: 12 }}>
               🔄 Duplicar
             </button>
           )}
@@ -574,27 +589,23 @@ export default function LucidSalesEditPage() {
             onClick={handleSave}
             disabled={saving}
             className="btn btn-primary"
-            style={{ fontSize: 12 }}
+            style={{ fontSize: 12, fontWeight: 600 }}
           >
-            {saving ? 'Guardando...' : `Guardar cambios${camposModificados.size > 0 ? ` (${camposModificados.size})` : ''}`}
+            {saving ? 'Guardando...' : camposModificados.size > 0 ? `💾 Guardar (${camposModificados.size})` : '💾 Guardar'}
           </button>
         </div>
       </div>
 
+      {/* --- STOCK ALERT --- */}
       {bajoStock.length > 0 && (
         <div style={{
           display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap',
           padding: '10px 16px', borderRadius: 8, marginBottom: 16,
-          background: 'rgba(229,62,62,0.08)', border: '1px solid rgba(229,62,62,0.3)',
-          fontSize: 13
+          background: 'rgba(229,62,62,0.08)', border: '1px solid rgba(229,62,62,0.3)', fontSize: 13
         }}>
           <span style={{ fontWeight: 600, whiteSpace: 'nowrap' }}>⚠ Stock bajo:</span>
           {bajoStock.map((p, i) => (
-            <span key={i} style={{
-              fontWeight: 500,
-              color: p._stock === 0 ? '#e53e3e' : '#f59e0b',
-              whiteSpace: 'nowrap'
-            }}>
+            <span key={i} style={{ fontWeight: 500, color: p._stock === 0 ? '#e53e3e' : '#f59e0b', whiteSpace: 'nowrap' }}>
               {productosMap[String(p.product_id)] || `#${p.product_id}`}
               {p._stock === 0 ? ' — AGOTADO' : ` — ${p._stock} unid.`}{i < bajoStock.length - 1 ? ' ·' : ''}
             </span>
@@ -602,12 +613,18 @@ export default function LucidSalesEditPage() {
         </div>
       )}
 
-      <div className="table-card" style={{ padding: '8px 14px', marginBottom: 20, cursor: uploaded ? 'default' : 'pointer', display: 'flex', justifyContent: 'space-between', alignItems: 'center', opacity: uploaded ? 0.7 : 1 }} onClick={() => { if (uploaded) return; if (!quotes) { handleQuote(); } else { setShowCotizador(!showCotizador); } }}>
+      {/* --- COTIZADOR --- */}
+      <div className="table-card" style={{
+        padding: '8px 14px', marginBottom: 20,
+        cursor: uploaded ? 'default' : 'pointer',
+        display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+        opacity: uploaded ? 0.7 : 1
+      }} onClick={() => { if (uploaded) return; if (!quotes) { handleQuote(); } else { setShowCotizador(!showCotizador); } }}>
         <span style={{ fontWeight: 600, fontSize: 13, color: 'var(--text)' }}>
-          {uploaded ? '✓ Pedido subido' : `Cotizar envío con Dropi ${showCotizador ? '▲' : '▼'}`}
+          {uploaded ? '✓ Pedido subido' : `Cotizar envio con Dropi ${showCotizador ? '▲' : '▼'}`}
           {!uploaded && !showCotizador && quotes?.quotes?.length > 0 && (
             <span style={{ fontWeight: 400, color: 'var(--text2)', fontSize: 11, marginLeft: 8 }}>
-              · {quotes.quotes.length} cotización{quotes.quotes.length > 1 ? 'es' : ''}
+              · {quotes.quotes.length} cotizacion{quotes.quotes.length > 1 ? 'es' : ''}
             </span>
           )}
         </span>
@@ -620,13 +637,9 @@ export default function LucidSalesEditPage() {
 
       {!uploaded && showCotizador && quotes && (
         <div className="table-card" style={{ padding: 14, marginBottom: 20, borderTop: 'none', borderTopLeftRadius: 0, borderTopRightRadius: 0 }}>
-
           {quotes?.error && (
-            <div style={{ color: 'var(--red)', fontSize: 13, padding: 12, background: 'var(--bg3)', borderRadius: 8 }}>
-              {quotes.error}
-            </div>
+            <div style={{ color: 'var(--red)', fontSize: 13, padding: 12, background: 'var(--bg3)', borderRadius: 8 }}>{quotes.error}</div>
           )}
-
           {quotes?.quotes && quotes.quotes.length > 0 && (
             <>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginBottom: 16 }}>
@@ -649,14 +662,10 @@ export default function LucidSalesEditPage() {
                         {q.objects && (
                           <div style={{ fontSize: 12, color: 'var(--text2)', marginTop: 2 }}>
                             {q.objects.precioEnvio != null && (
-                              <span style={{ fontWeight: 500, color: 'var(--accent2)', marginRight: 12 }}>
-                                {formatMoney(q.objects.precioEnvio)}
-                              </span>
+                              <span style={{ fontWeight: 500, color: 'var(--accent2)', marginRight: 12 }}>{formatMoney(q.objects.precioEnvio)}</span>
                             )}
                             {q.objects.trayecto && <span style={{ marginRight: 8 }}>{q.objects.trayecto}</span>}
-                            {q.objects.seguroEnvio != null && (
-                              <span>Seguro: {formatMoney(q.objects.seguroEnvio)}</span>
-                            )}
+                            {q.objects.seguroEnvio != null && <span>Seguro: {formatMoney(q.objects.seguroEnvio)}</span>}
                           </div>
                         )}
                         {hasError && <div style={{ fontSize: 11, color: 'var(--red)', marginTop: 2 }}>{q.error}</div>}
@@ -672,13 +681,13 @@ export default function LucidSalesEditPage() {
               )}
             </>
           )}
-
           {quotes && !quotes.error && (!quotes.quotes || quotes.quotes.length === 0) && (
             <div style={{ color: 'var(--text3)', fontSize: 13 }}>No hay cotizaciones disponibles</div>
           )}
         </div>
       )}
 
+      {/* --- TOAST --- */}
       {toast && (
         <div style={{
           position: 'fixed', top: 20, right: 20, zIndex: 9999,
@@ -690,671 +699,551 @@ export default function LucidSalesEditPage() {
         </div>
       )}
 
+      {/* --- MAIN GRID --- */}
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20 }}>
+        {/* --- CLIENT DATA --- */}
         <div className="table-card" style={{ padding: 20 }}>
-          <div style={{ fontWeight: 600, fontSize: 14, marginBottom: 16, color: 'var(--text)' }}>
-            Datos del cliente
+          <div onClick={() => toggleSection('direccion')} style={{ fontWeight: 600, fontSize: 14, marginBottom: 16, color: 'var(--text)', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 8, userSelect: 'none' }}>
+            {openSections.direccion ? '▼' : '▶'} Datos del cliente
           </div>
-          <div className="form-grid">
-            <div className="form-group">
-              <label className="form-field-label">Nombre</label>
-              <input type="text" value={pedido.Nombre || ''} onChange={e => handleChange('Nombre', e.target.value)} style={inputStyle} />
-            </div>
-            <div className="form-group">
-              <label className="form-field-label">Apellido</label>
-              <input type="text" value={pedido.Apellido || ''} onChange={e => handleChange('Apellido', e.target.value)} style={inputStyle} />
-            </div>
-            <div className="form-group">
-              <label className="form-field-label">Teléfono</label>
-              <input type="text" value={pedido.Movil || ''} onChange={e => handleChange('Movil', e.target.value)} style={inputStyle} />
-            </div>
-            <div className="form-group">
-              <label className="form-field-label">Link conversación</label>
-              <div style={{ display: 'flex', gap: 6 }}>
-                <input type="text" value={pedido.conversacionLink || ''} onChange={e => handleChange('conversacionLink', e.target.value)} style={{ ...inputStyle, flex: 1 }} placeholder="https://wa.me/..." />
-                {pedido.conversacionLink && (
-                  <a href={pedido.conversacionLink} target="_blank" rel="noopener noreferrer" className="btn btn-ghost" style={{ fontSize: 12, whiteSpace: 'nowrap', textDecoration: 'none' }}>
-                    💬 Abrir
-                  </a>
+          {openSections.direccion && (
+            <div className="form-grid">
+              <div className="form-group">
+                <label className="form-field-label">Nombre</label>
+                <input type="text" value={pedido.Nombre || ''} onChange={e => handleChange('Nombre', e.target.value)} style={fieldStyle('Nombre')} />
+              </div>
+              <div className="form-group">
+                <label className="form-field-label">Apellido</label>
+                <input type="text" value={pedido.Apellido || ''} onChange={e => handleChange('Apellido', e.target.value)} style={fieldStyle('Apellido')} />
+              </div>
+              <div className="form-group">
+                <label className="form-field-label">Telefono</label>
+                <input type="text" value={pedido.Movil || ''} onChange={e => handleChange('Movil', e.target.value)} style={fieldStyle('Movil')} />
+              </div>
+              <div className="form-group">
+                <label className="form-field-label">Chat / Conversacion</label>
+                <div style={{ display: 'flex', gap: 6 }}>
+                  <input type="text" value={pedido.conversacionLink || ''} onChange={e => handleChange('conversacionLink', e.target.value)}
+                    style={{ ...fieldStyle('conversacionLink'), flex: 1 }} placeholder="https://wa.me/..." />
+                  {pedido.conversacionLink && (
+                    <a href={pedido.conversacionLink} target="_blank" rel="noopener noreferrer" className="btn btn-ghost" style={{ fontSize: 12, whiteSpace: 'nowrap', textDecoration: 'none' }}>
+                      💬 Abrir
+                    </a>
+                  )}
+                </div>
+              </div>
+              <div className="form-group">
+                <label className="form-field-label">Correo</label>
+                <input type="text" value={pedido.Correo || ''} onChange={e => handleChange('Correo', e.target.value)} style={fieldStyle('Correo')} />
+              </div>
+              <div className="form-group">
+                <label className="form-field-label">NIT / Documento</label>
+                <input type="text" value={pedido.NIT || ''} onChange={e => handleChange('NIT', e.target.value)} style={fieldStyle('NIT')} />
+              </div>
+              <div className="form-group">
+                <label className="form-field-label">Referencias</label>
+                <input type="text" value={pedido.Referencias || ''} onChange={e => handleChange('Referencias', e.target.value)} style={fieldStyle('Referencias')} />
+              </div>
+
+              {/* --- DIRECCION --- */}
+              <div className="form-group span2" ref={direccionRef}>
+                <label className="form-field-label">Direccion</label>
+                <div style={{ display: 'flex', gap: 6 }}>
+                  <input
+                    type="text"
+                    value={pedido.Direccion || ''}
+                    onChange={e => {
+                      handleChange('Direccion', e.target.value);
+                      if (validacion) setValidacion(null);
+                    }}
+                    style={{ ...fieldStyle('Direccion'), flex: 1 }}
+                    placeholder="Cra 12 # 45-67, Barrio..."
+                  />
+                  <button
+                    onClick={handleValidarDireccion}
+                    disabled={validando || !pedido.Direccion}
+                    className="btn btn-ghost"
+                    style={{ fontSize: 11, whiteSpace: 'nowrap', padding: '0 12px' }}
+                    title="Validar direccion con Google/HERE Maps"
+                  >
+                    {validando ? '...' : '✓ Validar'}
+                  </button>
+                  <button
+                    onClick={() => { setShowIR(!showIR); if (!showIR && !oficinasIR.length && pedido?.Ciudad) handleBuscarIR(); }}
+                    className="btn btn-ghost"
+                    style={{ fontSize: 11, whiteSpace: 'nowrap', padding: '0 12px' }}
+                    title="Buscar oficina Inter Rapidismo"
+                  >
+                    🏢 IR
+                  </button>
+                </div>
+
+                {/* DIRECCION VALIDATION OVERLAY */}
+                {showValidacion && validacion && (
+                  <>
+                    <div onClick={() => setShowValidacion(false)} style={{ position: 'fixed', inset: 0, zIndex: 99 }} />
+                    <div style={{ ...getOverlayPos(), zIndex: 100, marginTop: 0, padding: 12, borderRadius: 8, background: 'var(--bg2)', border: '1px solid var(--border)', fontSize: 12, boxShadow: '0 12px 40px rgba(0,0,0,0.35)', maxHeight: '65vh', overflowY: 'auto' }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                          <span style={{ fontWeight: 600 }}>Validacion</span>
+                          <span style={{
+                            display: 'inline-flex', alignItems: 'center', gap: 4, fontWeight: 600,
+                            color: validacion.puntuacion >= 80 ? 'var(--green)' : validacion.puntuacion >= 50 ? '#f59e0b' : 'var(--red)'
+                          }}>
+                            {validacion.puntuacion != null ? `${validacion.puntuacion}/100` : '-'}
+                          </span>
+                          {validacion.here && validacion.here.exito && validacion.here.geoLevel && (
+                            <span style={{
+                              display: 'inline-flex', alignItems: 'center', gap: 3,
+                              padding: '2px 8px', borderRadius: 10, fontSize: 10, fontWeight: 600,
+                              background: GEOFIX_BADGE[validacion.here.geoLevel]?.bg || 'var(--bg2)',
+                              color: GEOFIX_BADGE[validacion.here.geoLevel]?.color || 'var(--text3)',
+                              border: `1px solid ${GEOFIX_BADGE[validacion.here.geoLevel]?.border || 'var(--border)'}`
+                            }}>
+                              {validacion.here.houseNumberType === 'PA' ? '📍' : ''}
+                              {GEOFIX_BADGE[validacion.here.geoLevel]?.label || validacion.here.geoLevel}
+                            </span>
+                          )}
+                          {validacion.provider && validacion.provider !== 'none' && (
+                            <span style={{ fontSize: 9, color: 'var(--text3)', background: 'var(--bg2)', padding: '1px 5px', borderRadius: 4, fontWeight: 500 }}>
+                              {validacion.provider === 'google' ? '🌍 Google' : '🗺️ HERE'}
+                            </span>
+                          )}
+                        </div>
+                        <button onClick={() => setShowValidacion(false)} style={{ background: 'none', border: 'none', color: 'var(--text3)', cursor: 'pointer', fontSize: 14 }}>✕</button>
+                      </div>
+                      {validacion.here && validacion.here.exito && validacion.here.ciudad && (
+                        <div style={{ display: 'flex', gap: 12, marginBottom: 6, fontSize: 11, color: 'var(--text2)', flexWrap: 'wrap' }}>
+                          <span>📍 {[validacion.here.ciudad, validacion.here.departamento].filter(Boolean).join(', ')}</span>
+                        </div>
+                      )}
+                      {validacion.viaDetectada && (
+                        <div style={{ display: 'flex', gap: 12, marginBottom: 8, color: 'var(--text2)' }}>
+                          <span>Via: <strong style={{ color: 'var(--text)' }}>{validacion.viaDetectada.nombre}</strong> ({validacion.viaDetectada.abreviacion})</span>
+                        </div>
+                      )}
+                      {validacion.errores && validacion.errores.length > 0 && (
+                        <div style={{ marginBottom: 8 }}>
+                          {validacion.errores.map((e, i) => (
+                            <div key={i} style={{ display: 'flex', alignItems: 'flex-start', gap: 6, padding: '4px 0', color: 'var(--red)', fontSize: 11, lineHeight: 1.5 }}>
+                              <span style={{ flexShrink: 0, marginTop: 1 }}>✕</span>
+                              <div>
+                                <div>{e.mensaje}</div>
+                                {e.sugerencia && (
+                                  <div style={{ color: 'var(--text3)', marginTop: 1 }}>
+                                    {e.sugerencia}
+                                    <button onClick={() => handleAplicarDireccion(e.sugerencia)} className="btn btn-ghost" style={{ fontSize: 10, marginLeft: 6, padding: '1px 8px' }}>Usar</button>
+                                  </div>
+                                )}
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                      {validacion.advertencias && validacion.advertencias.length > 0 && (
+                        <div style={{ marginBottom: 8 }}>
+                          {validacion.advertencias.map((a, i) => {
+                            const isCityConflict = a.codigo === 'CIUDAD_NO_COINCIDE';
+                            return (
+                              <div key={i} style={{
+                                display: 'flex', alignItems: 'flex-start', gap: 6,
+                                padding: isCityConflict ? '6px 10px' : '3px 0',
+                                color: isCityConflict ? '#e53e3e' : '#f59e0b', fontSize: isCityConflict ? 12 : 11,
+                                fontWeight: isCityConflict ? 500 : 400, lineHeight: 1.5,
+                                background: isCityConflict ? 'rgba(229,62,62,0.08)' : 'transparent',
+                                borderRadius: isCityConflict ? 6 : 0, border: isCityConflict ? '1px solid rgba(229,62,62,0.2)' : 'none'
+                              }}>
+                                <span style={{ flexShrink: 0, marginTop: 1 }}>{isCityConflict ? '🔴' : '⚠'}</span>
+                                <div>
+                                  <div>{a.mensaje}</div>
+                                  {a.sugerencia && <div style={{ color: 'var(--text3)', marginTop: 1 }}>{a.sugerencia}</div>}
+                                </div>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      )}
+                      {validacion.sugerencias && validacion.sugerencias.length > 0 && (
+                        <div style={{ marginTop: 8 }}>
+                          <div style={{ fontSize: 10, color: 'var(--text3)', marginBottom: 4, fontWeight: 600 }}>Sugerencias:</div>
+                          {validacion.sugerencias.map((s, i) => {
+                            const isHere = s.tipo === 'here_verified';
+                            return (
+                              <div key={i} style={{
+                                display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+                                padding: '6px 10px', borderRadius: 6, marginBottom: 4,
+                                background: isHere ? 'rgba(34,200,122,0.06)' : 'var(--bg2, rgba(255,255,255,0.03))',
+                                border: isHere ? '1px solid rgba(34,200,122,0.25)' : '1px solid var(--border)'
+                              }}>
+                                <div>
+                                  <div style={{ fontFamily: 'var(--mono)', fontSize: 12, color: 'var(--text)' }}>{s.direccion}</div>
+                                  {isHere && validacion.here?.ciudad && <div style={{ fontSize: 10, color: 'var(--text3)', marginTop: 1 }}>{[validacion.here.ciudad, validacion.here.departamento].filter(Boolean).join(', ')}</div>}
+                                  <div style={{ fontSize: 10, marginTop: isHere ? 3 : 1, color: isHere ? 'var(--green)' : 'var(--text3)', fontWeight: isHere ? 600 : 400 }}>{isHere ? '✓ ' : ''}{s.label}</div>
+                                </div>
+                                <button onClick={() => handleAplicarDireccion(s.direccion)} className={isHere ? 'btn btn-success' : 'btn btn-primary'} style={{ fontSize: 10, padding: '3px 10px', flexShrink: 0 }}>Aplicar</button>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      )}
+                      {validacion.valida && validacion.puntuacion >= 90 && (
+                        <div style={{ color: 'var(--green)', fontSize: 12, fontWeight: 500, marginTop: 4 }}>✓ La direccion tiene un formato correcto</div>
+                      )}
+                    </div>
+                  </>
+                )}
+
+                {/* IR OVERLAY */}
+                {showIR && (
+                  <>
+                    <div onClick={() => { setShowIR(false); setOficinasIR([]); }} style={{ position: 'fixed', inset: 0, zIndex: 99 }} />
+                    <div style={{ ...getOverlayPos(), zIndex: 100, marginTop: 0, padding: 12, borderRadius: 8, background: 'var(--bg2)', border: '1px solid var(--border)', fontSize: 12, boxShadow: '0 12px 40px rgba(0,0,0,0.35)', maxHeight: '65vh', overflowY: 'auto' }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
+                        <span style={{ fontWeight: 600, fontSize: 13 }}>🏢 Inter Rapidismo</span>
+                        <div style={{ display: 'flex', gap: 6 }}>
+                          <button onClick={handleBuscarIR} disabled={!pedido?.Ciudad || buscandoIR} className="btn btn-primary" style={{ fontSize: 11 }}>{buscandoIR ? 'Buscando...' : 'Buscar oficina'}</button>
+                          <button onClick={() => { setShowIR(false); setOficinasIR([]); }} style={{ background: 'none', border: 'none', color: 'var(--text3)', cursor: 'pointer', fontSize: 14 }}>✕</button>
+                        </div>
+                      </div>
+                      {!pedido?.Ciudad && !buscandoIR && <div style={{ color: 'var(--text3)', fontSize: 12 }}>Selecciona un departamento y ciudad en el formulario</div>}
+                      {buscandoIR && <div style={{ color: 'var(--text3)', fontSize: 12 }}>Buscando oficinas...</div>}
+                      {errorIR && <div style={{ color: 'var(--red)', fontSize: 12, marginTop: 4 }}>{errorIR}</div>}
+                      {oficinasIR.length > 0 && (
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                          {oficinasIR.map((ofi, i) => (
+                            <div key={ofi.IdCentroServicio || i} style={{ padding: '8px 12px', background: 'var(--bg3)', borderRadius: 6, border: '1px solid var(--border)', fontSize: 12, display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 10 }}>
+                              <div>
+                                <div style={{ fontWeight: 600, marginBottom: 2 }}>{ofi.Nombre || 'Oficina'}</div>
+                                <div style={{ color: 'var(--text2)', fontSize: 11, lineHeight: 1.4 }}>
+                                  {ofi.Direccion && <div>{ofi.Direccion}</div>}
+                                  {ofi.Telefono1 && <div>{ofi.Telefono1}</div>}
+                                  {ofi.Barrio && <div>{ofi.Barrio}</div>}
+                                </div>
+                              </div>
+                              <button onClick={() => handleSeleccionarOficinaIR(ofi)} className="btn btn-primary" style={{ fontSize: 11, whiteSpace: 'nowrap', flexShrink: 0 }}>Usar oficina</button>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  </>
                 )}
               </div>
-            </div>
-            <div className="form-group">
-              <label className="form-field-label">Correo</label>
-              <input type="text" value={pedido.Correo || ''} onChange={e => handleChange('Correo', e.target.value)} style={inputStyle} />
-            </div>
-            <div className="form-group">
-              <label className="form-field-label">NIT / Documento</label>
-              <input type="text" value={pedido.NIT || ''} onChange={e => handleChange('NIT', e.target.value)} style={inputStyle} />
-            </div>
-            <div className="form-group">
-              <label className="form-field-label">Referencias</label>
-              <input type="text" value={pedido.Referencias || ''} onChange={e => handleChange('Referencias', e.target.value)} style={inputStyle} />
-            </div>
-            <div className="form-group span2" ref={direccionRef}>
-              <label className="form-field-label">Dirección</label>
-              <div style={{ display: 'flex', gap: 6 }}>
-                <input
-                  type="text"
-                  value={pedido.Direccion || ''}
-                  onChange={e => {
-                    handleChange('Direccion', e.target.value);
-                    if (validacion) setValidacion(null);
-                  }}
-                  style={{ ...inputStyle, flex: 1 }}
-                  placeholder="Cra 12 # 45-67, Barrio..."
-                />
-                <button
-                  onClick={handleValidarDireccion}
-                  disabled={validando || !pedido.Direccion}
-                  className="btn btn-ghost"
-                  style={{ fontSize: 11, whiteSpace: 'nowrap', padding: '0 12px' }}
-                  title="Validar dirección"
-                >
-                  {validando ? '✓✓' : '✓ Validar'}
-                </button>
-                <button
-                  onClick={() => { setShowIR(!showIR); if (!showIR && !oficinasIR.length && pedido?.Ciudad) handleBuscarIR(); }}
-                  className="btn btn-ghost"
-                  style={{ fontSize: 11, whiteSpace: 'nowrap', padding: '0 12px' }}
-                  title="Buscar oficina Inter Rapidísimo"
-                >
-                  🏢 IR
-                </button>
+
+              <div className="form-group">
+                <label className="form-field-label">Departamento</label>
+                <select value={pedido.Departamento ?? ''} onChange={e => handleDepartamentoChange(e.target.value)}
+                  style={{ ...fieldStyle('Departamento'), appearance: 'auto', cursor: 'pointer' }}>
+                  <option value="">Seleccionar...</option>
+                  {deptos.map(d => (<option key={d.id} value={d.id}>{d.name}</option>))}
+                </select>
               </div>
-              {showValidacion && validacion && (
-                <>
-                  <div onClick={() => setShowValidacion(false)} style={{
-                    position: 'fixed', inset: 0, zIndex: 99
-                  }} />
-                  <div style={{
-                    ...getOverlayPos(), zIndex: 100,
-                    marginTop: 0, padding: 12, borderRadius: 8,
-                    background: 'var(--bg2)', border: '1px solid var(--border)',
-                    fontSize: 12, boxShadow: '0 12px 40px rgba(0,0,0,0.35)',
-                    maxHeight: '65vh', overflowY: 'auto'
-                  }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                      <span style={{ fontWeight: 600 }}>Resultado</span>
-                      <span style={{
-                        display: 'inline-flex', alignItems: 'center', gap: 4,
-                        fontWeight: 600,
-                        color: validacion.puntuacion >= 80 ? 'var(--green)' :
-                               validacion.puntuacion >= 50 ? 'var(--yellow, #f59e0b)' : 'var(--red)'
-                      }}>
-                        {validacion.puntuacion != null ? `${validacion.puntuacion}/100` : '-'}
-                      </span>
-                      {validacion.here && validacion.here.exito && validacion.here.geoLevel && (
-                        <span style={{
-                          display: 'inline-flex', alignItems: 'center', gap: 3,
-                          padding: '2px 8px', borderRadius: 10, fontSize: 10, fontWeight: 600,
-                          background: GEOFIX_BADGE[validacion.here.geoLevel]?.bg || 'var(--bg2)',
-                          color: GEOFIX_BADGE[validacion.here.geoLevel]?.color || 'var(--text3)',
-                          border: `1px solid ${GEOFIX_BADGE[validacion.here.geoLevel]?.border || 'var(--border)'}`
-                        }}>
-                          {validacion.here.houseNumberType === 'PA' ? '📍' : ''}
-                          {GEOFIX_BADGE[validacion.here.geoLevel]?.label || validacion.here.geoLevel}
-                        </span>
-                      )}
-                      {validacion.provider && validacion.provider !== 'none' && (
-                        <span style={{
-                          fontSize: 9, color: 'var(--text3)', background: 'var(--bg2)',
-                          padding: '1px 5px', borderRadius: 4, fontWeight: 500
-                        }}>
-                          {validacion.provider === 'google' ? '🌍 Google' : '🗺️ HERE'}
-                        </span>
-                      )}
+              <div className="form-group">
+                <label className="form-field-label">Ciudad</label>
+                <select value={pedido.Ciudad ?? ''} onChange={e => handleChange('Ciudad', Number(e.target.value))}
+                  style={{ ...fieldStyle('Ciudad'), appearance: 'auto', cursor: 'pointer' }}
+                  disabled={!pedido.Departamento}>
+                  <option value="">{loadingGeo ? 'Cargando...' : 'Seleccionar...'}</option>
+                  {ciudades.map(c => (<option key={c.id} value={c.id}>{c.name}</option>))}
+                </select>
+              </div>
+              <div className="form-group span2">
+                <label className="form-field-label">Notas</label>
+                <textarea value={pedido.notas || ''} onChange={e => handleChange('notas', e.target.value)} rows={2}
+                  style={{ ...fieldStyle('notas'), resize: 'vertical', fontFamily: 'inherit' }} />
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* --- ORDER DATA COLUMN --- */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+          {/* Order Details */}
+          <div className="table-card" style={{ padding: 20 }}>
+            <div onClick={() => toggleSection('pedido')} style={{ fontWeight: 600, fontSize: 14, marginBottom: 12, color: 'var(--text)', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 8, userSelect: 'none' }}>
+              {openSections.pedido ? '▼' : '▶'} Datos del pedido
+            </div>
+            {openSections.pedido && (
+              <div className="form-grid">
+                <div className="form-group">
+                  <label className="form-field-label">Estado</label>
+                  <select value={pedido.EstadoPedido ?? 0} onChange={e => handleChange('EstadoPedido', Number(e.target.value))}
+                    style={{ ...fieldStyle('EstadoPedido'), appearance: 'auto', cursor: 'pointer' }}>
+                    {ESTADOS.map(e => (<option key={e.value} value={e.value}>{e.label}</option>))}
+                  </select>
+                </div>
+                <div className="form-group">
+                  <label className="form-field-label">Asignado a</label>
+                  <select value={pedido._asignadoId || ''} onChange={e => handleChange('_asignadoId', e.target.value)}
+                    style={{ ...fieldStyle('_asignadoId'), appearance: 'auto', cursor: 'pointer' }}>
+                    <option value="">Sin asignar</option>
+                    {operadores.map(op => (<option key={op.id} value={op.id}>{op.nombre}</option>))}
+                  </select>
+                </div>
+
+                {pedido.TipoPago === 2 && (
+                  <div className="form-group span2" style={{ gridColumn: '1 / -1' }}>
+                    <div style={{ padding: '8px 12px', borderRadius: 6, fontSize: 12, background: 'rgba(229,62,62,0.08)', border: '1px solid rgba(229,62,62,0.3)', color: '#e53e3e', fontWeight: 500 }}>
+                      ⚠ Transferencia: verifica que el cliente haya pagado antes de subir el envio.
                     </div>
-                    <button onClick={() => setShowValidacion(false)}
-                      style={{ background: 'none', border: 'none', color: 'var(--text3)', cursor: 'pointer', fontSize: 14 }}>
-                      ✕
-                    </button>
                   </div>
+                )}
 
-                  {validacion.here && validacion.here.exito && validacion.here.ciudad && (
-                    <div style={{ display: 'flex', gap: 12, marginBottom: 6, fontSize: 11, color: 'var(--text2)', flexWrap: 'wrap' }}>
-                      <span>
-                        📍 {[validacion.here.ciudad, validacion.here.departamento].filter(Boolean).join(', ')}
-                      </span>
-                    </div>
-                  )}
+                <div className="form-group">
+                  <label className="form-field-label">Tipo de pago</label>
+                  <select value={pedido.TipoPago ?? 1} onChange={e => handleChange('TipoPago', Number(e.target.value))}
+                    style={{ ...fieldStyle('TipoPago'), appearance: 'auto', cursor: 'pointer',
+                      borderColor: pedido.TipoPago === 2 ? 'var(--red)' : undefined }}>
+                    <option value={1}>Contra entrega</option>
+                    <option value={2}>Transferencia</option>
+                  </select>
+                </div>
+                <div className="form-group">
+                  <label className="form-field-label">Estado pago</label>
+                  <select value={pedido.EstadoPago ?? 0} onChange={e => handleChange('EstadoPago', Number(e.target.value))}
+                    style={{ ...fieldStyle('EstadoPago'), appearance: 'auto', cursor: 'pointer',
+                      borderColor: pedido.TipoPago === 2 && pedido.EstadoPago === 0 ? 'var(--red)' : undefined }}>
+                    <option value={0}>Pendiente</option>
+                    <option value={1}>Pagado</option>
+                  </select>
+                </div>
+                <div className="form-group">
+                  <label className="form-field-label">Logistica</label>
+                  <input type="text" value={pedido.logistic || ''} onChange={e => handleChange('logistic', e.target.value)} style={fieldStyle('logistic')} />
+                </div>
+                <div className="form-group">
+                  <label className="form-field-label">Subtotal</label>
+                  <input type="text" value={pedido.SubTotal || '0.00'} onChange={e => handleChange('SubTotal', e.target.value)} style={fieldStyle('SubTotal')} />
+                </div>
+                <div className="form-group">
+                  <label className="form-field-label">Costo envio</label>
+                  <input type="text" value={pedido.CostoEnvio || '0.00'} onChange={e => handleChange('CostoEnvio', e.target.value)} style={fieldStyle('CostoEnvio')} />
+                </div>
+                <div className="form-group span2">
+                  <label className="form-field-label">Total</label>
+                  <input type="text" value={pedido.Total || '0.00'} onChange={e => handleChange('Total', e.target.value)}
+                    style={{ ...fieldStyle('Total'), fontWeight: 600, color: 'var(--accent2)', fontSize: 18 }} />
+                </div>
+              </div>
+            )}
+          </div>
 
-                  {validacion.viaDetectada && (
-                    <div style={{ display: 'flex', gap: 12, marginBottom: 8, color: 'var(--text2)' }}>
-                      <span>Vía: <strong style={{ color: 'var(--text)' }}>{validacion.viaDetectada.nombre}</strong> ({validacion.viaDetectada.abreviacion})</span>
-                    </div>
-                  )}
-
-                  {validacion.errores && validacion.errores.length > 0 && (
-                    <div style={{ marginBottom: 8 }}>
-                      {validacion.errores.map((e, i) => (
-                        <div key={i} style={{
-                          display: 'flex', alignItems: 'flex-start', gap: 6,
-                          padding: '4px 0', color: 'var(--red)', fontSize: 11, lineHeight: 1.5
+          {/* Products */}
+          <div className="table-card" style={{ padding: 20 }}>
+            <div onClick={() => toggleSection('productos')} style={{ fontWeight: 600, fontSize: 14, marginBottom: 12, color: 'var(--text)', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 8, userSelect: 'none' }}>
+              {openSections.productos ? '▼' : '▶'} Productos ({productos.length})
+            </div>
+            {openSections.productos && (
+              <>
+                {productos.length === 0 ? (
+                  <div style={{ color: 'var(--text3)', fontSize: 13 }}>Sin productos</div>
+                ) : (
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                    {productos.map((prod, i) => {
+                      const stock = productosStock[String(prod.product_id)];
+                      const stockBadge = stock !== undefined && stock !== null ? (
+                        <span style={{
+                          fontSize: 10, padding: '1px 6px', borderRadius: 10, fontWeight: 600,
+                          background: stock === 0 ? 'rgba(229,62,62,0.15)' : stock <= 20 ? 'rgba(245,158,11,0.15)' : 'rgba(34,200,122,0.1)',
+                          color: stock === 0 ? '#e53e3e' : stock <= 20 ? '#f59e0b' : '#22c87a',
+                          border: `1px solid ${stock === 0 ? 'rgba(229,62,62,0.3)' : stock <= 20 ? 'rgba(245,158,11,0.3)' : 'rgba(34,200,122,0.2)'}`
                         }}>
-                          <span style={{ flexShrink: 0, marginTop: 1 }}>✕</span>
-                          <div>
-                            <div>{e.mensaje}</div>
-                            {e.sugerencia && (
-                              <div style={{ color: 'var(--text3)', marginTop: 1 }}>
-                                {e.sugerencia}
-                                <button
-                                  onClick={() => handleAplicarDireccion(e.sugerencia)}
-                                  className="btn btn-ghost"
-                                  style={{ fontSize: 10, marginLeft: 6, padding: '1px 8px' }}
-                                >
-                                  Usar
-                                </button>
+                          {stock === 0 ? 'AGOTADO' : `Stock: ${stock}`}
+                        </span>
+                      ) : null;
+
+                      return editProdMode === i ? (
+                        <div key={i} style={{ padding: '8px 12px', background: 'var(--bg3)', borderRadius: 6 }}>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 6 }}>
+                            <select value={prod.product_id || ''} onChange={e => handleProductChange(i, e.target.value)}
+                              style={{ ...fieldStyle(`prod-${i}`), flex: 1, fontSize: 12, appearance: 'auto', cursor: 'pointer' }}>
+                              <option value="">Seleccionar producto</option>
+                              {Object.entries(productosMap).map(([id, name]) => (
+                                <option key={id} value={id}>{name || `#${id}`}</option>
+                              ))}
+                            </select>
+                          </div>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                            <span style={{ fontSize: 11, color: 'var(--text3)' }}>Cant:</span>
+                            <input type="number" min="1" value={prod.quantity || 1}
+                              onChange={e => handleQuantityChange(i, e.target.value)}
+                              style={{ width: 60, ...fieldStyle(`qty-${i}`), fontSize: 12, textAlign: 'center' }} />
+                            <span style={{ fontSize: 11, color: 'var(--text3)' }}>Precio:</span>
+                            <input type="number" value={prod.price}
+                              onChange={e => handleProductPriceChange(i, e.target.value)}
+                              style={{ width: 100, ...fieldStyle(`price-${i}`), fontSize: 12, textAlign: 'right', fontFamily: 'var(--mono)' }} />
+                            <button onClick={() => setEditProdMode(null)} className="btn btn-primary" style={{ fontSize: 11, padding: '3px 8px', flexShrink: 0 }}>✓ Listo</button>
+                            <button onClick={() => handleRemoveProduct(i)} className="btn btn-ghost" style={{ fontSize: 10, padding: '3px 6px', color: 'var(--red)', flexShrink: 0 }}>✕</button>
+                          </div>
+                        </div>
+                      ) : (
+                        <div key={i} style={{
+                          padding: '8px 12px', background: 'var(--bg3)', borderRadius: 6,
+                          display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+                          cursor: 'pointer', border: '1px solid var(--border)',
+                          transition: 'border-color 0.2s'
+                        }} onClick={() => setEditProdMode(i)}>
+                          <div style={{ flex: 1, minWidth: 0 }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+                              <span style={{ color: 'var(--accent)', fontWeight: 500, fontSize: 13 }}>
+                                {productosMap[String(prod.product_id)] || `Producto #${prod.product_id}`}
+                              </span>
+                              <span style={{ color: 'var(--text)', fontSize: 12 }}>x{prod.quantity || 1}</span>
+                              {prod.variations && prod.variations.length > 0 && (
+                                <span style={{ color: 'var(--text3)', fontSize: 11 }}>({prod.variations.join(', ')})</span>
+                              )}
+                              {stockBadge}
+                            </div>
+                          </div>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexShrink: 0 }}>
+                            {editProdPrice === i ? (
+                              <input type="number" autoFocus value={prod.price}
+                                onChange={e => handleProductPriceChange(i, e.target.value)}
+                                onClick={e => e.stopPropagation()}
+                                onBlur={() => setEditProdPrice(null)}
+                                onKeyDown={e => e.key === 'Enter' && setEditProdPrice(null)}
+                                style={{ width: 110, ...fieldStyle(`inline-price-${i}`), textAlign: 'right', fontFamily: 'var(--mono)', fontSize: 12 }} />
+                            ) : (
+                              <div onClick={e => { e.stopPropagation(); setEditProdPrice(i); }}
+                                style={{ color: 'var(--accent2)', fontFamily: 'var(--mono)', fontWeight: 500, padding: '2px 6px', borderRadius: 4, cursor: 'pointer' }}
+                                title="Click para editar precio">
+                                {formatMoneyShort(prod.price)}
                               </div>
                             )}
                           </div>
                         </div>
-                      ))}
-                    </div>
-                  )}
-
-                  {validacion.advertencias && validacion.advertencias.length > 0 && (
-                    <div style={{ marginBottom: 8 }}>
-                      {validacion.advertencias.map((a, i) => {
-                        const isCityConflict = a.codigo === 'CIUDAD_NO_COINCIDE';
-                        return (
-                          <div key={i} style={{
-                            display: 'flex', alignItems: 'flex-start', gap: 6,
-                            padding: isCityConflict ? '6px 10px' : '3px 0',
-                            color: isCityConflict ? '#e53e3e' : '#f59e0b',
-                            fontSize: isCityConflict ? 12 : 11,
-                            fontWeight: isCityConflict ? 500 : 400,
-                            lineHeight: 1.5,
-                            background: isCityConflict ? 'rgba(229,62,62,0.08)' : 'transparent',
-                            borderRadius: isCityConflict ? 6 : 0,
-                            border: isCityConflict ? '1px solid rgba(229,62,62,0.2)' : 'none',
-                          }}>
-                            <span style={{ flexShrink: 0, marginTop: 1 }}>
-                              {isCityConflict ? '🔴' : '⚠'}
-                            </span>
-                            <div>
-                              <div>{a.mensaje}</div>
-                              {a.sugerencia && (
-                                <div style={{ color: 'var(--text3)', marginTop: 1 }}>
-                                  {a.sugerencia}
-                                </div>
-                              )}
-                            </div>
-                          </div>
-                        );
-                      })}
-                    </div>
-                  )}
-
-                  {validacion.sugerencias && validacion.sugerencias.length > 0 && (
-                    <div style={{ marginTop: 8 }}>
-                      <div style={{ fontSize: 10, color: 'var(--text3)', marginBottom: 4, fontWeight: 600 }}>
-                        Sugerencias:
-                      </div>
-                      {validacion.sugerencias.map((s, i) => {
-                        const isHere = s.tipo === 'here_verified';
-                        return (
-                          <div key={i} style={{
-                            display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-                            padding: '6px 10px', borderRadius: 6, marginBottom: 4,
-                            background: isHere ? 'rgba(34,200,122,0.06)' : 'var(--bg2, rgba(255,255,255,0.03))',
-                            border: isHere ? '1px solid rgba(34,200,122,0.25)' : '1px solid var(--border)'
-                          }}>
-                            <div>
-                              <div style={{ fontFamily: 'var(--mono)', fontSize: 12, color: 'var(--text)' }}>
-                                {s.direccion}
-                              </div>
-                              {isHere && validacion.here?.ciudad && (
-                                <div style={{ fontSize: 10, color: 'var(--text3)', marginTop: 1 }}>
-                                  {[validacion.here.ciudad, validacion.here.departamento].filter(Boolean).join(', ')}
-                                </div>
-                              )}
-                              <div style={{
-                                fontSize: 10, marginTop: isHere ? 3 : 1,
-                                color: isHere ? 'var(--green)' : 'var(--text3)',
-                                fontWeight: isHere ? 600 : 400
-                              }}>
-                                {isHere ? '✓ ' : ''}{s.label}
-                              </div>
-                            </div>
-                            <button
-                              onClick={() => handleAplicarDireccion(s.direccion)}
-                              className={isHere ? 'btn btn-success' : 'btn btn-primary'}
-                              style={{ fontSize: 10, padding: '3px 10px', flexShrink: 0 }}
-                            >
-                              Aplicar
-                            </button>
-                          </div>
-                        );
-                      })}
-                    </div>
-                  )}
-
-                  {validacion.valida && validacion.puntuacion >= 90 && (
-                    <div style={{ color: 'var(--green)', fontSize: 12, fontWeight: 500, marginTop: 4 }}>
-                      ✓ La dirección tiene un formato correcto
-                    </div>
-                  )}
+                      );
+                    })}
                   </div>
-                </>
-              )}
-
-              {showIR && (
-                <>
-                  <div onClick={() => { setShowIR(false); setOficinasIR([]); }} style={{
-                    position: 'fixed', inset: 0, zIndex: 99
-                  }} />
-                  <div style={{
-                    ...getOverlayPos(), zIndex: 100,
-                    marginTop: 0, padding: 12, borderRadius: 8,
-                    background: 'var(--bg2)', border: '1px solid var(--border)',
-                    fontSize: 12, boxShadow: '0 12px 40px rgba(0,0,0,0.35)',
-                    maxHeight: '65vh', overflowY: 'auto'
-                  }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
-                      <span style={{ fontWeight: 600, fontSize: 13 }}>🏢 Inter Rapidísimo</span>
-                      <div style={{ display: 'flex', gap: 6 }}>
-                        <button onClick={handleBuscarIR} disabled={!pedido?.Ciudad || buscandoIR} className="btn btn-primary" style={{ fontSize: 11 }}>
-                          {buscandoIR ? 'Buscando...' : 'Buscar oficina'}
-                        </button>
-                        <button onClick={() => { setShowIR(false); setOficinasIR([]); }}
-                          style={{ background: 'none', border: 'none', color: 'var(--text3)', cursor: 'pointer', fontSize: 14 }}>
-                          ✕
-                        </button>
-                      </div>
-                    </div>
-                    {!pedido?.Ciudad && !buscandoIR && (
-                      <div style={{ color: 'var(--text3)', fontSize: 12 }}>Selecciona un departamento y ciudad en el formulario</div>
-                    )}
-                    {buscandoIR && <div style={{ color: 'var(--text3)', fontSize: 12 }}>Buscando oficinas...</div>}
-                    {errorIR && <div style={{ color: 'var(--red)', fontSize: 12, marginTop: 4 }}>{errorIR}</div>}
-                    {oficinasIR.length > 0 && (
-                      <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-                        {oficinasIR.map((ofi, i) => (
-                          <div key={ofi.IdCentroServicio || i} style={{
-                            padding: '8px 12px', background: 'var(--bg3)', borderRadius: 6,
-                            border: '1px solid var(--border)', fontSize: 12, display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 10
-                          }}>
-                            <div>
-                              <div style={{ fontWeight: 600, marginBottom: 2 }}>{ofi.Nombre || 'Oficina'}</div>
-                              <div style={{ color: 'var(--text2)', fontSize: 11, lineHeight: 1.4 }}>
-                                {ofi.Direccion && <div>{ofi.Direccion}</div>}
-                                {ofi.Telefono1 && <div>{ofi.Telefono1}</div>}
-                                {ofi.Barrio && <div>{ofi.Barrio}</div>}
-                              </div>
-                            </div>
-                            <button onClick={() => handleSeleccionarOficinaIR(ofi)} className="btn btn-primary" style={{ fontSize: 11, whiteSpace: 'nowrap', flexShrink: 0 }}>
-                              Usar oficina
-                            </button>
-                          </div>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-                </>
-              )}
-            </div>
-            <div className="form-group">
-              <label className="form-field-label">Departamento</label>
-              <select value={pedido.Departamento ?? ''} onChange={e => handleDepartamentoChange(e.target.value)} style={{ ...inputStyle, appearance: 'auto', cursor: 'pointer' }}>
-                <option value="">Seleccionar...</option>
-                {deptos.map(d => (
-                  <option key={d.id} value={d.id}>{d.name}</option>
-                ))}
-              </select>
-            </div>
-            <div className="form-group">
-              <label className="form-field-label">Ciudad</label>
-              <select value={pedido.Ciudad ?? ''} onChange={e => handleChange('Ciudad', Number(e.target.value))} style={{ ...inputStyle, appearance: 'auto', cursor: 'pointer' }} disabled={!pedido.Departamento}>
-                <option value="">Seleccionar...</option>
-                {ciudades.map(c => (
-                  <option key={c.id} value={c.id}>{c.name}</option>
-                ))}
-              </select>
-            </div>
-            <div className="form-group span2">
-              <label className="form-field-label">Notas</label>
-              <textarea value={pedido.notas || ''} onChange={e => handleChange('notas', e.target.value)} rows={2} style={{ ...inputStyle, resize: 'vertical', fontFamily: 'inherit' }} />
-            </div>
-          </div>
-        </div>
-
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
-          <div className="table-card" style={{ padding: 20 }}>
-            <div style={{ fontWeight: 600, fontSize: 14, marginBottom: 12, color: 'var(--text)' }}>
-              Datos del pedido
-            </div>
-              <div className="form-grid">
-              <div className="form-group">
-                <label className="form-field-label">Estado</label>
-                <select value={pedido.EstadoPedido ?? 0} onChange={e => handleChange('EstadoPedido', Number(e.target.value))} style={{ ...inputStyle, appearance: 'auto', cursor: 'pointer' }}>
-                  {ESTADOS.map(e => (
-                    <option key={e.value} value={e.value}>{e.label}</option>
-                  ))}
-                </select>
-              </div>
-              <div className="form-group">
-                <label className="form-field-label">Asignado</label>
-                <select value={pedido._asignadoId || ''} onChange={e => handleChange('_asignadoId', e.target.value)} style={{ ...inputStyle, appearance: 'auto', cursor: 'pointer' }}>
-                  <option value="">Sin asignar</option>
-                  {operadores.map(op => (
-                    <option key={op.id} value={op.id}>{op.nombre}</option>
-                  ))}
-                </select>
-              </div>
-              <div className="form-group" style={pedido.TipoPago === 2 ? {
-                padding: 8, borderRadius: 6,
-                background: 'rgba(229,62,62,0.08)',
-                border: '1px solid rgba(229,62,62,0.35)'
-              } : {}}>
-                <label className="form-field-label" style={pedido.TipoPago === 2 ? { color: '#e53e3e', fontWeight: 600 } : {}}>
-                  ⚠ Tipo de pago
-                </label>
-                <select value={pedido.TipoPago ?? 1} onChange={e => handleChange('TipoPago', Number(e.target.value))} style={{ ...inputStyle, appearance: 'auto', cursor: 'pointer', borderColor: pedido.TipoPago === 2 ? 'rgba(229,62,62,0.5)' : undefined }}>
-                  <option value={1}>Contra entrega</option>
-                  <option value={2}>Transferencia</option>
-                </select>
-              </div>
-              <div className="form-group" style={pedido.TipoPago === 2 ? {
-                padding: 8, borderRadius: 6,
-                background: 'rgba(229,62,62,0.08)',
-                border: '1px solid rgba(229,62,62,0.35)'
-              } : {}}>
-                <label className="form-field-label" style={pedido.TipoPago === 2 ? { color: '#e53e3e', fontWeight: 600 } : {}}>
-                  {pedido.EstadoPago === 0 ? '⚠ Validar pago' : '✓ Estado pago'}
-                </label>
-                <select value={pedido.EstadoPago ?? 0} onChange={e => handleChange('EstadoPago', Number(e.target.value))} style={{ ...inputStyle, appearance: 'auto', cursor: 'pointer', borderColor: pedido.TipoPago === 2 ? 'rgba(229,62,62,0.5)' : undefined }}>
-                  <option value={0}>Pendiente</option>
-                  <option value={1}>Pagado</option>
-                </select>
-              </div>
-              {pedido.TipoPago === 2 && pedido.EstadoPago === 0 && (
-                <div className="form-group span2" style={{ gridColumn: '1 / -1' }}>
-                  <div style={{
-                    padding: '8px 12px', borderRadius: 6, fontSize: 12,
-                    background: 'rgba(229,62,62,0.08)', border: '1px solid rgba(229,62,62,0.3)',
-                    color: '#e53e3e', fontWeight: 500
-                  }}>
-                    ⚠ Este pedido es por transferencia y el pago está pendiente. Verifica que el cliente haya transferido antes de subir el envío.
-                  </div>
-                </div>
-              )}
-              <div className="form-group">
-                <label className="form-field-label">Logística</label>
-                <input type="text" value={pedido.logistic || ''} onChange={e => handleChange('logistic', e.target.value)} style={inputStyle} />
-              </div>
-              <div className="form-group">
-                <label className="form-field-label">Subtotal</label>
-                <input type="text" value={pedido.SubTotal || '0.00'} onChange={e => handleChange('SubTotal', e.target.value)} style={inputStyle} />
-              </div>
-              <div className="form-group">
-                <label className="form-field-label">Costo envío</label>
-                <input type="text" value={pedido.CostoEnvio || '0.00'} onChange={e => handleChange('CostoEnvio', e.target.value)} style={inputStyle} />
-              </div>
-              <div className="form-group span2">
-                <label className="form-field-label">Total</label>
-                <input type="text" value={pedido.Total || '0.00'} onChange={e => handleChange('Total', e.target.value)} style={{ ...inputStyle, fontWeight: 600, color: 'var(--accent2)', fontSize: 18 }} />
-              </div>
-            </div>
-          </div>
-
-          <div className="table-card" style={{ padding: 20 }}>
-            <div style={{ fontWeight: 600, fontSize: 14, marginBottom: 12, color: 'var(--text)' }}>
-              Productos ({productos.length})
-            </div>
-            {productos.length === 0 ? (
-              <div style={{ color: 'var(--text3)', fontSize: 13 }}>Sin productos</div>
-            ) : (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-                {productos.map((prod, i) => (
-                  <div key={i} style={{
-                    padding: '8px 12px', background: 'var(--bg3)', borderRadius: 6, fontSize: 13, gap: 8
-                  }}>
-                    {editProdMode === i ? (
-                      <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                          <select
-                            value={prod.product_id || ''}
-                            onChange={e => handleProductChange(i, e.target.value)}
-                            style={{ ...inputStyle, flex: 1, fontSize: 12, appearance: 'auto', cursor: 'pointer' }}
-                          >
-                            <option value="">Seleccionar producto</option>
-                            {Object.entries(productosMap).map(([id, name]) => (
-                              <option key={id} value={id}>{name || `#${id}`}</option>
-                            ))}
-                          </select>
-                        </div>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                          <span style={{ fontSize: 11, color: 'var(--text3)' }}>Cant:</span>
-                          <input
-                            type="number"
-                            min="1"
-                            value={prod.quantity || 1}
-                            onChange={e => handleQuantityChange(i, e.target.value)}
-                            style={{ width: 60, ...inputStyle, fontSize: 12, textAlign: 'center' }}
-                          />
-                          <span style={{ fontSize: 11, color: 'var(--text3)' }}>Precio:</span>
-                          <input
-                            type="number"
-                            value={prod.price}
-                            onChange={e => handleProductPriceChange(i, e.target.value)}
-                            style={{ width: 100, ...inputStyle, fontSize: 12, textAlign: 'right', fontFamily: 'var(--mono)' }}
-                          />
-                          <button
-                            onClick={() => setEditProdMode(null)}
-                            className="btn btn-primary"
-                            style={{ fontSize: 11, padding: '3px 8px', flexShrink: 0 }}
-                          >
-                            ✓ Listo
-                          </button>
-                          <button
-                            onClick={() => handleRemoveProduct(i)}
-                            className="btn btn-ghost"
-                            style={{ fontSize: 10, padding: '3px 6px', color: 'var(--red)', flexShrink: 0 }}
-                          >
-                            ✕
-                          </button>
-                        </div>
-                      </div>
-                    ) : (
-                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', cursor: 'pointer' }}
-                        onClick={() => setEditProdMode(i)}>
-                        <div style={{ flex: 1 }}>
-                          <span style={{ color: 'var(--accent)', fontWeight: 500 }}>
-                            {productosMap[String(prod.product_id)] || `Producto #${prod.product_id}`}
-                          </span>
-                          <span style={{ color: 'var(--text)', marginLeft: 12 }}>
-                            x{prod.quantity || 1}
-                          </span>
-                          {prod.variations && prod.variations.length > 0 && (
-                            <span style={{ color: 'var(--text3)', fontSize: 11, marginLeft: 8 }}>
-                              ({prod.variations.join(', ')})
-                            </span>
-                          )}
-                        </div>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                          {editProdPrice === i ? (
-                            <input
-                              type="number"
-                              autoFocus
-                              value={prod.price}
-                              onChange={e => handleProductPriceChange(i, e.target.value)}
-                              onClick={e => e.stopPropagation()}
-                              onBlur={() => setEditProdPrice(null)}
-                              onKeyDown={e => e.key === 'Enter' && setEditProdPrice(null)}
-                              style={{ width: 110, ...inputStyle, textAlign: 'right', fontFamily: 'var(--mono)' }}
-                            />
-                          ) : (
-                            <div
-                              onClick={e => { e.stopPropagation(); setEditProdPrice(i); }}
-                              style={{ color: 'var(--accent2)', fontFamily: 'var(--mono)', fontWeight: 500, padding: '2px 6px', borderRadius: 4, border: '1px solid transparent' }}
-                              title="Click para editar precio"
-                            >
-                              {formatMoneyShort(prod.price)}
-                            </div>
-                          )}
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                ))}
-              </div>
+                )}
+                <button onClick={handleAddProduct} className="btn btn-ghost" style={{ marginTop: 8, fontSize: 12, width: '100%', justifyContent: 'center' }}>
+                  + Agregar producto
+                </button>
+              </>
             )}
-            <button onClick={handleAddProduct} className="btn btn-ghost" style={{ marginTop: 8, fontSize: 12, width: '100%', justifyContent: 'center' }}>
-              + Agregar producto
-            </button>
           </div>
         </div>
       </div>
 
+      {/* --- OBSERVACIONES --- */}
       <div className="table-card" style={{ padding: 20, marginTop: 20 }}>
-        <div style={{ fontWeight: 600, fontSize: 14, marginBottom: 12, color: 'var(--text)' }}>
-          Observaciones ({obs.length})
+        <div onClick={() => toggleSection('observaciones')} style={{ fontWeight: 600, fontSize: 14, marginBottom: 12, color: 'var(--text)', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 8, userSelect: 'none' }}>
+          {openSections.observaciones ? '▼' : '▶'} Observaciones ({obs.length})
         </div>
-        {obs.length === 0 ? (
-          <div style={{ color: 'var(--text3)', fontSize: 13 }}>Sin observaciones</div>
-        ) : (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-            {obs.map((o, i) => (
-              <div key={i} style={{
-                display: 'flex', gap: 12, alignItems: 'flex-start',
-                padding: '8px 12px', background: 'var(--bg3)', borderRadius: 6,
-                fontSize: 13, borderLeft: '3px solid var(--accent)'
-              }}>
-                <div style={{ width: 8, height: 8, borderRadius: '50%', background: 'var(--accent)', marginTop: 4, flexShrink: 0 }} />
-                <div style={{ flex: 1 }}>
-                  <div style={{ color: 'var(--text)' }}>{o.desc}</div>
-                  <div style={{ color: 'var(--text3)', fontSize: 11, marginTop: 2 }}>{o.update || ''}</div>
-                </div>
-              </div>
-            ))}
-          </div>
-        )}
-      </div>
-
-      <div className="table-card" style={{ padding: 20, marginTop: 20 }}>
-        <div style={{ fontWeight: 600, fontSize: 14, marginBottom: 12, color: 'var(--text)' }}>
-          Etiquetas
-        </div>
-        <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginBottom: 12 }}>
-          {etiquetas.length > 0 ? etiquetas.map(e => (
-            <span key={e.id} style={{
-              display: 'inline-flex', alignItems: 'center', gap: 6,
-              padding: '4px 10px', borderRadius: 12, fontSize: 12, fontWeight: 600,
-              color: '#fff', background: e.color
-            }}>
-              {e.nombre}
-              <button onClick={async () => {
-                try {
-                  await api.delete(`/api/lucidsales/vinculados/${id}/etiquetas/${e.id}`);
-                  const { data } = await api.get(`/api/lucidsales/vinculados/${id}/etiquetas`);
-                  setEtiquetas(Array.isArray(data) ? data : []);
-                } catch {}
-              }} style={{ background: 'none', border: 'none', color: '#fff', cursor: 'pointer', fontSize: 13, padding: 0, lineHeight: 1 }}>✕</button>
-            </span>
-          )) : (
-            <span style={{ color: 'var(--text3)', fontSize: 13 }}>Sin etiquetas</span>
-          )}
-        </div>
-        <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-          <select value={selectedEtiqueta} onChange={e => setSelectedEtiqueta(e.target.value)}
-            style={{ ...inputStyle, flex: 1, appearance: 'auto', cursor: 'pointer' }}>
-            <option value="">Agregar etiqueta...</option>
-            {todasEtiquetas.filter(e => !etiquetas.some(ne => ne.id === e.id)).map(e => (
-              <option key={e.id} value={e.id}>{e.nombre}</option>
-            ))}
-          </select>
-          <button disabled={!selectedEtiqueta} onClick={async () => {
-            try {
-              await api.post(`/api/lucidsales/vinculados/${id}/etiquetas`, { etiquetaId: selectedEtiqueta });
-              const { data } = await api.get(`/api/lucidsales/vinculados/${id}/etiquetas`);
-              setEtiquetas(Array.isArray(data) ? data : []);
-              setSelectedEtiqueta('');
-            } catch (err) {
-              showToast(err.response?.data?.error || 'Error al asignar etiqueta', 'error');
-            }
-          }} className="btn btn-primary" style={{ fontSize: 12 }}>
-            Agregar
-          </button>
-        </div>
-      </div>
-      {showSplitModal && (
-        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.7)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 10000 }}>
-        <div style={{ background: 'var(--bg2)', borderRadius: 14, width: 'min(480px, 92vw)', boxShadow: '0 20px 60px rgba(0,0,0,0.5)', border: '1px solid var(--border)' }}>
-          <div style={{ padding: '16px 20px', borderBottom: '1px solid var(--border)', fontWeight: 600, fontSize: 16 }}>
-            Dividir pedido en órdenes separadas
-          </div>
-          <div style={{ padding: 20 }}>
-            <div style={{ fontSize: 13, color: 'var(--text2)', marginBottom: 16, lineHeight: 1.6 }}>
-              Este pedido tiene <strong>{productos.length} productos</strong>. Dropi no permite subir productos de diferentes proveedores en una sola orden.
-              Se crearán órdenes independientes con los mismos datos del cliente.
-            </div>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 6, marginBottom: 20 }}>
-              {productos.map((p, i) => (
-                <div key={i} style={{ display: 'flex', justifyContent: 'space-between', padding: '6px 10px', background: 'var(--bg3)', borderRadius: 6, fontSize: 12 }}>
-                  <span style={{ color: 'var(--text)' }}>{productosMap[String(p.product_id)] || `Producto #${p.product_id}`} ×{p.quantity || 1}</span>
-                  <span style={{ color: 'var(--accent2)', fontFamily: 'var(--mono)' }}>{formatMoneyShort(p.price * (p.quantity || 1))}</span>
+        {openSections.observaciones && (
+          obs.length === 0 ? (
+            <div style={{ color: 'var(--text3)', fontSize: 13 }}>Sin observaciones</div>
+          ) : (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+              {obs.map((o, i) => (
+                <div key={i} style={{ display: 'flex', gap: 10, alignItems: 'flex-start', padding: '8px 12px', background: 'var(--bg3)', borderRadius: 6, fontSize: 13, borderLeft: '3px solid var(--accent)' }}>
+                  <span style={{ color: 'var(--accent)', marginTop: 1 }}>•</span>
+                  <div style={{ flex: 1 }}>
+                    <div style={{ color: 'var(--text)' }}>{o.desc}</div>
+                    <div style={{ color: 'var(--text3)', fontSize: 11, marginTop: 2 }}>{o.update || ''}</div>
+                  </div>
                 </div>
               ))}
             </div>
-            {splitResults ? (
-              <div style={{ marginBottom: 16 }}>
-                {splitResults.error && (
-                  <div style={{ color: 'var(--red)', fontSize: 12, marginBottom: 8 }}>{splitResults.error}</div>
-                )}
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-                  {splitResults.items.map((p, i) => (
-                    <div key={i} style={{ fontSize: 12, display: 'flex', alignItems: 'center', gap: 6 }}>
-                      <span>{p.status === 'ok' ? '✅' : p.status === 'error' ? '❌' : '⏳'}</span>
-                      <span style={{ color: 'var(--text)' }}>{productosMap[String(p.product_id)] || `Producto #${p.product_id}`}</span>
-                      {p.error && <span style={{ color: 'var(--red)', fontSize: 10 }}>{p.error}</span>}
-                    </div>
-                  ))}
-                </div>
-                {splitResults.fallos === 0 && splitResults.exitos > 0 && (
-                  <div style={{ marginTop: 12, color: 'var(--green)', fontWeight: 600, fontSize: 13 }}>
-                    ¡{splitResults.exitos}/{splitResults.total} pedidos subidos correctamente!
+          )
+        )}
+      </div>
+
+      {/* --- ETIQUETAS --- */}
+      <div className="table-card" style={{ padding: 20, marginTop: 20 }}>
+        <div onClick={() => toggleSection('etiquetas')} style={{ fontWeight: 600, fontSize: 14, marginBottom: 12, color: 'var(--text)', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 8, userSelect: 'none' }}>
+          {openSections.etiquetas ? '▼' : '▶'} Etiquetas ({etiquetas.length})
+        </div>
+        {openSections.etiquetas && (
+          <>
+            <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginBottom: 12 }}>
+              {etiquetas.length > 0 ? etiquetas.map(e => (
+                <span key={e.id} style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '4px 10px', borderRadius: 12, fontSize: 12, fontWeight: 600, color: '#fff', background: e.color }}>
+                  {e.nombre}
+                  <button onClick={async () => {
+                    try {
+                      await api.delete(`/api/lucidsales/vinculados/${id}/etiquetas/${e.id}`);
+                      const { data } = await api.get(`/api/lucidsales/vinculados/${id}/etiquetas`);
+                      setEtiquetas(Array.isArray(data) ? data : []);
+                    } catch {}
+                  }} style={{ background: 'none', border: 'none', color: '#fff', cursor: 'pointer', fontSize: 13, padding: 0, lineHeight: 1 }}>✕</button>
+                </span>
+              )) : (
+                <span style={{ color: 'var(--text3)', fontSize: 13 }}>Sin etiquetas</span>
+              )}
+            </div>
+            <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+              <select value={selectedEtiqueta} onChange={e => setSelectedEtiqueta(e.target.value)}
+                style={{ ...fieldStyle('etiqueta'), flex: 1, appearance: 'auto', cursor: 'pointer' }}>
+                <option value="">Agregar etiqueta...</option>
+                {todasEtiquetas.filter(e => !etiquetas.some(ne => ne.id === e.id)).map(e => (
+                  <option key={e.id} value={e.id}>{e.nombre}</option>
+                ))}
+              </select>
+              <button disabled={!selectedEtiqueta} onClick={async () => {
+                try {
+                  await api.post(`/api/lucidsales/vinculados/${id}/etiquetas`, { etiquetaId: selectedEtiqueta });
+                  const { data } = await api.get(`/api/lucidsales/vinculados/${id}/etiquetas`);
+                  setEtiquetas(Array.isArray(data) ? data : []);
+                  setSelectedEtiqueta('');
+                } catch (err) {
+                  showToast(err.response?.data?.error || 'Error al asignar etiqueta', 'error');
+                }
+              }} className="btn btn-primary" style={{ fontSize: 12 }}>Agregar</button>
+            </div>
+          </>
+        )}
+      </div>
+
+      {/* --- SPLIT MODAL --- */}
+      {showSplitModal && (
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.7)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 10000 }}>
+          <div style={{ background: 'var(--bg2)', borderRadius: 14, width: 'min(480px, 92vw)', boxShadow: '0 20px 60px rgba(0,0,0,0.5)', border: '1px solid var(--border)' }}>
+            <div style={{ padding: '16px 20px', borderBottom: '1px solid var(--border)', fontWeight: 600, fontSize: 16 }}>Dividir pedido en ordenes separadas</div>
+            <div style={{ padding: 20 }}>
+              <div style={{ fontSize: 13, color: 'var(--text2)', marginBottom: 16, lineHeight: 1.6 }}>
+                Este pedido tiene <strong>{productos.length} productos</strong>. Dropi no permite subir productos de diferentes proveedores en una sola orden. Se crearan ordenes independientes con los mismos datos del cliente.
+              </div>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 6, marginBottom: 20 }}>
+                {productos.map((p, i) => (
+                  <div key={i} style={{ display: 'flex', justifyContent: 'space-between', padding: '6px 10px', background: 'var(--bg3)', borderRadius: 6, fontSize: 12 }}>
+                    <span style={{ color: 'var(--text)' }}>{productosMap[String(p.product_id)] || `Producto #${p.product_id}`} x{p.quantity || 1}</span>
+                    <span style={{ color: 'var(--accent2)', fontFamily: 'var(--mono)' }}>{formatMoneyShort(p.price * (p.quantity || 1))}</span>
                   </div>
+                ))}
+              </div>
+              {splitResults ? (
+                <div style={{ marginBottom: 16 }}>
+                  {splitResults.error && <div style={{ color: 'var(--red)', fontSize: 12, marginBottom: 8 }}>{splitResults.error}</div>}
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+                    {splitResults.items.map((p, i) => (
+                      <div key={i} style={{ fontSize: 12, display: 'flex', alignItems: 'center', gap: 6 }}>
+                        <span>{p.status === 'ok' ? '✅' : p.status === 'error' ? '❌' : '⏳'}</span>
+                        <span style={{ color: 'var(--text)' }}>{productosMap[String(p.product_id)] || `Producto #${p.product_id}`}</span>
+                        {p.error && <span style={{ color: 'var(--red)', fontSize: 10 }}>{p.error}</span>}
+                      </div>
+                    ))}
+                  </div>
+                  {splitResults.fallos === 0 && splitResults.exitos > 0 && (
+                    <div style={{ marginTop: 12, color: 'var(--green)', fontWeight: 600, fontSize: 13 }}>¡{splitResults.exitos}/{splitResults.total} pedidos subidos correctamente!</div>
+                  )}
+                </div>
+              ) : (
+                <div style={{ fontSize: 13, color: '#f59e0b', marginBottom: 16 }}>⚠ Se crearan {productos.length} pedidos y se subiran a Dropi automaticamente.</div>
+              )}
+              <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
+                {!splitResults && (
+                  <>
+                    <button onClick={() => setShowSplitModal(false)} className="btn btn-ghost">Cancelar</button>
+                    <button onClick={handleSplitUpload} className="btn btn-primary" style={{ fontSize: 12 }}>Dividir y subir</button>
+                  </>
                 )}
+                {splitResults && <button onClick={() => { setShowSplitModal(false); setSplitResults(null); }} className="btn btn-primary">Cerrar</button>}
               </div>
-            ) : (
-              <div style={{ fontSize: 13, color: 'var(--amber)', marginBottom: 16 }}>
-                ⚠ Se crearán {productos.length} pedidos y se subirán a Dropi automáticamente.
-              </div>
-            )}
-            <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
-              {!splitResults && (
-                <>
-                  <button onClick={() => setShowSplitModal(false)} className="btn btn-ghost">Cancelar</button>
-                  <button onClick={handleSplitUpload} className="btn btn-primary" style={{ fontSize: 12 }}>
-                    Dividir y subir
-                  </button>
-                </>
-              )}
-              {splitResults && (
-                <button onClick={() => { setShowSplitModal(false); setSplitResults(null); }} className="btn btn-primary">
-                  Cerrar
-                </button>
-              )}
             </div>
           </div>
         </div>
-      </div>
-    )}
+      )}
     </div>
   );
 }
-
-const inputStyle = {
-  background: 'var(--bg3)',
-  border: '1px solid var(--border)',
-  borderRadius: 6,
-  padding: '8px 10px',
-  color: 'var(--text)',
-  fontSize: 13,
-  width: '100%',
-  boxSizing: 'border-box',
-  outline: 'none',
-  fontFamily: 'inherit'
-};

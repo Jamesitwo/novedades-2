@@ -34,6 +34,12 @@ export default function LucidSalesPage() {
   const [etiquetas, setEtiquetas] = useState([]);
   const [asignadoId, setAsignadoId] = useState('');
   const [operadores, setOperadores] = useState([]);
+  const [toast, setToast] = useState(null);
+
+  const showToast = useCallback((message, type = 'success') => {
+    setToast({ message, type });
+    setTimeout(() => setToast(null), 3000);
+  }, []);
 
   const fetchPedidos = useCallback(async () => {
     setLoading(true);
@@ -132,9 +138,10 @@ export default function LucidSalesPage() {
     try {
       await api.post('/api/lucidsales/vincular', { lucidsalesPedidoId: Number(vincularId) });
       setVincularId('');
+      showToast(`Pedido #${vincularId} vinculado correctamente`);
       fetchPedidos();
     } catch (err) {
-      setError(err.response?.data?.error || err.message || 'Error al vincular');
+      showToast(err.response?.data?.error || err.message || 'Error al vincular', 'error');
     } finally {
       setVinculando(false);
     }
@@ -145,20 +152,22 @@ export default function LucidSalesPage() {
       const { data } = await api.get(`/api/lucidsales/pedidos/${pedidoId}`);
       if (data && data.id) {
         await api.post('/api/lucidsales/guardar-local', { lucidsalesPedidoId: Number(pedidoId), pedido: data });
+        showToast('Sincronizado desde LucidSales');
         fetchPedidos();
       }
     } catch (err) {
-      console.error('Sync error:', err);
+      showToast('Error al sincronizar', 'error');
     }
   };
 
   const handleDesvincular = async (pedidoId) => {
-    if (!window.confirm('¿Desvincular este pedido? Se eliminará de la lista de Pizdo (el pedido sigue existiendo en LucidSales).')) return;
+    if (!window.confirm('Desvincular este pedido? Se eliminara de la lista de Pizdo (el pedido sigue existiendo en LucidSales).')) return;
     try {
       await api.delete(`/api/lucidsales/vinculados/${pedidoId}`);
+      showToast('Pedido desvinculado');
       fetchPedidos();
     } catch (err) {
-      setError(err.response?.data?.error || 'Error al desvincular');
+      showToast(err.response?.data?.error || 'Error al desvincular', 'error');
     }
   };
 
@@ -298,20 +307,20 @@ export default function LucidSalesPage() {
                 <tr>
                   <th># Pedido</th>
                   <th>Cliente</th>
-                  <th>Teléfono</th>
+                  <th>Telefono</th>
                   <th>Total</th>
                   <th>Estado</th>
                   <th>Producto</th>
                   <th>Asignado</th>
                   <th>Referencias</th>
                   <th>Etiquetas</th>
-                  <th style={{ width: 80 }}></th>
+                  <th style={{ width: 80 }}>Acciones</th>
                 </tr>
               </thead>
               <tbody>
                 {pedidos.map((p) => (
                   <tr key={p.id}>
-                    <td className="td-mono">#{p.idPedido}</td>
+                    <td className="td-mono" title={`ID LucidSales: ${p.id}`}>#{p.idPedido}</td>
                     <td className="td-name">{p.Nombre} {p.Apellido}</td>
                     <td>{p.Movil}</td>
                     <td className="td-mono">{formatMoney(p.Total)}</td>
@@ -389,6 +398,17 @@ export default function LucidSalesPage() {
             </div>
           )}
         </>
+      )}
+
+      {toast && (
+        <div style={{
+          position: 'fixed', top: 20, right: 20, zIndex: 9999,
+          background: toast.type === 'error' ? 'var(--red)' : 'var(--green)',
+          color: '#fff', padding: '10px 20px', borderRadius: 8,
+          fontSize: 13, fontWeight: 500, boxShadow: '0 8px 24px rgba(0,0,0,0.4)'
+        }}>
+          {toast.message}
+        </div>
       )}
     </div>
   );
