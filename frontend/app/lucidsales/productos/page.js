@@ -153,6 +153,7 @@ const getStockStyle = (s) => {
 export default function LucidSalesProductosPage() {
   const [productos, setProductos] = useState([]);
   const [stockMap, setStockMap] = useState({});
+  const [refreshingStock, setRefreshingStock] = useState({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [search, setSearch] = useState('');
@@ -169,6 +170,7 @@ export default function LucidSalesProductosPage() {
     setLoading(true);
     setError('');
     setStockMap({});
+    setRefreshingStock({});
     try {
       const { data } = await api.post('/api/lucidsales/productos');
       const list = Array.isArray(data) ? data : data.productos || data.data || [];
@@ -196,6 +198,20 @@ export default function LucidSalesProductosPage() {
       setLoading(false);
     }
   }, []);
+
+  const handleRefreshStock = async (productId, e) => {
+    if (e) e.stopPropagation();
+    setRefreshingStock(prev => ({ ...prev, [productId]: true }));
+    try {
+      const { data } = await api.post('/api/lucidsales/productos-stock', { productIds: [productId] });
+      if (data?.ok && data.stock) {
+        setStockMap(prev => ({ ...prev, ...data.stock }));
+      }
+    } catch {}
+    finally {
+      setRefreshingStock(prev => { const next = { ...prev }; delete next[productId]; return next; });
+    }
+  };
 
   useEffect(() => {
     fetchProductos();
@@ -346,6 +362,15 @@ export default function LucidSalesProductosPage() {
                       </td>
                       <td style={{ textAlign: 'center', fontFamily: 'var(--mono)', fontWeight: 600 }}>
                         {stockVal !== null && stockVal !== undefined ? (stockVal === 0 ? 'AGOTADO' : stockVal) : '-'}
+                        <button
+                          onClick={(e) => handleRefreshStock(String(p.id ?? p.Id), e)}
+                          disabled={refreshingStock[String(p.id ?? p.Id)]}
+                          className="btn btn-ghost"
+                          style={{ fontSize: 10, padding: '1px 4px', marginLeft: 4 }}
+                          title="Actualizar stock desde Dropi"
+                        >
+                          {refreshingStock[String(p.id ?? p.Id)] ? '⏳' : '↻'}
+                        </button>
                       </td>
                       {sortedColumns.map(col => (
                         <td key={col} style={{ maxWidth: 200, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
