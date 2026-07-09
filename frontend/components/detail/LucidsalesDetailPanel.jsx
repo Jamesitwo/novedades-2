@@ -205,9 +205,6 @@ export default function LucidsalesDetailPanel({ id, ids, currentIndex, onClose, 
 
           try {
             const localRes = await api.post('/api/lucidsales/guardar-local', { lucidsalesPedidoId: Number(currentId), pedido: pedidoData });
-            if (localRes.data?.pedido?.conversacionLink) {
-              setPedido(prev => ({ ...prev, conversacionLink: localRes.data.pedido.conversacionLink }));
-            }
             if (localRes.data?.pedido?.asignadoId) {
               setPedido(prev => ({ ...prev, _asignadoId: localRes.data.pedido.asignadoId }));
             }
@@ -307,7 +304,11 @@ export default function LucidsalesDetailPanel({ id, ids, currentIndex, onClose, 
       await api.post('/api/lucidsales/guardar-local', { lucidsalesPedidoId: Number(currentId), pedido, asignadoId: pedido._asignadoId || undefined });
       setCamposModificados(new Set());
       const { data } = await api.post('/api/lucidsales/pedidos/confirmar-envio', { pedidoId: Number(currentId), transportadora_id: q.transportadora_id });
-      if (data.ok) { setUploaded(true); showToast(`Pedido subido a ${q.transportadora} correctamente`); }
+      if (data.ok) {
+        setUploaded(true);
+        setPedido(prev => ({ ...prev, EstadoPedido: 2 }));
+        setCamposModificados(new Set());
+        showToast(`Pedido subido y confirmado a ${q.transportadora}`);
       else showToast(data.msg || data.error || 'Error al subir', 'error');
     } catch (err) {
       showToast(err.response?.data?.error || err.message || 'Error al subir', 'error');
@@ -340,7 +341,10 @@ export default function LucidsalesDetailPanel({ id, ids, currentIndex, onClose, 
         return { ...p, status: res?.exito ? 'ok' : 'error', error: res?.error };
       });
       setSplitResults({ total: data.total, exitos: data.exitos, fallos: data.fallos, items: updated });
-      if (data.fallos === 0) setUploaded(true);
+      if (data.fallos === 0) {
+        setUploaded(true);
+        setPedido(prev => ({ ...prev, EstadoPedido: 2 }));
+      }
     } catch (err) {
       setSplitResults(prev => ({ ...prev, error: err.response?.data?.error || err.message, items: prev.items.map(p => ({ ...p, status: 'error' })) }));
     } finally { setUploading(false); }
@@ -613,12 +617,14 @@ export default function LucidsalesDetailPanel({ id, ids, currentIndex, onClose, 
                 </div>
                 <div>
                   <label style={{ fontSize: 10, color: 'var(--text3)', marginBottom: 2, display: 'block' }}>Chat / Conversacion</label>
-                  <div style={{ display: 'flex', gap: 4 }}>
-                    <input type="text" value={pedido.conversacionLink || ''} onChange={e => handleChange('conversacionLink', e.target.value)} style={{ ...fieldStyle('conversacionLink'), flex: 1 }} placeholder="https://wa.me/..." />
-                    {pedido.conversacionLink && (
-                      <a href={pedido.conversacionLink} target="_blank" rel="noopener noreferrer" className="btn btn-ghost" style={{ fontSize: 11, whiteSpace: 'nowrap', textDecoration: 'none' }}>💬</a>
-                    )}
-                  </div>
+                  {(pedido.botInbox || pedido.conversacionLink) ? (
+                    <a href={pedido.botInbox || pedido.conversacionLink} target="_blank" rel="noopener noreferrer" className="btn btn-ghost"
+                      style={{ fontSize: 11, justifyContent: 'flex-start', gap: 6, textDecoration: 'none', width: '100%', boxSizing: 'border-box' }}>
+                      💬 Abrir conversacion
+                    </a>
+                  ) : (
+                    <span style={{ color: 'var(--text3)', fontSize: 11 }}>Sin conversacion</span>
+                  )}
                 </div>
 
                 {/* DIRECCION */}
@@ -790,17 +796,10 @@ export default function LucidsalesDetailPanel({ id, ids, currentIndex, onClose, 
                     </select>
                   </div>
                   <div>
-                    <label style={{ fontSize: 10, color: 'var(--text3)', marginBottom: 2, display: 'block' }}>Estado pago</label>
-                    <select value={pedido.EstadoPago ?? 0} onChange={e => handleChange('EstadoPago', Number(e.target.value))} style={{ ...fieldStyle('EstadoPago'), appearance: 'auto', cursor: 'pointer' }}>
-                      <option value={0}>Pendiente</option>
-                      <option value={1}>Pagado</option>
-                    </select>
-                  </div>
-                </div>
-                <div>
                   <label style={{ fontSize: 10, color: 'var(--text3)', marginBottom: 2, display: 'block' }}>Total</label>
-                  <input type="text" value={pedido.Total || '0'} onChange={e => handleChange('Total', e.target.value)}
-                    style={{ ...fieldStyle('Total'), fontWeight: 600, color: 'var(--accent2)', fontSize: 16 }} />
+                  <div style={{ ...fieldStyle('Total'), fontWeight: 600, color: 'var(--accent2)', fontSize: 16 }}>
+                    {formatMoney(pedido.Total)}
+                  </div>
                 </div>
               </div>
             )}
