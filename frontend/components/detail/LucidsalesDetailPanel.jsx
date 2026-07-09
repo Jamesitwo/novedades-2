@@ -43,6 +43,7 @@ export default function LucidsalesDetailPanel({ id, ids, currentIndex, onClose, 
   const [editProdPrice, setEditProdPrice] = useState(null);
   const [editProdMode, setEditProdMode] = useState(null);
   const [stockErrors, setStockErrors] = useState({});
+  const [refreshingStock, setRefreshingStock] = useState({});
   const [etiquetas, setEtiquetas] = useState([]);
   const [todasEtiquetas, setTodasEtiquetas] = useState([]);
   const [selectedEtiqueta, setSelectedEtiqueta] = useState('');
@@ -372,6 +373,22 @@ export default function LucidsalesDetailPanel({ id, ids, currentIndex, onClose, 
     if (!nuevaDireccion) return;
     handleChange('Direccion', nuevaDireccion);
     setShowValidacion(false); setValidacion(null);
+  };
+
+  const handleRefreshStock = async (productId, e) => {
+    e.stopPropagation();
+    setRefreshingStock(prev => ({ ...prev, [productId]: true }));
+    try {
+      const { data } = await api.post('/api/lucidsales/productos-stock', { productIds: [productId] });
+      if (data?.ok && data.stock) {
+        setProductosStock(prev => ({ ...prev, ...data.stock }));
+        if (data.errors) setStockErrors(prev => ({ ...prev, ...data.errors }));
+        else setStockErrors(prev => { const next = { ...prev }; delete next[productId]; return next; });
+      }
+    } catch {} 
+    finally {
+      setRefreshingStock(prev => { const next = { ...prev }; delete next[productId]; return next; });
+    }
   };
 
   const handleSeleccionarOficinaIR = (ofi) => {
@@ -839,6 +856,19 @@ export default function LucidsalesDetailPanel({ id, ids, currentIndex, onClose, 
                               <span style={{ color: 'var(--text)', fontSize: 11 }}>x{prod.quantity || 1}</span>
                               {prod.variations?.length > 0 && <span style={{ color: 'var(--text3)', fontSize: 10 }}>({prod.variations.join(', ')})</span>}
                               {stockBadge}
+                              <button
+                                onClick={(e) => handleRefreshStock(prod.product_id, e)}
+                                disabled={refreshingStock[prod.product_id]}
+                                style={{
+                                  background: 'none', border: '1px solid var(--border)', borderRadius: 3,
+                                  cursor: refreshingStock[prod.product_id] ? 'default' : 'pointer',
+                                  fontSize: 10, padding: '1px 4px', color: 'var(--text3)',
+                                  opacity: refreshingStock[prod.product_id] ? 0.5 : 0.6
+                                }}
+                                title="Actualizar stock de Dropi"
+                              >
+                                {refreshingStock[prod.product_id] ? '⏳' : '↻'}
+                              </button>
                             </div>
                           </div>
                           <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexShrink: 0 }}>
