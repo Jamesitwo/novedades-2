@@ -6,6 +6,7 @@ import api from '@/lib/api';
 import { useAuthStore } from '@/store/authStore';
 import { TableSkeleton } from '@/components/Skeleton';
 import { on, isConnected } from '@/lib/websocket';
+import LucidsalesDetailPanel from '@/components/detail/LucidsalesDetailPanel';
 
 const ESTADOS = {
   0: { label: 'Por confirmar', class: 'pendiente' },
@@ -35,6 +36,8 @@ export default function LucidSalesPage() {
   const [asignadoId, setAsignadoId] = useState('');
   const [operadores, setOperadores] = useState([]);
   const [toast, setToast] = useState(null);
+  const [detailIds, setDetailIds] = useState([]);
+  const [detailId, setDetailId] = useState(null);
 
   const showToast = useCallback((message, type = 'success') => {
     setToast({ message, type });
@@ -319,7 +322,7 @@ export default function LucidSalesPage() {
               </thead>
               <tbody>
                 {pedidos.map((p) => (
-                  <tr key={p.id}>
+                  <tr key={p.id} onClick={() => { setDetailIds(pedidos.map(pe => pe.id)); setDetailId(p.id); }} style={{ cursor: 'pointer' }}>
                     <td className="td-mono" title={`ID LucidSales: ${p.id}`}>#{p.idPedido}</td>
                     <td className="td-name">{p.Nombre} {p.Apellido}</td>
                     <td>{p.Movil}</td>
@@ -356,16 +359,13 @@ export default function LucidSalesPage() {
                     </td>
                     <td className="row-actions">
                       {p.conversacionLink && (
-                        <a href={p.conversacionLink} target="_blank" rel="noopener noreferrer" className="action-btn" title="Abrir chat" style={{ fontSize: 14 }}>
+                        <a href={p.conversacionLink} target="_blank" rel="noopener noreferrer" className="action-btn" title="Abrir chat" style={{ fontSize: 14 }} onClick={e => e.stopPropagation()}>
                           💬
                         </a>
                       )}
-                      <button onClick={() => handleSyncRow(p.id)} className="action-btn" title="Sincronizar desde LucidSales" style={{ fontSize: 14 }}>⟳</button>
-                      <Link href={`/lucidsales/${p.id}`} className="action-btn" title="Editar">
-                        ✎
-                      </Link>
+                      <button onClick={(e) => { e.stopPropagation(); handleSyncRow(p.id); }} className="action-btn" title="Sincronizar desde LucidSales" style={{ fontSize: 14 }}>⟳</button>
                       {usuario?.rol === 'admin' && (
-                        <button onClick={() => handleDesvincular(p.id)} className="action-btn" title="Desvincular" style={{ fontSize: 14, color: 'var(--red)' }}>
+                        <button onClick={(e) => { e.stopPropagation(); handleDesvincular(p.id); }} className="action-btn" title="Desvincular" style={{ fontSize: 14, color: 'var(--red)' }}>
                           ✕
                         </button>
                       )}
@@ -409,6 +409,16 @@ export default function LucidSalesPage() {
         }}>
           {toast.message}
         </div>
+      )}
+      {detailId && (
+        <LucidsalesDetailPanel
+          id={detailId}
+          ids={detailIds}
+          currentIndex={detailIds.indexOf(detailId)}
+          onClose={() => setDetailId(null)}
+          onNavigate={(newId) => setDetailId(newId)}
+          onUpdate={fetchPedidos}
+        />
       )}
     </div>
   );
