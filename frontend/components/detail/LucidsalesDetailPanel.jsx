@@ -42,6 +42,7 @@ export default function LucidsalesDetailPanel({ id, ids, currentIndex, onClose, 
   const [toast, setToast] = useState(null);
   const [editProdPrice, setEditProdPrice] = useState(null);
   const [editProdMode, setEditProdMode] = useState(null);
+  const [stockErrors, setStockErrors] = useState({});
   const [etiquetas, setEtiquetas] = useState([]);
   const [todasEtiquetas, setTodasEtiquetas] = useState([]);
   const [selectedEtiqueta, setSelectedEtiqueta] = useState('');
@@ -221,7 +222,10 @@ export default function LucidsalesDetailPanel({ id, ids, currentIndex, onClose, 
             if (productIds.length > 0) {
               try {
                 const stockRes = await api.post('/api/lucidsales/productos-stock', { productIds });
-                if (stockRes.data?.ok && stockRes.data.stock) setProductosStock(stockRes.data.stock);
+                if (stockRes.data?.ok && stockRes.data.stock) {
+                  setProductosStock(stockRes.data.stock);
+                  if (stockRes.data.errors) setStockErrors(stockRes.data.errors);
+                }
               } catch {}
             }
           }
@@ -798,7 +802,12 @@ export default function LucidsalesDetailPanel({ id, ids, currentIndex, onClose, 
                   <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
                     {productos.map((prod, i) => {
                       const stock = productosStock[String(prod.product_id)];
-                      const stockBadge = stock !== undefined && stock !== null ? (
+                      const stockErr = stockErrors[String(prod.product_id)];
+                      const stockBadge = stockErr ? (
+                        <span style={{ fontSize: 9, padding: '1px 5px', borderRadius: 8, fontWeight: 600, background: 'rgba(229,62,62,0.1)', color: '#e53e3e', border: '1px solid rgba(229,62,62,0.2)' }} title={stockErr}>
+                          ⚠ Stock no disponible
+                        </span>
+                      ) : stock !== undefined && stock !== null ? (
                         <span style={{ fontSize: 9, padding: '1px 5px', borderRadius: 8, fontWeight: 600, background: stock === 0 ? 'rgba(229,62,62,0.15)' : stock <= 20 ? 'rgba(245,158,11,0.15)' : 'rgba(34,200,122,0.1)', color: stock === 0 ? '#e53e3e' : stock <= 20 ? '#f59e0b' : '#22c87a', border: `1px solid ${stock === 0 ? 'rgba(229,62,62,0.3)' : stock <= 20 ? 'rgba(245,158,11,0.3)' : 'rgba(34,200,122,0.2)'}` }}>
                           {stock === 0 ? 'AGOTADO' : `Stock: ${stock}`}
                         </span>

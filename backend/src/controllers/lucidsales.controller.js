@@ -152,6 +152,7 @@ const productosStock = async (req, res) => {
     }
 
     const stockMap = {};
+    const errorsMap = {};
     const productosList = await lucidsalesService.getProductos();
     const todos = Array.isArray(productosList) ? productosList : (productosList?.productos || productosList?.data || []);
 
@@ -163,25 +164,52 @@ const productosStock = async (req, res) => {
       }
     });
 
-    const batchSize = 5;
+    const fetchWithRetry = async (dropiId, retries = 2) => {
+      for (let attempt = 0; attempt <= retries; attempt++) {
+        try {
+          const result = await lucidsalesService.validateDropiId(dropiId);
+          return { ok: true, stock: result?.product?.stock ?? null };
+        } catch (err) {
+          if (attempt < retries) {
+            await new Promise(r => setTimeout(r, (attempt + 1) * 1000));
+          } else {
+            return { ok: false, error: err.message };
+          }
+        }
+      }
+    };
+
+    const batchSize = 3;
     const requested = productIds.filter(id => idToDropi[id]);
     for (let i = 0; i < requested.length; i += batchSize) {
       const batch = requested.slice(i, i + batchSize);
       const results = await Promise.allSettled(batch.map(async (productoId) => {
         const dropiId = idToDropi[productoId];
-        const result = await lucidsalesService.validateDropiId(dropiId);
-        return { productoId, stock: result?.product?.stock ?? null };
+        const res = await fetchWithRetry(dropiId);
+        return { productoId, stock: res.stock, error: res.error };
       }));
+
       results.forEach(r => {
-        if (r.status === 'fulfilled') {
-          stockMap[r.value.productoId] = r.value.stock !== undefined ? Number(r.value.stock) : null;
+        if (r.status === 'fulfilled' && r.value) {
+          const { productoId, stock, error } = r.value;
+          if (error) {
+            errorsMap[productoId] = error;
+          }
+          stockMap[productoId] = stock !== undefined ? Number(stock) : null;
         } else {
-          stockMap[r.value?.productoId || productIds[0]] = null;
+          const fallbackId = r.value?.productoId || batch[0];
+          stockMap[fallbackId] = null;
+          errorsMap[fallbackId] = 'Error de conexion con Dropi';
         }
       });
+
+      if (i + batchSize < requested.length) {
+        await new Promise(r => setTimeout(r, 500));
+      }
     }
 
-    res.json({ ok: true, stock: stockMap });
+    const hasErrors = Object.keys(errorsMap).length > 0;
+    res.json({ ok: true, stock: stockMap, ...(hasErrors && { errors: errorsMap }) });
   } catch (error) {
     console.error('LucidSales productosStock error:', error);
     res.status(500).json({ error: error.message || 'Error al obtener stock' });
