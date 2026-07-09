@@ -1,3 +1,7 @@
+function sinTildes(str) {
+  return str.normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+}
+
 const VIA_TYPES = [
   { regex: /^CALLE\b/i, canonical: 'Calle', abbr: 'Cll' },
   { regex: /^CLL?\b/i, canonical: 'Calle', abbr: 'Cll' },
@@ -343,10 +347,10 @@ function validateFull(direccion, geoResult, pedidoCtx) {
 
     if (pedidoCtx && best) {
       const { ciudad: ciudadPedido, departamento: deptoPedido } = pedidoCtx;
-      const ciudadGeo = (best.ciudad || '').toLowerCase().trim();
-      const deptoGeo = (best.departamento || '').toLowerCase().trim();
-      const ciudadPed = (ciudadPedido || '').toLowerCase().trim();
-      const deptoPed = (deptoPedido || '').toLowerCase().trim();
+      const ciudadGeo = sinTildes((best.ciudad || '').toLowerCase().trim());
+      const deptoGeo = sinTildes((best.departamento || '').toLowerCase().trim());
+      const ciudadPed = sinTildes((ciudadPedido || '').toLowerCase().trim());
+      const deptoPed = sinTildes((deptoPedido || '').toLowerCase().trim());
 
       if (ciudadPed || deptoPed) {
         let matchCiudad = true;
