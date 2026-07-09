@@ -4,6 +4,7 @@ const cors = require('cors');
 const helmet = require('helmet');
 const morgan = require('morgan');
 const rateLimit = require('express-rate-limit');
+const { randomUUID } = require('crypto');
 
 const authRoutes = require('./src/routes/auth.routes');
 const usuariosRoutes = require('./src/routes/usuarios.routes');
@@ -32,17 +33,28 @@ app.set('trust proxy', 1);
 
 app.use(helmet({
   crossOriginResourcePolicy: { policy: 'cross-origin' },
-  contentSecurityPolicy: false
+  contentSecurityPolicy: {
+    directives: {
+      defaultSrc: ["'self'"],
+      scriptSrc: ["'self'", "'unsafe-inline'", "'unsafe-eval'"],
+      styleSrc: ["'self'", "'unsafe-inline'"],
+      imgSrc: ["'self'", "data:", "https://res.cloudinary.com"],
+      connectSrc: ["'self'", "ws:", "wss:", "https://graph.facebook.com"],
+      fontSrc: ["'self'"],
+      frameAncestors: ["'none'"],
+    },
+  },
 }));
 
 app.use(cors({
   origin: function (origin, callback) {
     if (!origin) return callback(null, true);
     if (FRONTEND_URL && origin === FRONTEND_URL) return callback(null, true);
-    if (['http://localhost:3000', 'http://127.0.0.1:3000', 'http://[::1]:3000'].includes(origin)) return callback(null, true);
+    if (!isProduction && ['http://localhost:3000', 'http://127.0.0.1:3000', 'http://[::1]:3000'].includes(origin)) return callback(null, true);
+    if (!isProduction && origin.startsWith('http://localhost:')) return callback(null, true);
     if (isProduction && !FRONTEND_URL) {
-      console.warn('[CORS] FRONTEND_URL not set in production, allowing all origins');
-      return callback(null, true);
+      console.error('[CORS] FRONTEND_URL no configurado en produccion. Rechazando origen:', origin);
+      return callback(new Error('CORS: FRONTEND_URL no configurado'));
     }
     callback(new Error('Not allowed by CORS'));
   },
@@ -56,9 +68,30 @@ app.use(express.json({
   }
 }));
 
+app.use((req, res, next) => {
+  req.id = req.headers['x-request-id'] || randomUUID();
+  res.setHeader('X-Request-Id', req.id);
+  const start = Date.now();
+  res.on('finish', () => {
+    if (res.statusCode >= 400) {
+      console.log(JSON.stringify({
+        severity: res.statusCode >= 500 ? 'ERROR' : 'WARN',
+        requestId: req.id,
+        method: req.method,
+        url: req.originalUrl,
+        status: res.statusCode,
+        durationMs: Date.now() - start,
+        user: req.usuario?.id || 'anonymous'
+      }));
+    }
+  });
+  next();
+});
+
 if (isProduction) {
-  morgan.token('body', (req) => req.method === 'POST' || req.method === 'PUT' ? '' : '');
-  app.use(morgan(':method :url :status :response-time ms - :remote-addr', {
+  morgan.token('request-id', (req) => req.id);
+  morgan.token('body', (req) => '');
+  app.use(morgan(':method :url :status :response-time ms - :remote-addr - reqId=:request-id', {
     stream: process.stdout
   }));
 } else {
@@ -129,14 +162,14 @@ app.get('/api/health', (req, res) => {
 });
 
 app.use((err, req, res, next) => {
-  if (err.type === 'entity.parse.failed' || err.message?.includes('JSON')) {
+  if (err.type === 'entity.parse.failed' || (err.message && err.message.includes('JSON'))) {
     return res.status(400).json({
-      error: 'JSON inválido en el body del request. Verifica comillas, comas y formato.',
-      detalle: err.message
+      error: 'JSON invalido en el body del request. Verifica comillas, comas y formato.',
+      detalle: isProduction ? undefined : err.message
     });
   }
   console.error(err.stack);
-  const statusCode = err.status || 500;
+  const statusCode = err.status || err.statusCode || 500;
   const message = isProduction && statusCode === 500
     ? 'Error interno del servidor'
     : err.message || 'Error interno del servidor';

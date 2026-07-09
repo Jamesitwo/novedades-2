@@ -9,10 +9,17 @@ const API_VERSION = process.env.WHATSAPP_API_VERSION || 'v22.0';
 const WABA_ID = process.env.WHATSAPP_BUSINESS_ACCOUNT_ID;
 
 const GRAPH_API_BASE = `https://graph.facebook.com/${API_VERSION}`;
+const FETCH_TIMEOUT_MS = 30_000;
+
+function fetchWithTimeout(url, options = {}) {
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), FETCH_TIMEOUT_MS);
+  return fetch(url, { ...options, signal: controller.signal }).finally(() => clearTimeout(timeout));
+}
 
 async function graphPost(path, body) {
   const url = `${GRAPH_API_BASE}${path}`;
-  const resp = await fetch(url, {
+  const resp = await fetchWithTimeout(url, {
     method: 'POST',
     headers: {
       Authorization: `Bearer ${ACCESS_TOKEN}`,
@@ -32,7 +39,7 @@ async function graphPost(path, body) {
 
 async function graphGet(path) {
   const url = `${GRAPH_API_BASE}${path}`;
-  const resp = await fetch(url, {
+  const resp = await fetchWithTimeout(url, {
     method: 'GET',
     headers: {
       Authorization: `Bearer ${ACCESS_TOKEN}`,
@@ -72,6 +79,13 @@ async function rateLimited(execute) {
       }
     }
   }
+  throw new Error('WhatsApp API: agotados todos los reintentos');
+}
+
+function validateWhatsAppConfig() {
+  if (!PHONE_NUMBER_ID || !ACCESS_TOKEN) {
+    throw new Error('WHATSAPP_PHONE_NUMBER_ID y WHATSAPP_ACCESS_TOKEN son requeridos');
+  }
 }
 
 function check24hWindow(record) {
@@ -87,8 +101,8 @@ function get24hRemaining(record) {
 
 function verifyWebhookSignature(signature, body) {
   if (!APP_SECRET) {
-    console.warn('[WhatsApp] APP_SECRET not configured, skipping signature check');
-    return true;
+    console.error('[WhatsApp] APP_SECRET no configurado. Webhooks seran rechazados por seguridad.');
+    return false;
   }
   if (!signature) return false;
   const expected = signature.replace('sha256=', '');
@@ -104,6 +118,7 @@ function verifyWebhookSignature(signature, body) {
 }
 
 async function sendTextMessage(to, text) {
+  validateWhatsAppConfig();
   return rateLimited(() => graphPost(`/${PHONE_NUMBER_ID}/messages`, {
     messaging_product: 'whatsapp',
     recipient_type: 'individual',

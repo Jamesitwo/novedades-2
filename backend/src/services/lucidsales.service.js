@@ -1,22 +1,23 @@
 const { prisma } = require('../prisma/client');
 
 const BASE_URL = 'https://panel.lucidsales.co/b';
+const FETCH_TIMEOUT_MS = 30_000;
 
 let tokenCache = null;
 let tokenExpires = null;
 let shopIdCache = null;
+let authPromise = null;
+
+function fetchWithTimeout(url, options = {}) {
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), options.timeout || FETCH_TIMEOUT_MS);
+  return fetch(url, { ...options, signal: controller.signal }).finally(() => clearTimeout(timeout));
+}
 
 async function getConfig() {
   const config = await prisma.configuracion.findFirst();
-  console.log('[LucidSales] Config from DB:', config ? {
-    activo: config.lucidsales_activo,
-    email: config.lucidsales_email,
-    shop_id: config.lucidsales_shop_id,
-    has_token: !!config.lucidsales_token,
-    token_expires: config.lucidsales_token_expires
-  } : 'null');
   if (!config || !config.lucidsales_activo) {
-    throw new Error('LucidSales no está configurado o activo');
+    throw new Error('LucidSales no esta configurado o activo');
   }
   if (!config.lucidsales_email || !config.lucidsales_password || !config.lucidsales_shop_id) {
     throw new Error('Faltan credenciales de LucidSales (email, password, shop_id)');
@@ -36,61 +37,73 @@ async function authenticate(config) {
     return { token: tokenCache, shopId: shopIdCache };
   }
 
-  console.log('[LucidSales] Autenticando con email:', config.lucidsales_email, 'shopId:', config.lucidsales_shop_id);
-
-  const loginResp = await fetch(`${BASE_URL}/auth/login`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ email: config.lucidsales_email, password: config.lucidsales_password })
-  });
-  const loginRaw = await loginResp.text();
-  let loginData;
-  try { loginData = JSON.parse(loginRaw); } catch { loginData = { ok: false, error: 'Respuesta no JSON: ' + loginRaw.slice(0, 200) }; }
-  console.log('[LucidSales] Login response status:', loginResp.status, 'ok:', loginData.ok);
-
-  if (!loginData.ok || !loginData.token) {
-    throw new Error(`Login LucidSales fallido (${loginResp.status}): ${JSON.stringify(loginData)}`);
+  if (authPromise) {
+    return authPromise;
   }
 
-  const shopResp = await fetch(`${BASE_URL}/auth/addShopId`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'x-token': loginData.token
-    },
-    body: JSON.stringify({ id: config.lucidsales_shop_id })
-  });
-  const shopRaw = await shopResp.text();
-  let shopData;
-  try { shopData = JSON.parse(shopRaw); } catch { shopData = { ok: false, error: 'Respuesta no JSON: ' + shopRaw.slice(0, 200) }; }
-  console.log('[LucidSales] addShopId response status:', shopResp.status, 'ok:', shopData.ok);
+  authPromise = (async () => {
+    try {
+      console.log('[LucidSales] Autenticando...');
 
-  if (!shopData.ok || !shopData.token) {
-    throw new Error(`Activación tienda LucidSales fallida (${shopResp.status}): ${JSON.stringify(shopData)}`);
-  }
+      const loginResp = await fetchWithTimeout(`${BASE_URL}/auth/login`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: config.lucidsales_email, password: config.lucidsales_password })
+      });
+      const loginRaw = await loginResp.text();
+      let loginData;
+      try { loginData = JSON.parse(loginRaw); } catch { loginData = { ok: false, error: 'Respuesta no JSON: ' + loginRaw.slice(0, 200) }; }
+      console.log('[LucidSales] Login status:', loginResp.status);
 
-  const expiresAt = new Date(Date.now() + 7 * 60 * 60 * 1000);
+      if (!loginData.ok || !loginData.token) {
+        throw new Error(`Login LucidSales fallido (${loginResp.status}): ${JSON.stringify(loginData)}`);
+      }
 
-  await prisma.configuracion.update({
-    where: { id: config.id },
-    data: {
-      lucidsales_token: shopData.token,
-      lucidsales_token_expires: expiresAt
+      const shopResp = await fetchWithTimeout(`${BASE_URL}/auth/addShopId`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-token': loginData.token
+        },
+        body: JSON.stringify({ id: config.lucidsales_shop_id })
+      });
+      const shopRaw = await shopResp.text();
+      let shopData;
+      try { shopData = JSON.parse(shopRaw); } catch { shopData = { ok: false, error: 'Respuesta no JSON: ' + shopRaw.slice(0, 200) }; }
+      console.log('[LucidSales] addShopId status:', shopResp.status);
+
+      if (!shopData.ok || !shopData.token) {
+        throw new Error(`Activacion tienda LucidSales fallida (${shopResp.status}): ${JSON.stringify(shopData)}`);
+      }
+
+      const expiresAt = new Date(Date.now() + 7 * 60 * 60 * 1000);
+
+      await prisma.configuracion.update({
+        where: { id: config.id },
+        data: {
+          lucidsales_token: shopData.token,
+          lucidsales_token_expires: expiresAt
+        }
+      });
+
+      tokenCache = shopData.token;
+      tokenExpires = expiresAt;
+      shopIdCache = config.lucidsales_shop_id;
+
+      return { token: shopData.token, shopId: config.lucidsales_shop_id };
+    } finally {
+      authPromise = null;
     }
-  });
+  })();
 
-  tokenCache = shopData.token;
-  tokenExpires = expiresAt;
-  shopIdCache = config.lucidsales_shop_id;
-
-  return { token: shopData.token, shopId: config.lucidsales_shop_id };
+  return authPromise;
 }
 
 async function apiGet(path, token) {
   const url = `${BASE_URL}${path}`;
   console.log(`[LucidSales] GET ${url}`);
   try {
-    const resp = await fetch(url, { headers: { 'x-token': token } });
+    const resp = await fetchWithTimeout(url, { headers: { 'x-token': token } });
     const data = await resp.json();
     if (!resp.ok) {
       throw new Error(data.error || data.msg || `HTTP ${resp.status}: ${resp.statusText}`);
@@ -98,8 +111,11 @@ async function apiGet(path, token) {
     return data;
   } catch (error) {
     console.error(`[LucidSales] apiGet FAIL ${url}:`, error.message);
+    if (error.name === 'AbortError') {
+      throw new Error(`Timeout llamando a LucidSales: ${url}`);
+    }
     if (error.cause?.code === 'ECONNREFUSED' || error.message?.includes('ECONNREFUSED') || error.message?.includes('fetch failed')) {
-      throw new Error(`No se pudo conectar a LucidSales (panel.lucidsales.co). Verifica conexión a internet.`);
+      throw new Error(`No se pudo conectar a LucidSales (panel.lucidsales.co). Verifica conexion a internet.`);
     }
     throw error;
   }
@@ -109,7 +125,7 @@ async function apiPost(path, body, token) {
   const url = `${BASE_URL}${path}`;
   console.log(`[LucidSales] POST ${url}`);
   try {
-    const resp = await fetch(url, {
+    const resp = await fetchWithTimeout(url, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'x-token': token },
       body: JSON.stringify(body)
@@ -121,8 +137,11 @@ async function apiPost(path, body, token) {
     return data;
   } catch (error) {
     console.error(`[LucidSales] apiPost FAIL ${url}:`, error.message);
+    if (error.name === 'AbortError') {
+      throw new Error(`Timeout llamando a LucidSales: ${url}`);
+    }
     if (error.cause?.code === 'ECONNREFUSED' || error.message?.includes('ECONNREFUSED') || error.message?.includes('fetch failed')) {
-      throw new Error(`No se pudo conectar a LucidSales (panel.lucidsales.co). Verifica conexión a internet.`);
+      throw new Error(`No se pudo conectar a LucidSales (panel.lucidsales.co). Verifica conexion a internet.`);
     }
     throw error;
   }
@@ -289,21 +308,21 @@ async function getFiltersData() {
 }
 
 async function getPaises() {
-  const resp = await fetch(`${BASE_URL}/tools/getCountries`);
+  const resp = await fetchWithTimeout(`${BASE_URL}/tools/getCountries`);
   const data = await resp.json();
   if (!resp.ok) throw new Error(`Error obteniendo países (${resp.status})`);
   return data;
 }
 
 async function getDepartamentos(paisId = 47) {
-  const resp = await fetch(`${BASE_URL}/tools/getCountryState?country=${paisId}`);
+  const resp = await fetchWithTimeout(`${BASE_URL}/tools/getCountryState?country=${paisId}`);
   const data = await resp.json();
   if (!resp.ok) throw new Error(`Error obteniendo departamentos (${resp.status})`);
   return data;
 }
 
 async function getCiudades(deptoId) {
-  const resp = await fetch(`${BASE_URL}/tools/getStateCity?state=${deptoId}`);
+  const resp = await fetchWithTimeout(`${BASE_URL}/tools/getStateCity?state=${deptoId}`);
   const data = await resp.json();
   if (!resp.ok) throw new Error(`Error obteniendo ciudades (${resp.status})`);
   return data;

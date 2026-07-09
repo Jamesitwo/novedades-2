@@ -142,8 +142,9 @@ const getById = async (req, res) => {
     }
 
     const chatExpired = await wpService.autoExpireChatWindow('pedidos_oficina', id);
+    const respuesta = { ...pedido };
     if (chatExpired) {
-      pedido.chatActivo = false;
+      respuesta.chatActivo = false;
     }
 
     const [historialCambios, intentosContacto, transferencias, etiquetas] = await Promise.all([
@@ -172,7 +173,7 @@ const getById = async (req, res) => {
     ]);
 
     res.json({
-      ...pedido,
+      ...respuesta,
       etiquetas: etiquetas.map(e => e.etiqueta),
       historialCambios,
       intentosContacto,
@@ -433,10 +434,12 @@ const bulkCambiarEstado = async (req, res) => {
     const registros = await prisma.pedidoOficina.findMany({ where: { id: { in: ids } } });
     const encontrados = new Map(registros.map(r => [r.id, r]));
 
-    await prisma.$transaction([
-      ...ids.map(id => {
+    const faltantes = ids.filter(id => !encontrados.has(id));
+
+    const historialOps = ids
+      .filter(id => encontrados.has(id))
+      .map(id => {
         const actual = encontrados.get(id);
-        if (!actual) return prisma.$executeRawUnsafe('SELECT 1');
         return prisma.historialCambio.create({
           data: {
             tabla: 'pedidos_oficina',
@@ -448,12 +451,22 @@ const bulkCambiarEstado = async (req, res) => {
             clienteNombre: `${actual.nombre} ${actual.apellido}`
           }
         });
-      }),
+      });
+
+    if (historialOps.length === 0 && faltantes.length > 0) {
+      return res.status(404).json({ error: 'Ninguno de los IDs proporcionados existe' });
+    }
+
+    await prisma.$transaction([
+      ...historialOps,
       prisma.pedidoOficina.updateMany({ where: { id: { in: ids } }, data: { estado } })
     ]);
 
     wsService.oficinaBulkAction('cambiar_estado', ids, req.usuario);
-    res.json({ message: `Actualizados ${ids.length} registros` });
+    res.json({
+      message: `Actualizados ${historialOps.length} registros`,
+      ...(faltantes.length > 0 && { advertidos: `${faltantes.length} IDs no encontrados` })
+    });
   } catch (error) {
     console.error('Bulk cambiar estado oficina error:', error);
     res.status(500).json({ error: 'Error en el servidor' });
@@ -472,10 +485,10 @@ const bulkAsignar = async (req, res) => {
     const registros = await prisma.pedidoOficina.findMany({ where: { id: { in: ids } } });
     const encontrados = new Map(registros.map(r => [r.id, r]));
 
-    await prisma.$transaction([
-      ...ids.map(id => {
+    const historialOps = ids
+      .filter(id => encontrados.has(id))
+      .map(id => {
         const actual = encontrados.get(id);
-        if (!actual) return prisma.$executeRawUnsafe('SELECT 1');
         return prisma.historialCambio.create({
           data: {
             tabla: 'pedidos_oficina',
@@ -487,7 +500,10 @@ const bulkAsignar = async (req, res) => {
             clienteNombre: `${actual.nombre} ${actual.apellido}`
           }
         });
-      }),
+      });
+
+    await prisma.$transaction([
+      ...historialOps,
       prisma.pedidoOficina.updateMany({ where: { id: { in: ids } }, data: { asignadoId } })
     ]);
 

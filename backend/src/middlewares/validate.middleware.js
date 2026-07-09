@@ -127,6 +127,69 @@ const chatSchema = z.object({
   chatActivo: z.boolean()
 });
 
+const usuarioSchema = z.object({
+  email: z.string().email('Email invalido'),
+  password: z.string().min(6, 'La contrasena debe tener al menos 6 caracteres'),
+  nombre: z.string().min(1, 'El nombre es requerido').max(100),
+  rol: z.enum(['admin', 'operador', 'operador_asignado']),
+  activo: z.boolean().optional(),
+  verSoloAsignados: z.boolean().optional(),
+  puedeGestionarNovedades: z.boolean().optional(),
+  puedeGestionarOficina: z.boolean().optional(),
+  puedeGestionarPedidos: z.boolean().optional()
+});
+
+const usuarioUpdateSchema = z.object({
+  email: z.string().email('Email invalido').optional(),
+  password: z.string().min(6, 'La contrasena debe tener al menos 6 caracteres').optional(),
+  nombre: z.string().min(1, 'El nombre es requerido').max(100).optional(),
+  rol: z.enum(['admin', 'operador', 'operador_asignado']).optional(),
+  activo: z.boolean().optional(),
+  verSoloAsignados: z.boolean().optional(),
+  puedeGestionarNovedades: z.boolean().optional(),
+  puedeGestionarOficina: z.boolean().optional(),
+  puedeGestionarPedidos: z.boolean().optional()
+});
+
+const tareaSchema = z.object({
+  titulo: z.string().min(1, 'El titulo es requerido').max(200),
+  descripcion: z.string().optional().nullable(),
+  estado: z.enum(['pendiente', 'en_progreso', 'revision', 'completada', 'cancelada']).optional(),
+  asignadoId: z.string().uuid().optional().nullable(),
+  prioridad: z.enum(['baja', 'media', 'alta', 'urgente']).optional(),
+  fechaVencimiento: z.string().datetime().optional().nullable().or(z.literal(''))
+});
+
+const facturaSchema = z.object({
+  numero: z.string().min(1, 'El numero de factura es requerido').max(50),
+  clienteNombre: z.string().min(1, 'El nombre del cliente es requerido').max(100),
+  clienteDocumento: z.string().max(30).optional().nullable(),
+  clienteDireccion: z.string().max(200).optional().nullable(),
+  clienteTelefono: z.string().max(20).optional().nullable(),
+  items: z.string().min(1, 'Los items son requeridos'),
+  subtotal: z.union([z.string(), z.number()]).transform(v => parseFloat(v) || 0),
+  iva: z.union([z.string(), z.number()]).transform(v => parseFloat(v) || 0).optional(),
+  total: z.union([z.string(), z.number()]).transform(v => parseFloat(v) || 0),
+  estado: z.enum(['pendiente', 'pagada', 'anulada']).optional(),
+  notas: z.string().optional().nullable()
+});
+
+const garantiaSchema = z.object({
+  producto: z.string().min(1, 'El producto es requerido').max(200),
+  descripcion: z.string().min(1, 'La descripcion es requerida'),
+  emailCliente: z.string().email('Email invalido').optional().nullable().or(z.literal('')),
+  telefonoCliente: z.string().max(20).optional().nullable().or(z.literal('')),
+  fotos: z.string().optional().nullable(),
+  videoUrl: z.string().optional().nullable()
+});
+
+const garantiaRegistroSchema = z.object({
+  producto: z.string().min(1).max(200),
+  descripcion: z.string().min(1),
+  emailCliente: z.string().email().optional().nullable().or(z.literal('')),
+  telefonoCliente: z.string().max(20).optional().nullable().or(z.literal(''))
+});
+
 module.exports = {
   validateBody,
   validateParams,
@@ -143,5 +206,11 @@ module.exports = {
   bulkDeleteSchema,
   transferirSchema,
   changePasswordSchema,
-  chatSchema
+  chatSchema,
+  usuarioSchema,
+  usuarioUpdateSchema,
+  tareaSchema,
+  facturaSchema,
+  garantiaSchema,
+  garantiaRegistroSchema
 };

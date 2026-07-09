@@ -1,13 +1,14 @@
 const jwt = require('jsonwebtoken');
 const { validateKey } = require('../controllers/apikey.controller');
 const { prisma } = require('../prisma/client');
+const { sendError } = require('../utils/response');
 
 const authMiddleware = async (req, res, next) => {
   try {
     const authHeader = req.headers.authorization;
 
     if (!authHeader) {
-      return res.status(401).json({ error: 'Token no proporcionado' });
+      return sendError(res, 401, 'AUTH_REQUIRED', 'Token no proporcionado');
     }
 
     if (authHeader.startsWith('Bearer ')) {
@@ -18,7 +19,7 @@ const authMiddleware = async (req, res, next) => {
         where: { token, activa: true }
       });
       if (!sesion) {
-        return res.status(401).json({ error: 'Sesión inválida o expirada' });
+        return sendError(res, 401, 'SESSION_EXPIRED', 'Sesion invalida o expirada');
       }
 
       req.usuario = decoded;
@@ -30,21 +31,30 @@ const authMiddleware = async (req, res, next) => {
       const clave = authHeader.split(' ')[1];
       const apiKey = await validateKey(clave);
       if (!apiKey) {
-        return res.status(401).json({ error: 'API Key inválida o inactiva' });
+        return sendError(res, 401, 'APIKEY_INVALID', 'API Key invalida o inactiva');
       }
       const adminUser = await prisma.usuario.findFirst({
         where: { rol: 'admin', activo: true },
         select: { id: true, email: true, rol: true }
       });
-      req.usuario = adminUser || { id: 'api-key', email: 'apikey@system', rol: 'admin' };
+      if (!adminUser) {
+        return sendError(res, 500, 'NO_ADMIN', 'No hay administrador activo en el sistema. Contacte al soporte.');
+      }
+      req.usuario = adminUser;
       req.apiKey = apiKey;
       req.authType = 'apikey';
       return next();
     }
 
-    return res.status(401).json({ error: 'Formato de autenticación no válido' });
+    return sendError(res, 401, 'AUTH_INVALID_FORMAT', 'Formato de autenticacion no valido');
   } catch (error) {
-    return res.status(401).json({ error: 'Token inválido o expirado' });
+    if (error.name === 'TokenExpiredError') {
+      return sendError(res, 401, 'TOKEN_EXPIRED', 'El token ha expirado. Inicie sesion nuevamente.');
+    }
+    if (error.name === 'JsonWebTokenError' || error.name === 'NotBeforeError') {
+      return sendError(res, 401, 'TOKEN_INVALID', 'Token invalido. Inicie sesion nuevamente.');
+    }
+    return sendError(res, 401, 'AUTH_FAILED', 'Error de autenticacion');
   }
 };
 
