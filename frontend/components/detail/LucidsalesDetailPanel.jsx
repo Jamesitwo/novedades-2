@@ -649,16 +649,18 @@ export default function LucidsalesDetailPanel({ id, ids, currentIndex, onClose, 
                           );
                         })}
                         {validacion.here?.exito && validacion.here.lat && validacion.here.lng && (
-                          <div style={{ marginTop: 8, borderRadius: 6, overflow: 'hidden', border: '1px solid var(--border)' }}>
-                            <img
-                              src={`https://staticmap.openstreetmap.de/staticmap.php?center=${validacion.here.lat},${validacion.here.lng}&zoom=17&size=400x200&markers=${validacion.here.lat},${validacion.here.lng},red-pushpin`}
-                              alt="Mapa de la direccion"
-                              style={{ width: '100%', display: 'block' }}
+                          <div style={{ marginTop: 8, borderRadius: 6, overflow: 'hidden', border: '1px solid var(--border)', background: '#e5e3df' }}>
+                            <iframe
+                              src={`https://www.openstreetmap.org/export/embed.html?bbox=${validacion.here.lng - 0.005},${validacion.here.lat - 0.0025},${validacion.here.lng + 0.005},${validacion.here.lat + 0.0025}&layer=mapnik&marker=${validacion.here.lat},${validacion.here.lng}`}
+                              width="100%"
+                              height="200"
+                              style={{ border: 'none', display: 'block' }}
+                              title="Mapa de la direccion"
                             />
                             <a href={`https://www.google.com/maps?q=${validacion.here.lat},${validacion.here.lng}`}
                               target="_blank" rel="noopener noreferrer"
                               style={{ display: 'block', textAlign: 'center', padding: '6px 0', fontSize: 10, color: 'var(--accent)', textDecoration: 'none', background: 'var(--bg3)' }}>
-                              📍 Ver en Google Maps ↗
+                              📍 Abrir en Google Maps ↗
                             </a>
                           </div>
                         )}
