@@ -168,21 +168,25 @@ const productosStock = async (req, res) => {
     const requested = productIds.filter(id => idToDropi[id]);
     for (let i = 0; i < requested.length; i += BATCH_SIZE) {
       const batch = requested.slice(i, i + BATCH_SIZE);
-      const results = await Promise.allSettled(batch.map(async (productoId) => {
-        const dropiId = idToDropi[productoId];
-        const result = await lucidsalesService.validateDropiId(dropiId);
-        return { productoId, stock: result?.product?.stock ?? null };
+      const results = await Promise.all(batch.map(async (productoId) => {
+        try {
+          const dropiId = idToDropi[productoId];
+          const result = await lucidsalesService.validateDropiId(dropiId);
+          if (result?.error) {
+            return { productoId, ok: false, error: result.error };
+          }
+          return { productoId, ok: true, stock: result?.product?.stock ?? null };
+        } catch (err) {
+          return { productoId, ok: false, error: err.message || 'Error Dropi' };
+        }
       }));
 
       results.forEach(r => {
-        if (r.status === 'fulfilled') {
-          const s = r.value.stock;
-          stockMap[r.value.productoId] = s !== undefined && s !== null ? Number(s) : null;
+        if (r.ok) {
+          stockMap[r.productoId] = r.stock !== undefined && r.stock !== null ? Number(r.stock) : null;
         } else {
-          stockMap[(r.reason?.productoId) || batch[0]] = null;
-          if (r.reason?.productoId) {
-            errorsMap[r.reason.productoId] = r.reason?.message || 'Error Dropi';
-          }
+          stockMap[r.productoId] = null;
+          errorsMap[r.productoId] = r.error;
         }
       });
 
