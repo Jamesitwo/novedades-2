@@ -164,46 +164,29 @@ const productosStock = async (req, res) => {
       }
     });
 
-    const fetchWithRetry = async (dropiId, retries = 2) => {
-      for (let attempt = 0; attempt <= retries; attempt++) {
-        try {
-          const result = await lucidsalesService.validateDropiId(dropiId);
-          return { ok: true, stock: result?.product?.stock ?? null };
-        } catch (err) {
-          if (attempt < retries) {
-            await new Promise(r => setTimeout(r, (attempt + 1) * 1000));
-          } else {
-            return { ok: false, error: err.message };
-          }
-        }
-      }
-    };
-
-    const batchSize = 3;
+    const BATCH_SIZE = 3;
     const requested = productIds.filter(id => idToDropi[id]);
-    for (let i = 0; i < requested.length; i += batchSize) {
-      const batch = requested.slice(i, i + batchSize);
+    for (let i = 0; i < requested.length; i += BATCH_SIZE) {
+      const batch = requested.slice(i, i + BATCH_SIZE);
       const results = await Promise.allSettled(batch.map(async (productoId) => {
         const dropiId = idToDropi[productoId];
-        const res = await fetchWithRetry(dropiId);
-        return { productoId, stock: res.stock, error: res.error };
+        const result = await lucidsalesService.validateDropiId(dropiId);
+        return { productoId, stock: result?.product?.stock ?? null };
       }));
 
       results.forEach(r => {
-        if (r.status === 'fulfilled' && r.value) {
-          const { productoId, stock, error } = r.value;
-          if (error) {
-            errorsMap[productoId] = error;
-          }
-          stockMap[productoId] = stock !== undefined ? Number(stock) : null;
+        if (r.status === 'fulfilled') {
+          const s = r.value.stock;
+          stockMap[r.value.productoId] = s !== undefined && s !== null ? Number(s) : null;
         } else {
-          const fallbackId = r.value?.productoId || batch[0];
-          stockMap[fallbackId] = null;
-          errorsMap[fallbackId] = 'Error de conexion con Dropi';
+          stockMap[(r.reason?.productoId) || batch[0]] = null;
+          if (r.reason?.productoId) {
+            errorsMap[r.reason.productoId] = r.reason?.message || 'Error Dropi';
+          }
         }
       });
 
-      if (i + batchSize < requested.length) {
+      if (i + BATCH_SIZE < requested.length) {
         await new Promise(r => setTimeout(r, 500));
       }
     }
