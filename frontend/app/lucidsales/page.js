@@ -211,7 +211,7 @@ export default function LucidSalesPage() {
             {pedidosHoy > 0 && (
               <span style={{
                 background: 'var(--accent2)', color: '#fff',
-                padding: '2px 10px', borderRadius: 12, fontSize: 11, fontWeight: 600
+                padding: '3px 12px', borderRadius: 12, fontSize: 12, fontWeight: 600
               }}>
                 Tú: +{pedidosHoy} hoy
               </span>
