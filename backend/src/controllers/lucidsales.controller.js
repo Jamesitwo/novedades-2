@@ -309,6 +309,15 @@ const vincularYActualizar = async (req, res) => {
 
     console.log(`[LucidSales] vincularYActualizar: id=${lucidsalesPedidoId} campos=`, Object.keys(camposFiltrados));
 
+    if (camposFiltrados.Total !== undefined) {
+      const raw = Number(camposFiltrados.Total);
+      const redondeado = Math.ceil(raw / 1000) * 1000;
+      if (redondeado !== raw) {
+        camposFiltrados.Total = redondeado;
+        console.log(`[LucidSales] Total redondeado: ${raw} → ${redondeado}`);
+      }
+    }
+
     let pedidoBase;
     try {
       pedidoBase = await lucidsalesService.crearVinculacion(lucidsalesPedidoId);
