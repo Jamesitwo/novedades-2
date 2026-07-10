@@ -43,12 +43,12 @@ const getNextOperador = async (tabla) => {
     return counts[0].op.id;
   }
 
-  const ultimoIndice = config.ultimo_indice_round_robin || 0;
-  const siguienteIndice = (ultimoIndice + 1) % activos.length;
-  await prisma.configuracion.update({
-    where: { id: config.id },
-    data: { ultimo_indice_round_robin: siguienteIndice }
-  });
+  const [result] = await prisma.$queryRawUnsafe(
+    `UPDATE "Configuracion" SET "ultimo_indice_round_robin" = (("ultimo_indice_round_robin" + 1) % $1) WHERE "id" = $2 RETURNING "ultimo_indice_round_robin"`,
+    activos.length,
+    config.id
+  );
+  const siguienteIndice = result.ultimo_indice_round_robin;
   const idx = siguienteIndice === 0 ? activos.length - 1 : siguienteIndice - 1;
   return activos[idx].id;
 };
