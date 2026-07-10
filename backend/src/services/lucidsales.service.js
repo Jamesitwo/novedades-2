@@ -1,7 +1,11 @@
 const { prisma } = require('../prisma/client');
+const { cached } = require('../utils/cache');
 
 const BASE_URL = 'https://panel.lucidsales.co/b';
 const FETCH_TIMEOUT_MS = 30_000;
+
+const CACHE_PRODUCTOS_MS = 5 * 60 * 1000;
+const CACHE_DROPI_MS = 15 * 60 * 1000;
 
 let tokenCache = null;
 let tokenExpires = null;
@@ -288,11 +292,11 @@ async function validateAddress(direccion, ciudad, departamento, pais = 47) {
   }, token);
 }
 
-async function getProductos() {
+const getProductos = cached(async () => {
   const config = await getConfig();
   const { token, shopId } = await authenticate(config);
   return apiPost('/productos/getproductos', { idEmpresa: shopId }, token);
-}
+}, CACHE_PRODUCTOS_MS);
 
 async function getProductoIndividual(productoId) {
   const config = await getConfig();
@@ -300,11 +304,11 @@ async function getProductoIndividual(productoId) {
   return apiGet(`/productos/getproducto/${productoId}`, token);
 }
 
-async function validateDropiId(dropiProductId) {
+const validateDropiId = cached(async (dropiProductId) => {
   const config = await getConfig();
   const { token } = await authenticate(config);
   return apiGet(`/productos/validateDropiId/${dropiProductId}`, token);
-}
+}, CACHE_DROPI_MS, (id) => `dropi_${id}`);
 
 async function getFiltersData() {
   const config = await getConfig();
@@ -348,6 +352,8 @@ function clearTokenCache() {
   tokenCache = null;
   tokenExpires = null;
   shopIdCache = null;
+  const { clearCache } = require('../utils/cache');
+  clearCache();
 }
 
 function getCiudadesLocales(deptoId) {

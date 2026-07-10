@@ -215,17 +215,6 @@ export default function LucidsalesDetailPanel({ id, ids, currentIndex, onClose, 
             const map = {};
             prodList.forEach(p => { const key = p.id ?? p.Id; const name = p.nombre || p.name || p.Nombre || p.nombreProducto || ''; if (key != null) map[String(key)] = name; });
             setProductosMap(map);
-
-            const productIds = [...new Set(parseJson(pedidoData.Json).map(p => String(p.product_id)).filter(Boolean))];
-            if (productIds.length > 0) {
-              try {
-                const stockRes = await api.post('/api/lucidsales/productos-stock', { productIds });
-                if (stockRes.data?.ok && stockRes.data.stock) {
-                  setProductosStock(stockRes.data.stock);
-                  if (stockRes.data.errors) setStockErrors(stockRes.data.errors);
-                }
-              } catch {}
-            }
           }
         } else if (pedidoData && pedidoData.error) {
           setError(pedidoData.error);
@@ -241,6 +230,21 @@ export default function LucidsalesDetailPanel({ id, ids, currentIndex, onClose, 
     fetchData();
     return () => { cancelled = true; };
   }, [currentId]);
+
+  useEffect(() => {
+    if (!pedido) return;
+    const productIds = [...new Set(parseJson(pedido.Json).map(p => String(p.product_id)).filter(Boolean))];
+    if (productIds.length === 0) return;
+    (async () => {
+      try {
+        const stockRes = await api.post('/api/lucidsales/productos-stock', { productIds });
+        if (stockRes.data?.ok && stockRes.data.stock) {
+          setProductosStock(stockRes.data.stock);
+          if (stockRes.data.errors) setStockErrors(stockRes.data.errors);
+        }
+      } catch {}
+    })();
+  }, [pedido?.id]);
 
   useEffect(() => {
     api.get('/api/etiquetas').then(({ data }) => { if (Array.isArray(data)) setTodasEtiquetas(data); }).catch(() => {});
