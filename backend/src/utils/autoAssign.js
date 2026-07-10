@@ -15,11 +15,18 @@ const getNextOperador = async (tabla) => {
   const operadoresIncluidos = JSON.parse(config.operadores_incluidos || '[]');
   if (operadoresIncluidos.length === 0) return null;
 
+  const permissionMap = {
+    novedades: 'gestionaNovedades',
+    oficina: 'gestionaOficina',
+    lucidsales: 'gestionaPedidos'
+  };
+
   const activos = await prisma.usuario.findMany({
     where: {
       id: { in: operadoresIncluidos },
       activo: true,
-      rol: { in: ['operador', 'operador_asignado'] }
+      rol: { in: ['operador', 'operador_asignado'] },
+      [permissionMap[tabla]]: true
     }
   });
 
