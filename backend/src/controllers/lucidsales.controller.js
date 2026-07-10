@@ -299,7 +299,7 @@ const vincularYActualizar = async (req, res) => {
       return res.status(400).json({ error: 'lucidsalesPedidoId es requerido' });
     }
 
-    const camposPermitidos = ['Nombre','Apellido','Movil','Direccion','Referencias','Total','SubTotal','CostoEnvio','Correo','NIT','Ciudad','Departamento','Pais','EstadoPedido','codigoPostal','logistic'];
+    const camposPermitidos = ['Nombre','Apellido','Movil','Direccion','Referencias','Total','SubTotal','CostoEnvio','Correo','NIT','Ciudad','Departamento','Pais','EstadoPedido','codigoPostal','logistic','Json'];
     const camposFiltrados = {};
     for (const [k, v] of Object.entries(camposActualizar)) {
       if (camposPermitidos.includes(k) && v !== undefined) {
@@ -323,6 +323,26 @@ const vincularYActualizar = async (req, res) => {
     } catch (err) {
       console.error('[LucidSales] vincularYActualizar getPedidoById FAIL:', err.message);
       return res.status(500).json({ error: 'Error al obtener pedido de LucidSales: ' + err.message });
+    }
+
+    // Si solo cambia Total (sin SubTotal ni CostoEnvio), distribuir entre productos
+    if (camposFiltrados.Total !== undefined && camposFiltrados.SubTotal === undefined && camposFiltrados.CostoEnvio === undefined) {
+      let items = [];
+      try {
+        items = typeof pedidoCompleto.Json === 'string' ? JSON.parse(pedidoCompleto.Json) : (pedidoCompleto.Json || []);
+      } catch { items = []; }
+      const costoEnvio = Number(pedidoCompleto.CostoEnvio || 0);
+      const totalNuevo = Number(camposFiltrados.Total);
+      const subTotalNuevo = Math.max(0, totalNuevo - costoEnvio);
+      const subTotalAnterior = items.reduce((sum, p) => sum + Number(p.price || 0) * Number(p.quantity || 1), 0);
+
+      if (subTotalAnterior > 0 && items.length > 0) {
+        const ratio = subTotalNuevo / subTotalAnterior;
+        items.forEach(p => { p.price = Math.round(Number(p.price || 0) * ratio); });
+        camposFiltrados.Json = JSON.stringify(items);
+        camposFiltrados.SubTotal = String(subTotalNuevo);
+        camposFiltrados.CostoEnvio = String(costoEnvio);
+      }
     }
 
     const pedidoActualizado = { ...pedidoCompleto, ...camposFiltrados };
@@ -356,7 +376,31 @@ const vincularYActualizar = async (req, res) => {
       console.error('[LucidSales] vincularYActualizar guardarVinculacionLocal FAIL:', err.message);
     }
 
-    res.json({ ok: true, pedido: pedidoBase, actualizado: true });
+    // Verificar que el update se aplico realmente
+    let pedidoVerificado = null;
+    let totalVerificado = null;
+    try {
+      pedidoVerificado = await lucidsalesService.getPedidoById(lucidsalesPedidoId);
+      totalVerificado = pedidoVerificado?.Total;
+    } catch {}
+
+    if (camposFiltrados.Total !== undefined && totalVerificado !== undefined) {
+      const esperado = String(Number(camposFiltrados.Total));
+      const recibido = String(Number(totalVerificado));
+      if (esperado !== recibido) {
+        console.warn(`[LucidSales] Total NO se actualizo. Esperado: ${esperado}, Recibido: ${recibido}`);
+      }
+    }
+
+    res.json({
+      ok: true,
+      pedido: pedidoBase,
+      actualizado: true,
+      ...(totalVerificado !== undefined && {
+        totalAnterior: pedidoCompleto.Total,
+        totalVerificado
+      })
+    });
   } catch (error) {
     console.error('LucidSales vincularYActualizar error:', error);
     res.status(500).json({ error: error.message || 'Error al vincular y actualizar pedido' });
