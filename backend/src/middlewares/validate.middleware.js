@@ -146,9 +146,10 @@ const usuarioUpdateSchema = z.object({
   rol: z.enum(['admin', 'operador', 'operador_asignado']).optional(),
   activo: z.boolean().optional(),
   verSoloAsignados: z.boolean().optional(),
-  puedeGestionarNovedades: z.boolean().optional(),
-  puedeGestionarOficina: z.boolean().optional(),
-  puedeGestionarPedidos: z.boolean().optional()
+  accesoLucidsales: z.boolean().optional(),
+  gestionaNovedades: z.boolean().optional(),
+  gestionaOficina: z.boolean().optional(),
+  gestionaPedidos: z.boolean().optional()
 });
 
 const tareaSchema = z.object({

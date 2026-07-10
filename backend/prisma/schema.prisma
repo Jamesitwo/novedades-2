@@ -18,6 +18,7 @@ model Usuario {
   accesoLucidsales  Boolean  @default(false) @map("acceso_lucidsales")
   gestionaNovedades Boolean  @default(true) @map("gestiona_novedades")
   gestionaOficina   Boolean  @default(true) @map("gestiona_oficina")
+  gestionaPedidos   Boolean  @default(false) @map("gestiona_pedidos")
   createdAt         DateTime @default(now())
   updatedAt         DateTime @updatedAt
 

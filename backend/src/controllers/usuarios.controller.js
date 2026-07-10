@@ -85,15 +85,19 @@ const create = async (req, res) => {
 const update = async (req, res) => {
   try {
     const { id } = req.params;
-    const { nombre, email, rol, activo, password, verSoloAsignados } = req.body;
+    const { nombre, email, rol, activo, password, verSoloAsignados, accesoLucidsales, gestionaNovedades, gestionaOficina, gestionaPedidos } = req.body;
 
-    if (rol && !['admin', 'operador'].includes(rol)) {
+    if (rol && !['admin', 'operador', 'operador_asignado'].includes(rol)) {
       return res.status(400).json({ error: 'Rol no válido' });
     }
 
     const data = { nombre, email, rol, activo };
     if (password) data.password = await bcrypt.hash(password, 10);
     if (verSoloAsignados !== undefined) data.verSoloAsignados = verSoloAsignados;
+    if (accesoLucidsales !== undefined) data.accesoLucidsales = accesoLucidsales;
+    if (gestionaNovedades !== undefined) data.gestionaNovedades = gestionaNovedades;
+    if (gestionaOficina !== undefined) data.gestionaOficina = gestionaOficina;
+    if (gestionaPedidos !== undefined) data.gestionaPedidos = gestionaPedidos;
 
     const usuario = await prisma.usuario.update({
       where: { id },
@@ -104,6 +108,11 @@ const update = async (req, res) => {
         email: true,
         rol: true,
         activo: true,
+        accesoLucidsales: true,
+        gestionaNovedades: true,
+        gestionaOficina: true,
+        gestionaPedidos: true,
+        verSoloAsignados: true,
         createdAt: true
       }
     });

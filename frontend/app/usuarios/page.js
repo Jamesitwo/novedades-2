@@ -10,7 +10,7 @@ export default function UsuariosPage() {
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
   const [editingUser, setEditingUser] = useState(null);
-  const [formData, setFormData] = useState({ nombre: '', email: '', password: '', rol: 'operador', accesoLucidsales: false, gestionaNovedades: true, gestionaOficina: true });
+  const [formData, setFormData] = useState({ nombre: '', email: '', password: '', rol: 'operador', accesoLucidsales: false, gestionaNovedades: true, gestionaOficina: true, gestionaPedidos: false });
   const [error, setError] = useState('');
 
   const fetchUsuarios = async () => {
@@ -30,14 +30,14 @@ export default function UsuariosPage() {
 
   const openCreateModal = () => {
     setEditingUser(null);
-    setFormData({ nombre: '', email: '', password: '', rol: 'operador', accesoLucidsales: false, gestionaNovedades: true, gestionaOficina: true });
+    setFormData({ nombre: '', email: '', password: '', rol: 'operador', accesoLucidsales: false, gestionaNovedades: true, gestionaOficina: true, gestionaPedidos: false });
     setError('');
     setShowModal(true);
   };
 
   const openEditModal = (usuario) => {
     setEditingUser(usuario);
-    setFormData({ nombre: usuario.nombre, email: usuario.email, password: '', rol: usuario.rol, accesoLucidsales: usuario.accesoLucidsales || false, gestionaNovedades: usuario.gestionaNovedades !== false, gestionaOficina: usuario.gestionaOficina !== false });
+    setFormData({ nombre: usuario.nombre, email: usuario.email, password: '', rol: usuario.rol, accesoLucidsales: usuario.accesoLucidsales || false, gestionaNovedades: usuario.gestionaNovedades !== false, gestionaOficina: usuario.gestionaOficina !== false, gestionaPedidos: usuario.gestionaPedidos || false });
     setError('');
     setShowModal(true);
   };
@@ -100,6 +100,7 @@ export default function UsuariosPage() {
               <th>LucidSales</th>
               <th>Novedades</th>
               <th>Oficina</th>
+              <th>Pedidos</th>
               <th>Visibilidad</th>
               <th></th>
             </tr>
@@ -128,6 +129,11 @@ export default function UsuariosPage() {
                 <td>
                   <span className={`badge ${usuario.gestionaOficina !== false ? 'activo' : 'inactivo'}`} style={{ fontSize: 11 }}>
                     {usuario.gestionaOficina !== false ? 'Sí' : 'No'}
+                  </span>
+                </td>
+                <td>
+                  <span className={`badge ${usuario.gestionaPedidos ? 'activo' : 'inactivo'}`} style={{ fontSize: 11 }}>
+                    {usuario.gestionaPedidos ? 'Sí' : 'No'}
                   </span>
                 </td>
                 <td>
@@ -270,6 +276,21 @@ export default function UsuariosPage() {
                     }} />
                   </span>
                   <input type="checkbox" checked={formData.accesoLucidsales} onChange={(e) => setFormData({ ...formData, accesoLucidsales: e.target.checked })} style={{ display: 'none' }} />
+                </label>
+
+                <label style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', cursor: 'pointer', padding: '8px 12px', borderRadius: 8, background: formData.gestionaPedidos ? 'rgba(34,197,94,0.08)' : 'var(--bg3)', border: '1px solid var(--border)' }}>
+                  <span style={{ fontSize: 13, fontWeight: 500 }}>📋 Gestiona Pedidos</span>
+                  <span style={{
+                    width: 40, height: 22, borderRadius: 11, background: formData.gestionaPedidos ? 'var(--green)' : 'var(--bg4)',
+                    position: 'relative', transition: 'background 0.2s', flexShrink: 0
+                  }}>
+                    <span style={{
+                      position: 'absolute', top: 2, left: formData.gestionaPedidos ? 20 : 2,
+                      width: 18, height: 18, borderRadius: '50%', background: '#fff',
+                      transition: 'left 0.2s', boxShadow: '0 1px 3px rgba(0,0,0,0.3)'
+                    }} />
+                  </span>
+                  <input type="checkbox" checked={formData.gestionaPedidos} onChange={(e) => setFormData({ ...formData, gestionaPedidos: e.target.checked })} style={{ display: 'none' }} />
                 </label>
               </div>
 
