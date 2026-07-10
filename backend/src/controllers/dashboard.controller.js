@@ -703,6 +703,82 @@ const getMetricasLucidsales = async (req, res) => {
   }
 };
 
-module.exports = { getResumen, getHoy, getChartData, getRendimientoOperadores, getMetricasOperadores, getTiempoActivo,   getResumenDiario,
-  getMetricasLucidsales
+const getPedidosSubidos = async (req, res) => {
+  try {
+    const { periodo = 'hoy', fechaDesde, fechaHasta } = req.query;
+    const { start, end } = getDateRange(periodo, fechaDesde, fechaHasta);
+
+    const whereDate = start ? { createdAt: { gte: start, lte: end } } : {};
+
+    let operadores;
+    if (req.usuario.rol === 'admin') {
+      operadores = await prisma.usuario.findMany({
+        where: { activo: true },
+        select: { id: true, nombre: true, rol: true }
+      });
+    } else {
+      operadores = [req.usuario];
+    }
+
+    const pedidosOperador = await Promise.all(operadores.map(async (op) => {
+      const pedidosIds = await prisma.pedidoVinculado.findMany({
+        where: { ...whereDate, createdById: op.id, estado: 'activo' },
+        select: { lucidsalesPedidoId: true }
+      });
+      const ids = pedidosIds.map(p => p.lucidsalesPedidoId);
+
+      const pedidosSubidos = pedidosIds.length;
+
+      let novedadesCreadas = 0;
+      let devolucionesNovedad = 0;
+      let devolucionesOficina = 0;
+
+      if (ids.length > 0) {
+        [novedadesCreadas, devolucionesNovedad, devolucionesOficina] = await Promise.all([
+          prisma.pedidoNovedad.count({
+            where: {
+              pedidoVinculadoId: { in: ids },
+              estado: { notIn: ['solucionado', 'cancelado'] }
+            }
+          }),
+          prisma.pedidoNovedad.count({
+            where: { pedidoVinculadoId: { in: ids }, estado: 'devolucion' }
+          }),
+          prisma.pedidoOficina.count({
+            where: { pedidoVinculadoId: { in: ids }, estado: 'devolucion' }
+          })
+        ]);
+      }
+
+      return {
+        operadorId: op.id,
+        operador: op.nombre,
+        rol: op.rol,
+        pedidosSubidos,
+        novedadesCreadas,
+        devoluciones: devolucionesNovedad + devolucionesOficina
+      };
+    }));
+
+    const totalPedidos = pedidosOperador.reduce((sum, m) => sum + m.pedidosSubidos, 0);
+    const totalNovedades = pedidosOperador.reduce((sum, m) => sum + m.novedadesCreadas, 0);
+    const totalDevoluciones = pedidosOperador.reduce((sum, m) => sum + m.devoluciones, 0);
+
+    res.json({
+      periodo,
+      desde: start,
+      hasta: end,
+      totalPedidos,
+      totalNovedades,
+      totalDevoluciones,
+      operadores: pedidosOperador.sort((a, b) => b.pedidosSubidos - a.pedidosSubidos)
+    });
+  } catch (error) {
+    console.error('Get pedidos subidos error:', error);
+    res.status(500).json({ error: 'Error en el servidor' });
+  }
+};
+
+module.exports = { getResumen, getHoy, getChartData, getRendimientoOperadores, getMetricasOperadores, getTiempoActivo, getResumenDiario,
+  getMetricasLucidsales, getPedidosSubidos
 };

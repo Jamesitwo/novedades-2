@@ -47,20 +47,31 @@ export default function DashboardPage() {
   const { usuario } = useAuthStore();
   const [data, setData] = useState(null);
   const [chartData, setChartData] = useState(null);
+  const [pedidosHoy, setPedidosHoy] = useState(null);
   const [loading, setLoading] = useState(true);
   const [periodo, setPeriodo] = useState('mes');
   const [chartDays, setChartDays] = useState(30);
 
+  const fetchPedidosSubidos = async () => {
+    if (!usuario) return;
+    try {
+      const res = await api.get('/api/dashboard/pedidos-subidos?periodo=hoy');
+      setPedidosHoy(res.data);
+    } catch {}
+  };
+
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const [dashRes, vencRes, chartRes] = await Promise.all([
+        const [dashRes, vencRes, chartRes, pedidosRes] = await Promise.all([
           api.get(`/api/dashboard/resumen?periodo=${periodo}`),
           api.get('/api/oficina/vencimientos'),
-          api.get(`/api/dashboard/chart?dias=${chartDays}`)
+          api.get(`/api/dashboard/chart?dias=${chartDays}`),
+          api.get('/api/dashboard/pedidos-subidos?periodo=hoy')
         ]);
         setData({ ...dashRes.data, vencimientos: vencRes.data });
         setChartData(chartRes.data);
+        setPedidosHoy(pedidosRes.data);
       } catch (error) {
         console.error('Error fetching dashboard:', error);
       } finally {
@@ -68,19 +79,21 @@ export default function DashboardPage() {
       }
     };
     fetchData();
-  }, [periodo, chartDays]);
+  }, [periodo, chartDays, usuario]);
 
   useEffect(() => {
     return on('dashboard:refresh', () => {
       const fetchData = async () => {
         try {
-          const [dashRes, vencRes, chartRes] = await Promise.all([
+          const [dashRes, vencRes, chartRes, pedidosRes] = await Promise.all([
             api.get(`/api/dashboard/resumen?periodo=${periodo}`),
             api.get('/api/oficina/vencimientos'),
-            api.get(`/api/dashboard/chart?dias=${chartDays}`)
+            api.get(`/api/dashboard/chart?dias=${chartDays}`),
+            api.get('/api/dashboard/pedidos-subidos?periodo=hoy')
           ]);
           setData({ ...dashRes.data, vencimientos: vencRes.data });
           setChartData(chartRes.data);
+          setPedidosHoy(pedidosRes.data);
         } catch {}
       };
       fetchData();
@@ -162,6 +175,21 @@ export default function DashboardPage() {
           <div style={{ fontSize: 11, color: 'var(--text3)', marginTop: 4 }}>{oficina?.total || 0} paquetes en oficina</div>
         </div>
       </div>
+
+      {pedidosHoy && (pedidosHoy.totalPedidos > 0 || (usuario?.rol === 'admin' ? pedidosHoy.operadores?.some(o => o.pedidosSubidos > 0) : pedidosHoy.operadores?.find(o => o.operadorId === usuario?.id)?.pedidosSubidos > 0)) && (
+        <div className="alert-banner" style={{ marginBottom: 20, background: 'var(--bg3)', borderColor: 'var(--accent2)' }}>
+          <span style={{ fontSize: 16, marginRight: 8 }}>📦</span>
+          <span className="alert-text">
+            {usuario?.rol === 'admin'
+              ? <><strong>{pedidosHoy.totalPedidos}</strong> pedidos subidos hoy por <strong>{pedidosHoy.operadores?.filter(o => o.pedidosSubidos > 0).length || 0}</strong> asesores</>
+              : <><strong>{pedidosHoy.operadores?.find(o => o.operadorId === usuario?.id)?.pedidosSubidos || 0}</strong> pedidos subidos hoy</>
+            }
+          </span>
+          {usuario?.rol === 'admin' && (
+            <Link href="/dashboard/metricas?tab=pedidos" style={{ marginLeft: 'auto', color: 'var(--accent2)', fontSize: 12 }}>Ver detalle →</Link>
+          )}
+        </div>
+      )}
 
       {vencimientos && vencimientos.length > 0 && (
         <div className="alert-banner" style={{ marginBottom: 20 }}>

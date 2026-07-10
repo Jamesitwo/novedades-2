@@ -67,7 +67,8 @@ const novedadSchema = z.object({
   notas: z.string().optional().nullable(),
   conversacionLink: z.string().url().optional().nullable().or(z.literal('')),
   chatActivo: z.boolean().optional(),
-  fechaUltimoMsjCliente: z.string().datetime().optional().nullable()
+  fechaUltimoMsjCliente: z.string().datetime().optional().nullable(),
+  pedidoVinculadoId: z.number().int().optional().nullable()
 });
 const oficinaSchema = z.object({
   nombre: z.string().min(1).max(100),
@@ -84,7 +85,8 @@ const oficinaSchema = z.object({
   notasInternas: z.string().optional().nullable(),
   conversacionLink: z.string().url().optional().nullable().or(z.literal('')),
   chatActivo: z.boolean().optional(),
-  fechaUltimoMsjCliente: z.string().datetime().optional().nullable()
+  fechaUltimoMsjCliente: z.string().datetime().optional().nullable(),
+  pedidoVinculadoId: z.number().int().optional().nullable()
 });
 const cambiarEstadoNovedadSchema = z.object({
   estado: z.enum(['novedad', 'contactado', 'solucionado', 'cancelado', 'entregado', 'devolucion'])

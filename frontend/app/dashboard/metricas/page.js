@@ -38,10 +38,12 @@ const SplitBadge = ({ n, o, nLabel, oLabel }) => (
 );
 
 export default function MetricasPage() {
+  const searchParams = useSearchParams();
   const [metricas, setMetricas] = useState(null);
   const [tiempoActivo, setTiempoActivo] = useState(null);
   const [resumenDiario, setResumenDiario] = useState(null);
   const [metricasLucidsales, setMetricasLucidsales] = useState(null);
+  const [pedidosSubidos, setPedidosSubidos] = useState(null);
   const [loading, setLoading] = useState(true);
   const [periodo, setPeriodo] = useState('mes');
   const [fechaDesde, setFechaDesde] = useState('');
@@ -74,7 +76,6 @@ export default function MetricasPage() {
         setMetricas(results[0].data);
         setTiempoActivo(results[1].data);
         setResumenDiario(isCustomRange ? results[2].data : null);
-        setResumenDiario(isCustomRange ? results[2].data : null);
       } catch (error) {
         console.error('Error fetching metricas:', error);
       } finally {
@@ -85,7 +86,16 @@ export default function MetricasPage() {
     api.get(`/api/dashboard/metricas-lucidsales?${isCustomRange ? `fechaDesde=${fechaDesde}&fechaHasta=${fechaHasta}` : `periodo=${periodo}`}`)
       .then(({ data }) => setMetricasLucidsales(data))
       .catch(() => {});
+    api.get(`/api/dashboard/pedidos-subidos?${isCustomRange ? `fechaDesde=${fechaDesde}&fechaHasta=${fechaHasta}` : `periodo=${periodo}`}`)
+      .then(({ data }) => setPedidosSubidos(data))
+      .catch(() => {});
   }, [periodo, fechaDesde, fechaHasta, isCustomRange]);
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const tabParam = params.get('tab');
+    if (tabParam) setTab(tabParam);
+  }, []);
 
   const formatMoney = (amount) => {
     return new Intl.NumberFormat('es-CO', {
@@ -235,6 +245,16 @@ export default function MetricasPage() {
           }}
         >
           Resumen Diario
+        </button>
+        <button
+          onClick={() => setTab('pedidos')}
+          style={{
+            padding: '6px 16px', borderRadius: 6, fontSize: 12, fontWeight: 500, cursor: 'pointer',
+            border: 'none', background: tab === 'pedidos' ? 'var(--accent)' : 'transparent',
+            color: tab === 'pedidos' ? '#fff' : 'var(--text2)', transition: 'all 0.15s'
+          }}
+        >
+          Pedidos
         </button>
         <button
           onClick={() => setTab('lucidsales')}
@@ -694,6 +714,120 @@ export default function MetricasPage() {
                   </div>
                 </div>
               )}
+            </>
+          ) : (
+            <div className="table-card">
+              <TableSkeleton rows={5} columns={5} />
+            </div>
+          )}
+        </>
+      )}
+
+      {tab === 'pedidos' && (
+        <>
+          {pedidosSubidos ? (
+            <>
+              <div className="grid-3" style={{ marginBottom: 16 }}>
+                <div className="stat-card" style={{ borderLeft: '3px solid var(--accent2)' }}>
+                  <div className="stat-label">Pedidos Subidos</div>
+                  <div className="stat-value" style={{ color: 'var(--accent2)' }}>{pedidosSubidos.totalPedidos}</div>
+                </div>
+                <div className="stat-card" style={{ borderLeft: '3px solid var(--amber)' }}>
+                  <div className="stat-label">Se volvieron Novedad</div>
+                  <div className="stat-value" style={{ color: 'var(--amber)' }}>{pedidosSubidos.totalNovedades}</div>
+                </div>
+                <div className="stat-card" style={{ borderLeft: '3px solid var(--red)' }}>
+                  <div className="stat-label">Devoluciones</div>
+                  <div className="stat-value" style={{ color: 'var(--red)' }}>{pedidosSubidos.totalDevoluciones}</div>
+                </div>
+              </div>
+
+              <div className="grid-2" style={{ marginBottom: 16 }}>
+                <div className="table-card">
+                  <div className="table-header">
+                    <span className="table-header-title">Pedidos por Asesor</span>
+                  </div>
+                  <div style={{ padding: '12px 8px 4px 0' }}>
+                    {pedidosSubidos.operadores?.some(o => o.pedidosSubidos > 0) ? (
+                      <ResponsiveContainer width="100%" height={250}>
+                        <BarChart data={pedidosSubidos.operadores.filter(o => o.pedidosSubidos > 0)} layout="vertical" margin={{ left: 10 }}>
+                          <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
+                          <XAxis type="number" tick={{ fontSize: 10, fill: 'var(--text3)' }} allowDecimals={false} />
+                          <YAxis type="category" dataKey="operador" tick={{ fontSize: 11, fill: 'var(--text2)' }} width={100} />
+                          <Tooltip contentStyle={{ background: 'var(--bg2)', border: '1px solid var(--border)', borderRadius: 8, fontSize: 12 }} />
+                          <Bar dataKey="pedidosSubidos" name="Subidos" fill="#818cf8" radius={[0, 3, 3, 0]} />
+                        </BarChart>
+                      </ResponsiveContainer>
+                    ) : (
+                      <div style={{ textAlign: 'center', color: 'var(--text3)', padding: 40 }}>Sin pedidos en este período</div>
+                    )}
+                  </div>
+                </div>
+                <div className="table-card">
+                  <div className="table-header">
+                    <span className="table-header-title">Novedades vs Devoluciones</span>
+                  </div>
+                  <div style={{ padding: '12px 8px 4px 0' }}>
+                    {pedidosSubidos.operadores?.some(o => o.novedadesCreadas > 0 || o.devoluciones > 0) ? (
+                      <ResponsiveContainer width="100%" height={250}>
+                        <BarChart data={pedidosSubidos.operadores.filter(o => o.novedadesCreadas > 0 || o.devoluciones > 0)} layout="vertical" margin={{ left: 10 }}>
+                          <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
+                          <XAxis type="number" tick={{ fontSize: 10, fill: 'var(--text3)' }} allowDecimals={false} />
+                          <YAxis type="category" dataKey="operador" tick={{ fontSize: 11, fill: 'var(--text2)' }} width={100} />
+                          <Tooltip contentStyle={{ background: 'var(--bg2)', border: '1px solid var(--border)', borderRadius: 8, fontSize: 12 }} />
+                          <Bar dataKey="novedadesCreadas" name="Novedades" fill="#f59e0b" radius={[0, 3, 3, 0]} />
+                          <Bar dataKey="devoluciones" name="Devoluciones" fill="#ef4444" radius={[0, 3, 3, 0]} />
+                        </BarChart>
+                      </ResponsiveContainer>
+                    ) : (
+                      <div style={{ textAlign: 'center', color: 'var(--text3)', padding: 40 }}>Sin datos en este período</div>
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              <div className="table-card">
+                <div className="table-header">
+                  <span className="table-header-title">Detalle por Asesor</span>
+                  <span style={{ fontSize: 11, color: 'var(--text3)' }}>
+                    {isCustomRange ? `${fechaDesde} → ${fechaHasta}` : `Período: ${periodo}`}
+                  </span>
+                </div>
+                <div style={{ overflowX: 'auto' }}>
+                  <table>
+                    <thead>
+                      <tr>
+                        <th>Asesor</th>
+                        <th style={{ textAlign: 'center' }}>Pedidos Subidos</th>
+                        <th style={{ textAlign: 'center' }}>Novedades</th>
+                        <th style={{ textAlign: 'center' }}>Devoluciones</th>
+                        <th style={{ textAlign: 'center' }}>Tasa Novedad</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {pedidosSubidos.operadores?.length > 0 ? pedidosSubidos.operadores.map((m, i) => (
+                        <tr key={m.operadorId}>
+                          <td>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                              <span style={{ fontSize: 10, color: i < 3 ? 'var(--accent2)' : 'var(--text3)', fontWeight: 600 }}>{i + 1}</span>
+                              <span className="td-name">{m.operador}</span>
+                              <span style={{ fontSize: 10, color: 'var(--text3)' }}>({m.rol})</span>
+                            </div>
+                          </td>
+                          <td style={{ textAlign: 'center', fontFamily: 'var(--mono)', fontWeight: 600, color: 'var(--accent2)' }}>{m.pedidosSubidos}</td>
+                          <td style={{ textAlign: 'center', fontFamily: 'var(--mono)', color: m.novedadesCreadas > 0 ? 'var(--amber)' : 'var(--text2)' }}>{m.novedadesCreadas}</td>
+                          <td style={{ textAlign: 'center', fontFamily: 'var(--mono)', color: m.devoluciones > 0 ? 'var(--red)' : 'var(--text2)' }}>{m.devoluciones}</td>
+                          <td style={{ textAlign: 'center', fontFamily: 'var(--mono)' }}>
+                            {m.pedidosSubidos > 0 ? `${Math.round((m.novedadesCreadas / m.pedidosSubidos) * 100)}%` : '-'}
+                          </td>
+                        </tr>
+                      )) : (
+                        <tr><td colSpan={5} style={{ textAlign: 'center', color: 'var(--text3)', padding: 24 }}>Sin datos en este período</td></tr>
+                      )}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
             </>
           ) : (
             <div className="table-card">
