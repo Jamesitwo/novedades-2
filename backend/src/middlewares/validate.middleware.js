@@ -141,7 +141,7 @@ const usuarioSchema = z.object({
 
 const usuarioUpdateSchema = z.object({
   email: z.string().email('Email invalido').optional(),
-  password: z.string().min(6, 'La contrasena debe tener al menos 6 caracteres').optional(),
+  password: z.string().min(6, 'La contrasena debe tener al menos 6 caracteres').optional().or(z.literal('')),
   nombre: z.string().min(1, 'El nombre es requerido').max(100).optional(),
   rol: z.enum(['admin', 'operador', 'operador_asignado']).optional(),
   activo: z.boolean().optional(),
