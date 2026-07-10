@@ -25,7 +25,7 @@ const getNextOperador = async (tabla) => {
     where: {
       id: { in: operadoresIncluidos },
       activo: true,
-      rol: { in: ['operador', 'operador_asignado'] },
+      rol: { in: ['admin', 'operador', 'operador_asignado'] },
       [permissionMap[tabla]]: true
     }
   });
