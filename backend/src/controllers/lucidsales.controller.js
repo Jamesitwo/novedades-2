@@ -320,8 +320,8 @@ const vincularYActualizar = async (req, res) => {
 
     let asignadoId = await getNextOperador('lucidsales');
     if (!asignadoId) {
-      const admin = await prisma.usuario.findFirst({ where: { rol: 'admin', activo: true }, select: { id: true } });
-      asignadoId = admin?.id || req.usuario.id;
+      const admin = await prisma.usuario.findFirst({ where: { rol: 'admin', activo: true, gestionaPedidos: true }, select: { id: true } });
+      asignadoId = admin?.id || null;
     }
 
     let pedidoBase;

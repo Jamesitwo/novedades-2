@@ -195,7 +195,7 @@ const create = async (req, res) => {
 
     let asignadoId = await getNextOperador('oficina');
     if (!asignadoId) {
-      const admin = await prisma.usuario.findFirst({ where: { rol: 'admin', activo: true }, select: { id: true } });
+      const admin = await prisma.usuario.findFirst({ where: { rol: 'admin', activo: true, gestionaOficina: true }, select: { id: true } });
       asignadoId = admin?.id || req.usuario.id;
     }
 
