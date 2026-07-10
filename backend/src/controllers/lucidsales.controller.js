@@ -309,9 +309,22 @@ const vincularYActualizar = async (req, res) => {
 
     console.log(`[LucidSales] vincularYActualizar: id=${lucidsalesPedidoId} campos=`, Object.keys(camposFiltrados));
 
-    const pedidoBase = await lucidsalesService.crearVinculacion(lucidsalesPedidoId);
+    let pedidoBase;
+    try {
+      pedidoBase = await lucidsalesService.crearVinculacion(lucidsalesPedidoId);
+    } catch (err) {
+      console.error('[LucidSales] vincularYActualizar crearVinculacion FAIL:', err.message);
+      return res.status(500).json({ error: 'Error al vincular pedido: ' + err.message });
+    }
 
-    const pedidoCompleto = await lucidsalesService.getPedidoById(lucidsalesPedidoId);
+    let pedidoCompleto;
+    try {
+      pedidoCompleto = await lucidsalesService.getPedidoById(lucidsalesPedidoId);
+    } catch (err) {
+      console.error('[LucidSales] vincularYActualizar getPedidoById FAIL:', err.message);
+      return res.status(500).json({ error: 'Error al obtener pedido de LucidSales: ' + err.message });
+    }
+
     const pedidoActualizado = { ...pedidoCompleto, ...camposFiltrados };
 
     if (notas) {
@@ -321,19 +334,27 @@ const vincularYActualizar = async (req, res) => {
           ? JSON.parse(pedidoCompleto.Observaciones)
           : (pedidoCompleto.Observaciones || []);
       } catch { observaciones = []; }
-      observaciones.push({
-        desc: notas,
-        update: new Date().toISOString()
-      });
+      observaciones.push({ desc: notas, update: new Date().toISOString() });
       pedidoActualizado.Observaciones = JSON.stringify(observaciones);
     }
 
-    const updateResult = await lucidsalesService.updatePedido(pedidoActualizado);
+    let updateResult;
+    try {
+      updateResult = await lucidsalesService.updatePedido(pedidoActualizado);
+    } catch (err) {
+      console.error('[LucidSales] vincularYActualizar updatePedido FAIL:', err.message);
+      return res.status(500).json({ error: 'Error al actualizar pedido en LucidSales: ' + err.message });
+    }
+
     if (updateResult && updateResult.ok === false) {
       return res.status(400).json({ error: updateResult.msg || updateResult.error || 'Error al actualizar en LucidSales' });
     }
 
-    await lucidsalesService.guardarVinculacionLocal(lucidsalesPedidoId, pedidoActualizado);
+    try {
+      await lucidsalesService.guardarVinculacionLocal(lucidsalesPedidoId, pedidoActualizado);
+    } catch (err) {
+      console.error('[LucidSales] vincularYActualizar guardarVinculacionLocal FAIL:', err.message);
+    }
 
     res.json({ ok: true, pedido: pedidoBase, actualizado: true });
   } catch (error) {
