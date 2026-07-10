@@ -311,8 +311,8 @@ const vincularYActualizar = async (req, res) => {
 
     if (camposFiltrados.Total !== undefined) {
       const raw = Number(camposFiltrados.Total);
-      const redondeado = Math.ceil(raw / 1000) * 1000;
-      if (redondeado !== raw) {
+      if (raw % 1000 === 900) {
+        const redondeado = raw + 100;
         camposFiltrados.Total = redondeado;
         console.log(`[LucidSales] Total redondeado: ${raw} → ${redondeado}`);
       }
