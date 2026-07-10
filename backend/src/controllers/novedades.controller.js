@@ -610,7 +610,7 @@ const duplicar = async (req, res) => {
         estado: 'novedad',
         favorito: false,
         createdById: req.usuario.id,
-        asignadoId: null
+        asignadoId: await getNextOperador('novedades') || null
       },
       include: {
         createdBy: { select: { id: true, nombre: true } },

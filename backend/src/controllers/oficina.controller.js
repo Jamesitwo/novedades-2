@@ -652,7 +652,7 @@ const duplicar = async (req, res) => {
         notasInternas: original.notasInternas,
         favorito: false,
         createdById: req.usuario.id,
-        asignadoId: null
+        asignadoId: await getNextOperador('oficina') || null
       },
       include: {
         createdBy: { select: { id: true, nombre: true } },

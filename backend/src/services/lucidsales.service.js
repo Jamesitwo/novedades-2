@@ -379,7 +379,7 @@ function getDepartamentosLocales() {
 }
 
 async function crearVinculacionDirecta(lucidsalesPedidoId, pedidoData, notas, usuarioId, asignadoId) {
-  const data = {
+  const baseData = {
     lucidsalesIdPedido: pedidoData.idPedido || null,
     nombreCliente: pedidoData.Nombre || '',
     apellidoCliente: pedidoData.Apellido || '',
@@ -390,19 +390,20 @@ async function crearVinculacionDirecta(lucidsalesPedidoId, pedidoData, notas, us
     jsonProductos: typeof pedidoData.Json === 'string' ? pedidoData.Json : JSON.stringify(pedidoData.Json || []),
     conversacionLink: pedidoData.botInbox || pedidoData.conversacionLink || pedidoData.ConversacionLink || pedidoData.linkConversacion || null,
     notas: notas || null,
-    createdById: usuarioId || null,
-    asignadoId: asignadoId || null
+    createdById: usuarioId || null
   };
+  const updateData = asignadoId ? { ...baseData, asignadoId } : { ...baseData };
+  const createData = { ...baseData, asignadoId: asignadoId || null };
   return prisma.pedidoVinculado.upsert({
     where: { lucidsalesPedidoId: Number(lucidsalesPedidoId) },
-    update: data,
-    create: { lucidsalesPedidoId: Number(lucidsalesPedidoId), ...data }
+    update: updateData,
+    create: { lucidsalesPedidoId: Number(lucidsalesPedidoId), ...createData }
   });
 }
 
 async function crearVinculacion(lucidsalesPedidoId, notas, usuarioId, asignadoId) {
   const pedido = await getPedidoById(lucidsalesPedidoId);
-  const data = {
+  const baseData = {
     lucidsalesIdPedido: pedido.idPedido || null,
     nombreCliente: pedido.Nombre || '',
     apellidoCliente: pedido.Apellido || '',
@@ -413,18 +414,19 @@ async function crearVinculacion(lucidsalesPedidoId, notas, usuarioId, asignadoId
     jsonProductos: typeof pedido.Json === 'string' ? pedido.Json : JSON.stringify(pedido.Json || []),
     conversacionLink: pedido.botInbox || pedido.conversacionLink || pedido.ConversacionLink || pedido.linkConversacion || null,
     notas: notas || null,
-    createdById: usuarioId || null,
-    asignadoId: asignadoId || null
+    createdById: usuarioId || null
   };
+  const updateData = asignadoId ? { ...baseData, asignadoId } : { ...baseData };
+  const createData = { ...baseData, asignadoId: asignadoId || null };
   return prisma.pedidoVinculado.upsert({
     where: { lucidsalesPedidoId: Number(lucidsalesPedidoId) },
-    update: data,
-    create: { lucidsalesPedidoId: Number(lucidsalesPedidoId), ...data }
+    update: updateData,
+    create: { lucidsalesPedidoId: Number(lucidsalesPedidoId), ...createData }
   });
 }
 
 async function guardarVinculacionLocal(lucidsalesPedidoId, pedido, usuarioId, asignadoId) {
-  const data = {
+  const baseData = {
     lucidsalesIdPedido: Number(pedido.idPedido ?? lucidsalesPedidoId),
     nombreCliente: pedido.Nombre || '',
     apellidoCliente: pedido.Apellido || '',
@@ -434,16 +436,17 @@ async function guardarVinculacionLocal(lucidsalesPedidoId, pedido, usuarioId, as
     referencias: pedido.Referencias || '',
     jsonProductos: typeof pedido.Json === 'string' ? pedido.Json : JSON.stringify(pedido.Json || []),
     conversacionLink: pedido.conversacionLink || pedido.ConversacionLink || pedido.linkConversacion || null,
-    notas: pedido.notas || null,
-    asignadoId: asignadoId || null
+    notas: pedido.notas || null
   };
-  if (usuarioId && !data.createdById) {
-    data.createdById = usuarioId;
+  if (usuarioId && !baseData.createdById) {
+    baseData.createdById = usuarioId;
   }
+  const updateData = asignadoId ? { ...baseData, asignadoId } : { ...baseData };
+  const createData = { ...baseData, asignadoId: asignadoId || null };
   return prisma.pedidoVinculado.upsert({
     where: { lucidsalesPedidoId: Number(lucidsalesPedidoId) },
-    update: data,
-    create: { lucidsalesPedidoId: Number(lucidsalesPedidoId), ...data }
+    update: updateData,
+    create: { lucidsalesPedidoId: Number(lucidsalesPedidoId), ...createData }
   });
 }
 

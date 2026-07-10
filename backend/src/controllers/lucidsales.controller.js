@@ -4,6 +4,7 @@ const interrapidisimoService = require('../services/interrapidisimo.service');
 const addressValidator = require('../services/address-validator.service');
 const googleGeocoding = require('../services/google-geocoding.service');
 const hereGeocoding = require('../services/here-geocoding.service');
+const { getNextOperador } = require('../utils/autoAssign');
 const path = require('path');
 const fs = require('fs');
 
@@ -282,7 +283,6 @@ const vincularPedido = async (req, res) => {
     if (!lucidsalesPedidoId) {
       return res.status(400).json({ error: 'lucidsalesPedidoId es requerido' });
     }
-    const { getNextOperador } = require('../utils/autoAssign');
     const asignadoId = await getNextOperador('lucidsales');
     const result = await lucidsalesService.crearVinculacion(lucidsalesPedidoId, notas, req.usuario.id, asignadoId);
     res.json({ ok: true, pedido: result });
@@ -318,9 +318,15 @@ const vincularYActualizar = async (req, res) => {
       }
     }
 
+    let asignadoId = await getNextOperador('lucidsales');
+    if (!asignadoId) {
+      const admin = await prisma.usuario.findFirst({ where: { rol: 'admin', activo: true }, select: { id: true } });
+      asignadoId = admin?.id || req.usuario.id;
+    }
+
     let pedidoBase;
     try {
-      pedidoBase = await lucidsalesService.crearVinculacion(lucidsalesPedidoId);
+      pedidoBase = await lucidsalesService.crearVinculacion(lucidsalesPedidoId, null, req.usuario.id, asignadoId);
     } catch (err) {
       console.error('[LucidSales] vincularYActualizar crearVinculacion FAIL:', err.message);
       return res.status(500).json({ error: 'Error al vincular pedido: ' + err.message });
@@ -380,7 +386,7 @@ const vincularYActualizar = async (req, res) => {
     }
 
     try {
-      await lucidsalesService.guardarVinculacionLocal(lucidsalesPedidoId, pedidoActualizado);
+      await lucidsalesService.guardarVinculacionLocal(lucidsalesPedidoId, pedidoActualizado, req.usuario.id, asignadoId);
     } catch (err) {
       console.error('[LucidSales] vincularYActualizar guardarVinculacionLocal FAIL:', err.message);
     }
@@ -470,9 +476,8 @@ const duplicarPedido = async (req, res) => {
     console.log('[LucidSales] duplicarPedido: vinculando nuevoId=', nuevoId);
 
     try {
-      const { getNextOperador } = require('../utils/autoAssign');
-    const asignadoId = await getNextOperador('lucidsales');
-    await lucidsalesService.crearVinculacionDirecta(nuevoId, original, `Duplicado del pedido #${original.idPedido || id}`, req.usuario.id, asignadoId);
+      const asignadoId = await getNextOperador('lucidsales');
+      await lucidsalesService.crearVinculacionDirecta(nuevoId, original, `Duplicado del pedido #${original.idPedido || id}`, req.usuario.id, asignadoId);
       console.log('[LucidSales] duplicarPedido: vinculacion exitosa');
     } catch (vinError) {
       console.error('[LucidSales] duplicarPedido: error al vincular:', vinError.message);
@@ -508,7 +513,6 @@ const subirDividido = async (req, res) => {
       return res.status(400).json({ error: 'El pedido debe tener al menos 2 productos para dividir' });
     }
 
-    const { getNextOperador } = require('../utils/autoAssign');
     const asignadoId = await getNextOperador('lucidsales');
 
     const resultados = [];
