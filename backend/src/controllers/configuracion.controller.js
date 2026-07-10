@@ -28,7 +28,7 @@ const getConfiguracion = async (req, res) => {
 
 const updateConfiguracion = async (req, res) => {
   try {
-    const { auto_asignar_novedades, auto_asignar_oficina, metodo_asignacion, operadores_incluidos,
+    const { auto_asignar_novedades, auto_asignar_oficina, auto_asignar_lucidsales, metodo_asignacion, operadores_incluidos,
       empresa_nombre, empresa_nit, empresa_direccion, empresa_telefono, empresa_email,
       empresa_logo, empresa_banco, empresa_tipo_cuenta, empresa_numero_cuenta, empresa_titular_cuenta,
       factura_terminos, factura_resolucion, factura_rango_desde, factura_rango_hasta, factura_vigencia,
@@ -72,6 +72,7 @@ const updateConfiguracion = async (req, res) => {
         data: {
           auto_asignar_novedades: auto_asignar_novedades ?? false,
           auto_asignar_oficina: auto_asignar_oficina ?? false,
+          auto_asignar_lucidsales: auto_asignar_lucidsales ?? false,
           metodo_asignacion: metodo_asignacion ?? 'round_robin',
           operadores_incluidos: JSON.stringify(operadores_incluidos ?? []),
           ...extraData
@@ -83,6 +84,7 @@ const updateConfiguracion = async (req, res) => {
         data: {
           auto_asignar_novedades: auto_asignar_novedades ?? config.auto_asignar_novedades,
           auto_asignar_oficina: auto_asignar_oficina ?? config.auto_asignar_oficina,
+          auto_asignar_lucidsales: auto_asignar_lucidsales ?? config.auto_asignar_lucidsales,
           metodo_asignacion: metodo_asignacion ?? config.metodo_asignacion,
           operadores_incluidos: JSON.stringify(operadores_incluidos ?? JSON.parse(config.operadores_incluidos)),
           ...extraData

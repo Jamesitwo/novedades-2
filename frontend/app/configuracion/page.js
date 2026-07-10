@@ -9,6 +9,7 @@ export default function ConfiguracionPage() {
   const [config, setConfig] = useState({
     auto_asignar_novedades: false,
     auto_asignar_oficina: false,
+    auto_asignar_lucidsales: false,
     metodo_asignacion: 'round_robin',
     operadores_incluidos: [],
     empresa_nombre: '', empresa_nit: '', empresa_direccion: '', empresa_telefono: '', empresa_email: '',
@@ -73,6 +74,7 @@ export default function ConfiguracionPage() {
       await api.put('/api/configuracion', {
         auto_asignar_novedades: config.auto_asignar_novedades,
         auto_asignar_oficina: config.auto_asignar_oficina,
+        auto_asignar_lucidsales: config.auto_asignar_lucidsales,
         metodo_asignacion: config.metodo_asignacion,
         operadores_incluidos: config.operadores_incluidos,
         empresa_nombre: config.empresa_nombre, empresa_nit: config.empresa_nit,
@@ -104,52 +106,30 @@ export default function ConfiguracionPage() {
           <p>Solo los administradores pueden acceder a esta página.</p>
         </div>
       </div>
-    );
-  }
 
-  if (loading) {
-    return <div className="loading">Cargando...</div>;
-  }
-
-  return (
-    <div className="content">
-      {toast && (
-        <div style={{
-          position: 'fixed', top: 20, right: 20, zIndex: 9999,
-          background: toast.type === 'error' ? 'var(--red)' : 'var(--green)',
-          color: '#fff', padding: '12px 20px', borderRadius: 10,
-          boxShadow: '0 4px 20px rgba(0,0,0,0.3)', fontSize: 14, fontWeight: 500,
-          animation: 'slideIn 0.3s ease'
-        }}>
-          {toast.message}
-        </div>
-      )}
-
-      <h1 style={{ fontSize: 20, fontWeight: 600, marginBottom: 24 }}>Configuración de Auto-Asignación</h1>
-
-      <div className="table-card" style={{ maxWidth: 700 }}>
+      <div className="table-card" style={{ maxWidth: 700, marginTop: 16 }}>
         <div className="table-header">
-          <span className="table-header-title">Novedades</span>
+          <span className="table-header-title">LucidSales · Pedidos</span>
         </div>
         <div style={{ padding: 20 }}>
           <label style={{ display: 'flex', alignItems: 'center', gap: 12, cursor: 'pointer' }}>
             <div
-              onClick={() => handleToggle('auto_asignar_novedades')}
+              onClick={() => handleToggle('auto_asignar_lucidsales')}
               style={{
-                width: 48, height: 26, borderRadius: 13, background: config.auto_asignar_novedades ? 'var(--accent)' : 'var(--bg3)',
+                width: 48, height: 26, borderRadius: 13, background: config.auto_asignar_lucidsales ? 'var(--accent)' : 'var(--bg3)',
                 position: 'relative', transition: 'background 0.2s', cursor: 'pointer'
               }}
             >
               <div style={{
                 width: 22, height: 22, borderRadius: '50%', background: '#fff',
-                position: 'absolute', top: 2, left: config.auto_asignar_novedades ? 24 : 2,
+                position: 'absolute', top: 2, left: config.auto_asignar_lucidsales ? 24 : 2,
                 transition: 'left 0.2s', boxShadow: '0 1px 3px rgba(0,0,0,0.3)'
               }} />
             </div>
-            <span style={{ fontSize: 14 }}>Auto-asignar novedades al crear</span>
+            <span style={{ fontSize: 14 }}>Auto-asignar pedidos de LucidSales al vincular</span>
           </label>
           <p style={{ color: 'var(--text3)', fontSize: 12, marginTop: 8, marginLeft: 60 }}>
-            Los nuevos pedidos de novedad se asignarán automáticamente según el método seleccionado.
+            Los pedidos vinculados desde LucidSales se asignarán automáticamente según el método seleccionado.
           </p>
         </div>
       </div>
