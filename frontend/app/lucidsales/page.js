@@ -39,6 +39,7 @@ export default function LucidSalesPage() {
   const [detailIds, setDetailIds] = useState([]);
   const [detailId, setDetailId] = useState(null);
   const [productosMap, setProductosMap] = useState({});
+  const [pedidosHoy, setPedidosHoy] = useState(0);
 
   const showToast = useCallback((message, type = 'success') => {
     setToast({ message, type });
@@ -98,6 +99,10 @@ export default function LucidSalesPage() {
       });
       setProductosMap(map);
     }).catch(() => {});
+    api.get('/api/dashboard/pedidos-subidos?periodo=hoy').then(({ data }) => {
+      const yo = data?.operadores?.find(o => o.operadorId === usuario?.id);
+      if (yo) setPedidosHoy(yo.pedidosSubidos || 0);
+    }).catch(() => {});
   }, []);
 
   // Cargar vinculados al montar y cuando cambien page/search
@@ -107,10 +112,18 @@ export default function LucidSalesPage() {
 
   // Refrescar al volver a la página (después de editar)
   useEffect(() => {
-    const onVisible = () => { if (!document.hidden) fetchPedidos(); };
+    const onVisible = () => {
+      if (!document.hidden) {
+        fetchPedidos();
+        api.get('/api/dashboard/pedidos-subidos?periodo=hoy').then(({ data }) => {
+          const yo = data?.operadores?.find(o => o.operadorId === usuario?.id);
+          if (yo) setPedidosHoy(yo.pedidosSubidos || 0);
+        }).catch(() => {});
+      }
+    };
     document.addEventListener('visibilitychange', onVisible);
     return () => document.removeEventListener('visibilitychange', onVisible);
-  }, [fetchPedidos]);
+  }, [fetchPedidos, usuario?.id]);
 
   const verificarConexion = async () => {
     try {
@@ -195,6 +208,14 @@ export default function LucidSalesPage() {
           <h2 style={{ margin: 0, fontSize: 20, fontWeight: 700 }}>LucidSales · Pedidos</h2>
           <div style={{ fontSize: 12, color: 'var(--text3)', marginTop: 4, display: 'flex', alignItems: 'center', gap: 8 }}>
             <span>{totalRecords.toLocaleString()} pedidos</span>
+            {pedidosHoy > 0 && (
+              <span style={{
+                background: 'var(--accent2)', color: '#fff',
+                padding: '2px 10px', borderRadius: 12, fontSize: 11, fontWeight: 600
+              }}>
+                Tú: +{pedidosHoy} hoy
+              </span>
+            )}
             {conexionStatus && (
               <span style={{
                 display: 'inline-flex', alignItems: 'center', gap: 4,
