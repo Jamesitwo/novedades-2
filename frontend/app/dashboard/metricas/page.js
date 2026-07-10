@@ -38,7 +38,6 @@ const SplitBadge = ({ n, o, nLabel, oLabel }) => (
 );
 
 export default function MetricasPage() {
-  const searchParams = useSearchParams();
   const [metricas, setMetricas] = useState(null);
   const [tiempoActivo, setTiempoActivo] = useState(null);
   const [resumenDiario, setResumenDiario] = useState(null);
