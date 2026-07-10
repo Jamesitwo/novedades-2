@@ -38,6 +38,7 @@ export default function LucidSalesPage() {
   const [toast, setToast] = useState(null);
   const [detailIds, setDetailIds] = useState([]);
   const [detailId, setDetailId] = useState(null);
+  const [productosMap, setProductosMap] = useState({});
 
   const showToast = useCallback((message, type = 'success') => {
     setToast({ message, type });
@@ -87,6 +88,16 @@ export default function LucidSalesPage() {
     api.get('/api/usuarios/operadores').then(({ data }) => {
       if (Array.isArray(data)) setOperadores(data);
     }).catch(() => {});
+    api.post('/api/lucidsales/productos').then(({ data }) => {
+      const list = Array.isArray(data) ? data : data?.productos || data?.data || [];
+      const map = {};
+      list.forEach(p => {
+        const key = p.id ?? p.Id;
+        const name = p.nombre || p.name || p.Nombre || p.nombreProducto || '';
+        if (key != null) map[String(key)] = name;
+      });
+      setProductosMap(map);
+    }).catch(() => {});
   }, []);
 
   // Cargar vinculados al montar y cuando cambien page/search
@@ -119,7 +130,10 @@ export default function LucidSalesPage() {
     try {
       const items = typeof p.Json === 'string' ? JSON.parse(p.Json) : (p.Json || []);
       if (items.length === 0) return '—';
-      if (items.length === 1) return `#${items[0].product_id}`;
+      if (items.length === 1) {
+        const id = String(items[0].product_id);
+        return productosMap[id] || `#${id}`;
+      }
       return `${items.length} productos`;
     } catch { return '—'; }
   };
