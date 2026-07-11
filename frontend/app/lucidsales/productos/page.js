@@ -161,7 +161,6 @@ export default function LucidSalesProductosPage() {
   const [alertasProducto, setAlertasProducto] = useState([]);
   const [nuevaAlerta, setNuevaAlerta] = useState({ mensaje: '', tipo: 'warning' });
   const [savingAlerta, setSavingAlerta] = useState(false);
-  const [showAlert, setShowAlert] = useState(true);
 
   const getStock = (p) => {
     const id = String(p.id ?? p.Id ?? '');

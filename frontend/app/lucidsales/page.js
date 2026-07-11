@@ -157,6 +157,8 @@ export default function LucidSalesPage() {
     } catch { return 0; }
     return items.reduce((count, prod) => count + (alertasMap[String(prod.product_id)] || 0), 0);
   };
+
+  const getProductoLabel = (p) => {
     try {
       const items = typeof p.Json === 'string' ? JSON.parse(p.Json) : (p.Json || []);
       if (items.length === 0) return '—';
