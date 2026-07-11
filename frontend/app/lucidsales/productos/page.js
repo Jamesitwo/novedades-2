@@ -154,11 +154,13 @@ export default function LucidSalesProductosPage() {
   const [productos, setProductos] = useState([]);
   const [stockMap, setStockMap] = useState({});
   const [refreshingStock, setRefreshingStock] = useState({});
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
-  const [search, setSearch] = useState('');
-  const [selected, setSelected] = useState(null);
+  const [showAlert, setShowAlert] = useState(true);
   const [lastUpdate, setLastUpdate] = useState(null);
+  const [alertasMap, setAlertasMap] = useState({});
+  const [alertModalProducto, setAlertModalProducto] = useState(null);
+  const [alertasProducto, setAlertasProducto] = useState([]);
+  const [nuevaAlerta, setNuevaAlerta] = useState({ mensaje: '', tipo: 'warning' });
+  const [savingAlerta, setSavingAlerta] = useState(false);
   const [showAlert, setShowAlert] = useState(true);
 
   const getStock = (p) => {
@@ -213,9 +215,71 @@ export default function LucidSalesProductosPage() {
     }
   };
 
+  const fetchAlertCounts = async () => {
+    try {
+      const { data } = await api.get('/api/alertas');
+      const map = {};
+      data.forEach(a => {
+        map[a.productoId] = (map[a.productoId] || 0) + 1;
+      });
+      setAlertasMap(map);
+    } catch {}
+  };
+
+  const openAlertModal = async (producto, e) => {
+    if (e) e.stopPropagation();
+    const prodId = String(producto.id ?? producto.Id);
+    setAlertModalProducto(producto);
+    setNuevaAlerta({ mensaje: '', tipo: 'warning' });
+    try {
+      const { data } = await api.get(`/api/alertas?productoId=${prodId}`);
+      setAlertasProducto(data);
+    } catch {
+      setAlertasProducto([]);
+    }
+  };
+
+  const handleCreateAlerta = async () => {
+    if (!nuevaAlerta.mensaje.trim()) return;
+    setSavingAlerta(true);
+    try {
+      const prodId = String(alertModalProducto.id ?? alertModalProducto.Id);
+      const prodName = alertModalProducto.nombre || alertModalProducto.name || alertModalProducto.Nombre || `#${prodId}`;
+      await api.post('/api/alertas', {
+        productoId: prodId,
+        productoNombre: prodName,
+        mensaje: nuevaAlerta.mensaje.trim(),
+        tipo: nuevaAlerta.tipo
+      });
+      setNuevaAlerta({ mensaje: '', tipo: 'warning' });
+      const { data } = await api.get(`/api/alertas?productoId=${prodId}`);
+      setAlertasProducto(data);
+      fetchAlertCounts();
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setSavingAlerta(false);
+    }
+  };
+
+  const handleDeleteAlerta = async (alertaId, e) => {
+    if (e) e.stopPropagation();
+    try {
+      await api.delete(`/api/alertas/${alertaId}`);
+      const prodId = String(alertModalProducto.id ?? alertModalProducto.Id);
+      const { data } = await api.get(`/api/alertas?productoId=${prodId}`);
+      setAlertasProducto(data);
+      fetchAlertCounts();
+    } catch {}
+  };
+
   useEffect(() => {
     fetchProductos();
   }, [fetchProductos]);
+
+  useEffect(() => {
+    fetchAlertCounts();
+  }, []);
 
   useEffect(() => {
     const interval = setInterval(fetchProductos, 5 * 60 * 1000);
@@ -338,6 +402,7 @@ export default function LucidSalesProductosPage() {
           <thead>
             <tr>
               <th style={{ width: 50 }}></th>
+              <th style={{ width: 50, textAlign: 'center' }}>🔔</th>
               <th style={{ width: 80, textAlign: 'center' }}>Stock</th>
               {sortedColumns.map(col => (
                 <th key={col} style={{ whiteSpace: 'nowrap' }}>{formatLabel(col)}</th>
@@ -347,7 +412,7 @@ export default function LucidSalesProductosPage() {
           <tbody>
             {processed.length === 0 ? (
               <tr>
-                <td colSpan={sortedColumns.length + 2} style={{ textAlign: 'center', color: 'var(--text3)', padding: 40 }}>
+                <td colSpan={sortedColumns.length + 3} style={{ textAlign: 'center', color: 'var(--text3)', padding: 40 }}>
                   {search ? 'No se encontraron productos' : 'Sin productos'}
                 </td>
               </tr>
@@ -356,9 +421,30 @@ export default function LucidSalesProductosPage() {
                   const stockVal = getStock(p);
                   const stockStyle = getStockStyle(stockVal);
                   return (
-                    <tr key={p.id || i} onClick={() => setSelected(p)} style={{ cursor: 'pointer', ...stockStyle }}>
+                    <tr key={p.id || i} onClick={(e) => { if (!e.target.closest('.alert-btn')) setSelected(p); }} style={{ cursor: 'pointer', ...stockStyle }}>
                       <td style={{ textAlign: 'center', color: 'var(--accent)', fontWeight: 600 }}>
                         ▶
+                      </td>
+                      <td style={{ textAlign: 'center' }}>
+                        {(() => {
+                          const prodId = String(p.id ?? p.Id);
+                          const count = alertasMap[prodId] || 0;
+                          return (
+                            <button
+                              className="alert-btn"
+                              onClick={(e) => openAlertModal(p, e)}
+                              style={{
+                                background: count > 0 ? 'rgba(245,158,11,0.15)' : 'transparent',
+                                border: count > 0 ? '1px solid rgba(245,158,11,0.3)' : '1px solid transparent',
+                                borderRadius: 6, padding: '2px 6px', cursor: 'pointer', fontSize: 14,
+                                color: count > 0 ? 'var(--amber)' : 'var(--text3)', transition: 'all 0.15s'
+                              }}
+                              title={count > 0 ? `${count} alerta${count > 1 ? 's' : ''}` : 'Sin alertas'}
+                            >
+                              {count > 0 ? '🔔' : '🔕'}
+                            </button>
+                          );
+                        })()}
                       </td>
                       <td style={{ textAlign: 'center', fontFamily: 'var(--mono)', fontWeight: 600 }}>
                         {stockVal !== null && stockVal !== undefined ? (stockVal === 0 ? 'AGOTADO' : stockVal) : '-'}
@@ -429,6 +515,110 @@ export default function LucidSalesProductosPage() {
                     </div>
                   </div>
                 ))}
+
+              <div style={{ borderTop: '2px solid var(--border)', paddingTop: 12, marginTop: 8 }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
+                  <span style={{ fontWeight: 600, fontSize: 14 }}>🔔 Alertas del producto</span>
+                  <button
+                    onClick={(e) => { e.stopPropagation(); setSelected(null); openAlertModal(selected, e); }}
+                    className="btn btn-ghost"
+                    style={{ fontSize: 12, padding: '4px 12px' }}
+                  >
+                    Gestionar alertas
+                  </button>
+                </div>
+                {(() => {
+                  const prodId = String(selected.id ?? selected.Id);
+                  const count = alertasMap[prodId] || 0;
+                  return count === 0
+                    ? <div style={{ color: 'var(--text3)', fontSize: 12, padding: '8px 0' }}>Sin alertas activas</div>
+                    : <div style={{ fontSize: 12, color: 'var(--amber)' }}>{count} alerta{count > 1 ? 's' : ''} activa{count > 1 ? 's' : ''}</div>;
+                })()}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {alertModalProducto && (
+        <div style={{
+          position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.65)',
+          display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 10001, padding: 20
+        }} onClick={() => setAlertModalProducto(null)}>
+          <div style={{
+            background: 'var(--bg2)', borderRadius: 14, width: 'min(520px, 95vw)',
+            maxHeight: '85vh', overflow: 'auto', boxShadow: '0 20px 60px rgba(0,0,0,0.5)',
+            border: '1px solid var(--border)'
+          }} onClick={e => e.stopPropagation()}>
+            <div style={{
+              display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+              padding: '16px 20px', borderBottom: '1px solid var(--border)'
+            }}>
+              <div style={{ fontWeight: 600, fontSize: 16 }}>
+                🔔 Alertas — {alertModalProducto.nombre || alertModalProducto.name || `#${alertModalProducto.id}`}
+              </div>
+              <button onClick={() => setAlertModalProducto(null)} className="btn btn-ghost" style={{ fontSize: 14, padding: '4px 10px' }}>✕</button>
+            </div>
+            <div style={{ padding: 20 }}>
+              <div style={{ marginBottom: 16, padding: '12px 14px', borderRadius: 8, background: 'var(--bg3)', border: '1px solid var(--border)' }}>
+                <div style={{ fontSize: 12, fontWeight: 600, marginBottom: 8, color: 'var(--text2)' }}>Nueva alerta</div>
+                <select
+                  value={nuevaAlerta.tipo}
+                  onChange={e => setNuevaAlerta(prev => ({ ...prev, tipo: e.target.value }))}
+                  style={{ background: 'var(--bg2)', border: '1px solid var(--border)', borderRadius: 6, padding: '6px 10px', fontSize: 12, color: 'var(--text)', marginBottom: 8, width: '100%' }}
+                >
+                  <option value="info">ℹ️ Info</option>
+                  <option value="warning">⚠️ Warning</option>
+                  <option value="danger">🔴 Danger</option>
+                </select>
+                <textarea
+                  value={nuevaAlerta.mensaje}
+                  onChange={e => setNuevaAlerta(prev => ({ ...prev, mensaje: e.target.value }))}
+                  placeholder="Mensaje de la alerta..."
+                  rows={3}
+                  style={{ width: '100%', background: 'var(--bg2)', border: '1px solid var(--border)', borderRadius: 6, padding: '8px 10px', fontSize: 12, color: 'var(--text)', resize: 'vertical', marginBottom: 8, fontFamily: 'inherit' }}
+                />
+                <button
+                  onClick={handleCreateAlerta}
+                  disabled={savingAlerta || !nuevaAlerta.mensaje.trim()}
+                  className="btn btn-primary"
+                  style={{ fontSize: 12, padding: '6px 16px', opacity: savingAlerta || !nuevaAlerta.mensaje.trim() ? 0.5 : 1 }}
+                >
+                  {savingAlerta ? 'Creando...' : 'Crear alerta'}
+                </button>
+              </div>
+
+              <div style={{ fontSize: 13, fontWeight: 600, marginBottom: 8 }}>Alertas activas ({alertasProducto.length})</div>
+              {alertasProducto.length === 0 ? (
+                <div style={{ color: 'var(--text3)', fontSize: 12, padding: 8 }}>No hay alertas para este producto</div>
+              ) : (
+                alertasProducto.map(a => (
+                  <div key={a.id} style={{
+                    display: 'flex', alignItems: 'flex-start', gap: 10, padding: '10px 12px',
+                    borderRadius: 8, marginBottom: 8,
+                    background: a.tipo === 'danger' ? 'rgba(239,68,68,0.08)' : a.tipo === 'info' ? 'rgba(59,130,246,0.08)' : 'rgba(245,158,11,0.08)',
+                    border: `1px solid ${a.tipo === 'danger' ? 'rgba(239,68,68,0.25)' : a.tipo === 'info' ? 'rgba(59,130,246,0.25)' : 'rgba(245,158,11,0.25)'}`
+                  }}>
+                    <div style={{ fontSize: 16, flexShrink: 0, marginTop: 1 }}>
+                      {a.tipo === 'danger' ? '🔴' : a.tipo === 'info' ? 'ℹ️' : '⚠️'}
+                    </div>
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div style={{ fontSize: 12, color: 'var(--text)', wordBreak: 'break-word' }}>{a.mensaje}</div>
+                      <div style={{ fontSize: 10, color: 'var(--text3)', marginTop: 4 }}>
+                        Por {a.createdBy?.nombre || '...'} · {new Date(a.createdAt).toLocaleDateString('es-CO')}
+                      </div>
+                    </div>
+                    <button
+                      onClick={(e) => handleDeleteAlerta(a.id, e)}
+                      className="btn btn-ghost"
+                      style={{ fontSize: 10, padding: '2px 6px', color: 'var(--red)', flexShrink: 0 }}
+                      title="Eliminar alerta"
+                    >
+                      ✕
+                    </button>
+                  </div>
+                ))
+              )}
             </div>
           </div>
         </div>

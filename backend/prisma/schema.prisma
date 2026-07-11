@@ -42,6 +42,7 @@ model Usuario {
   mensajesWhatsapp      MensajeWhatsApp[]
   pedidosVinculados     PedidoVinculado[] @relation("VinculadoCreador")
   pedidosVinculadosAsig PedidoVinculado[] @relation("VinculadoAsignado")
+  alertasProducto      AlertaProducto[]
 }
 
 model PedidoNovedad {
@@ -474,4 +475,21 @@ model PlantillaWhatsApp {
   updatedAt DateTime @updatedAt
 
   @@map("plantillas_whatsapp")
+}
+
+model AlertaProducto {
+  id             String   @id @default(uuid())
+  productoId     String
+  productoNombre String
+  mensaje        String
+  tipo           String   @default("warning")
+  activo         Boolean  @default(true)
+  createdById    String   @map("created_by")
+  createdBy      Usuario  @relation(fields: [createdById], references: [id])
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  @@index([productoId])
+  @@index([activo])
+  @@map("alertas_productos")
 }

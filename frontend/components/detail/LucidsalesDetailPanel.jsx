@@ -48,6 +48,7 @@ export default function LucidsalesDetailPanel({ id, ids, currentIndex, onClose, 
   const [todasEtiquetas, setTodasEtiquetas] = useState([]);
   const [selectedEtiqueta, setSelectedEtiqueta] = useState('');
   const [oficinasIR, setOficinasIR] = useState([]);
+  const [alertasPedido, setAlertasPedido] = useState([]);
   const [buscandoIR, setBuscandoIR] = useState(false);
   const [errorIR, setErrorIR] = useState('');
   const [operadores, setOperadores] = useState([]);
@@ -183,6 +184,7 @@ export default function LucidsalesDetailPanel({ id, ids, currentIndex, onClose, 
       setShowValidacion(false);
       setShowIR(false);
       setOficinasIR([]);
+      setAlertasPedido([]);
 
       try {
         const [pedidoRes, deptosRes, prodRes, etiquetasRes] = await Promise.all([
@@ -209,6 +211,11 @@ export default function LucidsalesDetailPanel({ id, ids, currentIndex, onClose, 
               setPedido(prev => ({ ...prev, _asignadoId: localRes.data.pedido.asignadoId }));
             }
           } catch {}
+
+          try {
+            const aRes = await api.get(`/api/alertas/pedido/${currentId}`);
+            if (!cancelled) setAlertasPedido(Array.isArray(aRes.data) ? aRes.data : []);
+          } catch { if (!cancelled) setAlertasPedido([]); }
 
           const prodList = Array.isArray(prodRes.data) ? prodRes.data : prodRes.data?.productos || prodRes.data?.data || [];
           if (prodList.length > 0) {
@@ -524,6 +531,31 @@ export default function LucidsalesDetailPanel({ id, ids, currentIndex, onClose, 
                   {productosMap[String(p.product_id)] || `#${p.product_id}`}
                   {p._stock === 0 ? ' — AGOTADO' : ` — ${p._stock}`}{i < bajoStock.length - 1 ? ' ·' : ''}
                 </span>
+              ))}
+            </div>
+          )}
+
+          {/* PRODUCT ALERTS */}
+          {alertasPedido.length > 0 && (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 6, marginBottom: 10 }}>
+              {alertasPedido.map((a, i) => (
+                <div key={a.id} style={{
+                  display: 'flex', alignItems: 'flex-start', gap: 8, padding: '8px 12px', borderRadius: 6,
+                  background: a.tipo === 'danger' ? 'rgba(239,68,68,0.08)' : a.tipo === 'info' ? 'rgba(59,130,246,0.08)' : 'rgba(245,158,11,0.08)',
+                  border: `1px solid ${a.tipo === 'danger' ? 'rgba(239,68,68,0.25)' : a.tipo === 'info' ? 'rgba(59,130,246,0.25)' : 'rgba(245,158,11,0.25)'}`,
+                  fontSize: 11
+                }}>
+                  <span style={{ fontSize: 14, flexShrink: 0 }}>
+                    {a.tipo === 'danger' ? '🔴' : a.tipo === 'info' ? 'ℹ️' : '⚠️'}
+                  </span>
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <span style={{ fontWeight: 600, color: 'var(--accent2)', display: 'block' }}>{a.productoNombre}</span>
+                    <span style={{ color: 'var(--text)' }}>{a.mensaje}</span>
+                    <span style={{ fontSize: 10, color: 'var(--text3)', display: 'block', marginTop: 2 }}>
+                      Por {a.createdBy?.nombre || '...'} · {new Date(a.createdAt).toLocaleDateString('es-CO')}
+                    </span>
+                  </div>
+                </div>
               ))}
             </div>
           )}

@@ -40,6 +40,7 @@ export default function LucidSalesPage() {
   const [detailId, setDetailId] = useState(null);
   const [productosMap, setProductosMap] = useState({});
   const [pedidosHoy, setPedidosHoy] = useState(0);
+  const [alertasMap, setAlertasMap] = useState({});
 
   const showToast = useCallback((message, type = 'success') => {
     setToast({ message, type });
@@ -59,7 +60,17 @@ export default function LucidSalesPage() {
       if (asignadoId) params.set('asignadoId', asignadoId);
       params.set('filters', '[]');
 
-      const { data } = await api.get(`/api/lucidsales/vinculados?${params.toString()}`);
+      const [{ data }, { data: alertasData }] = await Promise.all([
+        api.get(`/api/lucidsales/vinculados?${params.toString()}`),
+        api.get('/api/alertas').catch(() => ({ data: [] }))
+      ]);
+
+      const map = {};
+      if (Array.isArray(alertasData)) {
+        alertasData.forEach(a => { map[a.productoId] = (map[a.productoId] || 0) + 1; });
+      }
+      setAlertasMap(map);
+
       if (data.ok) {
         setPedidos(data.pedidos || []);
         setTotalRecords(data.totalRecords || 0);
@@ -139,7 +150,13 @@ export default function LucidSalesPage() {
     return '$' + Number(val).toLocaleString('es-CO', { minimumFractionDigits: 0, maximumFractionDigits: 0 });
   };
 
-  const getProductoLabel = (p) => {
+  const getPedidoAlertCount = (pedido) => {
+    let items = [];
+    try {
+      items = typeof pedido.Json === 'string' ? JSON.parse(pedido.Json) : (pedido.Json || []);
+    } catch { return 0; }
+    return items.reduce((count, prod) => count + (alertasMap[String(prod.product_id)] || 0), 0);
+  };
     try {
       const items = typeof p.Json === 'string' ? JSON.parse(p.Json) : (p.Json || []);
       if (items.length === 0) return '—';
@@ -349,6 +366,7 @@ export default function LucidSalesPage() {
                   <th>Total</th>
                   <th>Estado</th>
                   <th>Producto</th>
+                  <th style={{ width: 50, textAlign: 'center' }}>⚠</th>
                   <th>Asignado</th>
                   <th>Referencias</th>
                   <th>Etiquetas</th>
@@ -369,6 +387,21 @@ export default function LucidSalesPage() {
                     </td>
                     <td style={{ fontSize: 12, maxWidth: 160, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                       {getProductoLabel(p)}
+                    </td>
+                    <td style={{ textAlign: 'center' }}>
+                      {(() => {
+                        const count = getPedidoAlertCount(p);
+                        return count > 0 ? (
+                          <span style={{
+                            display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+                            minWidth: 22, height: 22, borderRadius: 11, fontSize: 11, fontWeight: 700,
+                            background: 'rgba(245,158,11,0.15)', color: 'var(--amber)',
+                            border: '1px solid rgba(245,158,11,0.3)'
+                          }} title={`${count} alerta${count > 1 ? 's' : ''} en productos de este pedido`}>
+                            {count}
+                          </span>
+                        ) : null}
+                      })()}
                     </td>
                     <td style={{ fontSize: 12 }}>
                       {p.asignado ? (
