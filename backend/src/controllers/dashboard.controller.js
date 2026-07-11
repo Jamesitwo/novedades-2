@@ -721,13 +721,19 @@ const getPedidosSubidos = async (req, res) => {
     }
 
     const pedidosOperador = await Promise.all(operadores.map(async (op) => {
-      const pedidosIds = await prisma.pedidoVinculado.findMany({
-        where: { ...whereDate, createdById: op.id, estado: 'activo' },
-        select: { lucidsalesPedidoId: true }
-      });
+      const [pedidosSubidos, pedidosLegacy] = await Promise.all([
+        prisma.pedidoVinculado.findMany({
+          where: { ...whereDate, subidoPorId: op.id, estado: 'activo' },
+          select: { lucidsalesPedidoId: true }
+        }),
+        prisma.pedidoVinculado.findMany({
+          where: { ...whereDate, subidoPorId: null, createdById: op.id, estado: 'activo' },
+          select: { lucidsalesPedidoId: true }
+        })
+      ]);
+      const pedidosIds = [...pedidosSubidos, ...pedidosLegacy];
       const ids = pedidosIds.map(p => p.lucidsalesPedidoId);
-
-      const pedidosSubidos = pedidosIds.length;
+      const totalSubidos = pedidosIds.length;
 
       let novedadesCreadas = 0;
       let devolucionesNovedad = 0;
@@ -754,7 +760,7 @@ const getPedidosSubidos = async (req, res) => {
         operadorId: op.id,
         operador: op.nombre,
         rol: op.rol,
-        pedidosSubidos,
+        pedidosSubidos: totalSubidos,
         novedadesCreadas,
         devoluciones: devolucionesNovedad + devolucionesOficina
       };

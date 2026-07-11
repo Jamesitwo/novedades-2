@@ -83,6 +83,14 @@ const confirmarEnvio = async (req, res) => {
     if (result && result.ok === false) {
       return res.status(400).json({ error: result.msg || result.error || 'Error al confirmar envío en LucidSales' });
     }
+    try {
+      await prisma.pedidoVinculado.update({
+        where: { lucidsalesPedidoId: Number(pedidoId) },
+        data: { subidoPorId: req.usuario.id }
+      });
+    } catch (e) {
+      console.error('[LucidSales] Error guardando subidoPorId:', e.message);
+    }
     res.json(result);
   } catch (error) {
     console.error('LucidSales confirmarEnvio error:', error);
@@ -566,6 +574,15 @@ const subirDividido = async (req, res) => {
 
         await lucidsalesService.crearVinculacionDirecta(nuevoId, original,
           `Producto ${i + 1}/${productos.length} del pedido #${original.idPedido || id}`, req.usuario.id, asignadoId);
+
+        try {
+          await prisma.pedidoVinculado.update({
+            where: { lucidsalesPedidoId: Number(nuevoId) },
+            data: { subidoPorId: req.usuario.id }
+          });
+        } catch (e) {
+          console.error('[LucidSales] Error guardando subidoPorId en dividido:', e.message);
+        }
 
         resultados.push({ producto: prod.product_id, pedidoId: nuevoId, exito: true });
       } catch (err) {

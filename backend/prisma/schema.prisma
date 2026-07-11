@@ -42,6 +42,7 @@ model Usuario {
   mensajesWhatsapp      MensajeWhatsApp[]
   pedidosVinculados     PedidoVinculado[] @relation("VinculadoCreador")
   pedidosVinculadosAsig PedidoVinculado[] @relation("VinculadoAsignado")
+  pedidosSubidos        PedidoVinculado[] @relation("SubidoPor")
   alertasProducto      AlertaProducto[]
 }
 
@@ -221,6 +222,8 @@ model PedidoVinculado {
   createdBy          Usuario? @relation("VinculadoCreador", fields: [createdById], references: [id])
   asignadoId         String?  @map("asignado_id")
   asignado           Usuario? @relation("VinculadoAsignado", fields: [asignadoId], references: [id])
+  subidoPorId        String?  @map("subido_por_id")
+  subidoPor          Usuario? @relation("SubidoPor", fields: [subidoPorId], references: [id])
   notas              String?
   estado             String   @default("activo")
   createdAt          DateTime @default(now())
