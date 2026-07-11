@@ -31,7 +31,11 @@ async function buscarOficinaPrincipal(nombreCiudad, departamento) {
   const candidates = ciudades.filter(c => {
     const irName = normalizarNombre(c.Descripcion);
     if (!irName) return false;
-    return irName.includes(normalized) || normalized.includes(irName);
+    const irTokens = irName.split(/\s+/).filter(Boolean);
+    const lsTokens = normalized.split(/\s+/).filter(Boolean);
+    const commonTokens = irTokens.filter(t => lsTokens.includes(t));
+    const minTokens = Math.max(2, Math.min(irTokens.length, lsTokens.length) - 1);
+    return commonTokens.length >= minTokens;
   });
 
   if (candidates.length === 0) {
