@@ -155,6 +155,7 @@ export default function LucidSalesProductosPage() {
   const [stockMap, setStockMap] = useState({});
   const [refreshingStock, setRefreshingStock] = useState({});
   const [showAlert, setShowAlert] = useState(true);
+  const [search, setSearch] = useState('');
   const [lastUpdate, setLastUpdate] = useState(null);
   const [alertasMap, setAlertasMap] = useState({});
   const [alertModalProducto, setAlertModalProducto] = useState(null);
