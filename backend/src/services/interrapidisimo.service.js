@@ -34,7 +34,8 @@ async function buscarOficinaPrincipal(nombreCiudad, departamento) {
     const irTokens = irName.split(/\s+/).filter(Boolean);
     const lsTokens = normalized.split(/\s+/).filter(Boolean);
     const commonTokens = irTokens.filter(t => lsTokens.includes(t));
-    const minTokens = Math.max(2, Math.min(irTokens.length, lsTokens.length) - 1);
+    const shortestLen = Math.min(irTokens.length, lsTokens.length);
+    const minTokens = Math.max(shortestLen <= 1 ? 1 : 2, shortestLen - 1);
     return commonTokens.length >= minTokens;
   });
 
