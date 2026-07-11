@@ -975,7 +975,7 @@ export default function LucidsalesDetailPanel({ id, ids, currentIndex, onClose, 
                     <span key={e.id} style={{ display: 'inline-flex', alignItems: 'center', gap: 4, padding: '2px 8px', borderRadius: 10, fontSize: 11, fontWeight: 600, color: '#fff', background: e.color }}>
                       {e.nombre}
                       <button onClick={async () => {
-                        try { await api.delete(`/api/lucidsales/vinculados/${currentId}/etiquetas/${e.id}`); const { data } = await api.get(`/api/lucidsales/vinculados/${currentId}/etiquetas`); setEtiquetas(Array.isArray(data) ? data : []); } catch {}
+                        try { await api.delete(`/api/lucidsales/vinculados/${currentId}/etiquetas/${e.id}`); const { data } = await api.get(`/api/lucidsales/vinculados/${currentId}/etiquetas`); setEtiquetas(Array.isArray(data) ? data : []); if (onUpdate) onUpdate(); } catch {}
                       }} style={{ background: 'none', border: 'none', color: '#fff', cursor: 'pointer', fontSize: 12, padding: 0 }}>✕</button>
                     </span>
                   )) : <span style={{ color: 'var(--text3)', fontSize: 11 }}>Sin etiquetas</span>}
@@ -986,7 +986,7 @@ export default function LucidsalesDetailPanel({ id, ids, currentIndex, onClose, 
                     {todasEtiquetas.filter(e => !etiquetas.some(ne => ne.id === e.id)).map(e => (<option key={e.id} value={e.id}>{e.nombre}</option>))}
                   </select>
                   <button disabled={!selectedEtiqueta} onClick={async () => {
-                    try { await api.post(`/api/lucidsales/vinculados/${currentId}/etiquetas`, { etiquetaId: selectedEtiqueta }); const { data } = await api.get(`/api/lucidsales/vinculados/${currentId}/etiquetas`); setEtiquetas(Array.isArray(data) ? data : []); setSelectedEtiqueta(''); }
+                    try { await api.post(`/api/lucidsales/vinculados/${currentId}/etiquetas`, { etiquetaId: selectedEtiqueta }); const { data } = await api.get(`/api/lucidsales/vinculados/${currentId}/etiquetas`); setEtiquetas(Array.isArray(data) ? data : []); setSelectedEtiqueta(''); if (onUpdate) onUpdate(); }
                     catch (err) { showToast(err.response?.data?.error || 'Error', 'error'); }
                   }} className="btn btn-primary" style={{ fontSize: 11 }}>Agregar</button>
                 </div>
