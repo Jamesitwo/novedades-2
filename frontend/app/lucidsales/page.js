@@ -402,7 +402,7 @@ export default function LucidSalesPage() {
                           }} title={`${count} alerta${count > 1 ? 's' : ''} en productos de este pedido`}>
                             {count}
                           </span>
-                        ) : null}
+                        ) : null;
                       })()}
                     </td>
                     <td style={{ fontSize: 12 }}>
