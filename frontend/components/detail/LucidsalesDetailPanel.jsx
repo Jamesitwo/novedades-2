@@ -322,22 +322,23 @@ export default function LucidsalesDetailPanel({ id, ids, currentIndex, onClose, 
     if (pedido.TipoPago === 2) {
       if (!window.confirm('Este pedido es por TRANSFERENCIA.\n\nYa verificaste que el cliente realizo la transferencia?\n\nPresiona Aceptar solo si el pago ya fue recibido.')) return;
     }
-    setUploading(true);
+      setUploading(true);
     try {
       const q = quotes.quotes[selectedQuoteIdx];
       await api.post(`/api/lucidsales/pedidos/${currentId}`, pedido);
-      await api.post('/api/lucidsales/guardar-local', { lucidsalesPedidoId: Number(currentId), pedido, asignadoId: pedido._asignadoId || undefined });
       setCamposModificados(new Set());
       const { data } = await api.post('/api/lucidsales/pedidos/confirmar-envio', { pedidoId: Number(currentId), transportadora_id: q.transportadora_id });
       if (data.ok) {
         setUploaded(true);
-        setPedido(prev => ({ ...prev, EstadoPedido: 2 }));
-        await api.post('/api/lucidsales/guardar-local', {
-          lucidsalesPedidoId: Number(currentId),
-          pedido: { ...pedido, EstadoPedido: 2 },
-          asignadoId: pedido._asignadoId || undefined
-        });
+        try {
+          const { data: fresh } = await api.get(`/api/lucidsales/pedidos/${currentId}`);
+          if (fresh && fresh.id) {
+            setPedido(fresh);
+            setOriginalPedido(JSON.parse(JSON.stringify(fresh)));
+          }
+        } catch {}
         showToast(`Pedido subido y confirmado a ${q.transportadora}`);
+        if (onUpdate) onUpdate();
       } else showToast(data.msg || data.error || 'Error al subir', 'error');
     } catch (err) {
       showToast(err.response?.data?.error || err.message || 'Error al subir', 'error');

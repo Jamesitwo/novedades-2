@@ -86,10 +86,14 @@ const confirmarEnvio = async (req, res) => {
     try {
       await prisma.pedidoVinculado.update({
         where: { lucidsalesPedidoId: Number(pedidoId) },
-        data: { subidoPorId: req.usuario.id, estadoPedido: 2 }
+        data: { subidoPorId: req.usuario.id }
       });
+      const pedidoActualizado = await lucidsalesService.getPedidoById(pedidoId);
+      if (pedidoActualizado && pedidoActualizado.id) {
+        await lucidsalesService.guardarVinculacionLocal(Number(pedidoId), pedidoActualizado, req.usuario.id);
+      }
     } catch (e) {
-      console.error('[LucidSales] Error guardando subidoPorId:', e.message);
+      console.error('[LucidSales] Error actualizando pedido post-upload:', e.message);
     }
     res.json(result);
   } catch (error) {
@@ -578,10 +582,14 @@ const subirDividido = async (req, res) => {
         try {
           await prisma.pedidoVinculado.update({
             where: { lucidsalesPedidoId: Number(nuevoId) },
-            data: { subidoPorId: req.usuario.id, estadoPedido: 2 }
+            data: { subidoPorId: req.usuario.id }
           });
+          const pedidoActualizado = await lucidsalesService.getPedidoById(nuevoId);
+          if (pedidoActualizado && pedidoActualizado.id) {
+            await lucidsalesService.guardarVinculacionLocal(Number(nuevoId), pedidoActualizado, req.usuario.id);
+          }
         } catch (e) {
-          console.error('[LucidSales] Error guardando subidoPorId en dividido:', e.message);
+          console.error('[LucidSales] Error actualizando pedido post-upload dividido:', e.message);
         }
 
         resultados.push({ producto: prod.product_id, pedidoId: nuevoId, exito: true });
