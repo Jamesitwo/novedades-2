@@ -31,6 +31,16 @@ const getPedidoById = async (req, res) => {
   try {
     const { id } = req.params;
     const result = await lucidsalesService.getPedidoById(id);
+    try {
+      const local = await prisma.pedidoVinculado.findUnique({
+        where: { lucidsalesPedidoId: Number(id) },
+        select: { subidoPorId: true, asignadoId: true }
+      });
+      if (local) {
+        result._subidoPorId = local.subidoPorId;
+        result._asignadoId = local.asignadoId;
+      }
+    } catch {}
     res.json(result);
   } catch (error) {
     console.error('LucidSales getPedidoById error:', error);
@@ -600,6 +610,22 @@ const subirDividido = async (req, res) => {
 
     const exitos = resultados.filter(r => r.exito).length;
     const fallos = resultados.filter(r => r.error).length;
+
+    if (exitos > 0) {
+      try {
+        const pedidoActualizado = await lucidsalesService.getPedidoById(id);
+        if (pedidoActualizado && pedidoActualizado.id) {
+          await lucidsalesService.guardarVinculacionLocal(Number(id), pedidoActualizado, req.usuario.id);
+        }
+        await prisma.pedidoVinculado.upsert({
+          where: { lucidsalesPedidoId: Number(id) },
+          update: { subidoPorId: req.usuario.id, estadoPedido: 2 },
+          create: { lucidsalesPedidoId: Number(id), subidoPorId: req.usuario.id, estadoPedido: 2 }
+        });
+      } catch (e) {
+        console.error('[LucidSales] Error marcando pedido original como subido:', e.message);
+      }
+    }
 
     res.json({ ok: true, total: productos.length, exitos, fallos, resultados });
   } catch (error) {
