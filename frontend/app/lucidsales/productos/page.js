@@ -152,10 +152,13 @@ const getStockStyle = (s) => {
 
 export default function LucidSalesProductosPage() {
   const [productos, setProductos] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+  const [search, setSearch] = useState('');
+  const [selected, setSelected] = useState(null);
   const [stockMap, setStockMap] = useState({});
   const [refreshingStock, setRefreshingStock] = useState({});
   const [showAlert, setShowAlert] = useState(true);
-  const [search, setSearch] = useState('');
   const [lastUpdate, setLastUpdate] = useState(null);
   const [alertasMap, setAlertasMap] = useState({});
   const [alertModalProducto, setAlertModalProducto] = useState(null);
