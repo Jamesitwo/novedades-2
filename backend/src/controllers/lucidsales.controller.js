@@ -604,6 +604,18 @@ const listarVinculados = async (req, res) => {
   try {
     const { page = 1, itemsPerPage = 50, search = '', estadoFilter, etiquetaId, asignadoId } = req.query;
     const opts = { page: Number(page), itemsPerPage: Number(itemsPerPage), search, estadoFilter, etiquetaId, asignadoId };
+
+    if (req.usuario.rol !== 'admin') {
+      const usuario = await prisma.usuario.findUnique({
+        where: { id: req.usuario.id },
+        select: { verSoloAsignados: true, rol: true }
+      });
+      if (usuario?.rol === 'operador_asignado' || usuario?.verSoloAsignados) {
+        opts.asignadoId = req.usuario.id;
+        opts.estadoFilter = undefined;
+      }
+    }
+
     if (estadoFilter === 'asignados') {
       opts.asignadoId = req.usuario.id;
       opts.estadoFilter = undefined;
