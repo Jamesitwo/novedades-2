@@ -318,6 +318,11 @@ export default function LucidsalesDetailPanel({ id, ids, currentIndex, onClose, 
       if (data.ok) {
         setUploaded(true);
         setPedido(prev => ({ ...prev, EstadoPedido: 2 }));
+        await api.post('/api/lucidsales/guardar-local', {
+          lucidsalesPedidoId: Number(currentId),
+          pedido: { ...pedido, EstadoPedido: 2 },
+          asignadoId: pedido._asignadoId || undefined
+        });
         showToast(`Pedido subido y confirmado a ${q.transportadora}`);
       } else showToast(data.msg || data.error || 'Error al subir', 'error');
     } catch (err) {

@@ -41,11 +41,30 @@ export default function LucidSalesPage() {
   const [productosMap, setProductosMap] = useState({});
   const [pedidosHoy, setPedidosHoy] = useState(0);
   const [alertasMap, setAlertasMap] = useState({});
+  const [syncing, setSyncing] = useState(false);
 
   const showToast = useCallback((message, type = 'success') => {
     setToast({ message, type });
     setTimeout(() => setToast(null), 3000);
   }, []);
+
+  const handleRefreshAll = async () => {
+    fetchPedidos();
+    if (pedidos.length === 0) return;
+    setSyncing(true);
+    try {
+      const ids = pedidos.map(p => p.id).filter(Boolean);
+      const { data } = await api.post('/api/lucidsales/sync-pedidos', { ids });
+      if (data.ok) {
+        showToast(`Sincronizados ${data.actualizados} pedidos desde LucidSales`);
+      }
+    } catch (err) {
+      showToast('Error al sincronizar pedidos', 'error');
+    } finally {
+      setSyncing(false);
+      fetchPedidos();
+    }
+  };
 
   const fetchPedidos = useCallback(async () => {
     setLoading(true);
@@ -280,8 +299,8 @@ export default function LucidSalesPage() {
         <button type="submit" disabled={vinculando || !vincularId} className="btn btn-primary" style={{ fontSize: 12 }}>
           {vinculando ? 'Vinculando...' : 'Vincular pedido'}
         </button>
-        <button type="button" onClick={fetchPedidos} className="btn btn-ghost" style={{ fontSize: 12 }}>
-          ⟳ Refrescar
+        <button type="button" onClick={handleRefreshAll} disabled={syncing} className="btn btn-ghost" style={{ fontSize: 12 }}>
+          {syncing ? 'Sincronizando...' : '⟳ Sincronizar'}
         </button>
       </form>
 

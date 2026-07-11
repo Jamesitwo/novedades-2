@@ -86,7 +86,7 @@ const confirmarEnvio = async (req, res) => {
     try {
       await prisma.pedidoVinculado.update({
         where: { lucidsalesPedidoId: Number(pedidoId) },
-        data: { subidoPorId: req.usuario.id }
+        data: { subidoPorId: req.usuario.id, estadoPedido: 2 }
       });
     } catch (e) {
       console.error('[LucidSales] Error guardando subidoPorId:', e.message);
@@ -578,7 +578,7 @@ const subirDividido = async (req, res) => {
         try {
           await prisma.pedidoVinculado.update({
             where: { lucidsalesPedidoId: Number(nuevoId) },
-            data: { subidoPorId: req.usuario.id }
+            data: { subidoPorId: req.usuario.id, estadoPedido: 2 }
           });
         } catch (e) {
           console.error('[LucidSales] Error guardando subidoPorId en dividido:', e.message);
@@ -636,6 +636,38 @@ const listarVinculados = async (req, res) => {
   } catch (error) {
     console.error('LucidSales listarVinculados error:', error);
     res.status(500).json({ error: error.message || 'Error al listar vinculados' });
+  }
+};
+
+const syncPedidos = async (req, res) => {
+  try {
+    const { ids } = req.body;
+    if (!ids || !Array.isArray(ids) || ids.length === 0) {
+      return res.status(400).json({ error: 'Se requiere un array de IDs' });
+    }
+
+    let actualizados = 0;
+    let fallos = 0;
+
+    for (const id of ids) {
+      try {
+        const pedido = await lucidsalesService.getPedidoById(id);
+        if (pedido && pedido.id) {
+          await lucidsalesService.guardarVinculacionLocal(Number(id), pedido, req.usuario.id);
+          actualizados++;
+        } else {
+          fallos++;
+        }
+      } catch (err) {
+        console.error(`[LucidSales] Error sincronizando pedido #${id}:`, err.message);
+        fallos++;
+      }
+    }
+
+    res.json({ ok: true, actualizados, fallos, total: ids.length });
+  } catch (error) {
+    console.error('LucidSales syncPedidos error:', error);
+    res.status(500).json({ error: error.message || 'Error al sincronizar pedidos' });
   }
 };
 
@@ -775,6 +807,7 @@ module.exports = {
   duplicarPedido,
   subirDividido,
   listarVinculados,
+  syncPedidos,
   guardarLocal,
   getEtiquetas,
   asignarEtiqueta,
