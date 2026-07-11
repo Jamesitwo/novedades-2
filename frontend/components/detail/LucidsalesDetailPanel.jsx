@@ -21,6 +21,20 @@ const GEOFIX_BADGE = {
   area: { label: 'Zona aproximada', bg: 'rgba(139,139,155,0.07)', color: '#8b8b9b', border: 'rgba(139,139,155,0.12)' }
 };
 
+const TRANSPORTADORA_COLORS = [
+  { match: /interrapidisimo|inter\s*rapid/i, bg: '#1a1a1a', border: '#f97316', text: '#fff' },
+  { match: /coordinadora/i, bg: '#1e3a5f', border: '#3b82f6', text: '#3b82f6' },
+  { match: /envia/i, bg: '#7f1d1d', border: '#ef4444', text: '#ef4444' },
+  { match: /tcc/i, bg: '#451a03', border: '#eab308', text: '#eab308' },
+  { match: /veloces/i, bg: '#4c0519', border: '#f43f5e', text: '#f43f5e' },
+  { match: /domina/i, bg: '#172554', border: '#eab308', text: '#3b82f6' },
+];
+
+function getTransportadoraColors(name) {
+  const cfg = TRANSPORTADORA_COLORS.find(c => c.match.test(name || ''));
+  return cfg || { bg: 'var(--bg2)', border: 'var(--border)', text: 'var(--text)' };
+}
+
 export default function LucidsalesDetailPanel({ id, ids, currentIndex, onClose, onNavigate, onUpdate }) {
   const [pedido, setPedido] = useState(null);
   const [originalPedido, setOriginalPedido] = useState(null);
@@ -587,15 +601,17 @@ export default function LucidsalesDetailPanel({ id, ids, currentIndex, onClose, 
                   <div style={{ display: 'flex', flexDirection: 'column', gap: 6, marginBottom: 10 }}>
                     {quotes.quotes.map((q, i) => {
                       const hasError = !!q.error; const selected = selectedQuoteIdx === i;
+                      const tColors = getTransportadoraColors(q.transportadora);
                       return (
                         <div key={i} onClick={() => !hasError && setSelectedQuoteIdx(i)} style={{
                           display: 'flex', alignItems: 'center', gap: 8, padding: '8px 10px', borderRadius: 6, cursor: hasError ? 'default' : 'pointer',
-                          border: selected ? '2px solid var(--accent)' : '1px solid var(--border)',
-                          background: selected ? 'var(--accent-bg)' : 'var(--bg2)', opacity: hasError ? 0.5 : 1
+                          border: selected ? `2px solid ${tColors.border}` : `1px solid ${tColors.border}`,
+                          background: selected ? tColors.bg : 'var(--bg2)', opacity: hasError ? 0.5 : 1,
+                          transition: 'all 0.15s'
                         }}>
-                          <div style={{ width: 16 }}>{selected && <span style={{ color: 'var(--accent)' }}>✓</span>}</div>
+                          <div style={{ width: 16 }}>{selected && <span style={{ color: tColors.border }}>✓</span>}</div>
                           <div style={{ flex: 1 }}>
-                            <div style={{ fontWeight: 600, fontSize: 12 }}>{q.transportadora}</div>
+                            <div style={{ fontWeight: 600, fontSize: 12, color: tColors.text }}>{q.transportadora}</div>
                             {q.objects && (
                               <div style={{ fontSize: 11, color: 'var(--text2)', marginTop: 1 }}>
                                 {q.objects.precioEnvio != null && <span style={{ fontWeight: 500, color: 'var(--accent2)', marginRight: 8 }}>{formatMoney(q.objects.precioEnvio)}</span>}
