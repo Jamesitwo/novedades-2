@@ -857,6 +857,18 @@ export default function LucidsalesDetailPanel({ id, ids, currentIndex, onClose, 
                     {formatMoney(pedido.Total)}
                   </div>
                   </div>
+                  <div>
+                    <label style={{ fontSize: 10, color: 'var(--text3)', marginBottom: 2, display: 'block' }}>Flete Dropi</label>
+                    <div style={{ ...fieldStyle('Total'), fontWeight: 500, color: 'var(--text)', fontSize: 13 }}>
+                      {formatMoney(pedido.fleteDropi)}
+                    </div>
+                  </div>
+                  <div>
+                    <label style={{ fontSize: 10, color: 'var(--text3)', marginBottom: 2, display: 'block' }}>Ganancia Dropi</label>
+                    <div style={{ ...fieldStyle('Total'), fontWeight: 600, color: 'var(--green)', fontSize: 13 }}>
+                      {formatMoney(pedido.gananciaEsperadaDropi)}
+                    </div>
+                  </div>
                 </div>
               </div>
             )}
