@@ -2,6 +2,13 @@ function sinTildes(str) {
   return str.normalize('NFD').replace(/[\u0300-\u036f]/g, '');
 }
 
+const DEPARTAMENTO_ALIASES = {
+  'bogota': ['cundinamarca', 'bogota dc', 'bogota d.c.'],
+  'cundinamarca': ['bogota', 'bogota dc', 'bogota d.c.'],
+  'bogota dc': ['cundinamarca', 'bogota'],
+  'bogota d.c.': ['cundinamarca', 'bogota'],
+};
+
 const VIA_TYPES = [
   { regex: /^CALLE\b/i, canonical: 'Calle', abbr: 'Cll' },
   { regex: /^CLL?\b/i, canonical: 'Calle', abbr: 'Cll' },
@@ -365,7 +372,11 @@ function validateFull(direccion, geoResult, pedidoCtx) {
         if (deptoGeo && deptoPed) {
           const deptoGeoCorta = deptoGeo.split(',')[0].trim();
           const deptoPedCorta = deptoPed.split(',')[0].trim();
-          matchDepto = deptoGeoCorta === deptoPedCorta || deptoGeoCorta.includes(deptoPedCorta) || deptoPedCorta.includes(deptoGeoCorta);
+          matchDepto = deptoGeoCorta === deptoPedCorta
+            || deptoGeoCorta.includes(deptoPedCorta)
+            || deptoPedCorta.includes(deptoGeoCorta)
+            || (DEPARTAMENTO_ALIASES[deptoPedCorta] && DEPARTAMENTO_ALIASES[deptoPedCorta].includes(deptoGeoCorta))
+            || (DEPARTAMENTO_ALIASES[deptoGeoCorta] && DEPARTAMENTO_ALIASES[deptoGeoCorta].includes(deptoPedCorta));
         }
 
         const partes = [];
