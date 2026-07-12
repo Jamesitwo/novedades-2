@@ -131,7 +131,8 @@ export default function LucidSalesPage() {
       list.forEach(p => {
         const key = p.id ?? p.Id;
         const name = p.nombre || p.name || p.Nombre || p.nombreProducto || '';
-        if (key != null) map[String(key)] = name;
+        const img = p.imagen || p.image || p.Imagen || p.Image || p.foto || p.Foto || null;
+        if (key != null) map[String(key)] = { name, image: img };
       });
       setProductosMap(map);
     }).catch(() => {});
@@ -189,7 +190,8 @@ export default function LucidSalesPage() {
       if (items.length === 0) return '—';
       if (items.length === 1) {
         const id = String(items[0].product_id);
-        return productosMap[id] || `#${id}`;
+        const pi = productosMap[id];
+        return pi?.name || `#${id}`;
       }
       return `${items.length} productos`;
     } catch { return '—'; }

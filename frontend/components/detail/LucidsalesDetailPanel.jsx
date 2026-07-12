@@ -234,7 +234,12 @@ export default function LucidsalesDetailPanel({ id, ids, currentIndex, onClose, 
           const prodList = Array.isArray(prodRes.data) ? prodRes.data : prodRes.data?.productos || prodRes.data?.data || [];
           if (prodList.length > 0) {
             const map = {};
-            prodList.forEach(p => { const key = p.id ?? p.Id; const name = p.nombre || p.name || p.Nombre || p.nombreProducto || ''; if (key != null) map[String(key)] = name; });
+            prodList.forEach(p => {
+              const key = p.id ?? p.Id;
+              const name = p.nombre || p.name || p.Nombre || p.nombreProducto || '';
+              const img = p.imagen || p.image || p.Imagen || p.Image || p.foto || p.Foto || null;
+              if (key != null) map[String(key)] = { name, image: img };
+            });
             setProductosMap(map);
           }
         } else if (pedidoData && pedidoData.error) {
@@ -548,7 +553,7 @@ export default function LucidsalesDetailPanel({ id, ids, currentIndex, onClose, 
               <span style={{ fontWeight: 600 }}>⚠ Stock bajo:</span>
               {bajoStock.map((p, i) => (
                 <span key={i} style={{ fontWeight: 500, color: p._stock === 0 ? '#e53e3e' : '#f59e0b', whiteSpace: 'nowrap' }}>
-                  {productosMap[String(p.product_id)] || `#${p.product_id}`}
+                  {productosMap[String(p.product_id)]?.name || `#${p.product_id}`}
                   {p._stock === 0 ? ' — AGOTADO' : ` — ${p._stock}`}{i < bajoStock.length - 1 ? ' ·' : ''}
                 </span>
               ))}
@@ -902,9 +907,13 @@ export default function LucidsalesDetailPanel({ id, ids, currentIndex, onClose, 
                       return editProdMode === i ? (
                         <div key={i} style={{ padding: '6px 10px', background: 'var(--bg3)', borderRadius: 4 }}>
                           <div style={{ display: 'flex', alignItems: 'center', gap: 4, marginBottom: 4 }}>
+                            {(() => {
+                              const pi = productosMap[String(prod.product_id)];
+                              return pi?.image ? <img src={pi.image} alt="" style={{ width: 28, height: 28, borderRadius: 4, objectFit: 'cover', border: '1px solid var(--border)', flexShrink: 0 }} onError={e => { e.target.style.display = 'none'; }} /> : null;
+                            })()}
                             <select value={prod.product_id || ''} onChange={e => handleProductChange(i, e.target.value)} style={{ ...fieldStyle(`prod-${i}`), flex: 1, fontSize: 11, appearance: 'auto', cursor: 'pointer' }}>
                               <option value="">Seleccionar producto</option>
-                              {Object.entries(productosMap).map(([id, name]) => (<option key={id} value={id}>{name || `#${id}`}</option>))}
+                              {Object.entries(productosMap).map(([id, info]) => (<option key={id} value={id}>{info.name || `#${id}`}</option>))}
                             </select>
                           </div>
                           <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
@@ -921,7 +930,15 @@ export default function LucidsalesDetailPanel({ id, ids, currentIndex, onClose, 
                           onClick={() => setEditProdMode(i)}>
                           <div style={{ flex: 1, minWidth: 0 }}>
                             <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
-                              <span style={{ color: 'var(--accent)', fontWeight: 500, fontSize: 12 }}>{productosMap[String(prod.product_id)] || `#${prod.product_id}`}</span>
+                              {(() => {
+                                const pi = productosMap[String(prod.product_id)];
+                                return (
+                                  <>
+                                    {pi?.image && <img src={pi.image} alt="" style={{ width: 32, height: 32, borderRadius: 4, objectFit: 'cover', border: '1px solid var(--border)' }} onError={e => { e.target.style.display = 'none'; }} />}
+                                    <span style={{ color: 'var(--accent)', fontWeight: 500, fontSize: 12 }}>{pi?.name || `#${prod.product_id}`}</span>
+                                  </>
+                                );
+                              })()}
                               <span style={{ color: 'var(--text)', fontSize: 11 }}>x{prod.quantity || 1}</span>
                               {prod.variations?.length > 0 && <span style={{ color: 'var(--text3)', fontSize: 10 }}>({prod.variations.join(', ')})</span>}
                               {stockBadge}
@@ -1028,7 +1045,7 @@ export default function LucidsalesDetailPanel({ id, ids, currentIndex, onClose, 
               <div style={{ display: 'flex', flexDirection: 'column', gap: 4, marginBottom: 16 }}>
                 {productos.map((p, i) => (
                   <div key={i} style={{ display: 'flex', justifyContent: 'space-between', padding: '5px 8px', background: 'var(--bg3)', borderRadius: 4, fontSize: 12 }}>
-                    <span>{productosMap[String(p.product_id)] || `#${p.product_id}`} x{p.quantity || 1}</span>
+                    <span>{productosMap[String(p.product_id)]?.name || `#${p.product_id}`} x{p.quantity || 1}</span>
                     <span style={{ color: 'var(--accent2)', fontFamily: 'var(--mono)' }}>{formatMoneyShort(p.price * (p.quantity || 1))}</span>
                   </div>
                 ))}
@@ -1040,7 +1057,7 @@ export default function LucidsalesDetailPanel({ id, ids, currentIndex, onClose, 
                     {splitResults.items.map((p, i) => (
                       <div key={i} style={{ fontSize: 11, display: 'flex', alignItems: 'center', gap: 4 }}>
                         <span>{p.status === 'ok' ? '✅' : p.status === 'error' ? '❌' : '⏳'}</span>
-                        <span>{productosMap[String(p.product_id)] || `#${p.product_id}`}</span>
+                        <span>{productosMap[String(p.product_id)]?.name || `#${p.product_id}`}</span>
                         {p.error && <span style={{ color: 'var(--red)', fontSize: 9 }}>{p.error}</span>}
                       </div>
                     ))}
