@@ -160,6 +160,15 @@ const validarDireccion = async (req, res) => {
 const getProductos = async (req, res) => {
   try {
     const result = await lucidsalesService.getProductos();
+    const list = Array.isArray(result) ? result : result?.productos || result?.data || [];
+    if (list.length > 0) {
+      const first = list[0];
+      const imgKeys = Object.keys(first).filter(k => /imagen|image|img|foto|picture/i.test(k));
+      console.log('[IMG-DEBUG] productos totales:', list.length);
+      console.log('[IMG-DEBUG] keys del primer producto:', Object.keys(first).join(', '));
+      console.log('[IMG-DEBUG] keys de imagen:', imgKeys);
+      if (imgKeys.length > 0) console.log('[IMG-DEBUG] valor de', imgKeys[0], ':', JSON.stringify(first[imgKeys[0]]).slice(0, 200));
+    }
     res.json(result);
   } catch (error) {
     console.error('LucidSales getProductos error:', error);
