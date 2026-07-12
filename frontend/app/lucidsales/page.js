@@ -42,6 +42,9 @@ export default function LucidSalesPage() {
   const [pedidosHoy, setPedidosHoy] = useState(0);
   const [alertasMap, setAlertasMap] = useState({});
   const [syncing, setSyncing] = useState(false);
+  const [fechaDesde, setFechaDesde] = useState('');
+  const [fechaHasta, setFechaHasta] = useState('');
+  const [filtroProducto, setFiltroProducto] = useState('');
 
   const showToast = useCallback((message, type = 'success') => {
     setToast({ message, type });
@@ -77,6 +80,9 @@ export default function LucidSalesPage() {
       if (estadoFilter !== '') params.set('estadoFilter', estadoFilter);
       if (etiquetaId) params.set('etiquetaId', etiquetaId);
       if (asignadoId) params.set('asignadoId', asignadoId);
+      if (fechaDesde) params.set('fechaDesde', fechaDesde);
+      if (fechaHasta) params.set('fechaHasta', fechaHasta);
+      if (filtroProducto) params.set('producto', filtroProducto);
       params.set('filters', '[]');
 
       const [{ data }, { data: alertasData }] = await Promise.all([
@@ -102,7 +108,7 @@ export default function LucidSalesPage() {
     } finally {
       setLoading(false);
     }
-  }, [page, search, itemsPerPage, estadoFilter, etiquetaId, asignadoId]);
+  }, [page, search, itemsPerPage, estadoFilter, etiquetaId, asignadoId, fechaDesde, fechaHasta, filtroProducto]);
 
   useEffect(() => {
     setConnected(isConnected());
@@ -346,6 +352,19 @@ export default function LucidSalesPage() {
             </select>
           )}
         </div>
+        <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center', marginTop: 6 }}>
+          <input type="date" value={fechaDesde} onChange={e => { setFechaDesde(e.target.value); setPage(1); }}
+            style={{ background: fechaDesde ? 'var(--accent)' : 'var(--bg3)', border: `1px solid ${fechaDesde ? 'var(--accent)' : 'var(--border)'}`, borderRadius: 6, padding: '4px 8px', fontSize: 11, color: fechaDesde ? '#fff' : 'var(--text2)', outline: 'none' }} />
+          <span style={{ fontSize: 11, color: 'var(--text3)' }}>→</span>
+          <input type="date" value={fechaHasta} onChange={e => { setFechaHasta(e.target.value); setPage(1); }}
+            style={{ background: fechaHasta ? 'var(--accent)' : 'var(--bg3)', border: `1px solid ${fechaHasta ? 'var(--accent)' : 'var(--border)'}`, borderRadius: 6, padding: '4px 8px', fontSize: 11, color: fechaHasta ? '#fff' : 'var(--text2)', outline: 'none' }} />
+          {(fechaDesde || fechaHasta) && (
+            <button onClick={() => { setFechaDesde(''); setFechaHasta(''); setPage(1); }} style={{ background: 'none', border: 'none', color: 'var(--text3)', cursor: 'pointer', fontSize: 12 }}>✕</button>
+          )}
+          <input type="text" className="topbar-search" placeholder="Filtrar por producto..." value={filtroProducto}
+            onChange={e => { setFiltroProducto(e.target.value); setPage(1); }}
+            style={{ width: 180, fontSize: 11, marginLeft: 8 }} />
+        </div>
         <div className="filters-right">
           <form onSubmit={handleSearchSubmit} style={{ display: 'flex', gap: 6 }}>
             <input
@@ -382,6 +401,7 @@ export default function LucidSalesPage() {
               <thead>
                 <tr>
                   <th># Pedido</th>
+                  <th style={{ whiteSpace: 'nowrap' }}>Fecha</th>
                   <th>Cliente</th>
                   <th>Telefono</th>
                   <th>Total</th>
@@ -398,6 +418,9 @@ export default function LucidSalesPage() {
                 {pedidos.map((p) => (
                   <tr key={p.id} onClick={() => { setDetailIds(pedidos.map(pe => pe.id)); setDetailId(p.id); }} style={{ cursor: 'pointer' }}>
                     <td className="td-mono" title={`ID LucidSales: ${p.id}`}>#{p.idPedido}</td>
+                    <td style={{ fontSize: 11, whiteSpace: 'nowrap', color: 'var(--text3)' }}>
+                      {p.createdAt ? new Date(p.createdAt).toLocaleDateString('es-CO') : '—'}
+                    </td>
                     <td className="td-name">{p.Nombre} {p.Apellido}</td>
                     <td>{p.Movil}</td>
                     <td className="td-mono">{formatMoney(p.Total)}</td>

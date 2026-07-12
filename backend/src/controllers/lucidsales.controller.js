@@ -636,8 +636,8 @@ const subirDividido = async (req, res) => {
 
 const listarVinculados = async (req, res) => {
   try {
-    const { page = 1, itemsPerPage = 50, search = '', estadoFilter, etiquetaId, asignadoId } = req.query;
-    const opts = { page: Number(page), itemsPerPage: Number(itemsPerPage), search, estadoFilter, etiquetaId, asignadoId };
+    const { page = 1, itemsPerPage = 50, search = '', estadoFilter, etiquetaId, asignadoId, fechaDesde, fechaHasta, producto } = req.query;
+    const opts = { page: Number(page), itemsPerPage: Number(itemsPerPage), search, estadoFilter, etiquetaId, asignadoId, fechaDesde, fechaHasta, producto };
 
     if (req.usuario.rol !== 'admin') {
       const usuario = await prisma.usuario.findUnique({

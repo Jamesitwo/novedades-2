@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback, useMemo } from 'react';
+import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import api from '@/lib/api';
 import { TableSkeleton } from '@/components/Skeleton';
 
@@ -165,6 +165,8 @@ export default function LucidSalesProductosPage() {
   const [alertasProducto, setAlertasProducto] = useState([]);
   const [nuevaAlerta, setNuevaAlerta] = useState({ mensaje: '', tipo: 'warning' });
   const [savingAlerta, setSavingAlerta] = useState(false);
+  const [recoveryAlerts, setRecoveryAlerts] = useState([]);
+  const prevStockRef = useRef({});
 
   const getStock = (p) => {
     const id = String(p.id ?? p.Id ?? '');
@@ -285,6 +287,24 @@ export default function LucidSalesProductosPage() {
   }, []);
 
   useEffect(() => {
+    const prev = prevStockRef.current;
+    const recuperados = [];
+    Object.entries(stockMap).forEach(([productId, newStock]) => {
+      const oldStock = prev[productId];
+      if (oldStock === 0 && newStock > 0) {
+        const prod = productos.find(p => String(p.id ?? p.Id) === productId);
+        const name = prod ? (prod.nombre || prod.name || prod.Nombre || `#${productId}`) : `#${productId}`;
+        recuperados.push({ id: productId, nombre: name, stock: newStock });
+      }
+    });
+    if (recuperados.length > 0) {
+      setRecoveryAlerts(recuperados);
+      setTimeout(() => setRecoveryAlerts([]), 10000);
+    }
+    prevStockRef.current = stockMap;
+  }, [stockMap, productos]);
+
+  useEffect(() => {
     const interval = setInterval(fetchProductos, 5 * 60 * 1000);
     return () => clearInterval(interval);
   }, [fetchProductos]);
@@ -396,6 +416,23 @@ export default function LucidSalesProductosPage() {
               </span>
             )}
             <button onClick={() => setShowAlert(false)} style={{ background: 'none', border: 'none', color: 'var(--text3)', cursor: 'pointer', fontSize: 14 }}>✕</button>
+          </div>
+        </div>
+      )}
+
+      {recoveryAlerts.length > 0 && (
+        <div style={{
+          display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+          padding: '10px 16px', borderRadius: 8, marginBottom: 14,
+          background: 'rgba(34,200,122,0.08)', border: '1px solid rgba(34,200,122,0.3)',
+          fontSize: 13
+        }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+            {recoveryAlerts.map((r, i) => (
+              <span key={r.id} style={{ color: '#22c87a', fontWeight: 500 }}>
+                🟢 ¡Stock recuperado! <strong>{r.nombre}</strong> ahora tiene {r.stock} unidad{r.stock !== 1 ? 'es' : ''}
+              </span>
+            ))}
           </div>
         </div>
       )}

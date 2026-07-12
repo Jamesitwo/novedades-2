@@ -450,7 +450,7 @@ async function guardarVinculacionLocal(lucidsalesPedidoId, pedido, usuarioId, as
   });
 }
 
-async function listVinculaciones({ page = 1, itemsPerPage = 50, search = '', estadoFilter, asignadoId, lucidsalesPedidoIds } = {}) {
+async function listVinculaciones({ page = 1, itemsPerPage = 50, search = '', estadoFilter, asignadoId, lucidsalesPedidoIds, fechaDesde, fechaHasta, producto } = {}) {
   const where = {};
   if (search) {
     where.OR = [
@@ -468,6 +468,14 @@ async function listVinculaciones({ page = 1, itemsPerPage = 50, search = '', est
   }
   if (lucidsalesPedidoIds) {
     where.lucidsalesPedidoId = { in: lucidsalesPedidoIds };
+  }
+  if (fechaDesde || fechaHasta) {
+    where.createdAt = {};
+    if (fechaDesde) where.createdAt.gte = new Date(fechaDesde + 'T00:00:00');
+    if (fechaHasta) where.createdAt.lte = new Date(fechaHasta + 'T23:59:59');
+  }
+  if (producto) {
+    where.jsonProductos = { contains: producto };
   }
 
   const [total, pedidos] = await Promise.all([
@@ -512,6 +520,7 @@ async function listVinculaciones({ page = 1, itemsPerPage = 50, search = '', est
       Json: p.jsonProductos || '[]',
       asignado: p.asignado || null,
       creador: p.createdBy || null,
+      createdAt: p.createdAt,
       _etiquetas: tagsPorId[String(p.lucidsalesPedidoId)] || []
     })),
     totalRecords: total,
