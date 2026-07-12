@@ -131,7 +131,26 @@ export default function LucidSalesPage() {
       list.forEach(p => {
         const key = p.id ?? p.Id;
         const name = p.nombre || p.name || p.Nombre || p.nombreProducto || '';
-        const img = p.imagen || p.image || p.Imagen || p.Image || p.foto || p.Foto || null;
+        let img = null;
+        const imgKey = Object.keys(p).find(k => /imagen|image|img|foto|picture/i.test(k));
+        if (imgKey) {
+          const val = p[imgKey];
+          if (typeof val === 'string' && val.startsWith('http')) {
+            img = val.split(',')[0].trim();
+          } else if (val !== null && val !== undefined) {
+            try {
+              const parsed = typeof val === 'string' ? JSON.parse(val) : val;
+              if (Array.isArray(parsed) && parsed.length > 0) {
+                const first = parsed[0];
+                img = typeof first === 'string' ? first : (first?.image || first?.imagen || first?.src || first?.url || null);
+              } else if (parsed && typeof parsed === 'object') {
+                img = parsed.image || parsed.imagen || parsed.src || parsed.url || parsed.URL || parsed.link || null;
+              }
+            } catch {}
+            if (!img && typeof val === 'string') img = val.split(',')[0].trim();
+          }
+        }
+        if (img && !img.startsWith('http')) img = null;
         if (key != null) map[String(key)] = { name, image: img };
       });
       setProductosMap(map);
