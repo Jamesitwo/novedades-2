@@ -234,38 +234,42 @@ export default function LucidsalesDetailPanel({ id, ids, currentIndex, onClose, 
           const prodList = Array.isArray(prodRes.data) ? prodRes.data : prodRes.data?.productos || prodRes.data?.data || [];
           if (prodList.length > 0) {
             const map = {};
-            let imgCount = 0;
-            const sampleKeys = new Set();
-            prodList.slice(0, 5).forEach(p => Object.keys(p).forEach(k => sampleKeys.add(k)));
-            console.log('[IMG] productos totales:', prodList.length, 'muestra keys:', [...sampleKeys]);
             prodList.forEach(p => {
               const key = p.id ?? p.Id;
               const name = p.nombre || p.name || p.Nombre || p.nombreProducto || '';
               let img = null;
-              const imgKey = Object.keys(p).find(k => /imagen|image|img|foto|picture/i.test(k));
-              if (imgKey) {
+              const imgKeys = Object.keys(p).filter(k => /imagen|image|img|foto|picture/i.test(k));
+              for (const imgKey of imgKeys) {
                 const val = p[imgKey];
-                console.log('[IMG] encontrado campo:', imgKey, 'tipo:', typeof val, 'preview:', typeof val === 'string' ? val.slice(0, 100) : JSON.stringify(val).slice(0, 100));
                 if (typeof val === 'string' && (val.startsWith('http://') || val.startsWith('https://'))) {
                   img = val.split(',')[0].trim();
-                } else if (val !== null && val !== undefined) {
+                  break;
+                }
+                if (val && Array.isArray(val) && val.length > 0) {
+                  const first = val[0];
+                  img = typeof first === 'string' ? first : (first?.image || first?.imagen || first?.src || first?.url || first?.Imagen || null);
+                  if (img && (img.startsWith('http://') || img.startsWith('https://'))) break;
+                  img = null;
+                }
+                if (typeof val === 'string' && val !== '[]' && val !== '') {
                   try {
-                    const parsed = typeof val === 'string' ? JSON.parse(val) : val;
+                    const parsed = JSON.parse(val);
                     if (Array.isArray(parsed) && parsed.length > 0) {
                       const first = parsed[0];
-                      img = typeof first === 'string' ? first : (first?.image || first?.imagen || first?.src || first?.url || null);
-                    } else if (parsed && typeof parsed === 'object') {
+                      img = typeof first === 'string' ? first : (first?.image || first?.imagen || first?.src || first?.url || first?.Imagen || null);
+                      if (img && (img.startsWith('http://') || img.startsWith('https://'))) break;
+                      img = null;
+                    } else if (parsed && typeof parsed === 'object' && !Array.isArray(parsed)) {
                       img = parsed.image || parsed.imagen || parsed.src || parsed.url || parsed.URL || parsed.link || null;
+                      if (img && (img.startsWith('http://') || img.startsWith('https://'))) break;
+                      img = null;
                     }
                   } catch {}
-                  if (!img && typeof val === 'string') img = val.split(',')[0].trim();
                 }
-                if (img && !(img.startsWith('http://') || img.startsWith('https://'))) img = null;
-                if (img) imgCount++;
               }
+              if (img && !(img.startsWith('http://') || img.startsWith('https://'))) img = null;
               if (key != null) map[String(key)] = { name, image: img };
             });
-            console.log('[IMG] imagenes extraidas:', imgCount, 'de', prodList.length);
             setProductosMap(map);
           }
         } else if (pedidoData && pedidoData.error) {
