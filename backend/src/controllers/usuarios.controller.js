@@ -23,6 +23,7 @@ const getAll = async (req, res) => {
           gestionaNovedades: true,
           gestionaOficina: true,
           gestionaPedidos: true,
+          puedeModificarTodo: true,
           createdAt: true
         },
         orderBy: { createdAt: 'desc' }
@@ -86,7 +87,7 @@ const create = async (req, res) => {
 const update = async (req, res) => {
   try {
     const { id } = req.params;
-    const { nombre, email, rol, activo, password, verSoloAsignados, accesoLucidsales, gestionaNovedades, gestionaOficina, gestionaPedidos } = req.body;
+    const { nombre, email, rol, activo, password, verSoloAsignados, accesoLucidsales, gestionaNovedades, gestionaOficina, gestionaPedidos, puedeModificarTodo } = req.body;
 
     if (rol && !['admin', 'operador', 'operador_asignado'].includes(rol)) {
       return res.status(400).json({ error: 'Rol no válido' });
@@ -99,6 +100,7 @@ const update = async (req, res) => {
     if (gestionaNovedades !== undefined) data.gestionaNovedades = gestionaNovedades;
     if (gestionaOficina !== undefined) data.gestionaOficina = gestionaOficina;
     if (gestionaPedidos !== undefined) data.gestionaPedidos = gestionaPedidos;
+    if (puedeModificarTodo !== undefined) data.puedeModificarTodo = puedeModificarTodo;
 
     const usuario = await prisma.usuario.update({
       where: { id },
@@ -113,6 +115,7 @@ const update = async (req, res) => {
         gestionaNovedades: true,
         gestionaOficina: true,
         gestionaPedidos: true,
+        puedeModificarTodo: true,
         verSoloAsignados: true,
         createdAt: true
       }

@@ -19,6 +19,7 @@ model Usuario {
   gestionaNovedades Boolean  @default(true) @map("gestiona_novedades")
   gestionaOficina   Boolean  @default(true) @map("gestiona_oficina")
   gestionaPedidos   Boolean  @default(false) @map("gestiona_pedidos")
+  puedeModificarTodo Boolean  @default(false) @map("puede_modificar_todo")
   createdAt         DateTime @default(now())
   updatedAt         DateTime @updatedAt
 

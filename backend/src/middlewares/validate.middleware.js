@@ -151,7 +151,8 @@ const usuarioUpdateSchema = z.object({
   accesoLucidsales: z.boolean().optional(),
   gestionaNovedades: z.boolean().optional(),
   gestionaOficina: z.boolean().optional(),
-  gestionaPedidos: z.boolean().optional()
+  gestionaPedidos: z.boolean().optional(),
+  puedeModificarTodo: z.boolean().optional()
 });
 
 const tareaSchema = z.object({

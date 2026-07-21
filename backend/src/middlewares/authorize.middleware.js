@@ -19,6 +19,16 @@ function authorizeRecord(module) {
       return next();
     }
 
+    try {
+      const usuario = await prisma.usuario.findUnique({
+        where: { id: req.usuario.id },
+        select: { puedeModificarTodo: true }
+      });
+      if (usuario?.puedeModificarTodo) {
+        return next();
+      }
+    } catch {}
+
     const recordId = req.params.id;
     if (!recordId) {
       return sendError(res, 400, 'MISSING_ID', 'ID de registro requerido');

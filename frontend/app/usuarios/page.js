@@ -10,7 +10,7 @@ export default function UsuariosPage() {
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
   const [editingUser, setEditingUser] = useState(null);
-  const [formData, setFormData] = useState({ nombre: '', email: '', password: '', rol: 'operador', accesoLucidsales: false, gestionaNovedades: true, gestionaOficina: true, gestionaPedidos: false });
+  const [formData, setFormData] = useState({ nombre: '', email: '', password: '', rol: 'operador', accesoLucidsales: false, gestionaNovedades: true, gestionaOficina: true, gestionaPedidos: false, puedeModificarTodo: false });
   const [error, setError] = useState('');
 
   const fetchUsuarios = async () => {
@@ -30,14 +30,14 @@ export default function UsuariosPage() {
 
   const openCreateModal = () => {
     setEditingUser(null);
-    setFormData({ nombre: '', email: '', password: '', rol: 'operador', accesoLucidsales: false, gestionaNovedades: true, gestionaOficina: true, gestionaPedidos: false });
+    setFormData({ nombre: '', email: '', password: '', rol: 'operador', accesoLucidsales: false, gestionaNovedades: true, gestionaOficina: true, gestionaPedidos: false, puedeModificarTodo: false });
     setError('');
     setShowModal(true);
   };
 
   const openEditModal = (usuario) => {
     setEditingUser(usuario);
-    setFormData({ nombre: usuario.nombre, email: usuario.email, password: '', rol: usuario.rol, accesoLucidsales: usuario.accesoLucidsales || false, gestionaNovedades: usuario.gestionaNovedades !== false, gestionaOficina: usuario.gestionaOficina !== false, gestionaPedidos: usuario.gestionaPedidos || false });
+    setFormData({ nombre: usuario.nombre, email: usuario.email, password: '', rol: usuario.rol, accesoLucidsales: usuario.accesoLucidsales || false, gestionaNovedades: usuario.gestionaNovedades !== false, gestionaOficina: usuario.gestionaOficina !== false, gestionaPedidos: usuario.gestionaPedidos || false, puedeModificarTodo: usuario.puedeModificarTodo || false });
     setError('');
     setShowModal(true);
   };
@@ -101,6 +101,7 @@ export default function UsuariosPage() {
               <th>Novedades</th>
               <th>Oficina</th>
               <th>Pedidos</th>
+              <th>Modif. Todo</th>
               <th>Visibilidad</th>
               <th></th>
             </tr>
@@ -134,6 +135,11 @@ export default function UsuariosPage() {
                 <td>
                   <span className={`badge ${usuario.gestionaPedidos ? 'activo' : 'inactivo'}`} style={{ fontSize: 11 }}>
                     {usuario.gestionaPedidos ? 'Sí' : 'No'}
+                  </span>
+                </td>
+                <td>
+                  <span className={`badge ${usuario.puedeModificarTodo ? 'activo' : 'inactivo'}`} style={{ fontSize: 11 }}>
+                    {usuario.puedeModificarTodo ? 'Sí' : 'No'}
                   </span>
                 </td>
                 <td>
@@ -291,6 +297,22 @@ export default function UsuariosPage() {
                     }} />
                   </span>
                   <input type="checkbox" checked={formData.gestionaPedidos} onChange={(e) => setFormData({ ...formData, gestionaPedidos: e.target.checked })} style={{ display: 'none' }} />
+                </label>
+              </div>
+
+              <div style={{ marginTop: 8 }}>
+                <label style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', cursor: 'pointer', padding: '8px 12px', borderRadius: 8, background: formData.puedeModificarTodo ? 'rgba(239,68,68,0.08)' : 'var(--bg3)', border: '1px solid var(--border)' }}>
+                  <span style={{ fontSize: 13, fontWeight: 500 }}>🔓 Modificar todo</span>
+                  <span style={{ position: 'relative', display: 'inline-block', flexShrink: 0,
+                    width: 40, height: 22, borderRadius: 11, background: formData.puedeModificarTodo ? 'var(--red)' : 'var(--bg4)',
+                    transition: 'background 0.2s', cursor: 'pointer' }}>
+                    <span style={{
+                      position: 'absolute', top: 2, left: formData.puedeModificarTodo ? 20 : 2,
+                      width: 18, height: 18, borderRadius: '50%', background: '#fff',
+                      transition: 'left 0.2s', boxShadow: '0 1px 3px rgba(0,0,0,0.3)'
+                    }} />
+                  </span>
+                  <input type="checkbox" checked={formData.puedeModificarTodo} onChange={(e) => setFormData({ ...formData, puedeModificarTodo: e.target.checked })} style={{ display: 'none' }} />
                 </label>
               </div>
 
