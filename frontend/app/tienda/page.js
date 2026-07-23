@@ -291,19 +291,17 @@ export default function TiendaPage() {
                         🔥 {p.ventasSimuladas} personas lo compraron
                       </div>
                     )}
-                    {p.linkCompra && (
-                      <a href={p.linkCompra} target="_blank" rel="noopener" style={{
-                        minHeight: 56, background: '#f28c00', color: '#181c1e',
-                        border: '2px solid #181c1e', boxShadow: '3px 3px 0px 0px #181c1e',
-                        textDecoration: 'none', fontWeight: 900, fontSize: 18,
-                        display: 'flex', alignItems: 'center', justifyContent: 'center',
-                        marginTop: 'auto', transition: 'transform 0.1s'
-                      }}
-                      onMouseEnter={e => { e.currentTarget.style.transform = 'translate(-1px, -1px)'; e.currentTarget.style.boxShadow = '4px 4px 0px 0px #181c1e'; }}
-                      onMouseLeave={e => { e.currentTarget.style.transform = 'none'; e.currentTarget.style.boxShadow = '3px 3px 0px 0px #181c1e'; }}>
-                        ¡Comprar ahora!
-                      </a>
-                    )}
+                    <a href={`/tienda/comprar/${p.id}`} style={{
+                      minHeight: 56, background: '#f28c00', color: '#181c1e',
+                      border: '2px solid #181c1e', boxShadow: '3px 3px 0px 0px #181c1e',
+                      textDecoration: 'none', fontWeight: 900, fontSize: 18,
+                      display: 'flex', alignItems: 'center', justifyContent: 'center',
+                      marginTop: 'auto', transition: 'transform 0.1s'
+                    }}
+                    onMouseEnter={e => { e.currentTarget.style.transform = 'translate(-1px, -1px)'; e.currentTarget.style.boxShadow = '4px 4px 0px 0px #181c1e'; }}
+                    onMouseLeave={e => { e.currentTarget.style.transform = 'none'; e.currentTarget.style.boxShadow = '3px 3px 0px 0px #181c1e'; }}>
+                      ¡Comprar ahora!
+                    </a>
                   </div>
                 </div>
               ))}

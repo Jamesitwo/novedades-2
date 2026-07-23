@@ -203,19 +203,17 @@ export default function ProductoDetallePage() {
             </div>
           )}
 
-          {producto.linkCompra && (
-            <a href={producto.linkCompra} target="_blank" rel="noopener" style={{
-              display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 12,
-              minHeight: 'clamp(52px, 8vw, 64px)', background: tieneOferta ? '#ba1a1a' : '#f28c00',
-              color: '#ffffff', fontSize: 'clamp(16px, 3vw, 22px)', fontWeight: 900, textDecoration: 'none',
-              border: '2px solid #181c1e', boxShadow: '4px 4px 0px 0px #181c1e',
-              transition: 'transform 0.1s'
-            }}
-            onMouseEnter={e => { e.currentTarget.style.transform = 'translate(-2px, -2px)'; e.currentTarget.style.boxShadow = '6px 6px 0px 0px #181c1e'; }}
-            onMouseLeave={e => { e.currentTarget.style.transform = 'none'; e.currentTarget.style.boxShadow = '4px 4px 0px 0px #181c1e'; }}>
-              🛒 {tieneOferta ? '¡Aprovechar oferta ahora!' : 'Comprar ahora'}
-            </a>
-          )}
+          <a href={`/tienda/comprar/${producto.id}`} style={{
+            display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 12,
+            minHeight: 'clamp(52px, 8vw, 64px)', background: tieneOferta ? '#ba1a1a' : '#f28c00',
+            color: '#ffffff', fontSize: 'clamp(16px, 3vw, 22px)', fontWeight: 900, textDecoration: 'none',
+            border: '2px solid #181c1e', boxShadow: '4px 4px 0px 0px #181c1e',
+            transition: 'transform 0.1s'
+          }}
+          onMouseEnter={e => { e.currentTarget.style.transform = 'translate(-2px, -2px)'; e.currentTarget.style.boxShadow = '6px 6px 0px 0px #181c1e'; }}
+          onMouseLeave={e => { e.currentTarget.style.transform = 'none'; e.currentTarget.style.boxShadow = '4px 4px 0px 0px #181c1e'; }}>
+            🛒 {tieneOferta ? '¡Aprovechar oferta ahora!' : 'Comprar ahora'}
+          </a>
         </div>
       </div>
 

@@ -78,17 +78,19 @@ export default function ProductCard({ producto }) {
           </div>
         )}
 
-        <button style={{
-          width: '100%', minHeight: 56, background: '#f28c00', color: '#181c1e',
-          border: '2px solid #181c1e', boxShadow: '3px 3px 0px 0px #181c1e',
-          fontSize: 18, fontWeight: 900, cursor: 'pointer', display: 'flex',
-          alignItems: 'center', justifyContent: 'center', gap: 8,
-          transition: 'transform 0.1s, box-shadow 0.1s'
-        }}
-        onMouseEnter={e => { e.currentTarget.style.transform = 'translate(-1px, -1px)'; e.currentTarget.style.boxShadow = '4px 4px 0px 0px #181c1e'; }}
-        onMouseLeave={e => { e.currentTarget.style.transform = 'none'; e.currentTarget.style.boxShadow = '3px 3px 0px 0px #181c1e'; }}>
-          🛒 Comprar
-        </button>
+        <a href={`/tienda/comprar/${producto.id}`} style={{ textDecoration: 'none' }}>
+          <button style={{
+            width: '100%', minHeight: 56, background: '#f28c00', color: '#181c1e',
+            border: '2px solid #181c1e', boxShadow: '3px 3px 0px 0px #181c1e',
+            fontSize: 18, fontWeight: 900, cursor: 'pointer', display: 'flex',
+            alignItems: 'center', justifyContent: 'center', gap: 8,
+            transition: 'transform 0.1s, box-shadow 0.1s'
+          }}
+          onMouseEnter={e => { e.currentTarget.style.transform = 'translate(-1px, -1px)'; e.currentTarget.style.boxShadow = '4px 4px 0px 0px #181c1e'; }}
+          onMouseLeave={e => { e.currentTarget.style.transform = 'none'; e.currentTarget.style.boxShadow = '3px 3px 0px 0px #181c1e'; }}>
+            🛒 Comprar
+          </button>
+        </a>
       </div>
     </a>
   );

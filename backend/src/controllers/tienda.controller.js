@@ -223,3 +223,29 @@ const toggleActivo = async (req, res) => {
 };
 
 module.exports = { getAll, getDestacados, getOfertas, getById, create, update, remove, toggleActivo };
+
+const procesarCompra = async (req, res) => {
+  try {
+    const { productoId, nombre, apellido, celular, direccion, ciudad, email, notas, cantidad } = req.body;
+    if (!productoId || !nombre || !apellido || !celular || !direccion || !ciudad) {
+      return res.status(400).json({ error: 'Faltan datos requeridos: nombre, apellido, celular, dirección y ciudad' });
+    }
+
+    const producto = await prisma.productoTienda.findUnique({ where: { id: productoId } });
+    if (!producto) return res.status(404).json({ error: 'Producto no encontrado' });
+
+    console.log('[TIENDA] Nueva compra:', {
+      producto: producto.nombre,
+      precio: producto.ofertaActiva && producto.ofertaPrecio ? producto.ofertaPrecio : producto.precioVenta,
+      cliente: `${nombre} ${apellido}`,
+      celular, ciudad, cantidad: cantidad || 1
+    });
+
+    res.json({ ok: true, message: 'Pedido registrado correctamente. Te contactaremos pronto.' });
+  } catch (error) {
+    console.error('Procesar compra error:', error);
+    res.status(500).json({ error: 'Error al procesar la compra' });
+  }
+};
+
+module.exports.procesarCompra = procesarCompra;
