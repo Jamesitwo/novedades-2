@@ -16,19 +16,30 @@ export default function SocialProofToast({ data, onDone }) {
 
   return (
     <div style={{
-      position: 'fixed', bottom: 20, left: 20, zIndex: 9999,
-      background: 'var(--bg2)', border: '1px solid var(--border)', borderRadius: 12,
-      padding: '12px 16px', boxShadow: '0 8px 32px rgba(0,0,0,0.4)',
-      display: 'flex', alignItems: 'center', gap: 10, fontSize: 13, color: 'var(--text)',
+      position: 'fixed', bottom: 24, left: 24, zIndex: 9999,
+      background: '#ffffff', border: '2px solid #181c1e',
+      boxShadow: '4px 4px 0px 0px #181c1e',
+      padding: '14px 18px', display: 'flex', alignItems: 'center', gap: 12,
+      fontSize: 15, fontWeight: 700, color: '#181c1e', fontFamily: '"Inter", sans-serif',
       opacity: visible && !exiting ? 1 : 0,
-      transform: visible && !exiting ? 'translateX(0)' : 'translateX(-100%)',
-      transition: 'all 0.4s ease',
-      maxWidth: 320, cursor: 'pointer'
+      transform: visible && !exiting ? 'translateX(0)' : 'translateX(-120%)',
+      transition: 'all 0.35s cubic-bezier(0.34, 1.56, 0.64, 1)',
+      maxWidth: 340, cursor: 'pointer'
     }} onClick={() => { setExiting(true); setTimeout(() => onDone?.(), 400); }}>
-      <span style={{ fontSize: 22 }}>🔥</span>
-      <div>
-        <div style={{ fontWeight: 500 }}>{data?.mensaje || '¡Alguien acaba de comprar!'}</div>
-        <div style={{ fontSize: 11, color: 'var(--text3)', marginTop: 2 }}>Hace {data?.hace || 'un momento'}</div>
+      <span style={{
+        fontSize: 24, background: '#f28c00', color: '#181c1e',
+        width: 40, height: 40, display: 'flex', alignItems: 'center', justifyContent: 'center',
+        border: '2px solid #181c1e', flexShrink: 0
+      }}>
+        🔥
+      </span>
+      <div style={{ minWidth: 0 }}>
+        <div style={{ fontWeight: 800, fontSize: 14, lineHeight: 1.3 }}>
+          {data?.mensaje || '¡Alguien acaba de comprar!'}
+        </div>
+        <div style={{ fontSize: 12, color: '#887362', marginTop: 3, fontWeight: 600 }}>
+          Hace {data?.hace || 'un momento'}
+        </div>
       </div>
     </div>
   );
