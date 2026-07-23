@@ -189,7 +189,7 @@ export default function TiendaAdminPage() {
   if (!initialized || !isAuthenticated || usuario?.rol !== 'admin') return null;
 
   return (
-    <div className="content" style={{ maxWidth: 1200 }}>
+    <div style={{ maxWidth: 1200, background: '#f7fafc', padding: '24px 24px 48px', minHeight: '100%', fontFamily: '"Inter", -apple-system, sans-serif', color: '#181c1e' }}>
       <style dangerouslySetInnerHTML={{__html: `
         .admin-input { background: #ffffff; border: 2px solid #181c1e; padding: 8px 14px; font-size: 16px; font-weight: 700; color: #181c1e; outline: none; border-radius: 0; font-family: 'Inter', sans-serif; }
         .admin-input:focus { box-shadow: 0 0 0 3px #f28c00; }
