@@ -1,5 +1,5 @@
 'use client';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import api from '@/lib/api';
 import { useAuthStore } from '@/store/authStore';
@@ -8,17 +8,29 @@ export default function TiendaAdminPage() {
   const router = useRouter();
   const { usuario, isAuthenticated, initialized, initialize } = useAuthStore();
   const [productos, setProductos] = useState([]);
+  const [categorias, setCategorias] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
   const [editando, setEditando] = useState(null);
   const [toast, setToast] = useState(null);
   const [saving, setSaving] = useState(false);
+
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(0);
+  const [totalRecords, setTotalRecords] = useState(0);
+  const [search, setSearch] = useState('');
+  const [filtroCategoria, setFiltroCategoria] = useState('');
+  const [filtroEstado, setFiltroEstado] = useState('');
+  const [selected, setSelected] = useState([]);
+  const LIMIT = 20;
+
   const [form, setForm] = useState({
     nombre: '', descripcion: '', categoria: '', precioVenta: 0, precioProveedor: 0,
     imagen: '', imagenes: '', linkCompra: '', stock: 0,
     ofertaActiva: false, ofertaPrecio: 0, ofertaHasta: '',
     ventasSimuladas: 0, activo: true, destacado: false
   });
+  const [newCategory, setNewCategory] = useState('');
 
   useEffect(() => { initialize(); }, []);
   useEffect(() => {
@@ -32,18 +44,29 @@ export default function TiendaAdminPage() {
     setTimeout(() => setToast(null), 3000);
   };
 
-  const fetchProductos = async () => {
+  const fetchProductos = useCallback(async () => {
+    setLoading(true);
     try {
-      const { data } = await api.get('/api/tienda?limit=200');
-      setProductos(data.productos);
+      const params = new URLSearchParams({ page, limit: LIMIT });
+      if (search) params.append('search', search);
+      if (filtroCategoria) params.append('categoria', filtroCategoria);
+      const { data } = await api.get(`/api/tienda?${params}`);
+      let items = data.productos || [];
+      if (filtroEstado === 'activo') items = items.filter(p => p.activo);
+      if (filtroEstado === 'inactivo') items = items.filter(p => !p.activo);
+      setProductos(items);
+      setCategorias(data.categorias || []);
+      setTotalPages(data.pagination?.pages || 1);
+      setTotalRecords(data.pagination?.total || items.length);
+      setSelected([]);
     } catch (e) {
       console.error(e);
     } finally {
       setLoading(false);
     }
-  };
+  }, [page, search, filtroCategoria, filtroEstado]);
 
-  useEffect(() => { if (isAuthenticated && usuario?.rol === 'admin') fetchProductos(); }, [isAuthenticated, usuario]);
+  useEffect(() => { if (isAuthenticated && usuario?.rol === 'admin') fetchProductos(); }, [fetchProductos, isAuthenticated, usuario]);
 
   const openModal = (p = null) => {
     if (p) {
@@ -66,16 +89,38 @@ export default function TiendaAdminPage() {
         ventasSimuladas: 0, activo: true, destacado: false
       });
     }
+    setNewCategory('');
     setShowModal(true);
+  };
+
+  const duplicateProduct = async (p, e) => {
+    e.stopPropagation();
+    const payload = {
+      nombre: p.nombre + ' (copia)', descripcion: p.descripcion, categoria: p.categoria,
+      precioVenta: p.precioVenta, precioProveedor: p.precioProveedor || 0,
+      imagen: p.imagen || '', imagenes: Array.isArray(p.imagenes) ? p.imagenes : [],
+      linkCompra: p.linkCompra || '', stock: p.stock,
+      ofertaActiva: false, ofertaPrecio: 0, ofertaHasta: null,
+      ventasSimuladas: 0, activo: true, destacado: false
+    };
+    try {
+      await api.post('/api/tienda', payload);
+      showToast('Producto duplicado');
+      fetchProductos();
+    } catch (e) {
+      showToast('Error al duplicar', 'error');
+    }
   };
 
   const handleSave = async (e) => {
     e.preventDefault();
-    if (!form.nombre || !form.categoria || !form.precioVenta) { showToast('Llena los campos requeridos', 'error'); return; }
+    const categoria = newCategory.trim() || form.categoria;
+    if (!form.nombre || !categoria || !form.precioVenta) { showToast('Nombre, categoría y precio son requeridos', 'error'); return; }
     setSaving(true);
     try {
       const payload = {
         ...form,
+        categoria,
         imagenes: form.imagenes ? form.imagenes.split('\n').map(s => s.trim()).filter(Boolean) : [],
         ofertaHasta: form.ofertaHasta || null
       };
@@ -95,221 +140,432 @@ export default function TiendaAdminPage() {
     }
   };
 
-  const handleToggleActivo = async (id, current) => {
-    try {
-      await api.patch(`/api/tienda/${id}/toggle`);
-      fetchProductos();
-    } catch { showToast('Error', 'error'); }
+  const handleToggleActivo = async (id) => {
+    await api.patch(`/api/tienda/${id}/toggle`);
+    fetchProductos();
   };
 
   const handleToggleDestacado = async (id, current) => {
-    try {
-      await api.put(`/api/tienda/${id}`, { destacado: !current });
-      fetchProductos();
-    } catch { showToast('Error', 'error'); }
+    await api.put(`/api/tienda/${id}`, { destacado: !current });
+    fetchProductos();
   };
 
   const handleDelete = async (p) => {
     if (!confirm(`¿Eliminar "${p.nombre}"?`)) return;
-    try {
-      await api.delete(`/api/tienda/${p.id}`);
-      showToast('Producto eliminado');
-      fetchProductos();
-    } catch { showToast('Error al eliminar', 'error'); }
+    await api.delete(`/api/tienda/${p.id}`);
+    showToast('Producto eliminado');
+    fetchProductos();
   };
 
-  const formatPrice = (n) => new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 }).format(n);
+  const toggleSelectAll = () => {
+    setSelected(selected.length === productos.length ? [] : productos.map(p => p.id));
+  };
+
+  const toggleSelect = (id) => {
+    setSelected(prev => prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]);
+  };
+
+  const bulkToggleActivo = async (activo) => {
+    for (const id of selected) {
+      await api.patch(`/api/tienda/${id}/toggle`).catch(() => {});
+    }
+    showToast(`${selected.length} productos ${activo ? 'activados' : 'desactivados'}`);
+    fetchProductos();
+  };
+
+  const bulkDelete = async () => {
+    if (!confirm(`¿Eliminar ${selected.length} productos? Esta acción no se puede deshacer.`)) return;
+    for (const id of selected) {
+      await api.delete(`/api/tienda/${id}`).catch(() => {});
+    }
+    showToast(`${selected.length} productos eliminados`);
+    fetchProductos();
+  };
+
+  const formatPrice = (n) => '$' + Number(n).toLocaleString('es-CO', { minimumFractionDigits: 0 });
+  const S = { border: '2px solid #181c1e', boxShadow: '2px 2px 0px 0px #181c1e' };
+  const hasOferta = form.ofertaActiva && form.ofertaPrecio > 0;
 
   if (!initialized || !isAuthenticated || usuario?.rol !== 'admin') return null;
 
   return (
-    <div className="content">
+    <div className="content" style={{ maxWidth: 1200 }}>
+      <style dangerouslySetInnerHTML={{__html: `
+        .admin-input { background: #ffffff; border: 2px solid #181c1e; padding: 8px 14px; font-size: 16px; font-weight: 700; color: #181c1e; outline: none; border-radius: 0; font-family: 'Inter', sans-serif; }
+        .admin-input:focus { box-shadow: 0 0 0 3px #f28c00; }
+        .admin-btn { min-height: 44px; padding: 0 20px; font-size: 15px; font-weight: 700; cursor: pointer; border: 2px solid #181c1e; box-shadow: 3px 3px 0px 0px #181c1e; transition: all 0.1s; display: inline-flex; align-items: center; gap: 6px; border-radius: 0; font-family: 'Inter', sans-serif; }
+        .admin-btn:active { transform: translate(1px, 1px); box-shadow: 1px 1px 0px 0px #181c1e; }
+        .admin-table { width: 100%; border-collapse: separate; border-spacing: 0; }
+        .admin-table th { background: #f1f4f6; border-bottom: 2px solid #181c1e; padding: 10px 12px; font-size: 12px; font-weight: 900; text-transform: uppercase; letter-spacing: 1px; color: #554334; text-align: left; white-space: nowrap; }
+        .admin-table td { padding: 10px 12px; border-bottom: 1px solid #e0e3e5; font-size: 14px; vertical-align: middle; }
+        .admin-table tr:hover td { background: #f1f4f6; }
+        @media (max-width: 768px) { .admin-table th, .admin-table td { padding: 6px 8px; font-size: 12px; } }
+      `}} />
+
       {toast && (
         <div style={{
           position: 'fixed', top: 20, right: 20, zIndex: 9999,
-          background: toast.type === 'error' ? 'var(--red)' : 'var(--green)',
-          color: '#fff', padding: '12px 20px', borderRadius: 10,
-          boxShadow: '0 4px 20px rgba(0,0,0,0.3)', fontSize: 14, fontWeight: 500
+          background: toast.type === 'error' ? '#ba1a1a' : '#22c55e',
+          color: '#fff', padding: '12px 20px', fontSize: 15, fontWeight: 700,
+          border: '2px solid #181c1e', boxShadow: '4px 4px 0px 0px #181c1e',
+          fontFamily: '"Inter", sans-serif'
         }}>
           {toast.message}
         </div>
       )}
 
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 24, flexWrap: 'wrap', gap: 12 }}>
         <div>
-          <h2 style={{ fontSize: 20, fontWeight: 600 }}>Administrar Pizdo</h2>
-          <div style={{ fontSize: 12, color: 'var(--text3)', marginTop: 4 }}>
-            <a href="/tienda" target="_blank" style={{ color: 'var(--accent)' }}>Ver Pizdo publica</a>
+          <h2 style={{ fontSize: 24, fontWeight: 900, color: '#181c1e', margin: '0 0 4px', borderLeft: '6px solid #f28c00', paddingLeft: 12 }}>
+            Administrar Pizdo
+          </h2>
+          <div style={{ fontSize: 13, color: '#887362', marginTop: 4 }}>
+            <a href="/tienda" target="_blank" style={{ color: '#f28c00', fontWeight: 700 }}>Ver tienda pública →</a>
+            <span style={{ margin: '0 8px' }}>·</span>
+            {totalRecords} productos
           </div>
         </div>
-        <button onClick={() => openModal()} className="btn btn-primary">+ Nuevo producto</button>
+        <button onClick={() => openModal()} style={{
+          ...S, background: '#f28c00', color: '#181c1e', minHeight: 48, padding: '0 24px',
+          fontSize: 16, fontWeight: 800, cursor: 'pointer', whiteSpace: 'nowrap'
+        }}>
+          + Nuevo producto
+        </button>
       </div>
 
+      <div style={{ display: 'flex', gap: 8, marginBottom: 16, flexWrap: 'wrap', alignItems: 'center' }}>
+        <input className="admin-input" type="text" placeholder="🔍 Buscar producto..."
+          value={search} onChange={e => { setSearch(e.target.value); setPage(1); }}
+          style={{ width: 260, minHeight: 44 }} />
+        <select className="admin-input" value={filtroCategoria} onChange={e => { setFiltroCategoria(e.target.value); setPage(1); }}
+          style={{ minHeight: 44, cursor: 'pointer', appearance: 'auto' }}>
+          <option value="">Todas las categorías</option>
+          {categorias.map(c => <option key={c} value={c}>{c}</option>)}
+        </select>
+        <select className="admin-input" value={filtroEstado} onChange={e => { setFiltroEstado(e.target.value); setPage(1); }}
+          style={{ minHeight: 44, cursor: 'pointer', appearance: 'auto' }}>
+          <option value="">Todos</option>
+          <option value="activo">Activos</option>
+          <option value="inactivo">Inactivos</option>
+        </select>
+        <div style={{ marginLeft: 'auto', fontSize: 13, color: '#887362', fontWeight: 700 }}>
+          Página {page} de {totalPages}
+        </div>
+      </div>
+
+      {selected.length > 0 && (
+        <div style={{
+          display: 'flex', alignItems: 'center', gap: 8, padding: '10px 16px', marginBottom: 12,
+          background: '#ffdcc0', border: '2px solid #f28c00', boxShadow: '3px 3px 0px 0px #181c1e',
+          fontSize: 14, fontWeight: 700
+        }}>
+          <span>{selected.length} seleccionados</span>
+          <button onClick={() => bulkToggleActivo(true)} style={{ ...S, background: '#22c55e', color: '#fff', fontSize: 12, padding: '4px 12px', minHeight: 32, cursor: 'pointer' }}>Activar</button>
+          <button onClick={() => bulkToggleActivo(false)} style={{ ...S, background: '#ba1a1a', color: '#fff', fontSize: 12, padding: '4px 12px', minHeight: 32, cursor: 'pointer' }}>Desactivar</button>
+          <button onClick={bulkDelete} style={{ ...S, background: '#181c1e', color: '#ffb875', fontSize: 12, padding: '4px 12px', minHeight: 32, cursor: 'pointer' }}>Eliminar</button>
+          <button onClick={() => setSelected([])} style={{ marginLeft: 'auto', background: 'none', border: 'none', cursor: 'pointer', fontSize: 16 }}>✕</button>
+        </div>
+      )}
+
       {loading ? (
-        <div style={{ textAlign: 'center', padding: 40, color: 'var(--text3)' }}>Cargando...</div>
+        <div style={{ textAlign: 'center', padding: 48, fontSize: 16, fontWeight: 700, color: '#887362' }}>Cargando...</div>
       ) : (
-        <div className="table-card">
-          <div className="table-header">
-            <span className="table-header-title">{productos.length} productos</span>
-          </div>
-          <table>
+        <div style={{ background: '#ffffff', border: '2px solid #181c1e', boxShadow: '4px 4px 0px 0px #181c1e', overflow: 'auto' }}>
+          <table className="admin-table">
             <thead>
               <tr>
-                <th style={{ width: 60 }}>Img</th>
+                <th style={{ width: 40, textAlign: 'center' }}>
+                  <input type="checkbox" checked={selected.length === productos.length && productos.length > 0}
+                    onChange={toggleSelectAll} style={{ width: 18, height: 18, cursor: 'pointer', accentColor: '#f28c00' }} />
+                </th>
+                <th style={{ width: 56 }}>Img</th>
                 <th>Nombre</th>
-                <th>Categoria</th>
+                <th>Categoría</th>
                 <th>Precio</th>
                 <th>Oferta</th>
-                <th>Stock</th>
-                <th style={{ width: 70 }}>Destacado</th>
-                <th style={{ width: 60 }}>Activo</th>
-                <th style={{ width: 100 }}>Acciones</th>
+                <th style={{ textAlign: 'center' }}>Stock</th>
+                <th style={{ textAlign: 'center', width: 30 }}>★</th>
+                <th style={{ textAlign: 'center', width: 50 }}>ON/OFF</th>
+                <th style={{ width: 130 }}>Acciones</th>
               </tr>
             </thead>
             <tbody>
-              {productos.map(p => (
-                <tr key={p.id} style={{ opacity: p.activo ? 1 : 0.4 }}>
-                  <td>
-                    {p.imagen ? (
-                      <img src={p.imagen} alt="" style={{ width: 40, height: 40, objectFit: 'cover', borderRadius: 6, background: 'var(--bg3)' }} />
-                    ) : (
-                      <div style={{ width: 40, height: 40, background: 'var(--bg3)', borderRadius: 6 }} />
-                    )}
-                  </td>
-                  <td>
-                    <div style={{ fontWeight: 500, fontSize: 13 }}>{p.nombre}</div>
-                    {p.descripcion && <div style={{ fontSize: 11, color: 'var(--text3)', maxWidth: 200, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{p.descripcion}</div>}
-                  </td>
-                  <td><span style={{ fontSize: 11, background: 'var(--bg3)', padding: '2px 10px', borderRadius: 10 }}>{p.categoria}</span></td>
-                  <td className="td-mono" style={{ fontSize: 12 }}>
-                    {p.ofertaActiva && p.ofertaPrecio ? (
-                      <>
-                        <span style={{ color: 'var(--red)', fontWeight: 600 }}>{formatPrice(p.ofertaPrecio)}</span>
-                        <br />
-                        <span style={{ textDecoration: 'line-through', color: 'var(--text3)', fontSize: 10 }}>{formatPrice(p.precioVenta)}</span>
-                      </>
-                    ) : formatPrice(p.precioVenta)}
-                  </td>
-                  <td>
-                    {p.ofertaActiva ? (
-                      <span style={{ color: 'var(--red)', fontSize: 11, fontWeight: 600 }}>
-                        {p.ofertaHasta ? new Date(p.ofertaHasta).toLocaleDateString('es-CO') : 'Activa'}
-                      </span>
-                    ) : <span style={{ color: 'var(--text3)', fontSize: 11 }}>—</span>}
-                  </td>
-                  <td>
-                    <span style={{
-                      fontFamily: 'var(--mono)', fontSize: 12, fontWeight: 600,
-                      color: p.stock <= 5 ? 'var(--red)' : p.stock === 0 ? 'var(--text3)' : 'var(--text)'
-                    }}>
+              {productos.length === 0 ? (
+                <tr><td colSpan={10} style={{ textAlign: 'center', padding: 40, color: '#887362', fontSize: 15, fontWeight: 700 }}>No se encontraron productos</td></tr>
+              ) : (
+                productos.map(p => (
+                  <tr key={p.id} style={{ opacity: p.activo ? 1 : 0.45 }}>
+                    <td style={{ textAlign: 'center' }}>
+                      <input type="checkbox" checked={selected.includes(p.id)}
+                        onChange={() => toggleSelect(p.id)} style={{ width: 18, height: 18, cursor: 'pointer', accentColor: '#f28c00' }} />
+                    </td>
+                    <td>
+                      {p.imagen ? (
+                        <img src={p.imagen} alt="" style={{ width: 44, height: 44, objectFit: 'cover', border: '2px solid #181c1e', background: '#f1f4f6' }}
+                          onError={e => { e.target.outerHTML = '<div style="width:44px;height:44px;border:2px solid #181c1e;background:#f1f4f6"></div>'; }} />
+                      ) : (
+                        <div style={{ width: 44, height: 44, border: '2px solid #181c1e', background: '#f1f4f6' }} />
+                      )}
+                    </td>
+                    <td style={{ fontWeight: 700 }}>
+                      <button onClick={() => openModal(p)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#181c1e', fontWeight: 700, fontSize: 14, textAlign: 'left', padding: 0, textDecoration: 'underline', textDecorationColor: '#f28c00', textUnderlineOffset: 3 }}>
+                        {p.nombre}
+                      </button>
+                      {p.descripcion && <div style={{ fontSize: 12, color: '#887362', maxWidth: 220, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', marginTop: 2 }}>{p.descripcion}</div>}
+                    </td>
+                    <td><span style={{ fontSize: 12, fontWeight: 700, color: '#f28c00', textTransform: 'uppercase', letterSpacing: 1 }}>{p.categoria}</span></td>
+                    <td style={{ fontWeight: 700, fontFamily: 'monospace' }}>
+                      {p.ofertaActiva && p.ofertaPrecio ? (
+                        <>
+                          <span style={{ color: '#ba1a1a' }}>{formatPrice(p.ofertaPrecio)}</span>
+                          <br />
+                          <span style={{ textDecoration: 'line-through', color: '#887362', fontSize: 11 }}>{formatPrice(p.precioVenta)}</span>
+                        </>
+                      ) : formatPrice(p.precioVenta)}
+                    </td>
+                    <td>
+                      {p.ofertaActiva ? (
+                        <span style={{ color: '#ba1a1a', fontSize: 12, fontWeight: 700 }}>
+                          {p.ofertaHasta ? new Date(p.ofertaHasta).toLocaleDateString('es-CO') : 'Activa'}
+                        </span>
+                      ) : <span style={{ color: '#887362', fontSize: 12 }}>—</span>}
+                    </td>
+                    <td style={{ textAlign: 'center', fontWeight: 700, fontFamily: 'monospace', color: p.stock <= 5 ? '#ba1a1a' : '#181c1e' }}>
                       {p.stock}
-                    </span>
-                  </td>
-                  <td>
-                    <button onClick={() => handleToggleDestacado(p.id, p.destacado)} style={{
-                      background: 'none', border: 'none', cursor: 'pointer', fontSize: 16,
-                      color: p.destacado ? 'var(--amber)' : 'var(--text3)'
-                    }}>{p.destacado ? '★' : '☆'}</button>
-                  </td>
-                  <td>
-                    <button onClick={() => handleToggleActivo(p.id, p.activo)} style={{
-                      background: 'none', border: 'none', cursor: 'pointer', fontSize: 12, fontWeight: 600,
-                      color: p.activo ? 'var(--green)' : 'var(--red)'
-                    }}>{p.activo ? 'ON' : 'OFF'}</button>
-                  </td>
-                  <td>
-                    <div style={{ display: 'flex', gap: 4 }}>
-                      <button onClick={() => openModal(p)} className="action-btn">Editar</button>
-                      <button onClick={() => handleDelete(p)} className="action-btn" style={{ color: 'var(--red)' }}>X</button>
-                    </div>
-                  </td>
-                </tr>
-              ))}
+                    </td>
+                    <td style={{ textAlign: 'center' }}>
+                      <button onClick={() => handleToggleDestacado(p.id, p.destacado)} style={{
+                        background: 'none', border: 'none', cursor: 'pointer', fontSize: 22,
+                        color: p.destacado ? '#f28c00' : '#e0e3e5'
+                      }}>{p.destacado ? '★' : '☆'}</button>
+                    </td>
+                    <td style={{ textAlign: 'center' }}>
+                      <button onClick={() => handleToggleActivo(p.id)} style={{
+                        minWidth: 44, height: 32, fontWeight: 800, fontSize: 12, cursor: 'pointer',
+                        border: '2px solid #181c1e', background: p.activo ? '#22c55e' : '#ba1a1a', color: '#fff',
+                        boxShadow: '2px 2px 0px 0px #181c1e'
+                      }}>{p.activo ? 'ON' : 'OFF'}</button>
+                    </td>
+                    <td>
+                      <div style={{ display: 'flex', gap: 4 }}>
+                        <button onClick={(e) => { e.stopPropagation(); openModal(p); }} style={{ ...S, background: '#f28c00', color: '#181c1e', fontSize: 11, padding: '3px 10px', minHeight: 30, cursor: 'pointer' }}>Editar</button>
+                        <button onClick={(e) => duplicateProduct(p, e)} style={{ ...S, background: '#ffffff', color: '#181c1e', fontSize: 11, padding: '3px 8px', minHeight: 30, cursor: 'pointer' }} title="Duplicar">📋</button>
+                        <button onClick={() => handleDelete(p)} style={{ ...S, background: '#ba1a1a', color: '#fff', fontSize: 11, padding: '3px 8px', minHeight: 30, cursor: 'pointer' }}>✕</button>
+                      </div>
+                    </td>
+                  </tr>
+                ))
+              )}
             </tbody>
           </table>
         </div>
       )}
 
-      {showModal && (
-        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.7)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 10000 }}>
-          <div style={{ background: 'var(--bg2)', borderRadius: 14, width: 'min(560px, 94vw)', maxHeight: '90vh', overflow: 'auto', boxShadow: '0 20px 60px rgba(0,0,0,0.5)', border: '1px solid var(--border)' }}>
-            <div style={{ padding: '16px 20px', borderBottom: '1px solid var(--border)', fontWeight: 600, fontSize: 16, position: 'sticky', top: 0, background: 'var(--bg2)' }}>
-              {editando ? 'Editar producto' : 'Nuevo producto'}
-            </div>
-            <form onSubmit={handleSave} style={{ padding: 20, display: 'flex', flexDirection: 'column', gap: 10 }}>
-              <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: 10 }}>
-                <label style={{ fontSize: 11, color: 'var(--text3)' }}>
-                  Nombre *
-                  <input value={form.nombre} onChange={e => setForm({...form, nombre: e.target.value})} required style={{ width: '100%', background: 'var(--bg3)', border: '1px solid var(--border)', borderRadius: 8, padding: '8px 12px', color: 'var(--text)', fontSize: 14, marginTop: 4, outline: 'none' }} />
-                </label>
-                <label style={{ fontSize: 11, color: 'var(--text3)' }}>
-                  Categoria *
-                  <input value={form.categoria} onChange={e => setForm({...form, categoria: e.target.value})} required style={{ width: '100%', background: 'var(--bg3)', border: '1px solid var(--border)', borderRadius: 8, padding: '8px 12px', color: 'var(--text)', fontSize: 14, marginTop: 4, outline: 'none' }} />
-                </label>
-              </div>
-              <label style={{ fontSize: 11, color: 'var(--text3)' }}>
-                Descripcion
-                <textarea value={form.descripcion} onChange={e => setForm({...form, descripcion: e.target.value})} rows={2} style={{ width: '100%', background: 'var(--bg3)', border: '1px solid var(--border)', borderRadius: 8, padding: '8px 12px', color: 'var(--text)', fontSize: 13, marginTop: 4, outline: 'none', resize: 'vertical' }} />
-              </label>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 10 }}>
-                <label style={{ fontSize: 11, color: 'var(--text3)' }}>
-                  Precio venta *
-                  <input type="number" min="0" value={form.precioVenta} onChange={e => setForm({...form, precioVenta: parseFloat(e.target.value) || 0})} required style={{ width: '100%', background: 'var(--bg3)', border: '1px solid var(--border)', borderRadius: 8, padding: '8px 12px', color: 'var(--text)', fontSize: 14, marginTop: 4, outline: 'none' }} />
-                </label>
-                <label style={{ fontSize: 11, color: 'var(--text3)' }}>
-                  Stock
-                  <input type="number" min="0" value={form.stock} onChange={e => setForm({...form, stock: parseInt(e.target.value) || 0})} style={{ width: '100%', background: 'var(--bg3)', border: '1px solid var(--border)', borderRadius: 8, padding: '8px 12px', color: 'var(--text)', fontSize: 14, marginTop: 4, outline: 'none' }} />
-                </label>
-                <label style={{ fontSize: 11, color: 'var(--text3)' }}>
-                  Ventas simuladas
-                  <input type="number" min="0" value={form.ventasSimuladas} onChange={e => setForm({...form, ventasSimuladas: parseInt(e.target.value) || 0})} style={{ width: '100%', background: 'var(--bg3)', border: '1px solid var(--border)', borderRadius: 8, padding: '8px 12px', color: 'var(--text)', fontSize: 14, marginTop: 4, outline: 'none' }} />
-                </label>
-              </div>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
-                <label style={{ fontSize: 11, color: 'var(--text3)' }}>
-                  Imagen URL
-                  <input value={form.imagen} onChange={e => setForm({...form, imagen: e.target.value})} placeholder="https://..." style={{ width: '100%', background: 'var(--bg3)', border: '1px solid var(--border)', borderRadius: 8, padding: '8px 12px', color: 'var(--text)', fontSize: 13, marginTop: 4, outline: 'none' }} />
-                </label>
-                <label style={{ fontSize: 11, color: 'var(--text3)' }}>
-                  Link de compra
-                  <input value={form.linkCompra} onChange={e => setForm({...form, linkCompra: e.target.value})} placeholder="https://..." style={{ width: '100%', background: 'var(--bg3)', border: '1px solid var(--border)', borderRadius: 8, padding: '8px 12px', color: 'var(--text)', fontSize: 13, marginTop: 4, outline: 'none' }} />
-                </label>
-              </div>
-              <label style={{ fontSize: 11, color: 'var(--text3)' }}>
-                Imagenes adicionales (una URL por linea)
-                <textarea value={form.imagenes} onChange={e => setForm({...form, imagenes: e.target.value})} rows={2} placeholder="https://..." style={{ width: '100%', background: 'var(--bg3)', border: '1px solid var(--border)', borderRadius: 8, padding: '8px 12px', color: 'var(--text)', fontSize: 13, marginTop: 4, outline: 'none', resize: 'vertical' }} />
-              </label>
+      {totalPages > 1 && (
+        <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: 8, marginTop: 20 }}>
+          <button disabled={page <= 1} onClick={() => setPage(p => p - 1)} style={{ ...S, background: page <= 1 ? '#f1f4f6' : '#ffffff', color: '#181c1e', opacity: page <= 1 ? 0.4 : 1, fontSize: 14, padding: '6px 16px', minHeight: 40, cursor: 'pointer' }}>
+            ← Anterior
+          </button>
+          {Array.from({ length: totalPages }, (_, i) => i + 1).filter(p => p === 1 || p === totalPages || Math.abs(p - page) <= 1).map((p, idx, arr) => (
+            <span key={p}>
+              {idx > 0 && arr[idx - 1] !== p - 1 && <span style={{ color: '#887362', margin: '0 4px' }}>…</span>}
+              <button onClick={() => setPage(p)} style={{
+                minWidth: 40, height: 40, fontWeight: 800, fontSize: 14, cursor: 'pointer',
+                border: '2px solid #181c1e', background: p === page ? '#f28c00' : '#ffffff',
+                color: p === page ? '#181c1e' : '#554334',
+                boxShadow: p === page ? '2px 2px 0px 0px #181c1e' : 'none'
+              }}>{p}</button>
+            </span>
+          ))}
+          <button disabled={page >= totalPages} onClick={() => setPage(p => p + 1)} style={{ ...S, background: page >= totalPages ? '#f1f4f6' : '#ffffff', color: '#181c1e', opacity: page >= totalPages ? 0.4 : 1, fontSize: 14, padding: '6px 16px', minHeight: 40, cursor: 'pointer' }}>
+            Siguiente →
+          </button>
+        </div>
+      )}
 
-              <div style={{ background: 'var(--bg3)', borderRadius: 10, padding: 14, marginTop: 4 }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 10 }}>
-                  <label style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 13, color: 'var(--text)', cursor: 'pointer' }}>
-                    <input type="checkbox" checked={form.ofertaActiva} onChange={e => setForm({...form, ofertaActiva: e.target.checked})} />
-                    Oferta activa
-                  </label>
-                  <label style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 13, color: 'var(--text)', cursor: 'pointer' }}>
-                    <input type="checkbox" checked={form.destacado} onChange={e => setForm({...form, destacado: e.target.checked})} />
-                    Destacado
+      {showModal && (
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.7)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 10000, padding: 16 }}
+          onClick={() => setShowModal(false)}>
+          <div style={{
+            background: '#ffffff', border: '2px solid #181c1e', boxShadow: '8px 8px 0px 0px #181c1e',
+            width: 'min(680px, 95vw)', maxHeight: '92vh', overflow: 'auto'
+          }} onClick={e => e.stopPropagation()}>
+            <div style={{
+              padding: '16px 24px', borderBottom: '2px solid #181c1e', fontWeight: 800, fontSize: 18, color: '#181c1e',
+              background: '#f1f4f6', display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+              position: 'sticky', top: 0, zIndex: 1
+            }}>
+              {editando ? 'Editar producto' : 'Nuevo producto'}
+              <button onClick={() => setShowModal(false)} style={{ background: 'none', border: 'none', fontSize: 20, cursor: 'pointer', color: '#181c1e' }}>✕</button>
+            </div>
+
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 0 }}>
+              <form onSubmit={handleSave} style={{ padding: '20px 24px', display: 'flex', flexDirection: 'column', gap: 10 }}>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: 10 }}>
+                  <label style={{ fontSize: 12, fontWeight: 900, color: '#554334', textTransform: 'uppercase', letterSpacing: 1 }}>
+                    Nombre *
+                    <input className="admin-input" value={form.nombre} onChange={e => setForm({...form, nombre: e.target.value})} required
+                      style={{ width: '100%', marginTop: 4 }} />
                   </label>
                 </div>
-                {form.ofertaActiva && (
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
-                    <label style={{ fontSize: 11, color: 'var(--text3)' }}>
-                      Precio oferta
-                      <input type="number" min="0" value={form.ofertaPrecio} onChange={e => setForm({...form, ofertaPrecio: parseFloat(e.target.value) || 0})} style={{ width: '100%', background: 'var(--bg2)', border: '1px solid var(--red)', borderRadius: 8, padding: '8px 12px', color: 'var(--text)', fontSize: 14, marginTop: 4, outline: 'none' }} />
+                <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: 10 }}>
+                  <label style={{ fontSize: 12, fontWeight: 900, color: '#554334', textTransform: 'uppercase', letterSpacing: 1 }}>
+                    Categoría *
+                    <div style={{ display: 'flex', gap: 4, marginTop: 4 }}>
+                      <select className="admin-input" value={form.categoria}
+                        onChange={e => { setForm({...form, categoria: e.target.value}); setNewCategory(''); }}
+                        style={{ flex: 1, cursor: 'pointer', appearance: 'auto', minWidth: 0 }}>
+                        <option value="">Seleccionar...</option>
+                        {categorias.map(c => <option key={c} value={c}>{c}</option>)}
+                        <option value="__new__">+ Nueva categoría</option>
+                      </select>
+                    </div>
+                    {form.categoria === '__new__' && (
+                      <input className="admin-input" value={newCategory} onChange={e => setNewCategory(e.target.value)}
+                        placeholder="Escribe la nueva categoría" style={{ width: '100%', marginTop: 4 }} />
+                    )}
+                  </label>
+                  <label style={{ fontSize: 12, fontWeight: 900, color: '#554334', textTransform: 'uppercase', letterSpacing: 1 }}>
+                    Stock
+                    <input type="number" min="0" className="admin-input" value={form.stock}
+                      onChange={e => setForm({...form, stock: parseInt(e.target.value) || 0})} style={{ width: '100%', marginTop: 4 }} />
+                  </label>
+                </div>
+                <label style={{ fontSize: 12, fontWeight: 900, color: '#554334', textTransform: 'uppercase', letterSpacing: 1 }}>
+                  Descripción
+                  <textarea className="admin-input" value={form.descripcion} onChange={e => setForm({...form, descripcion: e.target.value})} rows={2}
+                    style={{ width: '100%', marginTop: 4, resize: 'vertical', fontFamily: 'Inter, sans-serif' }} />
+                </label>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 10 }}>
+                  <label style={{ fontSize: 12, fontWeight: 900, color: '#554334', textTransform: 'uppercase', letterSpacing: 1 }}>
+                    Precio *
+                    <input type="number" min="0" className="admin-input" value={form.precioVenta}
+                      onChange={e => setForm({...form, precioVenta: parseFloat(e.target.value) || 0})} required style={{ width: '100%', marginTop: 4 }} />
+                  </label>
+                  <label style={{ fontSize: 12, fontWeight: 900, color: '#554334', textTransform: 'uppercase', letterSpacing: 1 }}>
+                    Costo proveedor
+                    <input type="number" min="0" className="admin-input" value={form.precioProveedor}
+                      onChange={e => setForm({...form, precioProveedor: parseFloat(e.target.value) || 0})} style={{ width: '100%', marginTop: 4 }} />
+                  </label>
+                  <label style={{ fontSize: 12, fontWeight: 900, color: '#554334', textTransform: 'uppercase', letterSpacing: 1 }}>
+                    Ventas simuladas
+                    <input type="number" min="0" className="admin-input" value={form.ventasSimuladas}
+                      onChange={e => setForm({...form, ventasSimuladas: parseInt(e.target.value) || 0})} style={{ width: '100%', marginTop: 4 }} />
+                  </label>
+                </div>
+                <label style={{ fontSize: 12, fontWeight: 900, color: '#554334', textTransform: 'uppercase', letterSpacing: 1 }}>
+                  Imagen principal (URL)
+                  <input className="admin-input" value={form.imagen} onChange={e => setForm({...form, imagen: e.target.value})}
+                    placeholder="https://..." style={{ width: '100%', marginTop: 4 }} />
+                </label>
+                <label style={{ fontSize: 12, fontWeight: 900, color: '#554334', textTransform: 'uppercase', letterSpacing: 1 }}>
+                  Link de compra
+                  <input className="admin-input" value={form.linkCompra} onChange={e => setForm({...form, linkCompra: e.target.value})}
+                    placeholder="https://..." style={{ width: '100%', marginTop: 4 }} />
+                </label>
+                <label style={{ fontSize: 12, fontWeight: 900, color: '#554334', textTransform: 'uppercase', letterSpacing: 1 }}>
+                  Más imágenes (una URL por línea)
+                  <textarea className="admin-input" value={form.imagenes} onChange={e => setForm({...form, imagenes: e.target.value})} rows={2}
+                    placeholder="https://..." style={{ width: '100%', marginTop: 4, resize: 'vertical', fontFamily: 'Inter, sans-serif' }} />
+                </label>
+
+                <div style={{ background: '#f1f4f6', border: '2px solid #181c1e', padding: 14, marginTop: 4 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 16, marginBottom: form.ofertaActiva ? 10 : 0 }}>
+                    <label style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 14, fontWeight: 700, color: '#181c1e', cursor: 'pointer' }}>
+                      <input type="checkbox" checked={form.ofertaActiva} onChange={e => setForm({...form, ofertaActiva: e.target.checked})}
+                        style={{ width: 20, height: 20, accentColor: '#ba1a1a', cursor: 'pointer' }} />
+                      🔥 Oferta activa
                     </label>
-                    <label style={{ fontSize: 11, color: 'var(--text3)' }}>
-                      Vence
-                      <input type="datetime-local" value={form.ofertaHasta} onChange={e => setForm({...form, ofertaHasta: e.target.value})} style={{ width: '100%', background: 'var(--bg2)', border: '1px solid var(--red)', borderRadius: 8, padding: '8px 12px', color: 'var(--text)', fontSize: 14, marginTop: 4, outline: 'none' }} />
+                    <label style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 14, fontWeight: 700, color: '#181c1e', cursor: 'pointer' }}>
+                      <input type="checkbox" checked={form.destacado} onChange={e => setForm({...form, destacado: e.target.checked})}
+                        style={{ width: 20, height: 20, accentColor: '#f28c00', cursor: 'pointer' }} />
+                      ⭐ Destacado
                     </label>
                   </div>
-                )}
-              </div>
+                  {form.ofertaActiva && (
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+                      <label style={{ fontSize: 12, fontWeight: 900, color: '#ba1a1a', textTransform: 'uppercase', letterSpacing: 1 }}>
+                        Precio oferta
+                        <input type="number" min="0" className="admin-input" value={form.ofertaPrecio}
+                          onChange={e => setForm({...form, ofertaPrecio: parseFloat(e.target.value) || 0})}
+                          style={{ width: '100%', marginTop: 4, borderColor: '#ba1a1a' }} />
+                      </label>
+                      <label style={{ fontSize: 12, fontWeight: 900, color: '#ba1a1a', textTransform: 'uppercase', letterSpacing: 1 }}>
+                        Vence
+                        <input type="datetime-local" className="admin-input" value={form.ofertaHasta}
+                          onChange={e => setForm({...form, ofertaHasta: e.target.value})}
+                          style={{ width: '100%', marginTop: 4, borderColor: '#ba1a1a' }} />
+                      </label>
+                    </div>
+                  )}
+                </div>
 
-              <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end', marginTop: 10 }}>
-                <button type="button" onClick={() => setShowModal(false)} className="btn btn-ghost">Cancelar</button>
-                <button type="submit" disabled={saving} className="btn btn-primary">{saving ? 'Guardando...' : 'Guardar'}</button>
+                <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end', marginTop: 10 }}>
+                  <button type="button" onClick={() => setShowModal(false)} style={{ ...S, background: '#ffffff', color: '#181c1e', minHeight: 48, padding: '0 24px', cursor: 'pointer', fontSize: 15, fontWeight: 700 }}>
+                    Cancelar
+                  </button>
+                  <button type="submit" disabled={saving} style={{ ...S, background: '#f28c00', color: '#181c1e', minHeight: 48, padding: '0 24px', cursor: 'pointer', fontSize: 15, fontWeight: 800, opacity: saving ? 0.6 : 1 }}>
+                    {saving ? 'Guardando...' : 'Guardar'}
+                  </button>
+                </div>
+              </form>
+
+              {/* PREVIEW */}
+              <div style={{ padding: '20px 24px 20px 0', borderLeft: '1px solid #e0e3e5' }}>
+                <div style={{ fontSize: 12, fontWeight: 900, color: '#554334', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 12 }}>
+                  Vista previa
+                </div>
+                <div style={{
+                  border: '2px solid #181c1e', boxShadow: '3px 3px 0px 0px #181c1e',
+                  background: '#ffffff', fontSize: 12, transform: 'scale(0.85)', transformOrigin: 'top left',
+                  width: '118%'
+                }}>
+                  <div style={{ height: 140, overflow: 'hidden', borderBottom: '2px solid #181c1e', background: '#f1f4f6' }}>
+                    {form.imagen ? (
+                      <img src={form.imagen} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                        onError={e => { e.target.outerHTML = '<div style="width:100%;height:100%;background:#f1f4f6;display:flex;align-items:center;justify-content:center;color:#887362;font-size:11px;font-weight:700">Sin imagen</div>'; }} />
+                    ) : (
+                      <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#887362', fontSize: 11, fontWeight: 700 }}>Sin imagen</div>
+                    )}
+                  </div>
+                  <div style={{ padding: 10 }}>
+                    <span style={{ fontSize: 9, fontWeight: 900, color: '#f28c00', textTransform: 'uppercase', letterSpacing: 1 }}>
+                      {form.categoria === '__new__' ? newCategory || 'Sin categoría' : form.categoria || 'Sin categoría'}
+                    </span>
+                    <div style={{ fontSize: 12, fontWeight: 700, margin: '4px 0', color: '#181c1e' }}>{form.nombre || 'Nombre del producto'}</div>
+                    <div style={{ display: 'flex', alignItems: 'baseline', gap: 6 }}>
+                      {hasOferta ? (
+                        <>
+                          <span style={{ fontSize: 16, fontWeight: 900, color: '#ba1a1a' }}>{formatPrice(form.ofertaPrecio)}</span>
+                          <span style={{ fontSize: 11, color: '#887362', textDecoration: 'line-through' }}>{formatPrice(form.precioVenta)}</span>
+                        </>
+                      ) : (
+                        <span style={{ fontSize: 16, fontWeight: 900, color: '#181c1e' }}>{formatPrice(form.precioVenta)}</span>
+                      )}
+                    </div>
+                    {form.ventasSimuladas > 0 && (
+                      <div style={{ fontSize: 10, fontWeight: 700, color: '#8d4f00', marginTop: 4 }}>
+                        🔥 {form.ventasSimuladas} vendidos
+                      </div>
+                    )}
+                    {hasOferta && form.ofertaPrecio > 0 && (
+                      <div style={{
+                        fontSize: 9, fontWeight: 900, color: '#181c1e', background: '#f28c00',
+                        padding: '2px 8px', border: '1px solid #181c1e', marginTop: 6, display: 'inline-block'
+                      }}>
+                        -{Math.round((1 - form.ofertaPrecio / (form.precioVenta || 1)) * 100)}% OFF
+                      </div>
+                    )}
+                    <button style={{
+                      width: '100%', minHeight: 28, background: '#f28c00', color: '#181c1e',
+                      border: '2px solid #181c1e', fontSize: 11, fontWeight: 800, cursor: 'pointer', marginTop: 8
+                    }}>
+                      🛒 Comprar
+                    </button>
+                  </div>
+                </div>
               </div>
-            </form>
+            </div>
           </div>
         </div>
       )}
