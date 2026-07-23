@@ -15,22 +15,27 @@ export default function TiendaPage() {
   const [orden, setOrden] = useState('reciente');
   const [loading, setLoading] = useState(true);
   const [proofEvents, setProofEvents] = useState([]);
+  const [error, setError] = useState('');
 
   const fetchData = async () => {
     try {
+      setError('');
       const params = new URLSearchParams({ limit: 50, orden });
       if (categoria) params.append('categoria', categoria);
+      console.log('[TIENDA] fetching...', categoria, orden);
       const [prodRes, destRes, ofertasRes] = await Promise.all([
         api.get(`/api/tienda?${params}`),
         api.get('/api/tienda/destacados'),
         api.get('/api/tienda/ofertas')
       ]);
-      setProductos(prodRes.data.productos);
-      setCategorias(prodRes.data.categorias || []);
-      setDestacados(destRes.data);
-      setOfertas(ofertasRes.data);
+      console.log('[TIENDA] prodRes.data', prodRes.data);
+      setProductos(prodRes.data?.productos || []);
+      setCategorias(prodRes.data?.categorias || []);
+      setDestacados(Array.isArray(destRes.data) ? destRes.data : []);
+      setOfertas(Array.isArray(ofertasRes.data) ? ofertasRes.data : []);
     } catch (e) {
-      console.error(e);
+      console.error('[TIENDA] error:', e);
+      setError(e.response?.data?.error || e.message || 'Error al cargar');
     } finally {
       setLoading(false);
     }
@@ -313,6 +318,19 @@ export default function TiendaPage() {
           {loading ? (
             <div style={{ textAlign: 'center', padding: 64, fontSize: 18, fontWeight: 700, color: '#887362' }}>
               Cargando catálogo...
+            </div>
+          ) : error ? (
+            <div style={{
+              textAlign: 'center', padding: 64, fontSize: 18, fontWeight: 700, color: '#ba1a1a',
+              border: '2px dashed #ba1a1a', boxShadow: '4px 4px 0px 0px #181c1e'
+            }}>
+              {error}
+              <br />
+              <button onClick={fetchData} style={{
+                marginTop: 16, background: '#f28c00', color: '#181c1e',
+                border: '2px solid #181c1e', boxShadow: '3px 3px 0px 0px #181c1e',
+                padding: '10px 24px', fontSize: 16, fontWeight: 700, cursor: 'pointer', minHeight: 48
+              }}>Reintentar</button>
             </div>
           ) : productos.length === 0 ? (
             <div style={{
