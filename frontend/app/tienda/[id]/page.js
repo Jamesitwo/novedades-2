@@ -91,6 +91,21 @@ export default function ProductoDetallePage() {
 
   return (
     <div style={{ maxWidth: 960, margin: '0 auto', padding: '0 24px 64px' }}>
+      <style dangerouslySetInnerHTML={{__html: `
+        @media (max-width: 768px) {
+          .detalle-grid { grid-template-columns: 1fr !important; gap: 24px !important; }
+          .detalle-titulo { font-size: 24px !important; }
+          .detalle-desc { font-size: 16px !important; }
+          .detalle-precio { font-size: 28px !important; }
+          .detalle-btn { font-size: 18px !important; min-height: 56px !important; }
+          .detalle-related-grid { grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)) !important; }
+        }
+        @media (max-width: 480px) {
+          .detalle-titulo { font-size: 20px !important; }
+          .detalle-precio { font-size: 24px !important; }
+          .detalle-btn { font-size: 16px !important; min-height: 52px !important; }
+        }
+      `}} />
       <a href="/tienda" style={{
         color: '#8d4f00', textDecoration: 'none', fontSize: 18, fontWeight: 700,
         display: 'inline-block', margin: '32px 0 24px'
@@ -98,7 +113,7 @@ export default function ProductoDetallePage() {
         ← Volver a la tienda
       </a>
 
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 48, marginTop: 8 }}>
+      <div className="detalle-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 48, marginTop: 8 }}>
         <div>
           {producto.imagen ? (
             <img src={producto.imagen} alt={producto.nombre}
@@ -127,12 +142,12 @@ export default function ProductoDetallePage() {
             {producto.categoria}
           </span>
 
-          <h1 style={{ fontSize: 32, fontWeight: 900, color: '#181c1e', margin: '0 0 16px', lineHeight: 1.2 }}>
+          <h1 className="detalle-titulo" style={{ fontSize: 'clamp(20px, 5vw, 32px)', fontWeight: 900, color: '#181c1e', margin: '0 0 16px', lineHeight: 1.2 }}>
             {producto.nombre}
           </h1>
 
           {producto.descripcion && (
-            <p style={{ color: '#554334', fontSize: 18, lineHeight: 1.6, marginBottom: 24 }}>
+            <p className="detalle-desc" style={{ color: '#554334', fontSize: 'clamp(16px, 2.5vw, 18px)', lineHeight: 1.6, marginBottom: 24 }}>
               {producto.descripcion}
             </p>
           )}
@@ -149,7 +164,7 @@ export default function ProductoDetallePage() {
                   </span>
                   <CountdownTimer endsAt={producto.ofertaHasta} />
                 </div>
-                <div style={{ fontSize: 36, fontWeight: 900, color: '#ba1a1a', marginBottom: 4 }}>
+                <div className="detalle-precio" style={{ fontSize: 'clamp(24px, 5vw, 36px)', fontWeight: 900, color: '#ba1a1a', marginBottom: 4 }}>
                   {formatPrice(producto.ofertaPrecio)}
                 </div>
                 <div style={{ fontSize: 20, color: '#887362', textDecoration: 'line-through', fontWeight: 700 }}>
@@ -157,7 +172,7 @@ export default function ProductoDetallePage() {
                 </div>
               </>
             ) : (
-              <div style={{ fontSize: 36, fontWeight: 900, color: '#181c1e' }}>
+              <div className="detalle-precio" style={{ fontSize: 'clamp(24px, 5vw, 36px)', fontWeight: 900, color: '#181c1e' }}>
                 {formatPrice(producto.precioVenta)}
               </div>
             )}
@@ -191,8 +206,8 @@ export default function ProductoDetallePage() {
           {producto.linkCompra && (
             <a href={producto.linkCompra} target="_blank" rel="noopener" style={{
               display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 12,
-              minHeight: 64, background: tieneOferta ? '#ba1a1a' : '#f28c00',
-              color: '#ffffff', fontSize: 22, fontWeight: 900, textDecoration: 'none',
+              minHeight: 'clamp(52px, 8vw, 64px)', background: tieneOferta ? '#ba1a1a' : '#f28c00',
+              color: '#ffffff', fontSize: 'clamp(16px, 3vw, 22px)', fontWeight: 900, textDecoration: 'none',
               border: '2px solid #181c1e', boxShadow: '4px 4px 0px 0px #181c1e',
               transition: 'transform 0.1s'
             }}
@@ -209,7 +224,7 @@ export default function ProductoDetallePage() {
           <h2 style={{ fontSize: 28, fontWeight: 700, marginBottom: 24, color: '#181c1e', borderLeft: '8px solid #8d4f00', paddingLeft: 16 }}>
             Productos relacionados
           </h2>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))', gap: 24 }}>
+          <div className="detalle-related-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))', gap: 'clamp(12px, 2vw, 24px)' }}>
             {producto.relacionados.map(p => <ProductCard key={p.id} producto={p} />)}
           </div>
         </section>

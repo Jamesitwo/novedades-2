@@ -86,14 +86,41 @@ export default function TiendaPage() {
         .cat-card:hover { background: #ffb875 !important; transform: translate(-2px, -2px); box-shadow: 6px 6px 0px 0px #181c1e; }
         @media (max-width: 768px) {
           .hero-grid { grid-template-columns: 1fr !important; }
-          .tienda-hero { padding: 48px 16px !important; }
+          .tienda-hero { padding: 40px 16px !important; }
+          .tienda-hero h1 { font-size: 26px !important; }
+          .tienda-hero p { font-size: 16px !important; }
+          .tienda-hero a, .tienda-hero button { font-size: 16px !important; min-height: 48px !important; padding: 0 20px !important; }
+          .tienda-hero img { height: 240px !important; }
+          .tienda-cats { grid-template-columns: 1fr !important; }
+          .tienda-cat-card { padding: 24px !important; }
+          .tienda-cat-card h3 { font-size: 22px !important; }
+          .tienda-grid { grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)) !important; gap: 12px !important; }
+          .tienda-section { padding: 40px 16px !important; }
+          .tienda-section h2 { font-size: 24px !important; }
+          .tienda-filters { gap: 4px !important; }
+          .tienda-filters button, .tienda-filters select { font-size: 13px !important; padding: 6px 12px !important; }
+          .tienda-newsletter-form { flex-direction: column !important; }
+          .tienda-newsletter-form input { min-height: 52px !important; font-size: 16px !important; }
+          .tienda-newsletter-form button { min-height: 52px !important; font-size: 18px !important; }
+          .tienda-offers-grid { grid-template-columns: 1fr !important; }
+        }
+        @media (max-width: 480px) {
+          .tienda-hero h1 { font-size: 22px !important; }
+          .tienda-hero p { font-size: 15px !important; }
+          .tienda-hero a, .tienda-hero button { font-size: 14px !important; min-height: 44px !important; padding: 0 16px !important; }
+          .tienda-hero img { height: 200px !important; }
+          .tienda-grid { grid-template-columns: repeat(2, 1fr) !important; gap: 8px !important; }
+          .tienda-section h2 { font-size: 20px !important; padding-left: 10px !important; border-left-width: 5px !important; }
+          .tienda-section { padding: 28px 12px !important; }
+          .tienda-cat-card h3 { font-size: 20px !important; }
+          .tienda-cat-card p { font-size: 15px !important; }
         }
       `}} />
 
       {/* HERO */}
-      <section className="tienda-hero" style={{
+      <section className="tienda-hero tienda-section" style={{
         background: '#ebeef0', borderBottom: '4px solid #181c1e',
-        padding: '64px 24px', position: 'relative', overflow: 'hidden'
+        padding: 'clamp(40px, 8vw, 64px) 24px', position: 'relative', overflow: 'hidden'
       }}>
         <div className="hero-grid" style={{
           maxWidth: 1280, margin: '0 auto', display: 'grid',
@@ -101,21 +128,21 @@ export default function TiendaPage() {
         }}>
           <div style={{ position: 'relative', zIndex: 10 }}>
             <h1 style={{
-              fontSize: 'clamp(32px, 5vw, 48px)', fontWeight: 900,
+              fontSize: 'clamp(22px, 5vw, 48px)', fontWeight: 900,
               lineHeight: 1.1, marginBottom: 24, color: '#181c1e',
               letterSpacing: -1
             }}>
               Herramientas fáciles de usar para tu hogar
             </h1>
-            <p style={{ fontSize: 20, marginBottom: 32, maxWidth: 500, color: '#554334', lineHeight: 1.6 }}>
+            <p style={{ fontSize: 'clamp(15px, 2.5vw, 20px)', marginBottom: 32, maxWidth: 500, color: '#554334', lineHeight: 1.6 }}>
               Diseñadas para durar, pensadas para la comodidad. En Pizdo, creemos que cualquier proyecto es posible con el equipo correcto.
             </p>
-            <div style={{ display: 'flex', gap: 16, flexWrap: 'wrap' }}>
+            <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
               <a href="#catalogo" style={{
-                minHeight: 56, padding: '0 32px', background: '#f28c00', color: '#181c1e',
+                minHeight: 'clamp(44px, 7vw, 56px)', padding: '0 clamp(16px, 3vw, 32px)', background: '#f28c00', color: '#181c1e',
                 border: '2px solid #181c1e', boxShadow: '4px 4px 0px 0px #181c1e',
-                fontSize: 20, fontWeight: 900, cursor: 'pointer', textDecoration: 'none',
-                display: 'inline-flex', alignItems: 'center', gap: 12,
+                fontSize: 'clamp(14px, 2.5vw, 20px)', fontWeight: 900, cursor: 'pointer', textDecoration: 'none',
+                display: 'inline-flex', alignItems: 'center', gap: 8,
                 transition: 'transform 0.1s, box-shadow 0.1s'
               }}
               onMouseEnter={e => { e.currentTarget.style.transform = 'translate(-2px, -2px)'; e.currentTarget.style.boxShadow = '6px 6px 0px 0px #181c1e'; }}
@@ -123,10 +150,10 @@ export default function TiendaPage() {
                 🔧 Explorar Catálogo
               </a>
               <a href="#ofertas" style={{
-                minHeight: 56, padding: '0 32px', background: '#ffffff', color: '#181c1e',
+                minHeight: 'clamp(44px, 7vw, 56px)', padding: '0 clamp(16px, 3vw, 32px)', background: '#ffffff', color: '#181c1e',
                 border: '2px solid #181c1e', boxShadow: '4px 4px 0px 0px #181c1e',
-                fontSize: 20, fontWeight: 900, cursor: 'pointer', textDecoration: 'none',
-                display: 'inline-flex', alignItems: 'center', gap: 12,
+                fontSize: 'clamp(14px, 2.5vw, 20px)', fontWeight: 900, cursor: 'pointer', textDecoration: 'none',
+                display: 'inline-flex', alignItems: 'center', gap: 8,
                 transition: 'transform 0.1s, box-shadow 0.1s'
               }}
               onMouseEnter={e => { e.currentTarget.style.transform = 'translate(-2px, -2px)'; e.currentTarget.style.boxShadow = '6px 6px 0px 0px #181c1e'; }}
@@ -143,19 +170,19 @@ export default function TiendaPage() {
             <img
               src="https://images.unsplash.com/photo-1504917595217-d4dc5ebe6122?w=600"
               alt="Herramientas industriales Pizdo"
-              style={{ position: 'relative', width: '100%', height: 350, objectFit: 'cover', border: '2px solid #181c1e' }}
+              style={{ position: 'relative', width: '100%', height: 'clamp(200px, 35vw, 350px)', objectFit: 'cover', border: '2px solid #181c1e' }}
             />
           </div>
         </div>
       </section>
 
       {/* CATEGORÍAS */}
-      <section style={{ padding: '64px 24px', background: '#f7fafc' }}>
+      <section className="tienda-section" style={{ padding: 'clamp(28px, 8vw, 64px) 24px', background: '#f7fafc' }}>
         <div style={{ maxWidth: 1280, margin: '0 auto' }}>
-          <h2 style={{ fontSize: 32, fontWeight: 700, marginBottom: 48, borderLeft: '8px solid #8d4f00', paddingLeft: 16 }}>
+          <h2 style={{ fontSize: 'clamp(20px, 5vw, 32px)', fontWeight: 700, marginBottom: 'clamp(24px, 4vw, 48px)', borderLeft: '8px solid #8d4f00', paddingLeft: 'clamp(10px, 2vw, 16px)' }}>
             Categorías destacadas
           </h2>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: 32 }}>
+          <div className="tienda-cats" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: 'clamp(16px, 3vw, 32px)' }}>
             {['Herramientas', 'Electrónica', 'Hogar', 'Deportes', 'Oficina', 'Belleza'].slice(0, 3).map((cat, i) => {
               const iconos = ['🔧', '📱', '🏠'];
               const descs = ['Mantén tu espacio impecable con nuestra selección profesional.', 'Tecnología de punta para tu día a día.', 'Todo para hacer de tu casa un hogar.'];
@@ -164,7 +191,7 @@ export default function TiendaPage() {
                   onClick={e => { e.preventDefault(); setCategoria(cat); }}
                   style={{
                     textDecoration: 'none', color: '#181c1e', display: 'block',
-                    padding: 32, background: '#f1f4f6', border: '2px solid #181c1e',
+                    padding: 'clamp(24px, 4vw, 32px)', background: '#f1f4f6', border: '2px solid #181c1e',
                     boxShadow: '4px 4px 0px 0px #181c1e'
                   }}>
                   <div style={{
@@ -174,9 +201,9 @@ export default function TiendaPage() {
                   }}>
                     {iconos[i]}
                   </div>
-                  <h3 style={{ fontSize: 24, fontWeight: 700, marginBottom: 8 }}>{cat}</h3>
-                  <p style={{ fontSize: 18, color: '#554334', marginBottom: 24 }}>{descs[i]}</p>
-                  <div style={{ fontSize: 18, fontWeight: 700, color: '#8d4f00', display: 'flex', alignItems: 'center', gap: 4 }}>
+                  <h3 style={{ fontSize: 'clamp(20px, 3vw, 24px)', fontWeight: 700, marginBottom: 8 }}>{cat}</h3>
+                  <p style={{ fontSize: 'clamp(15px, 2vw, 18px)', color: '#554334', marginBottom: 24 }}>{descs[i]}</p>
+                  <div style={{ fontSize: 'clamp(15px, 2vw, 18px)', fontWeight: 700, color: '#8d4f00', display: 'flex', alignItems: 'center', gap: 4 }}>
                     Ver todo <span>→</span>
                   </div>
                 </a>
@@ -187,20 +214,20 @@ export default function TiendaPage() {
       </section>
 
       {/* MÁS BUSCADOS */}
-      <section style={{ padding: '64px 24px', background: '#2d3133', color: '#eef1f3' }}>
+      <section className="tienda-section" style={{ padding: 'clamp(28px, 8vw, 64px) 24px', background: '#2d3133', color: '#eef1f3' }}>
         <div style={{ maxWidth: 1280, margin: '0 auto' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: 48, flexWrap: 'wrap', gap: 16 }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: 'clamp(24px, 4vw, 48px)', flexWrap: 'wrap', gap: 16 }}>
             <div>
-              <h2 style={{ fontSize: 32, fontWeight: 800, color: '#ffb875', marginBottom: 8, textTransform: 'uppercase', letterSpacing: -1 }}>
+              <h2 style={{ fontSize: 'clamp(20px, 5vw, 32px)', fontWeight: 800, color: '#ffb875', marginBottom: 8, textTransform: 'uppercase', letterSpacing: -1 }}>
                 Los más buscados
               </h2>
-              <p style={{ fontSize: 20, color: '#e0e3e5' }}>Nuestras herramientas estrella, calificadas por profesionales.</p>
+              <p style={{ fontSize: 'clamp(15px, 2.5vw, 20px)', color: '#e0e3e5' }}>Nuestras herramientas estrella, calificadas por profesionales.</p>
             </div>
-            <a href="#catalogo" style={{ fontSize: 18, fontWeight: 700, color: '#ffb875', textDecoration: 'underline' }}>
+            <a href="#catalogo" style={{ fontSize: 'clamp(14px, 2vw, 18px)', fontWeight: 700, color: '#ffb875', textDecoration: 'underline' }}>
               Ver toda la selección
             </a>
           </div>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: 24 }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))', gap: 'clamp(12px, 2vw, 24px)' }}>
             {destacados.slice(0, 4).map(p => <ProductCard key={p.id} producto={p} />)}
           </div>
         </div>
@@ -208,15 +235,15 @@ export default function TiendaPage() {
 
       {/* OFERTAS RELÁMPAGO */}
       {ofertas.length > 0 && (
-        <section id="ofertas" style={{ padding: '64px 24px', background: '#f7fafc' }}>
+        <section id="ofertas" className="tienda-section" style={{ padding: 'clamp(28px, 8vw, 64px) 24px', background: '#f7fafc' }}>
           <div style={{ maxWidth: 1280, margin: '0 auto' }}>
-            <div style={{ marginBottom: 32 }}>
-              <h2 style={{ fontSize: 32, fontWeight: 800, color: '#ba1a1a', marginBottom: 8 }}>
+            <div style={{ marginBottom: 'clamp(20px, 3vw, 32px)' }}>
+              <h2 style={{ fontSize: 'clamp(20px, 5vw, 32px)', fontWeight: 800, color: '#ba1a1a', marginBottom: 8 }}>
                 🔥 Ofertas relámpago
               </h2>
-              <p style={{ fontSize: 20, color: '#554334' }}>Por tiempo limitado — no dejes pasar estas oportunidades</p>
+              <p style={{ fontSize: 'clamp(15px, 2.5vw, 20px)', color: '#554334' }}>Por tiempo limitado — no dejes pasar estas oportunidades</p>
             </div>
-            <div className="tienda-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: 24 }}>
+            <div className="tienda-offers-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))', gap: 'clamp(12px, 2vw, 24px)' }}>
               {ofertas.map(p => (
                 <div key={p.id} style={{
                   background: '#ffffff', border: '2px solid #ba1a1a',
@@ -286,47 +313,48 @@ export default function TiendaPage() {
       )}
 
       {/* CATÁLOGO */}
-      <section id="catalogo" style={{ padding: '64px 24px', background: '#f7fafc' }}>
+      <section id="catalogo" className="tienda-section" style={{ padding: 'clamp(28px, 8vw, 64px) 24px', background: '#f7fafc' }}>
         <div style={{ maxWidth: 1280, margin: '0 auto' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 16, marginBottom: 32, flexWrap: 'wrap' }}>
-            <h2 style={{ fontSize: 32, fontWeight: 700, color: '#181c1e', margin: 0 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 'clamp(20px, 3vw, 32px)', flexWrap: 'wrap' }}>
+            <h2 style={{ fontSize: 'clamp(20px, 5vw, 32px)', fontWeight: 700, color: '#181c1e', margin: 0 }}>
               {search ? `🔍 Resultados para "${search}"` : '📦 Catálogo completo'}
             </h2>
             {search && (
               <button onClick={() => { setSearch(''); router.push('/tienda'); }} style={{
                 background: '#181c1e', color: '#ffb875', border: '2px solid #181c1e',
-                padding: '6px 16px', fontSize: 14, fontWeight: 700, cursor: 'pointer'
+                padding: '4px 14px', fontSize: 14, fontWeight: 700, cursor: 'pointer'
               }}>
-                ✕ Limpiar búsqueda
+                ✕ Limpiar
               </button>
             )}
           </div>
 
-          <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 32, alignItems: 'center' }}>
+          <div className="tienda-filters" style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginBottom: 'clamp(16px, 2vw, 32px)', alignItems: 'center' }}>
             <button onClick={() => setCategoria('')} style={{
-              padding: '8px 20px', border: '2px solid #181c1e',
+              padding: 'clamp(6px, 1vw, 8px) clamp(12px, 2vw, 20px)', border: '2px solid #181c1e',
               background: !categoria ? '#f28c00' : '#ffffff',
               color: !categoria ? '#181c1e' : '#554334',
-              fontSize: 16, fontWeight: 700, cursor: 'pointer',
-              boxShadow: !categoria ? '2px 2px 0px 0px #181c1e' : 'none'
+              fontSize: 'clamp(13px, 2vw, 16px)', fontWeight: 700, cursor: 'pointer',
+              boxShadow: !categoria ? '2px 2px 0px 0px #181c1e' : 'none', whiteSpace: 'nowrap'
             }}>
               Todos
             </button>
             {categorias.map(c => (
               <button key={c} onClick={() => setCategoria(c)} style={{
-                padding: '8px 20px', border: '2px solid #181c1e',
+                padding: 'clamp(6px, 1vw, 8px) clamp(12px, 2vw, 20px)', border: '2px solid #181c1e',
                 background: categoria === c ? '#f28c00' : '#ffffff',
                 color: categoria === c ? '#181c1e' : '#554334',
-                fontSize: 16, fontWeight: 700, cursor: 'pointer',
-                boxShadow: categoria === c ? '2px 2px 0px 0px #181c1e' : 'none'
+                fontSize: 'clamp(13px, 2vw, 16px)', fontWeight: 700, cursor: 'pointer',
+                boxShadow: categoria === c ? '2px 2px 0px 0px #181c1e' : 'none', whiteSpace: 'nowrap'
               }}>
                 {c}
               </button>
             ))}
             <select value={orden} onChange={e => setOrden(e.target.value)} style={{
               marginLeft: 'auto', background: '#ffffff', border: '2px solid #181c1e',
-              padding: '8px 20px', color: '#181c1e', fontSize: 16, fontWeight: 700, cursor: 'pointer',
-              boxShadow: '2px 2px 0px 0px #181c1e', minHeight: 44
+              padding: 'clamp(6px, 1vw, 8px) clamp(12px, 2vw, 20px)', color: '#181c1e',
+              fontSize: 'clamp(13px, 2vw, 16px)', fontWeight: 700, cursor: 'pointer',
+              boxShadow: '2px 2px 0px 0px #181c1e', minHeight: 40
             }}>
               <option value="reciente">Más recientes</option>
               <option value="precio-asc">Precio: menor a mayor</option>
@@ -368,23 +396,23 @@ export default function TiendaPage() {
       </section>
 
       {/* NEWSLETTER */}
-      <section style={{ padding: '64px 24px', background: '#f7fafc', borderTop: '4px solid #181c1e' }}>
+      <section className="tienda-section" style={{ padding: 'clamp(28px, 8vw, 64px) 24px', background: '#f7fafc', borderTop: '4px solid #181c1e' }}>
         <div style={{ maxWidth: 640, margin: '0 auto', textAlign: 'center' }}>
           <div style={{
-            width: 80, height: 80, background: '#f28c00', color: '#ffffff',
+            width: 'clamp(60px, 10vw, 80px)', height: 'clamp(60px, 10vw, 80px)', background: '#f28c00', color: '#ffffff',
             display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
             marginBottom: 32, border: '2px solid #181c1e', boxShadow: '4px 4px 0px 0px #181c1e',
-            transform: 'rotate(1deg)', fontSize: 32
+            transform: 'rotate(1deg)', fontSize: 'clamp(24px, 4vw, 32px)'
           }}>
             ✅
           </div>
-          <h2 style={{ fontSize: 32, fontWeight: 700, marginBottom: 24 }}>
+          <h2 style={{ fontSize: 'clamp(20px, 5vw, 32px)', fontWeight: 700, marginBottom: 24 }}>
             Únete a la Comunidad Pizdo
           </h2>
-          <p style={{ fontSize: 20, color: '#554334', marginBottom: 48, lineHeight: 1.6 }}>
+          <p style={{ fontSize: 'clamp(15px, 2.5vw, 20px)', color: '#554334', marginBottom: 'clamp(24px, 4vw, 48px)', lineHeight: 1.6 }}>
             Recibe guías de reparación, consejos de jardinería y ofertas exclusivas directamente en tu correo. Sin spam, solo herramientas.
           </p>
-          <div style={{ display: 'flex', gap: 12, maxWidth: 480, margin: '0 auto' }}>
+          <div className="tienda-newsletter-form" style={{ display: 'flex', gap: 12, maxWidth: 480, margin: '0 auto' }}>
             <input
               type="email" placeholder="tu@email.com"
               style={{

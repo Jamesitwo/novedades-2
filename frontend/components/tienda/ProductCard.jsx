@@ -34,7 +34,7 @@ export default function ProductCard({ producto }) {
         </div>
       )}
 
-      <div style={{ height: 240, overflow: 'hidden', borderBottom: '2px solid #181c1e', background: '#f1f4f6' }}>
+      <div style={{ height: 'clamp(160px, 30vw, 240px)', overflow: 'hidden', borderBottom: '2px solid #181c1e', background: '#f1f4f6' }}>
         {producto.imagen ? (
           <img src={producto.imagen} alt={producto.nombre}
             style={{ width: '100%', height: '100%', objectFit: 'cover' }}
