@@ -1,5 +1,6 @@
 'use client';
 import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import api from '@/lib/api';
 import ProductCard from '../../components/tienda/ProductCard';
 import CountdownTimer from '../../components/tienda/CountdownTimer';
@@ -7,28 +8,37 @@ import SocialProofToast from '../../components/tienda/SocialProofToast';
 import { on } from '@/lib/websocket';
 
 export default function TiendaPage() {
+  const router = useRouter();
   const [productos, setProductos] = useState([]);
   const [destacados, setDestacados] = useState([]);
   const [ofertas, setOfertas] = useState([]);
   const [categorias, setCategorias] = useState([]);
   const [categoria, setCategoria] = useState('');
   const [orden, setOrden] = useState('reciente');
+  const [search, setSearch] = useState('');
   const [loading, setLoading] = useState(true);
   const [proofEvents, setProofEvents] = useState([]);
   const [error, setError] = useState('');
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const s = params.get('search') || '';
+    setSearch(s);
+    if (s) setCategoria('');
+  }, []);
 
   const fetchData = async () => {
     try {
       setError('');
       const params = new URLSearchParams({ limit: 50, orden });
       if (categoria) params.append('categoria', categoria);
-      console.log('[TIENDA] fetching...', categoria, orden);
+      if (search) params.append('search', search);
+      console.log('[TIENDA] fetching...', categoria, orden, search);
       const [prodRes, destRes, ofertasRes] = await Promise.all([
         api.get(`/api/tienda?${params}`),
         api.get('/api/tienda/destacados'),
         api.get('/api/tienda/ofertas')
       ]);
-      console.log('[TIENDA] prodRes.data', prodRes.data);
       setProductos(prodRes.data?.productos || []);
       setCategorias(prodRes.data?.categorias || []);
       setDestacados(Array.isArray(destRes.data) ? destRes.data : []);
@@ -41,7 +51,7 @@ export default function TiendaPage() {
     }
   };
 
-  useEffect(() => { fetchData(); }, [categoria, orden]);
+  useEffect(() => { fetchData(); }, [categoria, orden, search]);
 
   useEffect(() => {
     const unsub = on('tienda:compra-simulada', (data) => {
@@ -278,9 +288,19 @@ export default function TiendaPage() {
       {/* CATÁLOGO */}
       <section id="catalogo" style={{ padding: '64px 24px', background: '#f7fafc' }}>
         <div style={{ maxWidth: 1280, margin: '0 auto' }}>
-          <h2 style={{ fontSize: 32, fontWeight: 700, marginBottom: 32, color: '#181c1e' }}>
-            📦 Catálogo completo
-          </h2>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 16, marginBottom: 32, flexWrap: 'wrap' }}>
+            <h2 style={{ fontSize: 32, fontWeight: 700, color: '#181c1e', margin: 0 }}>
+              {search ? `🔍 Resultados para "${search}"` : '📦 Catálogo completo'}
+            </h2>
+            {search && (
+              <button onClick={() => { setSearch(''); router.push('/tienda'); }} style={{
+                background: '#181c1e', color: '#ffb875', border: '2px solid #181c1e',
+                padding: '6px 16px', fontSize: 14, fontWeight: 700, cursor: 'pointer'
+              }}>
+                ✕ Limpiar búsqueda
+              </button>
+            )}
+          </div>
 
           <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 32, alignItems: 'center' }}>
             <button onClick={() => setCategoria('')} style={{

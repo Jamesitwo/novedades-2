@@ -1,7 +1,21 @@
 'use client';
+import { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import '../globals.css';
 
 export default function TiendaLayout({ children }) {
+  const router = useRouter();
+  const [searchVal, setSearchVal] = useState('');
+
+  const handleSearch = (e) => {
+    e.preventDefault();
+    if (searchVal.trim()) {
+      router.push(`/tienda?search=${encodeURIComponent(searchVal.trim())}`);
+    } else {
+      router.push('/tienda');
+    }
+  };
+
   return (
     <div style={{ minHeight: '100vh', background: '#f7fafc', color: '#181c1e', fontFamily: '"Inter", -apple-system, sans-serif', fontSize: 18, lineHeight: 1.6 }}>
       <style dangerouslySetInnerHTML={{__html: `
@@ -12,6 +26,7 @@ export default function TiendaLayout({ children }) {
           .tienda-hero p { font-size: 18px !important; }
           .tienda-grid { grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)) !important; }
           .tienda-section-pad { padding: 32px 12px !important; }
+          .tienda-search-desktop { display: none !important; }
         }
         @media (max-width: 480px) {
           .tienda-grid { grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)) !important; }
@@ -28,13 +43,30 @@ export default function TiendaLayout({ children }) {
             PIZDO
           </span>
         </a>
-        <div className="tienda-nav-desktop" style={{ display: 'flex', alignItems: 'center', gap: 32 }}>
+        <div className="tienda-nav-desktop" style={{ display: 'flex', alignItems: 'center', gap: 24 }}>
           <a href="/tienda" style={{ color: '#8d4f00', textDecoration: 'none', fontSize: 18, fontWeight: 700, borderBottom: '4px solid #8d4f00', paddingBottom: 4 }}>
             Catálogo
           </a>
           <a href="/tienda?oferta=true" style={{ color: '#181c1e', textDecoration: 'none', fontSize: 18, fontWeight: 700 }}>
             Ofertas
           </a>
+          <form className="tienda-search-desktop" onSubmit={handleSearch} style={{ display: 'flex', alignItems: 'center', gap: 0 }}>
+            <input
+              type="text" value={searchVal} onChange={e => setSearchVal(e.target.value)}
+              placeholder="Buscar producto..."
+              style={{
+                minHeight: 40, padding: '0 14px', fontSize: 16, fontWeight: 700, color: '#181c1e',
+                border: '2px solid #181c1e', borderRight: 'none', outline: 'none',
+                background: '#f7fafc', width: 220
+              }}
+            />
+            <button type="submit" style={{
+              minHeight: 40, padding: '0 14px', background: '#f28c00', color: '#181c1e',
+              border: '2px solid #181c1e', fontSize: 16, fontWeight: 700, cursor: 'pointer'
+            }}>
+              🔍
+            </button>
+          </form>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
           <a href="/tienda" style={{ color: '#181c1e', textDecoration: 'none', fontSize: 18, fontWeight: 700, display: 'flex', alignItems: 'center', gap: 4 }}>
