@@ -21,58 +21,64 @@ export default function TiendaLayout({ children }) {
       <style dangerouslySetInnerHTML={{__html: `
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700;800;900&display=swap');
         @media (max-width: 768px) {
-          .tienda-nav-desktop { display: none !important; }
           .tienda-hero h1 { font-size: 32px !important; }
           .tienda-hero p { font-size: 18px !important; }
           .tienda-grid { grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)) !important; }
           .tienda-section-pad { padding: 32px 12px !important; }
-          .tienda-search-desktop { display: none !important; }
+          .tienda-navbar { flex-wrap: wrap; height: auto !important; padding: 8px 12px !important; gap: 8px !important; }
+          .tienda-nav-links { gap: 12px !important; font-size: 15px !important; }
+          .tienda-search-input { width: 140px !important; font-size: 14px !important; }
         }
         @media (max-width: 480px) {
           .tienda-grid { grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)) !important; }
+          .tienda-brand { font-size: 20px !important; }
+          .tienda-nav-links a { font-size: 14px !important; }
+          .tienda-search-input { width: 110px !important; }
         }
       `}} />
 
-      <header style={{
+      <header className="tienda-navbar" style={{
         background: '#ffffff', borderBottom: '2px solid #181c1e',
         padding: '0 24px', display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-        position: 'sticky', top: 0, zIndex: 100, height: 56
+        position: 'sticky', top: 0, zIndex: 100, height: 56, gap: 16
       }}>
-        <a href="/tienda" style={{ textDecoration: 'none', display: 'flex', alignItems: 'center', gap: 8 }}>
-          <span style={{ fontSize: 24, fontWeight: 900, color: '#8d4f00', letterSpacing: -1, textTransform: 'uppercase' }}>
+        <a href="/tienda" className="tienda-brand" style={{ textDecoration: 'none', display: 'flex', alignItems: 'center', gap: 6, flexShrink: 0 }}>
+          <span style={{ fontSize: 22, fontWeight: 900, color: '#8d4f00', letterSpacing: -1, textTransform: 'uppercase', whiteSpace: 'nowrap' }}>
             PIZDO
           </span>
         </a>
-        <div className="tienda-nav-desktop" style={{ display: 'flex', alignItems: 'center', gap: 24 }}>
-          <a href="/tienda" style={{ color: '#8d4f00', textDecoration: 'none', fontSize: 18, fontWeight: 700, borderBottom: '4px solid #8d4f00', paddingBottom: 4 }}>
-            Catálogo
+
+        <div className="tienda-nav-links" style={{ display: 'flex', alignItems: 'center', gap: 20, flexShrink: 0 }}>
+          <a href="/tienda" style={{ color: '#8d4f00', textDecoration: 'none', fontSize: 17, fontWeight: 700, borderBottom: '4px solid #8d4f00', paddingBottom: 4, whiteSpace: 'nowrap' }}>
+            🏠 Inicio
           </a>
-          <a href="/tienda?oferta=true" style={{ color: '#181c1e', textDecoration: 'none', fontSize: 18, fontWeight: 700 }}>
-            Ofertas
-          </a>
-          <form className="tienda-search-desktop" onSubmit={handleSearch} style={{ display: 'flex', alignItems: 'center', gap: 0 }}>
-            <input
-              type="text" value={searchVal} onChange={e => setSearchVal(e.target.value)}
-              placeholder="Buscar producto..."
-              style={{
-                minHeight: 40, padding: '0 14px', fontSize: 16, fontWeight: 700, color: '#181c1e',
-                border: '2px solid #181c1e', borderRight: 'none', outline: 'none',
-                background: '#f7fafc', width: 220
-              }}
-            />
-            <button type="submit" style={{
-              minHeight: 40, padding: '0 14px', background: '#f28c00', color: '#181c1e',
-              border: '2px solid #181c1e', fontSize: 16, fontWeight: 700, cursor: 'pointer'
-            }}>
-              🔍
-            </button>
-          </form>
-        </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
-          <a href="/tienda" style={{ color: '#181c1e', textDecoration: 'none', fontSize: 18, fontWeight: 700, display: 'flex', alignItems: 'center', gap: 4 }}>
-            <span>🛒</span>
+          <a href="/tienda?oferta=true" style={{ color: '#181c1e', textDecoration: 'none', fontSize: 17, fontWeight: 700, whiteSpace: 'nowrap' }}>
+            🔥 Ofertas
           </a>
         </div>
+
+        <form onSubmit={handleSearch} style={{ display: 'flex', alignItems: 'center', gap: 0, flex: '0 1 auto', minWidth: 0 }}>
+          <input
+            className="tienda-search-input"
+            type="text" value={searchVal} onChange={e => setSearchVal(e.target.value)}
+            placeholder="Buscar..."
+            style={{
+              minHeight: 40, padding: '0 12px', fontSize: 15, fontWeight: 700, color: '#181c1e',
+              border: '2px solid #181c1e', borderRight: 'none', outline: 'none',
+              background: '#f7fafc', width: 200, minWidth: 100
+            }}
+          />
+          <button type="submit" style={{
+            minHeight: 40, padding: '0 12px', background: '#f28c00', color: '#181c1e',
+            border: '2px solid #181c1e', fontSize: 15, fontWeight: 700, cursor: 'pointer', flexShrink: 0
+          }}>
+            🔍
+          </button>
+        </form>
+
+        <a href="/tienda" style={{ color: '#181c1e', textDecoration: 'none', fontSize: 17, fontWeight: 700, flexShrink: 0 }}>
+          🛒
+        </a>
       </header>
 
       <main style={{ maxWidth: 1280, margin: '0 auto' }}>
@@ -95,25 +101,6 @@ export default function TiendaLayout({ children }) {
           © 2026 Pizdo Industrial Tools. Built for Reliability.
         </p>
       </footer>
-
-      <div className="md:hidden" style={{
-        position: 'fixed', bottom: 0, left: 0, right: 0, background: '#ffffff',
-        borderTop: '2px solid #181c1e', zIndex: 100, display: 'flex',
-        justifyContent: 'space-between', padding: '8px 24px 12px', height: 56
-      }}>
-        <a href="/tienda" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', color: '#8d4f00', textDecoration: 'none', borderBottom: '4px solid #8d4f00', paddingBottom: 2 }}>
-          <span style={{ fontSize: 20 }}>🏠</span>
-          <span style={{ fontSize: 10, fontWeight: 700, textTransform: 'uppercase' }}>Inicio</span>
-        </a>
-        <a href="/tienda?oferta=true" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', color: '#181c1e', textDecoration: 'none' }}>
-          <span style={{ fontSize: 20 }}>🔥</span>
-          <span style={{ fontSize: 10, fontWeight: 700, textTransform: 'uppercase' }}>Ofertas</span>
-        </a>
-        <a href="#" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', color: '#181c1e', textDecoration: 'none' }}>
-          <span style={{ fontSize: 20 }}>🔍</span>
-          <span style={{ fontSize: 10, fontWeight: 700, textTransform: 'uppercase' }}>Buscar</span>
-        </a>
-      </div>
     </div>
   );
 }
