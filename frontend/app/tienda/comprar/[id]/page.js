@@ -236,39 +236,44 @@ export default function ComprarPage() {
                   </div>
                 )}
               </div>
+
+              {producto?.relacionados?.length > 0 && (
+                <div style={{ marginTop: 20, background: '#ffffff', border: '2px solid #181c1e', boxShadow: '3px 3px 0px 0px #181c1e', padding: 16 }}>
+                  <div style={{ fontSize: 13, fontWeight: 900, color: '#f28c00', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 12 }}>
+                    + Agregar a tu pedido
+                  </div>
+                  {producto.relacionados.map(rp => {
+                    const rpPrecio = rp.ofertaActiva && rp.ofertaPrecio ? rp.ofertaPrecio : rp.precioVenta;
+                    return (
+                      <a key={rp.id} href={`/tienda/comprar/${rp.id}`} style={{
+                        display: 'flex', alignItems: 'center', gap: 10, padding: '8px 0',
+                        borderBottom: '1px solid #e0e3e5', textDecoration: 'none', color: '#181c1e',
+                        transition: 'background 0.1s'
+                      }}
+                      onMouseEnter={e => e.currentTarget.style.background = '#f1f4f6'}
+                      onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>
+                        {rp.imagen ? (
+                          <img src={rp.imagen} alt={rp.nombre} style={{ width: 44, height: 44, objectFit: 'cover', border: '2px solid #181c1e', flexShrink: 0, background: '#f1f4f6' }}
+                            onError={e => { e.target.style.display = 'none'; }} />
+                        ) : (
+                          <div style={{ width: 44, height: 44, border: '2px solid #181c1e', flexShrink: 0, background: '#f1f4f6' }} />
+                        )}
+                        <div style={{ flex: 1, minWidth: 0 }}>
+                          <div style={{ fontSize: 12, fontWeight: 700, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{rp.nombre}</div>
+                          <div style={{ fontSize: 14, fontWeight: 900, color: rp.ofertaActiva && rp.ofertaPrecio ? '#ba1a1a' : '#181c1e' }}>
+                            {formatPrice(rpPrecio)}
+                          </div>
+                        </div>
+                        <span style={{ fontSize: 11, fontWeight: 700, color: '#f28c00', whiteSpace: 'nowrap', flexShrink: 0 }}>Agregar →</span>
+                      </a>
+                    );
+                  })}
+                </div>
+              )}
             </div>
           </>
         )}
 
-        {producto?.relacionados?.length > 0 && (
-          <div style={{ maxWidth: 800, margin: '48px auto 0', padding: '0 24px' }}>
-            <div style={{ borderTop: '2px solid #181c1e', paddingTop: 32 }}>
-              <h2 style={{ fontSize: 'clamp(20px, 4vw, 28px)', fontWeight: 700, marginBottom: 24, borderLeft: '6px solid #f28c00', paddingLeft: 12 }}>
-                También te puede interesar
-              </h2>
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))', gap: 16 }}>
-                {producto.relacionados.map(rp => (
-                  <a key={rp.id} href={`/tienda/comprar/${rp.id}`} style={{
-                    textDecoration: 'none', color: '#181c1e', background: '#ffffff',
-                    border: '2px solid #181c1e', boxShadow: '3px 3px 0px 0px #181c1e',
-                    display: 'flex', flexDirection: 'column', transition: 'transform 0.1s'
-                  }}
-                  onMouseEnter={e => e.currentTarget.style.transform = 'translate(-1px, -1px)'}
-                  onMouseLeave={e => e.currentTarget.style.transform = 'none'}>
-                    {rp.imagen && (
-                      <img src={rp.imagen} alt={rp.nombre} style={{ width: '100%', height: 120, objectFit: 'cover', borderBottom: '2px solid #181c1e', background: '#f1f4f6' }}
-                        onError={e => { e.target.style.display = 'none'; }} />
-                    )}
-                    <div style={{ padding: 10, fontSize: 13, fontWeight: 700, flex: 1 }}>{rp.nombre}</div>
-                    <div style={{ padding: '0 10px 10px', fontSize: 16, fontWeight: 900 }}>
-                      ${Number(rp.ofertaActiva && rp.ofertaPrecio ? rp.ofertaPrecio : rp.precioVenta).toLocaleString('es-CO', { minimumFractionDigits: 0 })}
-                    </div>
-                  </a>
-                ))}
-              </div>
-            </div>
-          </div>
-        )}
       </div>
     </div>
   );
