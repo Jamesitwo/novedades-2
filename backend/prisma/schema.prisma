@@ -317,6 +317,7 @@ model ProductoTienda {
   ventasSimuladas Int       @default(0) @map("ventas_simuladas")
   activo          Boolean   @default(true)
   destacado       Boolean   @default(false)
+  upsellIds       Json?     @default("[]") @map("upsell_ids")
   createdById     String    @map("created_by")
   createdBy       Usuario   @relation(fields: [createdById], references: [id])
   resenas         Resena[]

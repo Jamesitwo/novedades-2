@@ -28,8 +28,10 @@ export default function TiendaAdminPage() {
     nombre: '', descripcion: '', categoria: '', precioVenta: 0, precioProveedor: 0,
     imagen: '', imagenes: '', linkCompra: '', stock: 0,
     ofertaActiva: false, ofertaPrecio: 0, ofertaHasta: '',
-    ventasSimuladas: 0, activo: true, destacado: false
+    ventasSimuladas: 0, activo: true, destacado: false,
+    upsellIds: []
   });
+  const [allProducts, setAllProducts] = useState([]);
   const [newCategory, setNewCategory] = useState('');
 
   useEffect(() => { initialize(); }, []);
@@ -68,6 +70,13 @@ export default function TiendaAdminPage() {
 
   useEffect(() => { if (isAuthenticated && usuario?.rol === 'admin') fetchProductos(); }, [fetchProductos, isAuthenticated, usuario]);
 
+  useEffect(() => {
+    if (!isAuthenticated || usuario?.rol !== 'admin') return;
+    api.get('/api/tienda?limit=200&orden=reciente')
+      .then(({ data }) => setAllProducts(data.productos))
+      .catch(() => {});
+  }, [isAuthenticated, usuario]);
+
   const openModal = (p = null) => {
     if (p) {
       setEditando(p);
@@ -78,7 +87,8 @@ export default function TiendaAdminPage() {
         linkCompra: p.linkCompra || '', stock: p.stock,
         ofertaActiva: p.ofertaActiva, ofertaPrecio: p.ofertaPrecio || 0,
         ofertaHasta: p.ofertaHasta ? new Date(p.ofertaHasta).toISOString().slice(0, 16) : '',
-        ventasSimuladas: p.ventasSimuladas, activo: p.activo, destacado: p.destacado
+        ventasSimuladas: p.ventasSimuladas, activo: p.activo, destacado: p.destacado,
+        upsellIds: Array.isArray(p.upsellIds) ? p.upsellIds : []
       });
     } else {
       setEditando(null);
@@ -86,7 +96,8 @@ export default function TiendaAdminPage() {
         nombre: '', descripcion: '', categoria: '', precioVenta: 0, precioProveedor: 0,
         imagen: '', imagenes: '', linkCompra: '', stock: 0,
         ofertaActiva: false, ofertaPrecio: 0, ofertaHasta: '',
-        ventasSimuladas: 0, activo: true, destacado: false
+        ventasSimuladas: 0, activo: true, destacado: false,
+        upsellIds: []
       });
     }
     setNewCategory('');
@@ -101,7 +112,8 @@ export default function TiendaAdminPage() {
       imagen: p.imagen || '', imagenes: Array.isArray(p.imagenes) ? p.imagenes : [],
       linkCompra: p.linkCompra || '', stock: p.stock,
       ofertaActiva: false, ofertaPrecio: 0, ofertaHasta: null,
-      ventasSimuladas: 0, activo: true, destacado: false
+      ventasSimuladas: 0, activo: true, destacado: false,
+      upsellIds: Array.isArray(p.upsellIds) ? p.upsellIds : []
     };
     try {
       await api.post('/api/tienda', payload);
@@ -468,6 +480,39 @@ export default function TiendaAdminPage() {
                   <textarea className="admin-input" value={form.imagenes} onChange={e => setForm({...form, imagenes: e.target.value})} rows={3}
                     placeholder="https://..." style={{ width: '100%', marginTop: 6, resize: 'vertical', fontFamily: 'Inter, sans-serif' }} />
                 </label>
+
+                <div style={{ background: '#f1f4f6', border: '2px solid #181c1e', padding: 18 }}>
+                  <div style={{ fontSize: 13, fontWeight: 900, color: '#554334', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 10 }}>
+                    🔗 Upsell (productos relacionados)
+                  </div>
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+                    {allProducts.filter(a => a.id !== (editando?.id || '')).slice(0, 30).map(ap => {
+                      const selected = form.upsellIds.includes(ap.id);
+                      return (
+                        <button key={ap.id} type="button" onClick={() => {
+                          setForm(prev => ({
+                            ...prev,
+                            upsellIds: selected ? prev.upsellIds.filter(id => id !== ap.id) : [...prev.upsellIds, ap.id]
+                          }));
+                        }} style={{
+                          padding: '4px 10px', fontSize: 12, fontWeight: 700, cursor: 'pointer',
+                          border: '2px solid #181c1e', background: selected ? '#f28c00' : '#ffffff',
+                          color: selected ? '#181c1e' : '#554334',
+                          boxShadow: selected ? '2px 2px 0px 0px #181c1e' : 'none',
+                          whiteSpace: 'nowrap'
+                        }}>
+                          {selected ? '✓ ' : ''}{ap.nombre}
+                        </button>
+                      );
+                    })}
+                    {allProducts.filter(a => a.id !== (editando?.id || '')).length === 0 && (
+                      <span style={{ fontSize: 12, color: '#887362' }}>Cargando productos...</span>
+                    )}
+                  </div>
+                  <div style={{ fontSize: 11, color: '#887362', marginTop: 6 }}>
+                    Selecciona productos que aparecerán como "También te puede interesar". Si no seleccionas ninguno, se muestran productos de la misma categoría.
+                  </div>
+                </div>
 
                 <div style={{ background: '#f1f4f6', border: '2px solid #181c1e', padding: 18, marginTop: 4 }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 24, marginBottom: form.ofertaActiva ? 14 : 0 }}>

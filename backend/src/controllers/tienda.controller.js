@@ -98,15 +98,29 @@ const getById = async (req, res) => {
       return res.status(404).json({ error: 'Producto no encontrado' });
     }
 
-    const relacionados = await prisma.productoTienda.findMany({
-      where: {
-        activo: true,
-        categoria: producto.categoria,
-        id: { not: producto.id }
-      },
-      take: 4,
-      orderBy: { ventasSimuladas: 'desc' }
-    });
+    const upsellIds = Array.isArray(producto.upsellIds) ? producto.upsellIds : [];
+    let relacionados;
+    if (upsellIds.length > 0) {
+      relacionados = await prisma.productoTienda.findMany({
+        where: { id: { in: upsellIds }, activo: true },
+        take: 4
+      });
+      if (relacionados.length < 4) {
+        const existentes = relacionados.map(r => r.id);
+        const extra = await prisma.productoTienda.findMany({
+          where: { activo: true, categoria: producto.categoria, id: { notIn: [producto.id, ...existentes] } },
+          take: 4 - relacionados.length,
+          orderBy: { ventasSimuladas: 'desc' }
+        });
+        relacionados = [...relacionados, ...extra];
+      }
+    } else {
+      relacionados = await prisma.productoTienda.findMany({
+        where: { activo: true, categoria: producto.categoria, id: { not: producto.id } },
+        take: 4,
+        orderBy: { ventasSimuladas: 'desc' }
+      });
+    }
 
     res.json({ ...producto, relacionados });
   } catch (error) {
@@ -121,7 +135,7 @@ const create = async (req, res) => {
       return res.status(403).json({ error: 'Solo admins pueden crear productos' });
     }
 
-    const { nombre, descripcion, categoria, precioVenta, precioProveedor, imagen, imagenes, linkCompra, stock, ofertaActiva, ofertaPrecio, ofertaHasta, ventasSimuladas, activo, destacado } = req.body;
+    const { nombre, descripcion, categoria, precioVenta, precioProveedor, imagen, imagenes, linkCompra, stock, ofertaActiva, ofertaPrecio, ofertaHasta, ventasSimuladas, activo, destacado, upsellIds } = req.body;
 
     if (!nombre || !categoria || !precioVenta) {
       return res.status(400).json({ error: 'nombre, categoria y precioVenta son requeridos' });
@@ -144,6 +158,7 @@ const create = async (req, res) => {
         ventasSimuladas: parseInt(ventasSimuladas) || 0,
         activo: activo !== false,
         destacado: destacado || false,
+        upsellIds: Array.isArray(upsellIds) ? upsellIds : [],
         createdById: req.usuario.id
       }
     });
@@ -162,7 +177,7 @@ const update = async (req, res) => {
     }
 
     const { id } = req.params;
-    const { nombre, descripcion, categoria, precioVenta, precioProveedor, imagen, imagenes, linkCompra, stock, ofertaActiva, ofertaPrecio, ofertaHasta, ventasSimuladas, activo, destacado } = req.body;
+    const { nombre, descripcion, categoria, precioVenta, precioProveedor, imagen, imagenes, linkCompra, stock, ofertaActiva, ofertaPrecio, ofertaHasta, ventasSimuladas, activo, destacado, upsellIds } = req.body;
 
     const data = {};
     if (nombre !== undefined) data.nombre = nombre;
@@ -180,6 +195,7 @@ const update = async (req, res) => {
     if (ventasSimuladas !== undefined) data.ventasSimuladas = parseInt(ventasSimuladas);
     if (activo !== undefined) data.activo = activo;
     if (destacado !== undefined) data.destacado = destacado;
+    if (upsellIds !== undefined) data.upsellIds = Array.isArray(upsellIds) ? upsellIds : [];
 
     const producto = await prisma.productoTienda.update({ where: { id }, data });
     res.json(producto);

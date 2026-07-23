@@ -239,6 +239,36 @@ export default function ComprarPage() {
             </div>
           </>
         )}
+
+        {producto?.relacionados?.length > 0 && (
+          <div style={{ maxWidth: 800, margin: '48px auto 0', padding: '0 24px' }}>
+            <div style={{ borderTop: '2px solid #181c1e', paddingTop: 32 }}>
+              <h2 style={{ fontSize: 'clamp(20px, 4vw, 28px)', fontWeight: 700, marginBottom: 24, borderLeft: '6px solid #f28c00', paddingLeft: 12 }}>
+                También te puede interesar
+              </h2>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))', gap: 16 }}>
+                {producto.relacionados.map(rp => (
+                  <a key={rp.id} href={`/tienda/comprar/${rp.id}`} style={{
+                    textDecoration: 'none', color: '#181c1e', background: '#ffffff',
+                    border: '2px solid #181c1e', boxShadow: '3px 3px 0px 0px #181c1e',
+                    display: 'flex', flexDirection: 'column', transition: 'transform 0.1s'
+                  }}
+                  onMouseEnter={e => e.currentTarget.style.transform = 'translate(-1px, -1px)'}
+                  onMouseLeave={e => e.currentTarget.style.transform = 'none'}>
+                    {rp.imagen && (
+                      <img src={rp.imagen} alt={rp.nombre} style={{ width: '100%', height: 120, objectFit: 'cover', borderBottom: '2px solid #181c1e', background: '#f1f4f6' }}
+                        onError={e => { e.target.style.display = 'none'; }} />
+                    )}
+                    <div style={{ padding: 10, fontSize: 13, fontWeight: 700, flex: 1 }}>{rp.nombre}</div>
+                    <div style={{ padding: '0 10px 10px', fontSize: 16, fontWeight: 900 }}>
+                      ${Number(rp.ofertaActiva && rp.ofertaPrecio ? rp.ofertaPrecio : rp.precioVenta).toLocaleString('es-CO', { minimumFractionDigits: 0 })}
+                    </div>
+                  </a>
+                ))}
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
