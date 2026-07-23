@@ -388,33 +388,33 @@ export default function TiendaAdminPage() {
           onClick={() => setShowModal(false)}>
           <div style={{
             background: '#ffffff', border: '2px solid #181c1e', boxShadow: '8px 8px 0px 0px #181c1e',
-            width: 'min(680px, 95vw)', maxHeight: '92vh', overflow: 'auto'
+            width: 'min(900px, 96vw)', maxHeight: '92vh', overflow: 'auto'
           }} onClick={e => e.stopPropagation()}>
             <div style={{
-              padding: '16px 24px', borderBottom: '2px solid #181c1e', fontWeight: 800, fontSize: 18, color: '#181c1e',
+              padding: '20px 28px', borderBottom: '2px solid #181c1e', fontWeight: 800, fontSize: 20, color: '#181c1e',
               background: '#f1f4f6', display: 'flex', justifyContent: 'space-between', alignItems: 'center',
               position: 'sticky', top: 0, zIndex: 1
             }}>
               {editando ? 'Editar producto' : 'Nuevo producto'}
-              <button onClick={() => setShowModal(false)} style={{ background: 'none', border: 'none', fontSize: 20, cursor: 'pointer', color: '#181c1e' }}>✕</button>
+              <button onClick={() => setShowModal(false)} style={{ background: 'none', border: 'none', fontSize: 24, cursor: 'pointer', color: '#181c1e' }}>✕</button>
             </div>
 
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 0 }}>
-              <form onSubmit={handleSave} style={{ padding: '20px 24px', display: 'flex', flexDirection: 'column', gap: 10 }}>
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: 10 }}>
-                  <label style={{ fontSize: 12, fontWeight: 900, color: '#554334', textTransform: 'uppercase', letterSpacing: 1 }}>
+            <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 0.8fr', gap: 0 }}>
+              <form onSubmit={handleSave} style={{ padding: '28px 28px', display: 'flex', flexDirection: 'column', gap: 16 }}>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: 16 }}>
+                  <label style={{ fontSize: 13, fontWeight: 900, color: '#554334', textTransform: 'uppercase', letterSpacing: 1 }}>
                     Nombre *
                     <input className="admin-input" value={form.nombre} onChange={e => setForm({...form, nombre: e.target.value})} required
-                      style={{ width: '100%', marginTop: 4 }} />
+                      style={{ width: '100%', marginTop: 6, padding: '10px 14px', fontSize: 16 }} />
                   </label>
                 </div>
-                <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: 10 }}>
-                  <label style={{ fontSize: 12, fontWeight: 900, color: '#554334', textTransform: 'uppercase', letterSpacing: 1 }}>
+                <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: 14 }}>
+                  <label style={{ fontSize: 13, fontWeight: 900, color: '#554334', textTransform: 'uppercase', letterSpacing: 1 }}>
                     Categoría *
-                    <div style={{ display: 'flex', gap: 4, marginTop: 4 }}>
+                    <div style={{ display: 'flex', gap: 4, marginTop: 6 }}>
                       <select className="admin-input" value={form.categoria}
                         onChange={e => { setForm({...form, categoria: e.target.value}); setNewCategory(''); }}
-                        style={{ flex: 1, cursor: 'pointer', appearance: 'auto', minWidth: 0 }}>
+                        style={{ flex: 1, cursor: 'pointer', appearance: 'auto', minWidth: 0, padding: '10px 14px' }}>
                         <option value="">Seleccionar...</option>
                         {categorias.map(c => <option key={c} value={c}>{c}</option>)}
                         <option value="__new__">+ Nueva categoría</option>
@@ -422,143 +422,142 @@ export default function TiendaAdminPage() {
                     </div>
                     {form.categoria === '__new__' && (
                       <input className="admin-input" value={newCategory} onChange={e => setNewCategory(e.target.value)}
-                        placeholder="Escribe la nueva categoría" style={{ width: '100%', marginTop: 4 }} />
+                        placeholder="Escribe la nueva categoría" style={{ width: '100%', marginTop: 6 }} />
                     )}
                   </label>
-                  <label style={{ fontSize: 12, fontWeight: 900, color: '#554334', textTransform: 'uppercase', letterSpacing: 1 }}>
+                  <label style={{ fontSize: 13, fontWeight: 900, color: '#554334', textTransform: 'uppercase', letterSpacing: 1 }}>
                     Stock
                     <input type="number" min="0" className="admin-input" value={form.stock}
-                      onChange={e => setForm({...form, stock: parseInt(e.target.value) || 0})} style={{ width: '100%', marginTop: 4 }} />
+                      onChange={e => setForm({...form, stock: parseInt(e.target.value) || 0})} style={{ width: '100%', marginTop: 6 }} />
                   </label>
                 </div>
-                <label style={{ fontSize: 12, fontWeight: 900, color: '#554334', textTransform: 'uppercase', letterSpacing: 1 }}>
+                <label style={{ fontSize: 13, fontWeight: 900, color: '#554334', textTransform: 'uppercase', letterSpacing: 1 }}>
                   Descripción
-                  <textarea className="admin-input" value={form.descripcion} onChange={e => setForm({...form, descripcion: e.target.value})} rows={2}
-                    style={{ width: '100%', marginTop: 4, resize: 'vertical', fontFamily: 'Inter, sans-serif' }} />
+                  <textarea className="admin-input" value={form.descripcion} onChange={e => setForm({...form, descripcion: e.target.value})} rows={3}
+                    style={{ width: '100%', marginTop: 6, resize: 'vertical', fontFamily: 'Inter, sans-serif', padding: '10px 14px' }} />
                 </label>
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 10 }}>
-                  <label style={{ fontSize: 12, fontWeight: 900, color: '#554334', textTransform: 'uppercase', letterSpacing: 1 }}>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 14 }}>
+                  <label style={{ fontSize: 13, fontWeight: 900, color: '#554334', textTransform: 'uppercase', letterSpacing: 1 }}>
                     Precio *
                     <input type="number" min="0" className="admin-input" value={form.precioVenta}
-                      onChange={e => setForm({...form, precioVenta: parseFloat(e.target.value) || 0})} required style={{ width: '100%', marginTop: 4 }} />
+                      onChange={e => setForm({...form, precioVenta: parseFloat(e.target.value) || 0})} required style={{ width: '100%', marginTop: 6 }} />
                   </label>
-                  <label style={{ fontSize: 12, fontWeight: 900, color: '#554334', textTransform: 'uppercase', letterSpacing: 1 }}>
+                  <label style={{ fontSize: 13, fontWeight: 900, color: '#554334', textTransform: 'uppercase', letterSpacing: 1 }}>
                     Costo proveedor
                     <input type="number" min="0" className="admin-input" value={form.precioProveedor}
-                      onChange={e => setForm({...form, precioProveedor: parseFloat(e.target.value) || 0})} style={{ width: '100%', marginTop: 4 }} />
+                      onChange={e => setForm({...form, precioProveedor: parseFloat(e.target.value) || 0})} style={{ width: '100%', marginTop: 6 }} />
                   </label>
-                  <label style={{ fontSize: 12, fontWeight: 900, color: '#554334', textTransform: 'uppercase', letterSpacing: 1 }}>
+                  <label style={{ fontSize: 13, fontWeight: 900, color: '#554334', textTransform: 'uppercase', letterSpacing: 1 }}>
                     Ventas simuladas
                     <input type="number" min="0" className="admin-input" value={form.ventasSimuladas}
-                      onChange={e => setForm({...form, ventasSimuladas: parseInt(e.target.value) || 0})} style={{ width: '100%', marginTop: 4 }} />
+                      onChange={e => setForm({...form, ventasSimuladas: parseInt(e.target.value) || 0})} style={{ width: '100%', marginTop: 6 }} />
                   </label>
                 </div>
-                <label style={{ fontSize: 12, fontWeight: 900, color: '#554334', textTransform: 'uppercase', letterSpacing: 1 }}>
+                <label style={{ fontSize: 13, fontWeight: 900, color: '#554334', textTransform: 'uppercase', letterSpacing: 1 }}>
                   Imagen principal (URL)
                   <input className="admin-input" value={form.imagen} onChange={e => setForm({...form, imagen: e.target.value})}
-                    placeholder="https://..." style={{ width: '100%', marginTop: 4 }} />
+                    placeholder="https://..." style={{ width: '100%', marginTop: 6 }} />
                 </label>
-                <label style={{ fontSize: 12, fontWeight: 900, color: '#554334', textTransform: 'uppercase', letterSpacing: 1 }}>
+                <label style={{ fontSize: 13, fontWeight: 900, color: '#554334', textTransform: 'uppercase', letterSpacing: 1 }}>
                   Link de compra
                   <input className="admin-input" value={form.linkCompra} onChange={e => setForm({...form, linkCompra: e.target.value})}
-                    placeholder="https://..." style={{ width: '100%', marginTop: 4 }} />
+                    placeholder="https://..." style={{ width: '100%', marginTop: 6 }} />
                 </label>
-                <label style={{ fontSize: 12, fontWeight: 900, color: '#554334', textTransform: 'uppercase', letterSpacing: 1 }}>
+                <label style={{ fontSize: 13, fontWeight: 900, color: '#554334', textTransform: 'uppercase', letterSpacing: 1 }}>
                   Más imágenes (una URL por línea)
-                  <textarea className="admin-input" value={form.imagenes} onChange={e => setForm({...form, imagenes: e.target.value})} rows={2}
-                    placeholder="https://..." style={{ width: '100%', marginTop: 4, resize: 'vertical', fontFamily: 'Inter, sans-serif' }} />
+                  <textarea className="admin-input" value={form.imagenes} onChange={e => setForm({...form, imagenes: e.target.value})} rows={3}
+                    placeholder="https://..." style={{ width: '100%', marginTop: 6, resize: 'vertical', fontFamily: 'Inter, sans-serif' }} />
                 </label>
 
-                <div style={{ background: '#f1f4f6', border: '2px solid #181c1e', padding: 14, marginTop: 4 }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 16, marginBottom: form.ofertaActiva ? 10 : 0 }}>
-                    <label style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 14, fontWeight: 700, color: '#181c1e', cursor: 'pointer' }}>
+                <div style={{ background: '#f1f4f6', border: '2px solid #181c1e', padding: 18, marginTop: 4 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 24, marginBottom: form.ofertaActiva ? 14 : 0 }}>
+                    <label style={{ display: 'flex', alignItems: 'center', gap: 10, fontSize: 15, fontWeight: 700, color: '#181c1e', cursor: 'pointer' }}>
                       <input type="checkbox" checked={form.ofertaActiva} onChange={e => setForm({...form, ofertaActiva: e.target.checked})}
-                        style={{ width: 20, height: 20, accentColor: '#ba1a1a', cursor: 'pointer' }} />
+                        style={{ width: 22, height: 22, accentColor: '#ba1a1a', cursor: 'pointer' }} />
                       🔥 Oferta activa
                     </label>
-                    <label style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 14, fontWeight: 700, color: '#181c1e', cursor: 'pointer' }}>
+                    <label style={{ display: 'flex', alignItems: 'center', gap: 10, fontSize: 15, fontWeight: 700, color: '#181c1e', cursor: 'pointer' }}>
                       <input type="checkbox" checked={form.destacado} onChange={e => setForm({...form, destacado: e.target.checked})}
-                        style={{ width: 20, height: 20, accentColor: '#f28c00', cursor: 'pointer' }} />
+                        style={{ width: 22, height: 22, accentColor: '#f28c00', cursor: 'pointer' }} />
                       ⭐ Destacado
                     </label>
                   </div>
                   {form.ofertaActiva && (
-                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
-                      <label style={{ fontSize: 12, fontWeight: 900, color: '#ba1a1a', textTransform: 'uppercase', letterSpacing: 1 }}>
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
+                      <label style={{ fontSize: 13, fontWeight: 900, color: '#ba1a1a', textTransform: 'uppercase', letterSpacing: 1 }}>
                         Precio oferta
                         <input type="number" min="0" className="admin-input" value={form.ofertaPrecio}
                           onChange={e => setForm({...form, ofertaPrecio: parseFloat(e.target.value) || 0})}
-                          style={{ width: '100%', marginTop: 4, borderColor: '#ba1a1a' }} />
+                          style={{ width: '100%', marginTop: 6, borderColor: '#ba1a1a' }} />
                       </label>
-                      <label style={{ fontSize: 12, fontWeight: 900, color: '#ba1a1a', textTransform: 'uppercase', letterSpacing: 1 }}>
+                      <label style={{ fontSize: 13, fontWeight: 900, color: '#ba1a1a', textTransform: 'uppercase', letterSpacing: 1 }}>
                         Vence
                         <input type="datetime-local" className="admin-input" value={form.ofertaHasta}
                           onChange={e => setForm({...form, ofertaHasta: e.target.value})}
-                          style={{ width: '100%', marginTop: 4, borderColor: '#ba1a1a' }} />
+                          style={{ width: '100%', marginTop: 6, borderColor: '#ba1a1a' }} />
                       </label>
                     </div>
                   )}
                 </div>
 
-                <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end', marginTop: 10 }}>
-                  <button type="button" onClick={() => setShowModal(false)} style={{ ...S, background: '#ffffff', color: '#181c1e', minHeight: 48, padding: '0 24px', cursor: 'pointer', fontSize: 15, fontWeight: 700 }}>
+                <div style={{ display: 'flex', gap: 12, justifyContent: 'flex-end', marginTop: 14 }}>
+                  <button type="button" onClick={() => setShowModal(false)} style={{ ...S, background: '#ffffff', color: '#181c1e', minHeight: 52, padding: '0 32px', cursor: 'pointer', fontSize: 16, fontWeight: 700 }}>
                     Cancelar
                   </button>
-                  <button type="submit" disabled={saving} style={{ ...S, background: '#f28c00', color: '#181c1e', minHeight: 48, padding: '0 24px', cursor: 'pointer', fontSize: 15, fontWeight: 800, opacity: saving ? 0.6 : 1 }}>
+                  <button type="submit" disabled={saving} style={{ ...S, background: '#f28c00', color: '#181c1e', minHeight: 52, padding: '0 32px', cursor: 'pointer', fontSize: 16, fontWeight: 800, opacity: saving ? 0.6 : 1 }}>
                     {saving ? 'Guardando...' : 'Guardar'}
                   </button>
                 </div>
               </form>
 
               {/* PREVIEW */}
-              <div style={{ padding: '20px 24px 20px 0', borderLeft: '1px solid #e0e3e5' }}>
-                <div style={{ fontSize: 12, fontWeight: 900, color: '#554334', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 12 }}>
+              <div style={{ padding: '28px 28px 28px 20px', borderLeft: '1px solid #e0e3e5', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
+                <div style={{ fontSize: 13, fontWeight: 900, color: '#554334', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 16 }}>
                   Vista previa
                 </div>
                 <div style={{
                   border: '2px solid #181c1e', boxShadow: '3px 3px 0px 0px #181c1e',
-                  background: '#ffffff', fontSize: 12, transform: 'scale(0.85)', transformOrigin: 'top left',
-                  width: '118%'
+                  background: '#ffffff', fontSize: 13
                 }}>
-                  <div style={{ height: 140, overflow: 'hidden', borderBottom: '2px solid #181c1e', background: '#f1f4f6' }}>
+                  <div style={{ height: 160, overflow: 'hidden', borderBottom: '2px solid #181c1e', background: '#f1f4f6' }}>
                     {form.imagen ? (
                       <img src={form.imagen} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-                        onError={e => { e.target.outerHTML = '<div style="width:100%;height:100%;background:#f1f4f6;display:flex;align-items:center;justify-content:center;color:#887362;font-size:11px;font-weight:700">Sin imagen</div>'; }} />
+                        onError={e => { e.target.outerHTML = '<div style="width:100%;height:100%;background:#f1f4f6;display:flex;align-items:center;justify-content:center;color:#887362;font-size:13px;font-weight:700">Sin imagen</div>'; }} />
                     ) : (
-                      <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#887362', fontSize: 11, fontWeight: 700 }}>Sin imagen</div>
+                      <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#887362', fontSize: 13, fontWeight: 700 }}>Sin imagen</div>
                     )}
                   </div>
-                  <div style={{ padding: 10 }}>
-                    <span style={{ fontSize: 9, fontWeight: 900, color: '#f28c00', textTransform: 'uppercase', letterSpacing: 1 }}>
+                  <div style={{ padding: 14 }}>
+                    <span style={{ fontSize: 11, fontWeight: 900, color: '#f28c00', textTransform: 'uppercase', letterSpacing: 2 }}>
                       {form.categoria === '__new__' ? newCategory || 'Sin categoría' : form.categoria || 'Sin categoría'}
                     </span>
-                    <div style={{ fontSize: 12, fontWeight: 700, margin: '4px 0', color: '#181c1e' }}>{form.nombre || 'Nombre del producto'}</div>
-                    <div style={{ display: 'flex', alignItems: 'baseline', gap: 6 }}>
+                    <div style={{ fontSize: 14, fontWeight: 700, margin: '6px 0', color: '#181c1e' }}>{form.nombre || 'Nombre del producto'}</div>
+                    <div style={{ display: 'flex', alignItems: 'baseline', gap: 8 }}>
                       {hasOferta ? (
                         <>
-                          <span style={{ fontSize: 16, fontWeight: 900, color: '#ba1a1a' }}>{formatPrice(form.ofertaPrecio)}</span>
-                          <span style={{ fontSize: 11, color: '#887362', textDecoration: 'line-through' }}>{formatPrice(form.precioVenta)}</span>
+                          <span style={{ fontSize: 20, fontWeight: 900, color: '#ba1a1a' }}>{formatPrice(form.ofertaPrecio)}</span>
+                          <span style={{ fontSize: 14, color: '#887362', textDecoration: 'line-through' }}>{formatPrice(form.precioVenta)}</span>
                         </>
                       ) : (
-                        <span style={{ fontSize: 16, fontWeight: 900, color: '#181c1e' }}>{formatPrice(form.precioVenta)}</span>
+                        <span style={{ fontSize: 20, fontWeight: 900, color: '#181c1e' }}>{formatPrice(form.precioVenta)}</span>
                       )}
                     </div>
                     {form.ventasSimuladas > 0 && (
-                      <div style={{ fontSize: 10, fontWeight: 700, color: '#8d4f00', marginTop: 4 }}>
+                      <div style={{ fontSize: 12, fontWeight: 700, color: '#8d4f00', marginTop: 6 }}>
                         🔥 {form.ventasSimuladas} vendidos
                       </div>
                     )}
                     {hasOferta && form.ofertaPrecio > 0 && (
                       <div style={{
-                        fontSize: 9, fontWeight: 900, color: '#181c1e', background: '#f28c00',
-                        padding: '2px 8px', border: '1px solid #181c1e', marginTop: 6, display: 'inline-block'
+                        fontSize: 11, fontWeight: 900, color: '#181c1e', background: '#f28c00',
+                        padding: '4px 10px', border: '2px solid #181c1e', marginTop: 8, display: 'inline-block'
                       }}>
                         -{Math.round((1 - form.ofertaPrecio / (form.precioVenta || 1)) * 100)}% OFF
                       </div>
                     )}
                     <button style={{
-                      width: '100%', minHeight: 28, background: '#f28c00', color: '#181c1e',
-                      border: '2px solid #181c1e', fontSize: 11, fontWeight: 800, cursor: 'pointer', marginTop: 8
+                      width: '100%', minHeight: 36, background: '#f28c00', color: '#181c1e',
+                      border: '2px solid #181c1e', fontSize: 14, fontWeight: 800, cursor: 'pointer', marginTop: 10
                     }}>
                       🛒 Comprar
                     </button>
