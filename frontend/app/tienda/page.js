@@ -60,160 +60,312 @@ export default function TiendaPage() {
     return () => clearInterval(interval);
   }, [productos]);
 
-  const formatPrice = (n) => new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 }).format(n);
+  const formatPrice = (n) => '$' + Number(n).toLocaleString('es-CO', { minimumFractionDigits: 0 });
 
   return (
     <div>
       <style dangerouslySetInnerHTML={{__html: `
+        .industrial-border { box-shadow: 4px 4px 0px 0px #181c1e; }
+        .industrial-border:hover { box-shadow: 6px 6px 0px 0px #181c1e; transform: translate(-2px, -2px); }
+        .cat-card { transition: all 0.15s; }
+        .cat-card:hover { background: #ffb875 !important; transform: translate(-2px, -2px); box-shadow: 6px 6px 0px 0px #181c1e; }
         @media (max-width: 768px) {
-          .tienda-hero { padding: 32px 12px 28px !important; border-radius: 14px !important; }
-          .tienda-hero h1 { font-size: 24px !important; }
-          .tienda-grid { grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)) !important; }
-        }
-        @media (max-width: 480px) {
-          .tienda-grid { grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)) !important; }
+          .hero-grid { grid-template-columns: 1fr !important; }
+          .tienda-hero { padding: 48px 16px !important; }
         }
       `}} />
-      {/* Hero */}
+
+      {/* HERO */}
       <section className="tienda-hero" style={{
-        textAlign: 'center', padding: '60px 16px 48px',
-        background: 'linear-gradient(135deg, var(--accent) 0%, #7c3aed 100%)',
-        borderRadius: 20, marginBottom: 40, color: '#fff'
+        background: '#ebeef0', borderBottom: '4px solid #181c1e',
+        padding: '64px 24px', position: 'relative', overflow: 'hidden'
       }}>
-        <h1 style={{ fontSize: 'clamp(28px, 5vw, 44px)', fontWeight: 800, margin: '0 0 12px', letterSpacing: -1 }}>
-          🏆 Pizdo · Productos Ganadores
-        </h1>
-        <p style={{ fontSize: 16, opacity: 0.85, maxWidth: 500, margin: '0 auto 24px' }}>
-          Explora el catálogo curado de Pizdo. Ofertas por tiempo limitado.
-        </p>
-        <a href="#ofertas" style={{
-          background: '#fff', color: 'var(--accent)', padding: '12px 32px', borderRadius: 30,
-          textDecoration: 'none', fontWeight: 700, fontSize: 14, display: 'inline-block',
-          boxShadow: '0 8px 30px rgba(0,0,0,0.2)'
+        <div className="hero-grid" style={{
+          maxWidth: 1280, margin: '0 auto', display: 'grid',
+          gridTemplateColumns: '1fr 1fr', gap: 48, alignItems: 'center'
         }}>
-          Ver ofertas 🔥
-        </a>
+          <div style={{ position: 'relative', zIndex: 10 }}>
+            <h1 style={{
+              fontSize: 'clamp(32px, 5vw, 48px)', fontWeight: 900,
+              lineHeight: 1.1, marginBottom: 24, color: '#181c1e',
+              letterSpacing: -1
+            }}>
+              Herramientas fáciles de usar para tu hogar
+            </h1>
+            <p style={{ fontSize: 20, marginBottom: 32, maxWidth: 500, color: '#554334', lineHeight: 1.6 }}>
+              Diseñadas para durar, pensadas para la comodidad. En Pizdo, creemos que cualquier proyecto es posible con el equipo correcto.
+            </p>
+            <div style={{ display: 'flex', gap: 16, flexWrap: 'wrap' }}>
+              <a href="#catalogo" style={{
+                minHeight: 56, padding: '0 32px', background: '#f28c00', color: '#181c1e',
+                border: '2px solid #181c1e', boxShadow: '4px 4px 0px 0px #181c1e',
+                fontSize: 20, fontWeight: 900, cursor: 'pointer', textDecoration: 'none',
+                display: 'inline-flex', alignItems: 'center', gap: 12,
+                transition: 'transform 0.1s, box-shadow 0.1s'
+              }}
+              onMouseEnter={e => { e.currentTarget.style.transform = 'translate(-2px, -2px)'; e.currentTarget.style.boxShadow = '6px 6px 0px 0px #181c1e'; }}
+              onMouseLeave={e => { e.currentTarget.style.transform = 'none'; e.currentTarget.style.boxShadow = '4px 4px 0px 0px #181c1e'; }}>
+                🔧 Explorar Catálogo
+              </a>
+              <a href="#ofertas" style={{
+                minHeight: 56, padding: '0 32px', background: '#ffffff', color: '#181c1e',
+                border: '2px solid #181c1e', boxShadow: '4px 4px 0px 0px #181c1e',
+                fontSize: 20, fontWeight: 900, cursor: 'pointer', textDecoration: 'none',
+                display: 'inline-flex', alignItems: 'center', gap: 12,
+                transition: 'transform 0.1s, box-shadow 0.1s'
+              }}
+              onMouseEnter={e => { e.currentTarget.style.transform = 'translate(-2px, -2px)'; e.currentTarget.style.boxShadow = '6px 6px 0px 0px #181c1e'; }}
+              onMouseLeave={e => { e.currentTarget.style.transform = 'none'; e.currentTarget.style.boxShadow = '4px 4px 0px 0px #181c1e'; }}>
+                🔥 Ver Ofertas
+              </a>
+            </div>
+          </div>
+          <div style={{ position: 'relative' }}>
+            <div style={{
+              position: 'absolute', inset: -8, background: '#f28c00',
+              transform: 'rotate(-1deg)', boxShadow: '4px 4px 0px 0px #181c1e'
+            }} />
+            <img
+              src="https://images.unsplash.com/photo-1504917595217-d4dc5ebe6122?w=600"
+              alt="Herramientas industriales Pizdo"
+              style={{ position: 'relative', width: '100%', height: 350, objectFit: 'cover', border: '2px solid #181c1e' }}
+            />
+          </div>
+        </div>
       </section>
 
-      {/* Destacados */}
-      {destacados.length > 0 && (
-        <section style={{ marginBottom: 40 }}>
-          <h2 style={{ fontSize: 22, fontWeight: 700, marginBottom: 16, color: 'var(--text)' }}>
-            ⭐ Productos destacados
+      {/* CATEGORÍAS */}
+      <section style={{ padding: '64px 24px', background: '#f7fafc' }}>
+        <div style={{ maxWidth: 1280, margin: '0 auto' }}>
+          <h2 style={{ fontSize: 32, fontWeight: 700, marginBottom: 48, borderLeft: '8px solid #8d4f00', paddingLeft: 16 }}>
+            Categorías destacadas
           </h2>
-          <div style={{ display: 'flex', gap: 16, overflowX: 'auto', paddingBottom: 8 }}>
-            {destacados.map(p => (
-              <div key={p.id} style={{ minWidth: 280, maxWidth: 320 }}>
-                <ProductCard producto={p} />
-              </div>
-            ))}
-          </div>
-        </section>
-      )}
-
-      {/* Ofertas */}
-      {ofertas.length > 0 && (
-        <section id="ofertas" style={{ marginBottom: 40 }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 16 }}>
-            <h2 style={{ fontSize: 22, fontWeight: 700, color: 'var(--red)' }}>🔥 Ofertas relámpago</h2>
-            <span style={{ fontSize: 12, color: 'var(--text3)' }}>Por tiempo limitado</span>
-          </div>
-          <div className="tienda-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: 16 }}>
-            {ofertas.map(p => (
-              <div key={p.id} style={{
-                background: 'var(--bg2)', border: '2px solid var(--red)', borderRadius: 14,
-                padding: 16, display: 'flex', flexDirection: 'column', gap: 10
-              }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <span style={{
-                    background: 'var(--red)', color: '#fff', fontSize: 10, fontWeight: 700,
-                    padding: '3px 10px', borderRadius: 8
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: 32 }}>
+            {['Herramientas', 'Electrónica', 'Hogar', 'Deportes', 'Oficina', 'Belleza'].slice(0, 3).map((cat, i) => {
+              const iconos = ['🔧', '📱', '🏠'];
+              const descs = ['Mantén tu espacio impecable con nuestra selección profesional.', 'Tecnología de punta para tu día a día.', 'Todo para hacer de tu casa un hogar.'];
+              return (
+                <a key={cat} href={`/tienda?categoria=${cat}`} className="cat-card"
+                  onClick={e => { e.preventDefault(); setCategoria(cat); }}
+                  style={{
+                    textDecoration: 'none', color: '#181c1e', display: 'block',
+                    padding: 32, background: '#f1f4f6', border: '2px solid #181c1e',
+                    boxShadow: '4px 4px 0px 0px #181c1e'
                   }}>
-                    -{Math.round((1 - p.ofertaPrecio / p.precioVenta) * 100)}% OFF
-                  </span>
-                  {p.ofertaHasta && <CountdownTimer endsAt={p.ofertaHasta} />}
-                </div>
-                {p.imagen && (
-                  <a href={`/tienda/${p.id}`}>
-                    <img src={p.imagen} alt={p.nombre}
-                      style={{ width: '100%', height: 180, objectFit: 'cover', borderRadius: 10, background: 'var(--bg3)' }}
-                      onError={(e) => { e.target.style.display = 'none'; }} />
-                  </a>
-                )}
-                <a href={`/tienda/${p.id}`} style={{ textDecoration: 'none', color: 'var(--text)', fontWeight: 600, fontSize: 14 }}>
-                  {p.nombre}
-                </a>
-                <div style={{ display: 'flex', alignItems: 'baseline', gap: 8 }}>
-                  <span style={{ fontSize: 16, fontWeight: 700, fontFamily: 'var(--mono)', color: 'var(--red)' }}>
-                    {formatPrice(p.ofertaPrecio)}
-                  </span>
-                  <span style={{ fontSize: 13, color: 'var(--text3)', textDecoration: 'line-through', fontFamily: 'var(--mono)' }}>
-                    {formatPrice(p.precioVenta)}
-                  </span>
-                </div>
-                {p.stock > 0 && p.stock <= 5 && (
-                  <div style={{ color: 'var(--red)', fontSize: 11, fontWeight: 600 }}>
-                    ⚡ Solo quedan {p.stock}
+                  <div style={{
+                    width: 64, height: 64, background: '#f28c00', color: '#ffffff',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    marginBottom: 24, border: '2px solid #181c1e', fontSize: 28
+                  }}>
+                    {iconos[i]}
                   </div>
-                )}
-                {p.ventasSimuladas > 0 && (
-                  <div style={{ color: 'var(--text3)', fontSize: 11 }}>🔥 {p.ventasSimuladas} personas lo compraron</div>
-                )}
-                {p.linkCompra && (
-                  <a href={p.linkCompra} target="_blank" rel="noopener" style={{
-                    background: 'var(--red)', color: '#fff', textAlign: 'center', padding: '10px',
-                    borderRadius: 10, textDecoration: 'none', fontWeight: 600, fontSize: 13, marginTop: 'auto'
-                  }}>
-                    ¡Comprar ahora!
-                  </a>
-                )}
-              </div>
-            ))}
+                  <h3 style={{ fontSize: 24, fontWeight: 700, marginBottom: 8 }}>{cat}</h3>
+                  <p style={{ fontSize: 18, color: '#554334', marginBottom: 24 }}>{descs[i]}</p>
+                  <div style={{ fontSize: 18, fontWeight: 700, color: '#8d4f00', display: 'flex', alignItems: 'center', gap: 4 }}>
+                    Ver todo <span>→</span>
+                  </div>
+                </a>
+              );
+            })}
+          </div>
+        </div>
+      </section>
+
+      {/* MÁS BUSCADOS */}
+      <section style={{ padding: '64px 24px', background: '#2d3133', color: '#eef1f3' }}>
+        <div style={{ maxWidth: 1280, margin: '0 auto' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: 48, flexWrap: 'wrap', gap: 16 }}>
+            <div>
+              <h2 style={{ fontSize: 32, fontWeight: 800, color: '#ffb875', marginBottom: 8, textTransform: 'uppercase', letterSpacing: -1 }}>
+                Los más buscados
+              </h2>
+              <p style={{ fontSize: 20, color: '#e0e3e5' }}>Nuestras herramientas estrella, calificadas por profesionales.</p>
+            </div>
+            <a href="#catalogo" style={{ fontSize: 18, fontWeight: 700, color: '#ffb875', textDecoration: 'underline' }}>
+              Ver toda la selección
+            </a>
+          </div>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: 24 }}>
+            {destacados.slice(0, 4).map(p => <ProductCard key={p.id} producto={p} />)}
+          </div>
+        </div>
+      </section>
+
+      {/* OFERTAS RELÁMPAGO */}
+      {ofertas.length > 0 && (
+        <section id="ofertas" style={{ padding: '64px 24px', background: '#f7fafc' }}>
+          <div style={{ maxWidth: 1280, margin: '0 auto' }}>
+            <div style={{ marginBottom: 32 }}>
+              <h2 style={{ fontSize: 32, fontWeight: 800, color: '#ba1a1a', marginBottom: 8 }}>
+                🔥 Ofertas relámpago
+              </h2>
+              <p style={{ fontSize: 20, color: '#554334' }}>Por tiempo limitado — no dejes pasar estas oportunidades</p>
+            </div>
+            <div className="tienda-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: 24 }}>
+              {ofertas.map(p => (
+                <div key={p.id} style={{
+                  background: '#ffffff', border: '2px solid #ba1a1a',
+                  boxShadow: '4px 4px 0px 0px #ba1a1a', display: 'flex', flexDirection: 'column'
+                }}>
+                  <div style={{ position: 'relative', height: 220, overflow: 'hidden', borderBottom: '2px solid #ba1a1a', background: '#f1f4f6' }}>
+                    {p.imagen ? (
+                      <a href={`/tienda/${p.id}`}>
+                        <img src={p.imagen} alt={p.nombre} style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                          onError={(e) => { e.target.style.display = 'none'; }} />
+                      </a>
+                    ) : null}
+                    <div style={{
+                      position: 'absolute', top: 12, left: 12,
+                      background: '#ba1a1a', color: '#ffffff', fontSize: 14, fontWeight: 900,
+                      padding: '4px 12px', border: '2px solid #181c1e'
+                    }}>
+                      -{Math.round((1 - p.ofertaPrecio / p.precioVenta) * 100)}% OFF
+                    </div>
+                    {p.ofertaHasta && (
+                      <div style={{ position: 'absolute', top: 12, right: 12 }}>
+                        <CountdownTimer endsAt={p.ofertaHasta} />
+                      </div>
+                    )}
+                  </div>
+                  <div style={{ padding: 20, flex: 1, display: 'flex', flexDirection: 'column' }}>
+                    <a href={`/tienda/${p.id}`} style={{ textDecoration: 'none', color: '#181c1e', fontWeight: 700, fontSize: 18, marginBottom: 12 }}>
+                      {p.nombre}
+                    </a>
+                    <div style={{ display: 'flex', alignItems: 'baseline', gap: 10, marginBottom: 8 }}>
+                      <span style={{ fontSize: 28, fontWeight: 900, color: '#ba1a1a' }}>
+                        {formatPrice(p.ofertaPrecio)}
+                      </span>
+                      <span style={{ fontSize: 16, color: '#887362', textDecoration: 'line-through', fontWeight: 700 }}>
+                        {formatPrice(p.precioVenta)}
+                      </span>
+                    </div>
+                    {p.stock > 0 && p.stock <= 5 && (
+                      <div style={{ fontSize: 14, fontWeight: 700, color: '#ba1a1a', marginBottom: 12 }}>
+                        ⚡ Solo quedan {p.stock}
+                      </div>
+                    )}
+                    {p.ventasSimuladas > 0 && (
+                      <div style={{ fontSize: 14, fontWeight: 700, color: '#8d4f00', marginBottom: 12 }}>
+                        🔥 {p.ventasSimuladas} personas lo compraron
+                      </div>
+                    )}
+                    {p.linkCompra && (
+                      <a href={p.linkCompra} target="_blank" rel="noopener" style={{
+                        minHeight: 56, background: '#f28c00', color: '#181c1e',
+                        border: '2px solid #181c1e', boxShadow: '3px 3px 0px 0px #181c1e',
+                        textDecoration: 'none', fontWeight: 900, fontSize: 18,
+                        display: 'flex', alignItems: 'center', justifyContent: 'center',
+                        marginTop: 'auto', transition: 'transform 0.1s'
+                      }}
+                      onMouseEnter={e => { e.currentTarget.style.transform = 'translate(-1px, -1px)'; e.currentTarget.style.boxShadow = '4px 4px 0px 0px #181c1e'; }}
+                      onMouseLeave={e => { e.currentTarget.style.transform = 'none'; e.currentTarget.style.boxShadow = '3px 3px 0px 0px #181c1e'; }}>
+                        ¡Comprar ahora!
+                      </a>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
           </div>
         </section>
       )}
 
-      {/* Catálogo */}
-      <section>
-        <h2 style={{ fontSize: 22, fontWeight: 700, marginBottom: 16, color: 'var(--text)' }}>
-          📦 Catálogo completo
-        </h2>
+      {/* CATÁLOGO */}
+      <section id="catalogo" style={{ padding: '64px 24px', background: '#f7fafc' }}>
+        <div style={{ maxWidth: 1280, margin: '0 auto' }}>
+          <h2 style={{ fontSize: 32, fontWeight: 700, marginBottom: 32, color: '#181c1e' }}>
+            📦 Catálogo completo
+          </h2>
 
-        <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 20 }}>
-          <button onClick={() => setCategoria('')} style={{
-            padding: '6px 16px', borderRadius: 20, border: '1px solid var(--border)',
-            background: !categoria ? 'var(--accent)' : 'var(--bg3)',
-            color: !categoria ? '#fff' : 'var(--text2)', fontSize: 12, cursor: 'pointer', fontWeight: 500
-          }}>Todos</button>
-          {categorias.map(c => (
-            <button key={c} onClick={() => setCategoria(c)} style={{
-              padding: '6px 16px', borderRadius: 20, border: '1px solid var(--border)',
-              background: categoria === c ? 'var(--accent)' : 'var(--bg3)',
-              color: categoria === c ? '#fff' : 'var(--text2)', fontSize: 12, cursor: 'pointer', fontWeight: 500
-            }}>{c}</button>
-          ))}
-          <select value={orden} onChange={e => setOrden(e.target.value)} style={{
-            marginLeft: 'auto', background: 'var(--bg3)', border: '1px solid var(--border)',
-            borderRadius: 20, padding: '6px 14px', color: 'var(--text)', fontSize: 12, cursor: 'pointer'
-          }}>
-            <option value="reciente">Más recientes</option>
-            <option value="precio-asc">Precio: menor a mayor</option>
-            <option value="precio-desc">Precio: mayor a menor</option>
-            <option value="ventas">Más vendidos</option>
-          </select>
+          <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 32, alignItems: 'center' }}>
+            <button onClick={() => setCategoria('')} style={{
+              padding: '8px 20px', border: '2px solid #181c1e',
+              background: !categoria ? '#f28c00' : '#ffffff',
+              color: !categoria ? '#181c1e' : '#554334',
+              fontSize: 16, fontWeight: 700, cursor: 'pointer',
+              boxShadow: !categoria ? '2px 2px 0px 0px #181c1e' : 'none'
+            }}>
+              Todos
+            </button>
+            {categorias.map(c => (
+              <button key={c} onClick={() => setCategoria(c)} style={{
+                padding: '8px 20px', border: '2px solid #181c1e',
+                background: categoria === c ? '#f28c00' : '#ffffff',
+                color: categoria === c ? '#181c1e' : '#554334',
+                fontSize: 16, fontWeight: 700, cursor: 'pointer',
+                boxShadow: categoria === c ? '2px 2px 0px 0px #181c1e' : 'none'
+              }}>
+                {c}
+              </button>
+            ))}
+            <select value={orden} onChange={e => setOrden(e.target.value)} style={{
+              marginLeft: 'auto', background: '#ffffff', border: '2px solid #181c1e',
+              padding: '8px 20px', color: '#181c1e', fontSize: 16, fontWeight: 700, cursor: 'pointer',
+              boxShadow: '2px 2px 0px 0px #181c1e', minHeight: 44
+            }}>
+              <option value="reciente">Más recientes</option>
+              <option value="precio-asc">Precio: menor a mayor</option>
+              <option value="precio-desc">Precio: mayor a menor</option>
+              <option value="ventas">Más vendidos</option>
+            </select>
+          </div>
+
+          {loading ? (
+            <div style={{ textAlign: 'center', padding: 64, fontSize: 18, fontWeight: 700, color: '#887362' }}>
+              Cargando catálogo...
+            </div>
+          ) : productos.length === 0 ? (
+            <div style={{
+              textAlign: 'center', padding: 64, fontSize: 18, fontWeight: 700, color: '#887362',
+              border: '2px dashed #181c1e', boxShadow: '4px 4px 0px 0px #181c1e'
+            }}>
+              No hay productos en esta categoría.
+            </div>
+          ) : (
+            <div className="tienda-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))', gap: 24 }}>
+              {productos.map(p => <ProductCard key={p.id} producto={p} />)}
+            </div>
+          )}
         </div>
+      </section>
 
-        {loading ? (
-          <div style={{ textAlign: 'center', padding: 60, color: 'var(--text3)' }}>Cargando catálogo...</div>
-        ) : productos.length === 0 ? (
-          <div style={{ textAlign: 'center', padding: 60, color: 'var(--text3)', border: '1px dashed var(--border)', borderRadius: 14 }}>
-            No hay productos en esta categoría.
+      {/* NEWSLETTER */}
+      <section style={{ padding: '64px 24px', background: '#f7fafc', borderTop: '4px solid #181c1e' }}>
+        <div style={{ maxWidth: 640, margin: '0 auto', textAlign: 'center' }}>
+          <div style={{
+            width: 80, height: 80, background: '#f28c00', color: '#ffffff',
+            display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+            marginBottom: 32, border: '2px solid #181c1e', boxShadow: '4px 4px 0px 0px #181c1e',
+            transform: 'rotate(1deg)', fontSize: 32
+          }}>
+            ✅
           </div>
-        ) : (
-          <div className="tienda-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))', gap: 16 }}>
-            {productos.map(p => <ProductCard key={p.id} producto={p} />)}
+          <h2 style={{ fontSize: 32, fontWeight: 700, marginBottom: 24 }}>
+            Únete a la Comunidad Pizdo
+          </h2>
+          <p style={{ fontSize: 20, color: '#554334', marginBottom: 48, lineHeight: 1.6 }}>
+            Recibe guías de reparación, consejos de jardinería y ofertas exclusivas directamente en tu correo. Sin spam, solo herramientas.
+          </p>
+          <div style={{ display: 'flex', gap: 12, maxWidth: 480, margin: '0 auto' }}>
+            <input
+              type="email" placeholder="tu@email.com"
+              style={{
+                flex: 1, minHeight: 56, padding: '0 20px', fontSize: 18, fontWeight: 700,
+                border: '2px solid #181c1e', boxShadow: '3px 3px 0px 0px #181c1e',
+                outline: 'none', background: '#ffffff'
+              }}
+            />
+            <button style={{
+              minHeight: 56, padding: '0 24px', background: '#181c1e', color: '#ffffff',
+              border: '2px solid #181c1e', fontSize: 20, fontWeight: 900, cursor: 'pointer',
+              whiteSpace: 'nowrap', transition: 'transform 0.1s'
+            }}
+            onMouseEnter={e => { e.currentTarget.style.transform = 'translate(-1px, -1px)'; }}
+            onMouseLeave={e => { e.currentTarget.style.transform = 'none'; }}>
+              Suscribirse
+            </button>
           </div>
-        )}
+        </div>
       </section>
 
       {/* Social proof floating toasts */}

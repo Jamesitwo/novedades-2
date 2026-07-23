@@ -75,37 +75,44 @@ export default function ProductoDetallePage() {
       setDistribucion(data.distribucion);
       setTimeout(() => setResenaSuccess(false), 3000);
     } catch (e) {
-      console.error(e);
     } finally {
       setResenaSaving(false);
     }
   };
 
-  const formatPrice = (n) => new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 }).format(n);
+  const formatPrice = (n) => '$' + Number(n).toLocaleString('es-CO', { minimumFractionDigits: 0 });
+  const S = { border: '2px solid #181c1e', boxShadow: '3px 3px 0px 0px #181c1e' };
 
-  if (loading) return <div style={{ textAlign: 'center', padding: 80, color: 'var(--text3)' }}>Cargando producto...</div>;
-  if (!producto) return <div style={{ textAlign: 'center', padding: 80, color: 'var(--red)' }}>Producto no encontrado</div>;
+  if (loading) return <div style={{ textAlign: 'center', padding: 80, fontSize: 18, fontWeight: 700, color: '#887362' }}>Cargando producto...</div>;
+  if (!producto) return <div style={{ textAlign: 'center', padding: 80, fontSize: 18, fontWeight: 700, color: '#ba1a1a' }}>Producto no encontrado</div>;
 
   const tieneOferta = producto.ofertaActiva && producto.ofertaPrecio && new Date(producto.ofertaHasta) > new Date();
   const imagenes = Array.isArray(producto.imagenes) ? producto.imagenes : [];
 
   return (
-    <div style={{ maxWidth: 900, margin: '0 auto' }}>
-      <a href="/tienda" style={{ color: 'var(--accent)', textDecoration: 'none', fontSize: 13, marginBottom: 20, display: 'inline-block' }}>
+    <div style={{ maxWidth: 960, margin: '0 auto', padding: '0 24px 64px' }}>
+      <a href="/tienda" style={{
+        color: '#8d4f00', textDecoration: 'none', fontSize: 18, fontWeight: 700,
+        display: 'inline-block', margin: '32px 0 24px'
+      }}>
         ← Volver a la tienda
       </a>
 
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 32, marginTop: 16 }}>
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 48, marginTop: 8 }}>
         <div>
-          {producto.imagen && (
+          {producto.imagen ? (
             <img src={producto.imagen} alt={producto.nombre}
-              style={{ width: '100%', borderRadius: 14, background: 'var(--bg3)', objectFit: 'cover', maxHeight: 400 }} />
+              style={{ width: '100%', border: '2px solid #181c1e', boxShadow: '6px 6px 0px 0px #181c1e', objectFit: 'cover', background: '#f1f4f6', maxHeight: 450 }} />
+          ) : (
+            <div style={{ width: '100%', height: 400, background: '#f1f4f6', border: '2px solid #181c1e', boxShadow: '6px 6px 0px 0px #181c1e', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 18, fontWeight: 700, color: '#887362' }}>
+              Sin imagen
+            </div>
           )}
           {imagenes.length > 0 && (
-            <div style={{ display: 'flex', gap: 8, marginTop: 12 }}>
+            <div style={{ display: 'flex', gap: 12, marginTop: 16 }}>
               {imagenes.map((img, i) => (
                 <img key={i} src={img} alt={`${producto.nombre} ${i+1}`}
-                  style={{ width: 80, height: 80, objectFit: 'cover', borderRadius: 8, background: 'var(--bg3)', cursor: 'pointer' }}
+                  style={{ width: 80, height: 80, objectFit: 'cover', border: '2px solid #181c1e', cursor: 'pointer', background: '#f1f4f6' }}
                   onError={(e) => { e.target.style.display = 'none'; }} />
               ))}
             </div>
@@ -114,41 +121,43 @@ export default function ProductoDetallePage() {
 
         <div>
           <span style={{
-            display: 'inline-block', background: 'var(--bg3)', border: '1px solid var(--border)',
-            borderRadius: 20, padding: '3px 12px', fontSize: 11, color: 'var(--text3)', marginBottom: 12
-          }}>{producto.categoria}</span>
+            display: 'inline-block', fontSize: 14, fontWeight: 900, color: '#f28c00',
+            textTransform: 'uppercase', letterSpacing: 2, marginBottom: 12
+          }}>
+            {producto.categoria}
+          </span>
 
-          <h1 style={{ fontSize: 24, fontWeight: 700, color: 'var(--text)', margin: '0 0 12px', lineHeight: 1.3 }}>
+          <h1 style={{ fontSize: 32, fontWeight: 900, color: '#181c1e', margin: '0 0 16px', lineHeight: 1.2 }}>
             {producto.nombre}
           </h1>
 
           {producto.descripcion && (
-            <p style={{ color: 'var(--text2)', fontSize: 14, lineHeight: 1.6, marginBottom: 20 }}>
+            <p style={{ color: '#554334', fontSize: 18, lineHeight: 1.6, marginBottom: 24 }}>
               {producto.descripcion}
             </p>
           )}
 
-          <div style={{ background: 'var(--bg2)', border: '1px solid var(--border)', borderRadius: 14, padding: 20, marginBottom: 20 }}>
+          <div style={{ background: '#f1f4f6', border: '2px solid #181c1e', padding: 24, marginBottom: 24 }}>
             {tieneOferta ? (
               <>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 8 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 12, flexWrap: 'wrap' }}>
                   <span style={{
-                    background: 'var(--red)', color: '#fff', fontSize: 11, fontWeight: 700,
-                    padding: '4px 12px', borderRadius: 8
+                    background: '#ba1a1a', color: '#ffffff', fontSize: 14, fontWeight: 900,
+                    padding: '4px 12px', border: '2px solid #181c1e'
                   }}>
                     -{Math.round((1 - producto.ofertaPrecio / producto.precioVenta) * 100)}% OFF
                   </span>
                   <CountdownTimer endsAt={producto.ofertaHasta} />
                 </div>
-                <div style={{ fontSize: 32, fontWeight: 800, fontFamily: 'var(--mono)', color: 'var(--red)' }}>
+                <div style={{ fontSize: 36, fontWeight: 900, color: '#ba1a1a', marginBottom: 4 }}>
                   {formatPrice(producto.ofertaPrecio)}
                 </div>
-                <div style={{ fontSize: 16, color: 'var(--text3)', textDecoration: 'line-through', fontFamily: 'var(--mono)', marginTop: 4 }}>
+                <div style={{ fontSize: 20, color: '#887362', textDecoration: 'line-through', fontWeight: 700 }}>
                   {formatPrice(producto.precioVenta)}
                 </div>
               </>
             ) : (
-              <div style={{ fontSize: 32, fontWeight: 800, fontFamily: 'var(--mono)', color: 'var(--text)' }}>
+              <div style={{ fontSize: 36, fontWeight: 900, color: '#181c1e' }}>
                 {formatPrice(producto.precioVenta)}
               </div>
             )}
@@ -156,24 +165,24 @@ export default function ProductoDetallePage() {
 
           {producto.stock > 0 ? (
             producto.stock <= 5 ? (
-              <div style={{ color: 'var(--red)', fontWeight: 600, fontSize: 14, marginBottom: 16 }}>
+              <div style={{ color: '#ba1a1a', fontWeight: 700, fontSize: 16, marginBottom: 20 }}>
                 🔥 ¡Solo quedan {producto.stock} en stock!
               </div>
             ) : (
-              <div style={{ color: 'var(--green)', fontSize: 13, marginBottom: 16 }}>
+              <div style={{ color: '#8d4f00', fontSize: 16, fontWeight: 700, marginBottom: 20 }}>
                 ✅ {producto.stock} disponibles
               </div>
             )
           ) : (
-            <div style={{ color: 'var(--red)', fontWeight: 600, fontSize: 14, marginBottom: 16 }}>
+            <div style={{ color: '#ba1a1a', fontWeight: 700, fontSize: 16, marginBottom: 20 }}>
               ❌ Agotado temporalmente
             </div>
           )}
 
           {producto.ventasSimuladas > 0 && (
             <div style={{
-              background: 'rgba(245,158,11,0.1)', border: '1px solid rgba(245,158,11,0.2)',
-              borderRadius: 10, padding: '10px 16px', marginBottom: 16, fontSize: 13
+              background: '#ffdcc0', border: '2px solid #8d4f00',
+              padding: '12px 20px', marginBottom: 20, fontSize: 16, fontWeight: 700, color: '#5a3100'
             }}>
               🔥 <strong>{producto.ventasSimuladas}</strong> personas ya compraron este producto
             </div>
@@ -181,63 +190,61 @@ export default function ProductoDetallePage() {
 
           {producto.linkCompra && (
             <a href={producto.linkCompra} target="_blank" rel="noopener" style={{
-              display: 'block', background: tieneOferta ? 'var(--red)' : 'var(--accent)',
-              color: '#fff', textAlign: 'center', padding: '14px', borderRadius: 12,
-              textDecoration: 'none', fontWeight: 700, fontSize: 16,
-              boxShadow: '0 8px 30px rgba(0,0,0,0.2)',
-              transition: 'transform 0.2s'
-            }}>
-              {tieneOferta ? '⚡ ¡Aprovechar oferta ahora!' : '🛒 Comprar ahora'}
+              display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 12,
+              minHeight: 64, background: tieneOferta ? '#ba1a1a' : '#f28c00',
+              color: '#ffffff', fontSize: 22, fontWeight: 900, textDecoration: 'none',
+              border: '2px solid #181c1e', boxShadow: '4px 4px 0px 0px #181c1e',
+              transition: 'transform 0.1s'
+            }}
+            onMouseEnter={e => { e.currentTarget.style.transform = 'translate(-2px, -2px)'; e.currentTarget.style.boxShadow = '6px 6px 0px 0px #181c1e'; }}
+            onMouseLeave={e => { e.currentTarget.style.transform = 'none'; e.currentTarget.style.boxShadow = '4px 4px 0px 0px #181c1e'; }}>
+              🛒 {tieneOferta ? '¡Aprovechar oferta ahora!' : 'Comprar ahora'}
             </a>
           )}
         </div>
       </div>
 
-      {/* Relacionados */}
       {producto.relacionados && producto.relacionados.length > 0 && (
-        <section style={{ marginTop: 48 }}>
-          <h3 style={{ fontSize: 18, fontWeight: 700, marginBottom: 16, color: 'var(--text)' }}>
+        <section style={{ marginTop: 64 }}>
+          <h2 style={{ fontSize: 28, fontWeight: 700, marginBottom: 24, color: '#181c1e', borderLeft: '8px solid #8d4f00', paddingLeft: 16 }}>
             Productos relacionados
-          </h3>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))', gap: 14 }}>
+          </h2>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))', gap: 24 }}>
             {producto.relacionados.map(p => <ProductCard key={p.id} producto={p} />)}
           </div>
         </section>
       )}
 
-      {/* Reviews Section */}
-      <section style={{ marginTop: 48, paddingTop: 32, borderTop: '1px solid var(--border)' }}>
-        <h3 style={{ fontSize: 20, fontWeight: 700, marginBottom: 20, color: 'var(--text)' }}>
+      <section style={{ marginTop: 64, paddingTop: 32, borderTop: '2px solid #181c1e' }}>
+        <h2 style={{ fontSize: 28, fontWeight: 700, marginBottom: 24, color: '#181c1e', borderLeft: '8px solid #8d4f00', paddingLeft: 16 }}>
           ⭐ Reseñas ({resenasTotal})
-        </h3>
+        </h2>
 
         {resenasTotal > 0 && (
           <div style={{
-            display: 'grid', gridTemplateColumns: 'auto 1fr', gap: 24, marginBottom: 24,
-            background: 'var(--bg2)', border: '1px solid var(--border)', borderRadius: 14, padding: 20
+            display: 'grid', gridTemplateColumns: 'auto 1fr', gap: 32, marginBottom: 32,
+            background: '#f1f4f6', border: '2px solid #181c1e', boxShadow: '4px 4px 0px 0px #181c1e', padding: 24
           }}>
             <div style={{ textAlign: 'center' }}>
-              <div style={{ fontSize: 42, fontWeight: 800, fontFamily: 'var(--mono)', color: 'var(--amber)', lineHeight: 1 }}>
+              <div style={{ fontSize: 56, fontWeight: 900, color: '#8d4f00', lineHeight: 1 }}>
                 {promedioResenas}
               </div>
-              <div style={{ fontSize: 16, color: 'var(--amber)', marginTop: 4 }}>
+              <div style={{ fontSize: 24, color: '#8d4f00', marginTop: 4 }}>
                 {'★'.repeat(Math.round(promedioResenas))}{'☆'.repeat(5 - Math.round(promedioResenas))}
               </div>
-              <div style={{ fontSize: 11, color: 'var(--text3)', marginTop: 4 }}>{resenasTotal} reseñas</div>
+              <div style={{ fontSize: 14, color: '#887362', marginTop: 8, fontWeight: 700 }}>{resenasTotal} reseñas</div>
             </div>
             <div>
               {[5,4,3,2,1].map(star => (
-                <div key={star} style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6 }}>
-                  <span style={{ fontSize: 12, color: 'var(--text3)', width: 18 }}>{star}★</span>
-                  <div style={{
-                    flex: 1, height: 8, background: 'var(--bg3)', borderRadius: 4, overflow: 'hidden'
-                  }}>
+                <div key={star} style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 8 }}>
+                  <span style={{ fontSize: 14, fontWeight: 700, color: '#554334', width: 28 }}>{star}★</span>
+                  <div style={{ flex: 1, height: 12, background: '#ffffff', border: '1px solid #181c1e' }}>
                     <div style={{
                       width: `${resenasTotal > 0 ? ((distribucion[star] || 0) / resenasTotal * 100) : 0}%`,
-                      height: '100%', background: 'var(--amber)', borderRadius: 4, transition: 'width 0.5s'
+                      height: '100%', background: '#f28c00', transition: 'width 0.5s'
                     }} />
                   </div>
-                  <span style={{ fontSize: 11, fontFamily: 'var(--mono)', color: 'var(--text3)', width: 24 }}>{distribucion[star] || 0}</span>
+                  <span style={{ fontSize: 14, fontWeight: 700, color: '#887362', width: 28 }}>{distribucion[star] || 0}</span>
                 </div>
               ))}
             </div>
@@ -246,85 +253,67 @@ export default function ProductoDetallePage() {
 
         {resenaSuccess && (
           <div style={{
-            background: 'rgba(34,197,94,0.1)', border: '1px solid var(--green)', borderRadius: 10,
-            padding: '10px 16px', marginBottom: 16, color: 'var(--green)', fontSize: 13, textAlign: 'center'
+            background: '#ffdad6', border: '2px solid #ba1a1a', boxShadow: '3px 3px 0px 0px #181c1e',
+            padding: '12px 20px', marginBottom: 20, color: '#ba1a1a', fontSize: 16, fontWeight: 700, textAlign: 'center'
           }}>
             ✅ ¡Gracias por tu reseña!
           </div>
         )}
 
         {isAdmin && (
-          <div style={{ 
-            display: 'flex', gap: 10, flexWrap: 'wrap', marginBottom: 16,
-            background: 'var(--bg2)', border: '1px solid var(--accent)', borderRadius: 12,
-            padding: 14
+          <div style={{
+            display: 'flex', gap: 10, flexWrap: 'wrap', marginBottom: 20,
+            background: '#ffdcc0', border: '2px solid #f28c00', boxShadow: '3px 3px 0px 0px #181c1e',
+            padding: 16
           }}>
-            <span style={{ width: '100%', fontSize: 12, color: 'var(--accent)', fontWeight: 600, marginBottom: 2 }}>
+            <span style={{ width: '100%', fontSize: 14, color: '#5a3100', fontWeight: 900, marginBottom: 2 }}>
               🔧 Panel admin de reseñas
             </span>
             {!showResenaForm ? (
               <button onClick={() => setShowResenaForm(true)} style={{
-                background: 'var(--accent)', color: '#fff', border: 'none', borderRadius: 8,
-                padding: '8px 16px', cursor: 'pointer', fontWeight: 600, fontSize: 12
+                background: '#f28c00', color: '#181c1e', border: '2px solid #181c1e', boxShadow: '2px 2px 0px 0px #181c1e',
+                padding: '8px 16px', cursor: 'pointer', fontWeight: 700, fontSize: 14, minHeight: 44
               }}>
                 ✏️ Crear reseña
               </button>
             ) : (
-              <form onSubmit={handleResenaSubmit} style={{
-                width: '100%', display: 'flex', flexDirection: 'column', gap: 10
-              }}>
+              <form onSubmit={handleResenaSubmit} style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: 10 }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                  <span style={{ fontSize: 13, color: 'var(--text2)' }}>Calificación:</span>
+                  <span style={{ fontSize: 16, fontWeight: 700, color: '#181c1e' }}>Calificación:</span>
                   <div style={{ display: 'flex', gap: 4 }}>
                     {[1,2,3,4,5].map(star => (
                       <button key={star} type="button" onClick={() => setResenaForm({...resenaForm, calificacion: star})} style={{
-                        background: 'none', border: 'none', cursor: 'pointer', fontSize: 24,
-                        color: star <= resenaForm.calificacion ? 'var(--amber)' : 'var(--text3)',
-                        transition: 'color 0.15s'
+                        background: 'none', border: 'none', cursor: 'pointer', fontSize: 28,
+                        color: star <= resenaForm.calificacion ? '#f28c00' : '#887362'
                       }}>
                         {star <= resenaForm.calificacion ? '★' : '☆'}
                       </button>
                     ))}
                   </div>
                 </div>
-                <input
-                  type="text"
-                  placeholder="Nombre del cliente"
-                  value={resenaForm.nombre}
-                  onChange={e => setResenaForm({...resenaForm, nombre: e.target.value})}
-                  required
-                  style={{
-                    background: 'var(--bg3)', border: '1px solid var(--border)', borderRadius: 8,
-                    padding: '8px 12px', color: 'var(--text)', fontSize: 14, outline: 'none'
-                  }}
-                />
-                <textarea
-                  placeholder="Comentario (opcional)"
-                  value={resenaForm.comentario}
-                  onChange={e => setResenaForm({...resenaForm, comentario: e.target.value})}
-                  rows={2}
-                  style={{
-                    background: 'var(--bg3)', border: '1px solid var(--border)', borderRadius: 8,
-                    padding: '8px 12px', color: 'var(--text)', fontSize: 14, outline: 'none', resize: 'vertical'
-                  }}
-                />
+                <input type="text" placeholder="Nombre del cliente" value={resenaForm.nombre}
+                  onChange={e => setResenaForm({...resenaForm, nombre: e.target.value})} required
+                  style={{ background: '#ffffff', border: '2px solid #181c1e', padding: '10px 16px', color: '#181c1e', fontSize: 16, fontWeight: 700, outline: 'none' }} />
+                <textarea placeholder="Comentario (opcional)" value={resenaForm.comentario}
+                  onChange={e => setResenaForm({...resenaForm, comentario: e.target.value})} rows={2}
+                  style={{ background: '#ffffff', border: '2px solid #181c1e', padding: '10px 16px', color: '#181c1e', fontSize: 16, outline: 'none', resize: 'vertical' }} />
                 <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
                   <button type="button" onClick={() => setShowResenaForm(false)} style={{
-                    background: 'var(--bg3)', border: '1px solid var(--border)', borderRadius: 8,
-                    padding: '8px 16px', color: 'var(--text2)', cursor: 'pointer', fontSize: 13
+                    background: '#ffffff', border: '2px solid #181c1e', boxShadow: '2px 2px 0px 0px #181c1e',
+                    padding: '8px 16px', color: '#181c1e', cursor: 'pointer', fontWeight: 700, fontSize: 14, minHeight: 44
                   }}>Cancelar</button>
                   <button type="submit" disabled={resenaSaving} style={{
-                    background: 'var(--accent)', border: 'none', borderRadius: 8,
-                    padding: '8px 16px', color: '#fff', cursor: 'pointer', fontWeight: 600, fontSize: 13
+                    background: '#f28c00', color: '#181c1e', border: '2px solid #181c1e', boxShadow: '2px 2px 0px 0px #181c1e',
+                    padding: '8px 16px', cursor: 'pointer', fontWeight: 700, fontSize: 14, minHeight: 44
                   }}>{resenaSaving ? 'Enviando...' : 'Publicar'}</button>
                 </div>
               </form>
             )}
             <button onClick={handleGenerarResenas} disabled={resenaSaving} style={{
-              background: 'var(--amber)', color: '#000', border: 'none', borderRadius: 8,
-              padding: '8px 16px', cursor: 'pointer', fontWeight: 600, fontSize: 12
+              background: '#181c1e', color: '#ffb875', border: '2px solid #181c1e', boxShadow: '2px 2px 0px 0px #181c1e',
+              padding: '8px 16px', cursor: 'pointer', fontWeight: 700, fontSize: 14, minHeight: 44
             }}>
-              🎲 Generar {10} reseñas aleatorias
+              🎲 Generar 10 reseñas
             </button>
           </div>
         )}
@@ -333,25 +322,28 @@ export default function ProductoDetallePage() {
           <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
             {resenas.map(r => (
               <div key={r.id} style={{
-                background: 'var(--bg2)', border: '1px solid var(--border)', borderRadius: 12, padding: 16
+                background: '#ffffff', border: '2px solid #181c1e', boxShadow: '3px 3px 0px 0px #181c1e', padding: 20
               }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
-                  <span style={{ fontWeight: 600, fontSize: 14, color: 'var(--text)' }}>{r.nombre}</span>
-                  <span style={{ color: 'var(--amber)', fontSize: 14 }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
+                  <span style={{ fontWeight: 700, fontSize: 16, color: '#181c1e' }}>{r.nombre}</span>
+                  <span style={{ color: '#f28c00', fontSize: 18 }}>
                     {'★'.repeat(r.calificacion)}{'☆'.repeat(5 - r.calificacion)}
                   </span>
                 </div>
                 {r.comentario && (
-                  <p style={{ color: 'var(--text2)', fontSize: 13, lineHeight: 1.5, margin: 0 }}>{r.comentario}</p>
+                  <p style={{ color: '#554334', fontSize: 16, lineHeight: 1.6, margin: 0 }}>{r.comentario}</p>
                 )}
-                <div style={{ fontSize: 11, color: 'var(--text3)', marginTop: 8 }}>
+                <div style={{ fontSize: 14, color: '#887362', marginTop: 8, fontWeight: 700 }}>
                   {new Date(r.createdAt).toLocaleDateString('es-CO', { year: 'numeric', month: 'long', day: 'numeric' })}
                 </div>
               </div>
             ))}
           </div>
         ) : (
-          <div style={{ textAlign: 'center', color: 'var(--text3)', padding: 30, border: '1px dashed var(--border)', borderRadius: 12 }}>
+          <div style={{
+            textAlign: 'center', color: '#887362', padding: 40, fontSize: 16, fontWeight: 700,
+            border: '2px dashed #181c1e', boxShadow: '4px 4px 0px 0px #181c1e'
+          }}>
             Sé el primero en dejar una reseña
           </div>
         )}

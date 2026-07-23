@@ -1,81 +1,94 @@
 'use client';
 
 export default function ProductCard({ producto }) {
-  const formatPrice = (n) => new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 }).format(n);
+  const formatPrice = (n) => '$' + Number(n).toLocaleString('es-CO', { minimumFractionDigits: 0 });
   const tieneOferta = producto.ofertaActiva && producto.ofertaPrecio && new Date(producto.ofertaHasta) > new Date();
 
   return (
-    <a href={`/tienda/${producto.id}`} style={{
-      textDecoration: 'none', color: 'inherit', display: 'block',
-      background: 'var(--bg2)', border: '1px solid var(--border)', borderRadius: 14,
-      overflow: 'hidden', transition: 'transform 0.2s, box-shadow 0.2s',
-      position: 'relative'
+    <a href={`/tienda/${producto.id}`} className="industrial-card" style={{
+      textDecoration: 'none', color: '#181c1e', display: 'flex', flexDirection: 'column',
+      background: '#ffffff', border: '2px solid #181c1e',
+      boxShadow: '4px 4px 0px 0px #181c1e', position: 'relative',
+      transition: 'transform 0.15s, box-shadow 0.15s'
     }}
-    onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-4px)'; e.currentTarget.style.boxShadow = '0 12px 40px rgba(0,0,0,0.3)'; }}
-    onMouseLeave={e => { e.currentTarget.style.transform = 'none'; e.currentTarget.style.boxShadow = 'none'; }}>
+    onMouseEnter={e => { e.currentTarget.style.transform = 'translate(-2px, -2px)'; e.currentTarget.style.boxShadow = '6px 6px 0px 0px #181c1e'; }}
+    onMouseLeave={e => { e.currentTarget.style.transform = 'none'; e.currentTarget.style.boxShadow = '4px 4px 0px 0px #181c1e'; }}>
       
       {tieneOferta && (
         <div style={{
-          position: 'absolute', top: 10, left: 10, zIndex: 2,
-          background: 'var(--red)', color: '#fff', fontSize: 10, fontWeight: 700,
-          padding: '3px 10px', borderRadius: 8
+          position: 'absolute', top: 12, left: 12, zIndex: 2,
+          background: '#f28c00', color: '#181c1e', fontSize: 14, fontWeight: 900,
+          padding: '4px 12px', border: '2px solid #181c1e', boxShadow: '2px 2px 0px 0px #181c1e'
         }}>
-          -{Math.round((1 - producto.ofertaPrecio / producto.precioVenta) * 100)}% OFF
+          -{Math.round((1 - producto.ofertaPrecio / producto.precioVenta) * 100)}%
         </div>
       )}
 
       {producto.stock > 0 && producto.stock <= 5 && (
         <div style={{
-          position: 'absolute', top: 10, right: 10, zIndex: 2,
-          background: 'rgba(239,68,68,0.15)', color: 'var(--red)', fontSize: 10, fontWeight: 700,
-          padding: '3px 10px', borderRadius: 8, border: '1px solid var(--red)'
+          position: 'absolute', top: 12, right: 12, zIndex: 2,
+          background: '#ffdad6', color: '#93000a', fontSize: 12, fontWeight: 900,
+          padding: '4px 12px', border: '2px solid #ba1a1a'
         }}>
           Solo {producto.stock}
         </div>
       )}
 
-      {producto.imagen ? (
-        <img src={producto.imagen} alt={producto.nombre}
-          style={{ width: '100%', height: 'clamp(140px, 25vw, 180px)', objectFit: 'cover', background: 'var(--bg3)' }}
-          onError={(e) => { e.target.outerHTML = '<div style="width:100%;height:clamp(140px,25vw,180px);background:var(--bg3);display:flex;align-items:center;justify-content:center;color:var(--text3);font-size:12px">Sin imagen</div>'; }} />
-      ) : (
-        <div style={{ width: '100%', height: 'clamp(140px, 25vw, 180px)', background: 'var(--bg3)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text3)', fontSize: 12 }}>Sin imagen</div>
-      )}
+      <div style={{ height: 240, overflow: 'hidden', borderBottom: '2px solid #181c1e', background: '#f1f4f6' }}>
+        {producto.imagen ? (
+          <img src={producto.imagen} alt={producto.nombre}
+            style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+            onError={(e) => { e.target.outerHTML = '<div style="width:100%;height:100%;background:#f1f4f6;display:flex;align-items:center;justify-content:center;color:#887362;font-size:14px;font-weight:700">Sin imagen</div>'; }} />
+        ) : (
+          <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#887362', fontSize: 14, fontWeight: 700 }}>Sin imagen</div>
+        )}
+      </div>
 
-      <div style={{ padding: 14 }}>
-        <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--text)', marginBottom: 8, lineHeight: 1.3, display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
+      <div style={{ padding: 20, flex: 1, display: 'flex', flexDirection: 'column' }}>
+        <span style={{
+          fontSize: 12, fontWeight: 900, color: '#f28c00', textTransform: 'uppercase',
+          letterSpacing: 2, marginBottom: 8
+        }}>
+          {producto.categoria}
+        </span>
+        <div style={{ fontSize: 18, fontWeight: 700, marginBottom: 16, lineHeight: 1.3, flex: 1 }}>
           {producto.nombre}
         </div>
 
-        <div style={{ display: 'flex', alignItems: 'baseline', gap: 8, marginBottom: 8 }}>
+        <div style={{ display: 'flex', alignItems: 'baseline', gap: 10, marginBottom: 8 }}>
           {tieneOferta ? (
             <>
-              <span style={{ fontSize: 18, fontWeight: 700, fontFamily: 'var(--mono)', color: 'var(--red)' }}>
+              <span style={{ fontSize: 28, fontWeight: 900, color: '#ba1a1a' }}>
                 {formatPrice(producto.ofertaPrecio)}
               </span>
-              <span style={{ fontSize: 12, color: 'var(--text3)', textDecoration: 'line-through', fontFamily: 'var(--mono)' }}>
+              <span style={{ fontSize: 16, color: '#887362', textDecoration: 'line-through', fontWeight: 700 }}>
                 {formatPrice(producto.precioVenta)}
               </span>
             </>
           ) : (
-            <span style={{ fontSize: 18, fontWeight: 700, fontFamily: 'var(--mono)', color: 'var(--text)' }}>
+            <span style={{ fontSize: 28, fontWeight: 900 }}>
               {formatPrice(producto.precioVenta)}
             </span>
           )}
         </div>
 
         {producto.ventasSimuladas > 0 && (
-          <div style={{ fontSize: 11, color: 'var(--amber)', marginBottom: 4 }}>
+          <div style={{ fontSize: 14, fontWeight: 700, color: '#8d4f00', marginBottom: 12 }}>
             🔥 {producto.ventasSimuladas} vendidos
           </div>
         )}
 
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <span style={{ fontSize: 11, color: 'var(--text3)', background: 'var(--bg3)', padding: '2px 10px', borderRadius: 10 }}>
-            {producto.categoria}
-          </span>
-          <span style={{ fontSize: 12, color: 'var(--accent)', fontWeight: 600 }}>Ver más →</span>
-        </div>
+        <button style={{
+          width: '100%', minHeight: 56, background: '#f28c00', color: '#181c1e',
+          border: '2px solid #181c1e', boxShadow: '3px 3px 0px 0px #181c1e',
+          fontSize: 18, fontWeight: 900, cursor: 'pointer', display: 'flex',
+          alignItems: 'center', justifyContent: 'center', gap: 8,
+          transition: 'transform 0.1s, box-shadow 0.1s'
+        }}
+        onMouseEnter={e => { e.currentTarget.style.transform = 'translate(-1px, -1px)'; e.currentTarget.style.boxShadow = '4px 4px 0px 0px #181c1e'; }}
+        onMouseLeave={e => { e.currentTarget.style.transform = 'none'; e.currentTarget.style.boxShadow = '3px 3px 0px 0px #181c1e'; }}>
+          🛒 Comprar
+        </button>
       </div>
     </a>
   );
