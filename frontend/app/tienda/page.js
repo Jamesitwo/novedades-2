@@ -5,6 +5,7 @@ import api from '@/lib/api';
 import ProductCard from '../../components/tienda/ProductCard';
 import CountdownTimer from '../../components/tienda/CountdownTimer';
 import SocialProofToast from '../../components/tienda/SocialProofToast';
+import UpsellPopup from '../../components/tienda/UpsellPopup';
 import { on } from '@/lib/websocket';
 
 export default function TiendaPage() {
@@ -19,6 +20,7 @@ export default function TiendaPage() {
   const [loading, setLoading] = useState(true);
   const [proofEvents, setProofEvents] = useState([]);
   const [error, setError] = useState('');
+  const [upsellProductId, setUpsellProductId] = useState(null);
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
@@ -291,17 +293,17 @@ export default function TiendaPage() {
                         🔥 {p.ventasSimuladas} personas lo compraron
                       </div>
                     )}
-                    <a href={`/tienda/comprar/${p.id}`} style={{
-                      minHeight: 56, background: '#f28c00', color: '#181c1e',
+                    <button onClick={() => setUpsellProductId(p.id)} style={{
+                      width: '100%', minHeight: 56, background: '#f28c00', color: '#181c1e',
                       border: '2px solid #181c1e', boxShadow: '3px 3px 0px 0px #181c1e',
-                      textDecoration: 'none', fontWeight: 900, fontSize: 18,
+                      fontWeight: 900, fontSize: 18, cursor: 'pointer',
                       display: 'flex', alignItems: 'center', justifyContent: 'center',
-                      marginTop: 'auto', transition: 'transform 0.1s'
+                      marginTop: 'auto', transition: 'transform 0.1s', fontFamily: '"Inter", sans-serif'
                     }}
                     onMouseEnter={e => { e.currentTarget.style.transform = 'translate(-1px, -1px)'; e.currentTarget.style.boxShadow = '4px 4px 0px 0px #181c1e'; }}
                     onMouseLeave={e => { e.currentTarget.style.transform = 'none'; e.currentTarget.style.boxShadow = '3px 3px 0px 0px #181c1e'; }}>
                       ¡Comprar ahora!
-                    </a>
+                    </button>
                   </div>
                 </div>
               ))}
@@ -433,6 +435,8 @@ export default function TiendaPage() {
       </section>
 
       {/* Social proof floating toasts */}
+      {upsellProductId && <UpsellPopup productoId={upsellProductId} onClose={() => setUpsellProductId(null)} />}
+
       {proofEvents.map(evt => (
         <SocialProofToast key={evt.id} data={evt} onDone={() => setProofEvents(prev => prev.filter(e => e.id !== evt.id))} />
       ))}

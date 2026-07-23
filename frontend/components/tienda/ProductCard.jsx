@@ -1,8 +1,11 @@
 'use client';
+import { useState } from 'react';
+import UpsellPopup from './UpsellPopup';
 
 export default function ProductCard({ producto }) {
   const formatPrice = (n) => '$' + Number(n).toLocaleString('es-CO', { minimumFractionDigits: 0 });
   const tieneOferta = producto.ofertaActiva && producto.ofertaPrecio && new Date(producto.ofertaHasta) > new Date();
+  const [showUpsell, setShowUpsell] = useState(false);
 
   return (
     <a href={`/tienda/${producto.id}`} className="industrial-card" style={{
@@ -78,19 +81,19 @@ export default function ProductCard({ producto }) {
           </div>
         )}
 
-        <a href={`/tienda/comprar/${producto.id}`} style={{ textDecoration: 'none' }}>
-          <button style={{
-            width: '100%', minHeight: 56, background: '#f28c00', color: '#181c1e',
-            border: '2px solid #181c1e', boxShadow: '3px 3px 0px 0px #181c1e',
-            fontSize: 18, fontWeight: 900, cursor: 'pointer', display: 'flex',
-            alignItems: 'center', justifyContent: 'center', gap: 8,
-            transition: 'transform 0.1s, box-shadow 0.1s'
-          }}
-          onMouseEnter={e => { e.currentTarget.style.transform = 'translate(-1px, -1px)'; e.currentTarget.style.boxShadow = '4px 4px 0px 0px #181c1e'; }}
-          onMouseLeave={e => { e.currentTarget.style.transform = 'none'; e.currentTarget.style.boxShadow = '3px 3px 0px 0px #181c1e'; }}>
-            🛒 Comprar
-          </button>
-        </a>
+        <button onClick={(e) => { e.preventDefault(); setShowUpsell(true); }} style={{
+          width: '100%', minHeight: 56, background: '#f28c00', color: '#181c1e',
+          border: '2px solid #181c1e', boxShadow: '3px 3px 0px 0px #181c1e',
+          fontSize: 18, fontWeight: 900, cursor: 'pointer', display: 'flex',
+          alignItems: 'center', justifyContent: 'center', gap: 8,
+          transition: 'transform 0.1s, box-shadow 0.1s', fontFamily: '"Inter", sans-serif'
+        }}
+        onMouseEnter={e => { e.currentTarget.style.transform = 'translate(-1px, -1px)'; e.currentTarget.style.boxShadow = '4px 4px 0px 0px #181c1e'; }}
+        onMouseLeave={e => { e.currentTarget.style.transform = 'none'; e.currentTarget.style.boxShadow = '3px 3px 0px 0px #181c1e'; }}>
+          🛒 Comprar
+        </button>
+
+        {showUpsell && <UpsellPopup productoId={producto.id} onClose={() => setShowUpsell(false)} />}
       </div>
     </a>
   );
