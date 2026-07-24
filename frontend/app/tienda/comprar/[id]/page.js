@@ -290,32 +290,38 @@ export default function ComprarPage() {
 
                 {producto?.relacionados?.length > 0 && (
                   <div style={{ marginTop: 20, background: '#ffffff', border: '2px solid #181c1e', boxShadow: '3px 3px 0px 0px #181c1e', padding: 16 }}>
-                    <div style={{ fontSize: 13, fontWeight: 900, color: '#f28c00', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 12 }}>
+                    <div style={{ fontSize: 14, fontWeight: 900, color: '#f28c00', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 12 }}>
                       + Agregar a tu pedido
                     </div>
                     {producto.relacionados.map(rp => {
                       const rpPrecio = rp.ofertaActiva && rp.ofertaPrecio ? rp.ofertaPrecio : rp.precioVenta;
                       return (
                         <a key={rp.id} href={`/tienda/comprar/${rp.id}`} style={{
-                          display: 'flex', alignItems: 'center', gap: 10, padding: '8px 0',
-                          borderBottom: '1px solid #e0e3e5', textDecoration: 'none', color: '#181c1e',
-                          transition: 'background 0.1s'
+                          display: 'flex', alignItems: 'center', gap: 12, padding: '10px 8px',
+                          borderBottom: '2px solid #e0e3e5', textDecoration: 'none', color: '#181c1e',
+                          cursor: 'pointer', transition: 'background 0.1s, transform 0.1s'
                         }}
-                        onMouseEnter={e => e.currentTarget.style.background = '#f1f4f6'}
-                        onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>
+                        onMouseEnter={e => { e.currentTarget.style.background = '#f1f4f6'; e.currentTarget.style.transform = 'translateX(2px)'; }}
+                        onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.transform = 'none'; }}>
                           {rp.imagen ? (
-                            <img src={rp.imagen} alt={rp.nombre} style={{ width: 44, height: 44, objectFit: 'cover', border: '2px solid #181c1e', flexShrink: 0, background: '#f1f4f6' }}
+                            <img src={rp.imagen} alt={rp.nombre} style={{ width: 52, height: 52, objectFit: 'cover', border: '2px solid #181c1e', flexShrink: 0, background: '#f1f4f6' }}
                               onError={e => { e.target.style.display = 'none'; }} />
                           ) : (
-                            <div style={{ width: 44, height: 44, border: '2px solid #181c1e', flexShrink: 0, background: '#f1f4f6' }} />
+                            <div style={{ width: 52, height: 52, border: '2px solid #181c1e', flexShrink: 0, background: '#f1f4f6' }} />
                           )}
                           <div style={{ flex: 1, minWidth: 0 }}>
-                            <div style={{ fontSize: 12, fontWeight: 700, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{rp.nombre}</div>
-                            <div style={{ fontSize: 14, fontWeight: 900, color: rp.ofertaActiva && rp.ofertaPrecio ? '#ba1a1a' : '#181c1e' }}>
+                            <div style={{ fontSize: 13, fontWeight: 700, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', marginBottom: 3 }}>{rp.nombre}</div>
+                            <div style={{ fontSize: 15, fontWeight: 900, color: rp.ofertaActiva && rp.ofertaPrecio ? '#ba1a1a' : '#181c1e' }}>
                               {formatPrice(rpPrecio)}
                             </div>
                           </div>
-                          <span style={{ fontSize: 11, fontWeight: 700, color: '#f28c00', whiteSpace: 'nowrap', flexShrink: 0 }}>Agregar →</span>
+                          <span style={{
+                            background: '#f28c00', color: '#181c1e', fontWeight: 800, fontSize: 12,
+                            padding: '6px 16px', border: '2px solid #181c1e', boxShadow: '2px 2px 0px 0px #181c1e',
+                            whiteSpace: 'nowrap', flexShrink: 0, transition: 'transform 0.1s'
+                          }}>
+                            + Agregar
+                          </span>
                         </a>
                       );
                     })}
