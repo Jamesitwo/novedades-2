@@ -102,10 +102,13 @@ export default function ProductoDetallePage() {
 
   const tieneOferta = producto.ofertaActiva && producto.ofertaPrecio && new Date(producto.ofertaHasta) > new Date();
   const rawImagenes = typeof producto.imagenes === 'string' ? (() => { try { return JSON.parse(producto.imagenes); } catch { return []; } })() : producto.imagenes;
-  const imagenes = Array.isArray(rawImagenes) ? rawImagenes : [];
-  const imagenPrincipal = typeof producto.imagen === 'string' && (producto.imagen.startsWith('http://') || producto.imagen.startsWith('https://'))
-    ? (imgActiva === 0 ? producto.imagen : (imagenes[imgActiva - 1] || producto.imagen))
-    : (imagenes.length > 0 ? imagenes[imgActiva] : null);
+  const imagenesArr = Array.isArray(rawImagenes) ? rawImagenes : [];
+  const todasImagenes = [...new Set([
+    ...(typeof producto.imagen === 'string' && producto.imagen.startsWith('http') ? [producto.imagen] : []),
+    ...imagenesArr
+  ])];
+  const [imgActiva, setImgActiva] = useState(0);
+  const imagenPrincipal = todasImagenes.length > 0 ? todasImagenes[imgActiva] || todasImagenes[0] : null;
 
   return (
     <div style={{ maxWidth: 960, margin: '0 auto', padding: '0 24px 64px' }}>
@@ -141,9 +144,9 @@ export default function ProductoDetallePage() {
               Sin imagen
             </div>
           )}
-          {imagenes.length > 0 && (
+          {todasImagenes.length > 1 && (
             <div style={{ display: 'flex', gap: 10, marginTop: 16, overflowX: 'auto', paddingBottom: 4 }}>
-              {imagenes.map((img, i) => (
+              {todasImagenes.map((img, i) => (
                 <div key={i} onClick={() => setImgActiva(i)} style={{
                   flexShrink: 0, cursor: 'pointer', width: 72, height: 72,
                   border: imgActiva === i ? '3px solid #f28c00' : '2px solid #181c1e',
