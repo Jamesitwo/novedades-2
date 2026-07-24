@@ -3,6 +3,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import api from '@/lib/api';
 import { useAuthStore } from '@/store/authStore';
+import ConfirmDialog from './ConfirmDialog';
 
 export default function TiendaAdminPage() {
   const router = useRouter();
@@ -33,6 +34,7 @@ export default function TiendaAdminPage() {
   });
   const [allProducts, setAllProducts] = useState([]);
   const [newCategory, setNewCategory] = useState('');
+  const [confirm, setConfirm] = useState(null);
 
   useEffect(() => { initialize(); }, []);
   useEffect(() => {
@@ -162,11 +164,17 @@ export default function TiendaAdminPage() {
     fetchProductos();
   };
 
-  const handleDelete = async (p) => {
-    if (!confirm(`¿Eliminar "${p.nombre}"?`)) return;
-    await api.delete(`/api/tienda/${p.id}`);
-    showToast('Producto eliminado');
-    fetchProductos();
+  const handleDelete = (p) => {
+    setConfirm({
+      message: `Estás por eliminar "${p.nombre}". Esta acción no se puede deshacer.`,
+      onConfirm: async () => {
+        setConfirm(null);
+        await api.delete(`/api/tienda/${p.id}`);
+        showToast('Producto eliminado');
+        fetchProductos();
+      },
+      onCancel: () => setConfirm(null)
+    });
   };
 
   const toggleSelectAll = () => {
@@ -185,13 +193,19 @@ export default function TiendaAdminPage() {
     fetchProductos();
   };
 
-  const bulkDelete = async () => {
-    if (!confirm(`¿Eliminar ${selected.length} productos? Esta acción no se puede deshacer.`)) return;
-    for (const id of selected) {
-      await api.delete(`/api/tienda/${id}`).catch(() => {});
-    }
-    showToast(`${selected.length} productos eliminados`);
-    fetchProductos();
+  const bulkDelete = () => {
+    setConfirm({
+      message: `Estás por eliminar ${selected.length} productos. Esta acción no se puede deshacer.`,
+      onConfirm: async () => {
+        setConfirm(null);
+        for (const id of selected) {
+          await api.delete(`/api/tienda/${id}`).catch(() => {});
+        }
+        showToast(`${selected.length} productos eliminados`);
+        fetchProductos();
+      },
+      onCancel: () => setConfirm(null)
+    });
   };
 
   const formatPrice = (n) => '$' + Number(n).toLocaleString('es-CO', { minimumFractionDigits: 0 });
@@ -613,6 +627,8 @@ export default function TiendaAdminPage() {
           </div>
         </div>
       )}
+
+      {confirm && <ConfirmDialog message={confirm.message} onConfirm={confirm.onConfirm} onCancel={confirm.onCancel} />}
     </div>
   );
 }
