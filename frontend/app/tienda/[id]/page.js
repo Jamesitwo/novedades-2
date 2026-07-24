@@ -100,7 +100,9 @@ export default function ProductoDetallePage() {
   if (!producto) return <div style={{ textAlign: 'center', padding: 80, fontSize: 18, fontWeight: 700, color: '#ba1a1a' }}>Producto no encontrado</div>;
 
   const tieneOferta = producto.ofertaActiva && producto.ofertaPrecio && new Date(producto.ofertaHasta) > new Date();
-  const imagenes = Array.isArray(producto.imagenes) ? producto.imagenes : [];
+  const rawImagenes = typeof producto.imagenes === 'string' ? (() => { try { return JSON.parse(producto.imagenes); } catch { return []; } })() : producto.imagenes;
+  const imagenes = Array.isArray(rawImagenes) ? rawImagenes : [];
+  const imagenPrincipal = typeof producto.imagen === 'string' && (producto.imagen.startsWith('http://') || producto.imagen.startsWith('https://')) ? producto.imagen : (imagenes.length > 0 ? imagenes[0] : null);
 
   return (
     <div style={{ maxWidth: 960, margin: '0 auto', padding: '0 24px 64px' }}>
@@ -128,8 +130,8 @@ export default function ProductoDetallePage() {
 
       <div className="detalle-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 48, marginTop: 8 }}>
         <div>
-          {producto.imagen ? (
-            <img src={producto.imagen} alt={producto.nombre}
+          {imagenPrincipal ? (
+            <img src={imagenPrincipal} alt={producto.nombre}
               style={{ width: '100%', border: '2px solid #181c1e', boxShadow: '6px 6px 0px 0px #181c1e', objectFit: 'cover', background: '#f1f4f6', maxHeight: 450 }} />
           ) : (
             <div style={{ width: '100%', height: 400, background: '#f1f4f6', border: '2px solid #181c1e', boxShadow: '6px 6px 0px 0px #181c1e', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 18, fontWeight: 700, color: '#887362' }}>
