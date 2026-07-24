@@ -95,6 +95,7 @@ export default function ProductoDetallePage() {
 
   const formatPrice = (n) => '$' + Number(n).toLocaleString('es-CO', { minimumFractionDigits: 0 });
   const S = { border: '2px solid #181c1e', boxShadow: '3px 3px 0px 0px #181c1e' };
+  const [imgActiva, setImgActiva] = useState(0);
 
   if (loading) return <div style={{ textAlign: 'center', padding: 80, fontSize: 18, fontWeight: 700, color: '#887362' }}>Cargando producto...</div>;
   if (!producto) return <div style={{ textAlign: 'center', padding: 80, fontSize: 18, fontWeight: 700, color: '#ba1a1a' }}>Producto no encontrado</div>;
@@ -102,7 +103,6 @@ export default function ProductoDetallePage() {
   const tieneOferta = producto.ofertaActiva && producto.ofertaPrecio && new Date(producto.ofertaHasta) > new Date();
   const rawImagenes = typeof producto.imagenes === 'string' ? (() => { try { return JSON.parse(producto.imagenes); } catch { return []; } })() : producto.imagenes;
   const imagenes = Array.isArray(rawImagenes) ? rawImagenes : [];
-  const [imgActiva, setImgActiva] = useState(0);
   const imagenPrincipal = typeof producto.imagen === 'string' && (producto.imagen.startsWith('http://') || producto.imagen.startsWith('https://'))
     ? (imgActiva === 0 ? producto.imagen : (imagenes[imgActiva - 1] || producto.imagen))
     : (imagenes.length > 0 ? imagenes[imgActiva] : null);
