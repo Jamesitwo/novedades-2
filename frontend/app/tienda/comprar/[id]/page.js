@@ -323,10 +323,10 @@ export default function ComprarPage() {
                   </div>
                 )}
               </div>
+            </div>
           </>
         )}
 
-      </div>
       </div>
     </div>
   );
