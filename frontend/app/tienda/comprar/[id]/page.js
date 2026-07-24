@@ -210,6 +210,7 @@ export default function ComprarPage() {
                     <input type="number" min="1" className="compra-input" value={form.cantidad}
                       onChange={e => handleChange('cantidad', parseInt(e.target.value) || 1)} style={{ marginTop: 6 }} />
                   </label>
+                </div>
 
                 <label style={{ fontSize: 13, fontWeight: 900, color: '#554334', textTransform: 'uppercase', letterSpacing: 1 }}>
                   Email (opcional)
