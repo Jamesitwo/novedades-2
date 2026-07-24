@@ -15,8 +15,8 @@ router.get('/:id', getById);
 router.use(authMiddleware);
 router.post('/', adminOnly, create);
 router.put('/:id', adminOnly, update);
+router.delete('/todos', adminOnly, deleteAll);
 router.delete('/:id', adminOnly, remove);
 router.patch('/:id/toggle', adminOnly, toggleActivo);
-router.delete('/todos', adminOnly, deleteAll);
 
 module.exports = router;

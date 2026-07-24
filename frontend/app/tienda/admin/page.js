@@ -295,9 +295,13 @@ export default function TiendaAdminPage() {
           message: '¿Eliminar TODOS los productos? Se borrarán también todas las reseñas. Esta acción NO se puede deshacer.',
           onConfirm: async () => {
             setConfirm(null);
-            await api.delete('/api/tienda/todos').catch(() => {});
-            showToast('Todos los productos eliminados');
-            fetchProductos();
+            try {
+              const { data } = await api.delete('/api/tienda/todos');
+              showToast(data.message || 'Productos eliminados');
+              fetchProductos();
+            } catch (e) {
+              showToast(e.response?.data?.error || 'Error al eliminar', 'error');
+            }
           },
           onCancel: () => setConfirm(null)
         })} style={{
