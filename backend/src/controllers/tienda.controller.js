@@ -238,8 +238,6 @@ const toggleActivo = async (req, res) => {
   }
 };
 
-module.exports = { getAll, getDestacados, getOfertas, getById, create, update, remove, toggleActivo, getDepartamentos, getCiudades };
-
 const getDepartamentos = (req, res) => {
   try {
     const deptos = require('../data/lucidsales_departamentos.json');
@@ -343,4 +341,4 @@ const procesarCompra = async (req, res) => {
   }
 };
 
-module.exports.procesarCompra = procesarCompra;
+module.exports = { getAll, getDestacados, getOfertas, getById, create, update, remove, toggleActivo, getDepartamentos, getCiudades, procesarCompra };
