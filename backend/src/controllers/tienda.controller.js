@@ -238,6 +238,20 @@ const toggleActivo = async (req, res) => {
   }
 };
 
+const deleteAll = async (req, res) => {
+  try {
+    if (req.usuario?.rol !== 'admin') {
+      return res.status(403).json({ error: 'Solo admins' });
+    }
+    await prisma.resena.deleteMany();
+    const result = await prisma.productoTienda.deleteMany();
+    res.json({ message: `${result.count} productos eliminados` });
+  } catch (error) {
+    console.error('DeleteAll tienda error:', error);
+    res.status(500).json({ error: 'Error en el servidor' });
+  }
+};
+
 const getDepartamentos = (req, res) => {
   try {
     const deptos = require('../data/lucidsales_departamentos.json');
@@ -341,4 +355,4 @@ const procesarCompra = async (req, res) => {
   }
 };
 
-module.exports = { getAll, getDestacados, getOfertas, getById, create, update, remove, toggleActivo, getDepartamentos, getCiudades, procesarCompra };
+module.exports = { getAll, getDestacados, getOfertas, getById, create, update, remove, toggleActivo, deleteAll, getDepartamentos, getCiudades, procesarCompra };

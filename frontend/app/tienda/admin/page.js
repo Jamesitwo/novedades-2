@@ -291,6 +291,21 @@ export default function TiendaAdminPage() {
         }}>
           + Nuevo producto
         </button>
+        <button onClick={() => setConfirm({
+          message: '¿Eliminar TODOS los productos? Se borrarán también todas las reseñas. Esta acción NO se puede deshacer.',
+          onConfirm: async () => {
+            setConfirm(null);
+            await api.delete('/api/tienda/todos').catch(() => {});
+            showToast('Todos los productos eliminados');
+            fetchProductos();
+          },
+          onCancel: () => setConfirm(null)
+        })} style={{
+          ...S, background: '#ba1a1a', color: '#ffffff', minHeight: 48, padding: '0 24px',
+          fontSize: 14, fontWeight: 700, cursor: 'pointer', whiteSpace: 'nowrap', marginLeft: 8
+        }}>
+          🗑 Eliminar todos
+        </button>
       </div>
 
       <div style={{ display: 'flex', gap: 8, marginBottom: 16, flexWrap: 'wrap', alignItems: 'center' }}>
