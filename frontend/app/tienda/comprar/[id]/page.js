@@ -95,7 +95,7 @@ export default function ComprarPage() {
     <div style={{ minHeight: '100vh', background: '#f7fafc', color: '#181c1e', fontFamily: '"Inter", -apple-system, sans-serif' }}>
       <style dangerouslySetInnerHTML={{__html: `
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700;800;900&display=swap');
-        .compra-input { background: #ffffff; border: 2px solid #181c1e; padding: 12px 16px; font-size: 18px; font-weight: 700; color: #181c1e; outline: none; font-family: 'Inter', sans-serif; width: 100%; box-sizing: border-box; }
+        .compra-input { background: #ffffff; border: 2px solid #181c1e; padding: 16px 18px; font-size: 18px; font-weight: 700; color: #181c1e; outline: none; font-family: 'Inter', sans-serif; width: 100%; box-sizing: border-box; border-radius: 0; }
         .compra-input:focus { box-shadow: 0 0 0 4px #f28c00; }
         @media (max-width: 768px) {
           .compra-grid { grid-template-columns: 1fr !important; }
@@ -112,7 +112,7 @@ export default function ComprarPage() {
         </span>
       </div>
 
-      <div style={{ maxWidth: 800, margin: '0 auto', padding: 'clamp(24px, 5vw, 48px) 24px' }}>
+      <div style={{ maxWidth: 960, margin: '0 auto', padding: 'clamp(32px, 6vw, 56px) 24px' }}>
         {enviado ? (
           <div style={{ textAlign: 'center', padding: 'clamp(32px, 8vw, 64px) 24px' }}>
             <div style={{
@@ -146,8 +146,8 @@ export default function ComprarPage() {
               Completa tus datos y te contactaremos para coordinar el envío.
             </p>
 
-            <div className="compra-grid" style={{ display: 'grid', gridTemplateColumns: '1.2fr 0.8fr', gap: 40, alignItems: 'start' }}>
-              <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+            <div className="compra-grid" style={{ display: 'grid', gridTemplateColumns: '1.2fr 0.8fr', gap: 48, alignItems: 'start' }}>
+              <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
                 {error && (
                   <div style={{ background: '#ffdad6', border: '2px solid #ba1a1a', padding: '14px 18px', fontSize: 15, fontWeight: 700, color: '#ba1a1a' }}>
                     {error}
@@ -155,41 +155,41 @@ export default function ComprarPage() {
                 )}
 
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20 }}>
-                  <label style={{ fontSize: 14, fontWeight: 800, color: '#554334', textTransform: 'uppercase', letterSpacing: 1 }}>
+                  <label style={{ fontSize: 15, fontWeight: 800, color: '#554334', textTransform: 'uppercase', letterSpacing: 1 }}>
                     Nombre *
                     <input className="compra-input" value={form.nombre} onChange={e => handleChange('nombre', e.target.value)}
-                      placeholder="Tu nombre" required style={{ marginTop: 8, padding: '14px 18px', fontSize: 17 }} />
+                      placeholder="Tu nombre" required style={{ marginTop: 8 }} />
                   </label>
-                  <label style={{ fontSize: 14, fontWeight: 800, color: '#554334', textTransform: 'uppercase', letterSpacing: 1 }}>
+                  <label style={{ fontSize: 15, fontWeight: 800, color: '#554334', textTransform: 'uppercase', letterSpacing: 1 }}>
                     Apellido *
                     <input className="compra-input" value={form.apellido} onChange={e => handleChange('apellido', e.target.value)}
-                      placeholder="Tu apellido" required style={{ marginTop: 8, padding: '14px 18px', fontSize: 17 }} />
+                      placeholder="Tu apellido" required style={{ marginTop: 8 }} />
                   </label>
                 </div>
 
-                <label style={{ fontSize: 14, fontWeight: 800, color: '#554334', textTransform: 'uppercase', letterSpacing: 1 }}>
+                <label style={{ fontSize: 15, fontWeight: 800, color: '#554334', textTransform: 'uppercase', letterSpacing: 1 }}>
                   Celular / WhatsApp *
                   <input type="tel" className="compra-input" value={form.celular} onChange={e => handleChange('celular', e.target.value)}
-                    placeholder="3001234567" required style={{ marginTop: 8, padding: '14px 18px', fontSize: 17 }} />
+                    placeholder="3001234567" required style={{ marginTop: 8 }} />
                 </label>
 
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20 }}>
-                  <label style={{ fontSize: 14, fontWeight: 800, color: '#554334', textTransform: 'uppercase', letterSpacing: 1 }}>
+                  <label style={{ fontSize: 15, fontWeight: 800, color: '#554334', textTransform: 'uppercase', letterSpacing: 1 }}>
                     Departamento *
                     <select className="compra-input" value={form.departamento}
                       onChange={e => { handleChange('departamento', e.target.value); handleChange('ciudad', ''); }}
-                      style={{ marginTop: 8, padding: '14px 18px', fontSize: 17, cursor: 'pointer', appearance: 'auto' }} required>
+                      style={{ marginTop: 8, cursor: 'pointer', appearance: 'auto' }} required>
                       <option value="">Seleccionar...</option>
                       {departamentos.map(d => (
                         <option key={d.id} value={d.name}>{d.name}</option>
                       ))}
                     </select>
                   </label>
-                  <label style={{ fontSize: 14, fontWeight: 800, color: '#554334', textTransform: 'uppercase', letterSpacing: 1 }}>
+                  <label style={{ fontSize: 15, fontWeight: 800, color: '#554334', textTransform: 'uppercase', letterSpacing: 1 }}>
                     Ciudad *
                     <select className="compra-input" value={form.ciudad}
                       onChange={e => handleChange('ciudad', e.target.value)}
-                      style={{ marginTop: 8, padding: '14px 18px', fontSize: 17, cursor: 'pointer', appearance: 'auto' }} required disabled={!form.departamento}>
+                      style={{ marginTop: 8, cursor: 'pointer', appearance: 'auto' }} required disabled={!form.departamento}>
                       <option value="">{form.departamento ? 'Seleccionar...' : 'Elige departamento primero'}</option>
                       {ciudades.map(c => (
                         <option key={c.id} value={c.name}>{c.name}</option>
@@ -198,35 +198,35 @@ export default function ComprarPage() {
                   </label>
                 </div>
 
-                <label style={{ fontSize: 14, fontWeight: 800, color: '#554334', textTransform: 'uppercase', letterSpacing: 1 }}>
+                <label style={{ fontSize: 15, fontWeight: 800, color: '#554334', textTransform: 'uppercase', letterSpacing: 1 }}>
                   Dirección *
                   <input className="compra-input" value={form.direccion} onChange={e => handleChange('direccion', e.target.value)}
-                    placeholder="Calle 123 #45-67, Barrio" required style={{ marginTop: 8, padding: '14px 18px', fontSize: 17 }} />
+                    placeholder="Calle 123 #45-67, Barrio" required style={{ marginTop: 8 }} />
                 </label>
 
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20 }}>
-                  <label style={{ fontSize: 14, fontWeight: 800, color: '#554334', textTransform: 'uppercase', letterSpacing: 1 }}>
+                  <label style={{ fontSize: 15, fontWeight: 800, color: '#554334', textTransform: 'uppercase', letterSpacing: 1 }}>
                     Cantidad
                     <input type="number" min="1" className="compra-input" value={form.cantidad}
-                      onChange={e => handleChange('cantidad', parseInt(e.target.value) || 1)} style={{ marginTop: 8, padding: '14px 18px', fontSize: 17 }} />
+                      onChange={e => handleChange('cantidad', parseInt(e.target.value) || 1)} style={{ marginTop: 8 }} />
                   </label>
-                  <label style={{ fontSize: 14, fontWeight: 800, color: '#554334', textTransform: 'uppercase', letterSpacing: 1 }}>
+                  <label style={{ fontSize: 15, fontWeight: 800, color: '#554334', textTransform: 'uppercase', letterSpacing: 1 }}>
                     Email (opcional)
                     <input type="email" className="compra-input" value={form.email} onChange={e => handleChange('email', e.target.value)}
-                      placeholder="tu@email.com" style={{ marginTop: 8, padding: '14px 18px', fontSize: 17 }} />
+                      placeholder="tu@email.com" style={{ marginTop: 8 }} />
                   </label>
                 </div>
 
-                <label style={{ fontSize: 14, fontWeight: 800, color: '#554334', textTransform: 'uppercase', letterSpacing: 1 }}>
+                <label style={{ fontSize: 15, fontWeight: 800, color: '#554334', textTransform: 'uppercase', letterSpacing: 1 }}>
                   Notas adicionales
                   <textarea className="compra-input" value={form.notas} onChange={e => handleChange('notas', e.target.value)}
                     rows={3} placeholder="Color, talla, alguna indicación especial..."
-                    style={{ marginTop: 8, padding: '14px 18px', fontSize: 17, resize: 'vertical', fontFamily: 'Inter, sans-serif' }} />
+                    style={{ marginTop: 8, resize: 'vertical', fontFamily: 'Inter, sans-serif' }} />
                 </label>
 
                 <button type="submit" disabled={saving} style={{
                   ...S, background: saving ? '#887362' : '#f28c00', color: '#181c1e',
-                  minHeight: 60, fontSize: 22, fontWeight: 900, cursor: 'pointer', marginTop: 12,
+                  minHeight: 64, fontSize: 22, fontWeight: 900, cursor: 'pointer', marginTop: 12,
                   opacity: saving ? 0.6 : 1
                 }}>
                   {saving ? 'Enviando pedido...' : '🛒 Confirmar pedido'}
