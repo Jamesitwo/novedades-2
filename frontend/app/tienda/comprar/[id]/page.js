@@ -327,6 +327,7 @@ export default function ComprarPage() {
         )}
 
       </div>
+      </div>
     </div>
   );
 }
