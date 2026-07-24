@@ -736,6 +736,7 @@ export default function TiendaAdminPage() {
                     <option value="nombre">Nombre</option>
                     <option value="apellido">Apellido</option>
                     <option value="celular">Celular</option>
+                    <option value="departamento">Departamento</option>
                     <option value="ciudad">Ciudad</option>
                     <option value="direccion">Dirección</option>
                     <option value="email">Email</option>

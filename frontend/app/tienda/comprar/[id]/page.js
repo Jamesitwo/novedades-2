@@ -13,9 +13,12 @@ export default function ComprarPage() {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
   const [form, setForm] = useState({
-    nombre: '', apellido: '', celular: '', direccion: '', ciudad: '',
+    nombre: '', apellido: '', celular: '', direccion: '',
+    departamento: '', ciudad: '',
     email: '', notas: '', cantidad: 1
   });
+  const [departamentos, setDepartamentos] = useState([]);
+  const [ciudades, setCiudades] = useState([]);
 
   useEffect(() => {
     if (!id) return;
@@ -23,7 +26,19 @@ export default function ComprarPage() {
       .then(({ data }) => setProducto(data))
       .catch(() => setError('Producto no encontrado'))
       .finally(() => setLoading(false));
+    api.get('/api/tienda/departamentos')
+      .then(({ data }) => setDepartamentos(data.sort((a, b) => a.name.localeCompare(b.name))))
+      .catch(() => {});
   }, [id]);
+
+  useEffect(() => {
+    if (!form.departamento) { setCiudades([]); return; }
+    const depto = departamentos.find(d => d.name === form.departamento);
+    if (!depto) { setCiudades([]); return; }
+    api.get(`/api/tienda/ciudades?deptoId=${depto.id}`)
+      .then(({ data }) => setCiudades(data.sort((a, b) => a.name.localeCompare(b.name))))
+      .catch(() => setCiudades([]));
+  }, [form.departamento, departamentos]);
 
   const handleChange = (field, value) => {
     setForm(prev => ({ ...prev, [field]: value }));
@@ -31,7 +46,7 @@ export default function ComprarPage() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!form.nombre.trim() || !form.apellido.trim() || !form.celular.trim() || !form.direccion.trim() || !form.ciudad.trim()) {
+    if (!form.nombre.trim() || !form.apellido.trim() || !form.celular.trim() || !form.direccion.trim() || !form.departamento || !form.ciudad.trim()) {
       setError('Completa todos los campos requeridos');
       return;
     }
@@ -44,6 +59,7 @@ export default function ComprarPage() {
         apellido: form.apellido.trim(),
         celular: form.celular.trim(),
         direccion: form.direccion.trim(),
+        departamento: form.departamento,
         ciudad: form.ciudad.trim(),
         email: form.email.trim() || null,
         notas: form.notas.trim() || null,
@@ -159,14 +175,26 @@ export default function ComprarPage() {
 
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
                   <label style={{ fontSize: 13, fontWeight: 900, color: '#554334', textTransform: 'uppercase', letterSpacing: 1 }}>
-                    Ciudad *
-                    <input className="compra-input" value={form.ciudad} onChange={e => handleChange('ciudad', e.target.value)}
-                      placeholder="Bogotá" required style={{ marginTop: 6 }} />
+                    Departamento *
+                    <select className="compra-input" value={form.departamento}
+                      onChange={e => { handleChange('departamento', e.target.value); handleChange('ciudad', ''); }}
+                      style={{ marginTop: 6, cursor: 'pointer', appearance: 'auto' }} required>
+                      <option value="">Seleccionar...</option>
+                      {departamentos.map(d => (
+                        <option key={d.id} value={d.name}>{d.name}</option>
+                      ))}
+                    </select>
                   </label>
                   <label style={{ fontSize: 13, fontWeight: 900, color: '#554334', textTransform: 'uppercase', letterSpacing: 1 }}>
-                    Cantidad
-                    <input type="number" min="1" className="compra-input" value={form.cantidad}
-                      onChange={e => handleChange('cantidad', parseInt(e.target.value) || 1)} style={{ marginTop: 6 }} />
+                    Ciudad *
+                    <select className="compra-input" value={form.ciudad}
+                      onChange={e => handleChange('ciudad', e.target.value)}
+                      style={{ marginTop: 6, cursor: 'pointer', appearance: 'auto' }} required disabled={!form.departamento}>
+                      <option value="">{form.departamento ? 'Seleccionar...' : 'Elige departamento primero'}</option>
+                      {ciudades.map(c => (
+                        <option key={c.id} value={c.name}>{c.name}</option>
+                      ))}
+                    </select>
                   </label>
                 </div>
 
@@ -175,6 +203,13 @@ export default function ComprarPage() {
                   <input className="compra-input" value={form.direccion} onChange={e => handleChange('direccion', e.target.value)}
                     placeholder="Calle 123 #45-67, Barrio" required style={{ marginTop: 6 }} />
                 </label>
+
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
+                  <label style={{ fontSize: 13, fontWeight: 900, color: '#554334', textTransform: 'uppercase', letterSpacing: 1 }}>
+                    Cantidad
+                    <input type="number" min="1" className="compra-input" value={form.cantidad}
+                      onChange={e => handleChange('cantidad', parseInt(e.target.value) || 1)} style={{ marginTop: 6 }} />
+                  </label>
 
                 <label style={{ fontSize: 13, fontWeight: 900, color: '#554334', textTransform: 'uppercase', letterSpacing: 1 }}>
                   Email (opcional)

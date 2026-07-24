@@ -238,13 +238,36 @@ const toggleActivo = async (req, res) => {
   }
 };
 
-module.exports = { getAll, getDestacados, getOfertas, getById, create, update, remove, toggleActivo };
+module.exports = { getAll, getDestacados, getOfertas, getById, create, update, remove, toggleActivo, getDepartamentos, getCiudades };
+
+const getDepartamentos = (req, res) => {
+  try {
+    const deptos = require('../data/lucidsales_departamentos.json');
+    res.json(deptos);
+  } catch (error) {
+    res.status(500).json({ error: 'Error al cargar departamentos' });
+  }
+};
+
+const getCiudades = (req, res) => {
+  try {
+    const { deptoId } = req.query;
+    const ciudades = require('../data/lucidsales_ciudades.json');
+    if (deptoId) {
+      res.json(ciudades.filter(c => c.state_id === Number(deptoId)));
+    } else {
+      res.json(ciudades.slice(0, 50));
+    }
+  } catch (error) {
+    res.status(500).json({ error: 'Error al cargar ciudades' });
+  }
+};
 
 const procesarCompra = async (req, res) => {
   try {
-    const { productoId, nombre, apellido, celular, direccion, ciudad, email, notas, cantidad } = req.body;
-    if (!productoId || !nombre || !apellido || !celular || !direccion || !ciudad) {
-      return res.status(400).json({ error: 'Faltan datos requeridos: nombre, apellido, celular, dirección y ciudad' });
+    const { productoId, nombre, apellido, celular, direccion, departamento, ciudad, email, notas, cantidad } = req.body;
+    if (!productoId || !nombre || !apellido || !celular || !direccion || !departamento || !ciudad) {
+      return res.status(400).json({ error: 'Faltan datos requeridos' });
     }
 
     const producto = await prisma.productoTienda.findUnique({ where: { id: productoId } });
@@ -254,7 +277,7 @@ const procesarCompra = async (req, res) => {
       producto: producto.nombre,
       precio: producto.ofertaActiva && producto.ofertaPrecio ? producto.ofertaPrecio : producto.precioVenta,
       cliente: `${nombre} ${apellido}`,
-      celular, ciudad, cantidad: cantidad || 1
+      celular, departamento, ciudad, cantidad: cantidad || 1
     });
 
     try {
@@ -273,7 +296,7 @@ const procesarCompra = async (req, res) => {
           producto: producto.nombre,
           precio: String(precio),
           total: String(precio * qty),
-          nombre, apellido, celular, ciudad, direccion,
+          nombre, apellido, celular, ciudad, direccion, departamento,
           email: email || '',
           notas: notas || '',
           cantidad: String(qty)

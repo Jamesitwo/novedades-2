@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const { getAll, getDestacados, getOfertas, getById, create, update, remove, toggleActivo, procesarCompra } = require('../controllers/tienda.controller');
+const { getAll, getDestacados, getOfertas, getById, create, update, remove, toggleActivo, procesarCompra, getDepartamentos, getCiudades } = require('../controllers/tienda.controller');
 const { authMiddleware } = require('../middlewares/auth.middleware');
 const { adminOnly } = require('../middlewares/roles.middleware');
 
@@ -8,6 +8,8 @@ router.get('/', getAll);
 router.get('/destacados', getDestacados);
 router.get('/ofertas', getOfertas);
 router.post('/comprar', procesarCompra);
+router.get('/departamentos', getDepartamentos);
+router.get('/ciudades', getCiudades);
 router.get('/:id', getById);
 
 router.use(authMiddleware);
