@@ -365,6 +365,12 @@ const importarDesdeLucidSales = async (req, res) => {
     const lsProductos = await lucidsalesService.getProductos();
     const productos = Array.isArray(lsProductos) ? lsProductos : (lsProductos?.productos || lsProductos?.data || []);
 
+    if (productos.length > 0) {
+      const first = productos[0];
+      const imgKeys = Object.keys(first).filter(k => /imagen|image|img|foto|picture/i.test(k));
+      console.log('[ImportarLS] Muestra de imagenes del primer producto:', imgKeys.map(k => ({ key: k, type: typeof first[k], preview: JSON.stringify(first[k]).slice(0, 150) })));
+    }
+
     const { productoIds } = req.body;
     const toImport = productoIds?.length
       ? productos.filter(p => productoIds.includes(String(p.id ?? p.Id)))
@@ -387,25 +393,39 @@ const importarDesdeLucidSales = async (req, res) => {
       let imagenes = [];
       const imgKeys = Object.keys(ls).filter(k => /imagen|image|img|foto|picture/i.test(k));
       for (const k of imgKeys) {
-        const val = ls[k];
+        let val = ls[k];
+        if (val === null || val === undefined || val === '' || val === '[]') continue;
+
         if (typeof val === 'string' && (val.startsWith('http://') || val.startsWith('https://'))) {
           if (!imagen) imagen = val;
           imagenes.push(val);
-        } else if (Array.isArray(val)) {
-          val.forEach(v => {
-            if (typeof v === 'string' && v.startsWith('http')) imagenes.push(v);
-          });
-        } else if (typeof val === 'string' && val.startsWith('[')) {
-          try {
-            const parsed = JSON.parse(val);
-            if (Array.isArray(parsed)) {
-              parsed.forEach(v => {
-                if (typeof v === 'string' && v.startsWith('http')) imagenes.push(v);
-              });
-            }
-          } catch {}
+          continue;
         }
-        if (imagen) break;
+
+        if (typeof val === 'string') {
+          try { val = JSON.parse(val); } catch {}
+        }
+
+        if (Array.isArray(val)) {
+          val.forEach(v => {
+            if (typeof v === 'string' && v.startsWith('http')) {
+              if (!imagen) imagen = v;
+              imagenes.push(v);
+            } else if (v && typeof v === 'object') {
+              const url = v.image || v.imagen || v.src || v.url || v.URL || v.link || v.Imagen;
+              if (typeof url === 'string' && url.startsWith('http')) {
+                if (!imagen) imagen = url;
+                imagenes.push(url);
+              }
+            }
+          });
+        } else if (val && typeof val === 'object') {
+          const url = val.image || val.imagen || val.src || val.url || val.URL || val.link || val.Imagen;
+          if (typeof url === 'string' && url.startsWith('http')) {
+            if (!imagen) imagen = url;
+            imagenes.push(url);
+          }
+        }
       }
 
       try {
@@ -430,6 +450,7 @@ const importarDesdeLucidSales = async (req, res) => {
       }
     }
 
+    console.log(`[ImportarLS] ${importados} importados, ${omitidos} omitidos, ${toImport.length} total`);
     res.json({ ok: true, importados, omitidos, total: toImport.length });
   } catch (error) {
     console.error('Importar LucidSales error:', error);
