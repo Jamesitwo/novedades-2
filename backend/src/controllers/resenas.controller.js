@@ -55,10 +55,21 @@ const generarAleatorias = async (req, res) => {
       return res.status(403).json({ error: 'Solo admins pueden generar reseñas' });
     }
     const { productoId } = req.params;
-    const { cantidad = 10 } = req.body;
+    const { cantidad = 10, distribucion, diasMax = 90, conComentario = 75 } = req.body;
 
     const producto = await prisma.productoTienda.findUnique({ where: { id: productoId } });
     if (!producto) return res.status(404).json({ error: 'Producto no encontrado' });
+
+    const dist = distribucion && typeof distribucion === 'object' ? distribucion : { 5: 45, 4: 25, 3: 12, 2: 10, 1: 8 };
+    const thresholds = [];
+    let acum = 0;
+    [5, 4, 3, 2, 1].forEach(star => {
+      acum += (dist[String(star)] || dist[star] || 0);
+      thresholds.push({ star, max: acum });
+    });
+    if (acum === 0) thresholds.push({ star: 5, max: 100 });
+
+    const commentProb = Math.min(100, Math.max(0, parseInt(conComentario) || 75)) / 100;
 
     const nombres = [
       'María G.', 'Carlos R.', 'Ana L.', 'Pedro M.', 'Laura S.',
@@ -104,33 +115,28 @@ const generarAleatorias = async (req, res) => {
       'No me convenció del todo.',
     ];
 
-    const creadas = [];
-    for (let i = 0; i < Math.min(cantidad, 50); i++) {
-      const calificacionPeso = Math.random();
-      let calificacion;
-      let comentario = null;
-
-      if (calificacionPeso < 0.45) {
-        calificacion = 5;
-        comentario = comentariosPositivos[Math.floor(Math.random() * comentariosPositivos.length)];
-      } else if (calificacionPeso < 0.7) {
-        calificacion = 4;
-        comentario = comentariosPositivos[Math.floor(Math.random() * comentariosPositivos.length)];
-      } else if (calificacionPeso < 0.82) {
-        calificacion = 3;
-        comentario = comentariosNeutrales[Math.floor(Math.random() * comentariosNeutrales.length)];
-      } else if (calificacionPeso < 0.92) {
-        calificacion = 2;
-        comentario = comentariosNegativos[Math.floor(Math.random() * comentariosNegativos.length)];
-      } else {
-        calificacion = 1;
-        comentario = comentariosNegativos[Math.floor(Math.random() * comentariosNegativos.length)];
+    const getCalificacion = () => {
+      const r = Math.random() * acum;
+      for (const t of thresholds) {
+        if (r < t.max) return t.star;
       }
+      return 5;
+    };
 
+    const getComentario = (calificacion) => {
+      if (calificacion >= 4) return comentariosPositivos[Math.floor(Math.random() * comentariosPositivos.length)];
+      if (calificacion >= 3) return comentariosNeutrales[Math.floor(Math.random() * comentariosNeutrales.length)];
+      return comentariosNegativos[Math.floor(Math.random() * comentariosNegativos.length)];
+    };
+
+    const creadas = [];
+    for (let i = 0; i < Math.min(parseInt(cantidad) || 10, 50); i++) {
+      const calificacion = getCalificacion();
+      let comentario = Math.random() < commentProb ? getComentario(calificacion) : null;
       if (Math.random() < 0.25) comentario = null;
 
       const nombre = nombres[Math.floor(Math.random() * nombres.length)];
-      const diasAtras = Math.floor(Math.random() * 90);
+      const diasAtras = Math.floor(Math.random() * (parseInt(diasMax) || 90));
 
       const resena = await prisma.resena.create({
         data: {

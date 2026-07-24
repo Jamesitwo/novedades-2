@@ -23,6 +23,12 @@ export default function ProductoDetallePage() {
   const [showUpsell, setShowUpsell] = useState(false);
   const [viendoAhora] = useState(() => Math.floor(Math.random() * 4) + 1);
   const [comprado24h, setComprado24h] = useState(0);
+  const [reviewConfig, setReviewConfig] = useState({
+    cantidad: 10,
+    distribucion: { 5: 45, 4: 25, 3: 12, 2: 10, 1: 8 },
+    diasMax: 90,
+    conComentario: 75
+  });
   const { usuario } = useAuthStore();
   const isAdmin = usuario?.rol === 'admin';
 
@@ -79,7 +85,12 @@ export default function ProductoDetallePage() {
   const handleGenerarResenas = async () => {
     setResenaSaving(true);
     try {
-      await api.post(`/api/resenas/${id}/generar`, { cantidad: 10 });
+      await api.post(`/api/resenas/${id}/generar`, {
+        cantidad: reviewConfig.cantidad,
+        distribucion: reviewConfig.distribucion,
+        diasMax: reviewConfig.diasMax,
+        conComentario: reviewConfig.conComentario
+      });
       setResenaSuccess(true);
       const { data } = await api.get(`/api/resenas/${id}`);
       setResenas(data.resenas);
@@ -373,11 +384,45 @@ export default function ProductoDetallePage() {
                 </div>
               </form>
             )}
+            <div style={{ width: '100%', borderTop: '2px solid #181c1e', paddingTop: 10, display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
+              <div>
+                <div style={{ fontSize: 11, fontWeight: 800, color: '#5a3100', textTransform: 'uppercase', marginBottom: 2 }}>Cantidad</div>
+                <input type="number" min="1" max="50" value={reviewConfig.cantidad}
+                  onChange={e => setReviewConfig(prev => ({ ...prev, cantidad: parseInt(e.target.value) || 10 }))}
+                  style={{ width: '100%', background: '#ffffff', border: '1px solid #181c1e', padding: '4px 8px', fontSize: 13, fontWeight: 700, outline: 'none' }} />
+              </div>
+              <div>
+                <div style={{ fontSize: 11, fontWeight: 800, color: '#5a3100', textTransform: 'uppercase', marginBottom: 2 }}>Días atrás</div>
+                <input type="number" min="1" max="365" value={reviewConfig.diasMax}
+                  onChange={e => setReviewConfig(prev => ({ ...prev, diasMax: parseInt(e.target.value) || 90 }))}
+                  style={{ width: '100%', background: '#ffffff', border: '1px solid #181c1e', padding: '4px 8px', fontSize: 13, fontWeight: 700, outline: 'none' }} />
+              </div>
+            </div>
+            <div style={{ width: '100%', display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+              <span style={{ width: '100%', fontSize: 11, fontWeight: 800, color: '#5a3100', textTransform: 'uppercase' }}>Distribución (%)</span>
+              {[5, 4, 3, 2, 1].map(star => (
+                <label key={star} style={{ display: 'flex', alignItems: 'center', gap: 3, fontSize: 12, fontWeight: 700, color: '#181c1e' }}>
+                  {star}★
+                  <input type="number" min="0" max="100" value={reviewConfig.distribucion[star]}
+                    onChange={e => setReviewConfig(prev => ({
+                      ...prev,
+                      distribucion: { ...prev.distribucion, [star]: parseInt(e.target.value) || 0 }
+                    }))}
+                    style={{ width: 44, background: '#ffffff', border: '1px solid #181c1e', padding: '2px 4px', fontSize: 12, fontWeight: 700, outline: 'none', textAlign: 'center' }} />
+                </label>
+              ))}
+              <label style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 12, fontWeight: 700, color: '#181c1e', marginLeft: 'auto' }}>
+                💬
+                <input type="number" min="0" max="100" value={reviewConfig.conComentario}
+                  onChange={e => setReviewConfig(prev => ({ ...prev, conComentario: parseInt(e.target.value) || 0 }))}
+                  style={{ width: 44, background: '#ffffff', border: '1px solid #181c1e', padding: '2px 4px', fontSize: 12, fontWeight: 700, outline: 'none', textAlign: 'center' }} />%
+              </label>
+            </div>
             <button onClick={handleGenerarResenas} disabled={resenaSaving} style={{
               background: '#181c1e', color: '#ffb875', border: '2px solid #181c1e', boxShadow: '2px 2px 0px 0px #181c1e',
               padding: '8px 16px', cursor: 'pointer', fontWeight: 700, fontSize: 14, minHeight: 44
             }}>
-              🎲 Generar 10 reseñas
+              🎲 Generar {reviewConfig.cantidad} reseñas
             </button>
           </div>
         )}
