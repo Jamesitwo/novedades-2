@@ -138,7 +138,7 @@ export default function ComprarPage() {
             </div>
           </div>
         ) : (
-          <>
+          <div>
             <h1 style={{ fontSize: 'clamp(22px, 5vw, 32px)', fontWeight: 900, marginBottom: 8 }}>
               Finalizar compra
             </h1>
@@ -324,7 +324,7 @@ export default function ComprarPage() {
                 )}
               </div>
             </div>
-          </>
+          </div>
         )}
 
       </div>
