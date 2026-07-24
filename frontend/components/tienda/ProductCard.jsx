@@ -81,7 +81,7 @@ export default function ProductCard({ producto }) {
           </div>
         )}
 
-        <button onClick={(e) => { e.preventDefault(); setShowUpsell(true); }} style={{
+        <button onClick={(e) => { e.preventDefault(); e.stopPropagation(); setShowUpsell(true); }} style={{
           width: '100%', minHeight: 56, background: '#f28c00', color: '#181c1e',
           border: '2px solid #181c1e', boxShadow: '3px 3px 0px 0px #181c1e',
           fontSize: 18, fontWeight: 900, cursor: 'pointer', display: 'flex',

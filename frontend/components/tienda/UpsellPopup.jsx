@@ -100,13 +100,14 @@ export default function UpsellPopup({ productoId, onClose }) {
             onMouseLeave={e => e.currentTarget.style.transform = 'none'}>
               🛒 Ir al checkout
             </a>
-            <button onClick={onClose} style={{
+            <a href={`/tienda/comprar/${productoId}`} style={{
               minHeight: 48, padding: '0 20px', background: '#ffffff', color: '#181c1e',
               border: '2px solid #181c1e', boxShadow: '3px 3px 0px 0px #181c1e',
-              cursor: 'pointer', fontWeight: 700, fontSize: 14
+              textDecoration: 'none', cursor: 'pointer', fontWeight: 700, fontSize: 14,
+              display: 'flex', alignItems: 'center'
             }}>
               Solo este producto
-            </button>
+            </a>
           </div>
         </div>
       </div>
