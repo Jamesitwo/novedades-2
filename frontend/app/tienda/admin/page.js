@@ -35,6 +35,40 @@ export default function TiendaAdminPage() {
   const [allProducts, setAllProducts] = useState([]);
   const [newCategory, setNewCategory] = useState('');
   const [confirm, setConfirm] = useState(null);
+  const [lucidbotConfig, setLucidbotConfig] = useState({
+    activo: false, api_key: '', tag_name: '', flow_id: '', field_values: []
+  });
+  const [savingBot, setSavingBot] = useState(false);
+
+  useEffect(() => {
+    api.get('/api/configuracion').then(({ data }) => {
+      setLucidbotConfig({
+        activo: data.lucidbot_activo || false,
+        api_key: data.lucidbot_api_key || '',
+        tag_name: data.lucidbot_tag_name || '',
+        flow_id: data.lucidbot_flow_id || '',
+        field_values: data.lucidbot_field_values || []
+      });
+    }).catch(() => {});
+  }, [isAuthenticated, usuario]);
+
+  const handleSaveLucidbot = async () => {
+    setSavingBot(true);
+    try {
+      await api.put('/api/configuracion', {
+        lucidbot_activo: lucidbotConfig.activo,
+        lucidbot_api_key: lucidbotConfig.api_key,
+        lucidbot_tag_name: lucidbotConfig.tag_name,
+        lucidbot_flow_id: lucidbotConfig.flow_id ? Number(lucidbotConfig.flow_id) : null,
+        lucidbot_field_values: lucidbotConfig.field_values
+      });
+      showToast('LucidBot guardado correctamente');
+    } catch (e) {
+      showToast('Error al guardar LucidBot', 'error');
+    } finally {
+      setSavingBot(false);
+    }
+  };
 
   useEffect(() => { initialize(); }, []);
   useEffect(() => {
@@ -627,6 +661,114 @@ export default function TiendaAdminPage() {
           </div>
         </div>
       )}
+
+      <div style={{ marginTop: 40, background: '#ffffff', border: '2px solid #181c1e', boxShadow: '4px 4px 0px 0px #181c1e', padding: 28 }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
+          <div>
+            <h3 style={{ fontSize: 20, fontWeight: 900, color: '#181c1e', margin: '0 0 4px', borderLeft: '5px solid #f28c00', paddingLeft: 10 }}>
+              🤖 LucidBot
+            </h3>
+            <span style={{ fontSize: 12, color: '#887362' }}>Integración con panel.lucidbot.co al confirmar una compra</span>
+          </div>
+        </div>
+
+        <div style={{ display: 'grid', gap: 14, maxWidth: 600 }}>
+          <label style={{ display: 'flex', alignItems: 'center', gap: 12, cursor: 'pointer' }}>
+            <div onClick={() => setLucidbotConfig(prev => ({ ...prev, activo: !prev.activo }))} style={{
+              width: 44, height: 24, borderRadius: 12, background: lucidbotConfig.activo ? '#22c55e' : '#e0e3e5',
+              position: 'relative', transition: 'background 0.15s', cursor: 'pointer'
+            }}>
+              <div style={{ width: 20, height: 20, borderRadius: '50%', background: '#fff',
+                position: 'absolute', top: 2, left: lucidbotConfig.activo ? 22 : 2,
+                transition: 'left 0.15s', boxShadow: '0 1px 3px rgba(0,0,0,0.2)' }} />
+            </div>
+            <span style={{ fontSize: 15, fontWeight: 700 }}>Activar LucidBot al comprar</span>
+          </label>
+
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+            <label style={{ fontSize: 12, fontWeight: 800, color: '#554334', textTransform: 'uppercase', letterSpacing: 1 }}>
+              API Key (X-ACCESS-TOKEN)
+              <input className="admin-input" value={lucidbotConfig.api_key}
+                onChange={e => setLucidbotConfig(prev => ({ ...prev, api_key: e.target.value }))}
+                placeholder="tu_x_access_token" style={{ width: '100%', marginTop: 4 }} />
+            </label>
+            <label style={{ fontSize: 12, fontWeight: 800, color: '#554334', textTransform: 'uppercase', letterSpacing: 1 }}>
+              Flow ID
+              <input className="admin-input" type="number" value={lucidbotConfig.flow_id}
+                onChange={e => setLucidbotConfig(prev => ({ ...prev, flow_id: e.target.value }))}
+                placeholder="12345" style={{ width: '100%', marginTop: 4 }} />
+            </label>
+          </div>
+
+          <label style={{ fontSize: 12, fontWeight: 800, color: '#554334', textTransform: 'uppercase', letterSpacing: 1 }}>
+            Tag Name
+            <input className="admin-input" value={lucidbotConfig.tag_name}
+              onChange={e => setLucidbotConfig(prev => ({ ...prev, tag_name: e.target.value }))}
+              placeholder="pizdo_compra" style={{ width: '100%', marginTop: 4 }} />
+          </label>
+
+          <div>
+            <div style={{ fontSize: 12, fontWeight: 800, color: '#554334', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 8 }}>
+              Campos personalizados (field_name → valor del formulario)
+            </div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+              {(lucidbotConfig.field_values || []).map((fv, i) => (
+                <div key={i} style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
+                  <input className="admin-input" value={fv.field_name}
+                    onChange={e => {
+                      const next = [...(lucidbotConfig.field_values || [])];
+                      next[i] = { ...next[i], field_name: e.target.value };
+                      setLucidbotConfig(prev => ({ ...prev, field_values: next }));
+                    }}
+                    placeholder="field_name en LucidBot" style={{ flex: 1, fontSize: 13, padding: '6px 10px' }} />
+                  <span style={{ color: '#887362', fontSize: 13, fontWeight: 700 }}>←</span>
+                  <select value={fv.value_from || ''}
+                    onChange={e => {
+                      const next = [...(lucidbotConfig.field_values || [])];
+                      next[i] = { ...next[i], value_from: e.target.value };
+                      setLucidbotConfig(prev => ({ ...prev, field_values: next }));
+                    }}
+                    className="admin-input" style={{ flex: 1, fontSize: 13, padding: '6px 10px', cursor: 'pointer', appearance: 'auto' }}>
+                    <option value="">Seleccionar dato...</option>
+                    <option value="producto">Producto</option>
+                    <option value="precio">Precio unitario</option>
+                    <option value="total">Total</option>
+                    <option value="nombre">Nombre</option>
+                    <option value="apellido">Apellido</option>
+                    <option value="celular">Celular</option>
+                    <option value="ciudad">Ciudad</option>
+                    <option value="direccion">Dirección</option>
+                    <option value="email">Email</option>
+                    <option value="notas">Notas</option>
+                    <option value="cantidad">Cantidad</option>
+                  </select>
+                  <button onClick={() => {
+                    const next = (lucidbotConfig.field_values || []).filter((_, idx) => idx !== i);
+                    setLucidbotConfig(prev => ({ ...prev, field_values: next }));
+                  }} style={{ background: 'none', border: 'none', color: '#ba1a1a', cursor: 'pointer', fontSize: 18, fontWeight: 700 }}>✕</button>
+                </div>
+              ))}
+              <button onClick={() => setLucidbotConfig(prev => ({
+                ...prev,
+                field_values: [...(prev.field_values || []), { field_name: '', value_from: '' }]
+              }))} style={{
+                background: '#f1f4f6', border: '2px dashed #181c1e',
+                padding: '8px', color: '#554334', cursor: 'pointer', fontSize: 13, fontWeight: 700
+              }}>
+                + Agregar campo
+              </button>
+            </div>
+          </div>
+
+          <button onClick={handleSaveLucidbot} disabled={savingBot} style={{
+            ...S, background: savingBot ? '#887362' : '#f28c00', color: '#181c1e',
+            minHeight: 48, padding: '0 28px', cursor: 'pointer', fontSize: 15, fontWeight: 800,
+            justifySelf: 'start', opacity: savingBot ? 0.6 : 1
+          }}>
+            {savingBot ? 'Guardando...' : '💾 Guardar LucidBot'}
+          </button>
+        </div>
+      </div>
 
       {confirm && <ConfirmDialog message={confirm.message} onConfirm={confirm.onConfirm} onCancel={confirm.onCancel} />}
     </div>
