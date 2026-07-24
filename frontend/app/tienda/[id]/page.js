@@ -102,7 +102,10 @@ export default function ProductoDetallePage() {
   const tieneOferta = producto.ofertaActiva && producto.ofertaPrecio && new Date(producto.ofertaHasta) > new Date();
   const rawImagenes = typeof producto.imagenes === 'string' ? (() => { try { return JSON.parse(producto.imagenes); } catch { return []; } })() : producto.imagenes;
   const imagenes = Array.isArray(rawImagenes) ? rawImagenes : [];
-  const imagenPrincipal = typeof producto.imagen === 'string' && (producto.imagen.startsWith('http://') || producto.imagen.startsWith('https://')) ? producto.imagen : (imagenes.length > 0 ? imagenes[0] : null);
+  const [imgActiva, setImgActiva] = useState(0);
+  const imagenPrincipal = typeof producto.imagen === 'string' && (producto.imagen.startsWith('http://') || producto.imagen.startsWith('https://'))
+    ? (imgActiva === 0 ? producto.imagen : (imagenes[imgActiva - 1] || producto.imagen))
+    : (imagenes.length > 0 ? imagenes[imgActiva] : null);
 
   return (
     <div style={{ maxWidth: 960, margin: '0 auto', padding: '0 24px 64px' }}>
@@ -139,11 +142,18 @@ export default function ProductoDetallePage() {
             </div>
           )}
           {imagenes.length > 0 && (
-            <div style={{ display: 'flex', gap: 12, marginTop: 16 }}>
+            <div style={{ display: 'flex', gap: 10, marginTop: 16, overflowX: 'auto', paddingBottom: 4 }}>
               {imagenes.map((img, i) => (
-                <img key={i} src={img} alt={`${producto.nombre} ${i+1}`}
-                  style={{ width: 80, height: 80, objectFit: 'cover', border: '2px solid #181c1e', cursor: 'pointer', background: '#f1f4f6' }}
-                  onError={(e) => { e.target.style.display = 'none'; }} />
+                <div key={i} onClick={() => setImgActiva(i)} style={{
+                  flexShrink: 0, cursor: 'pointer', width: 72, height: 72,
+                  border: imgActiva === i ? '3px solid #f28c00' : '2px solid #181c1e',
+                  boxShadow: imgActiva === i ? '2px 2px 0px 0px #f28c00' : '1px 1px 0px 0px #181c1e',
+                  transition: 'all 0.15s', opacity: imgActiva === i ? 1 : 0.7
+                }}>
+                  <img src={img} alt={`${producto.nombre} ${i+1}`}
+                    style={{ width: '100%', height: '100%', objectFit: 'cover', background: '#f1f4f6' }}
+                    onError={(e) => { e.target.style.display = 'none'; }} />
+                </div>
               ))}
             </div>
           )}
