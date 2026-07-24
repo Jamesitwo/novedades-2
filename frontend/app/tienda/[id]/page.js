@@ -107,7 +107,6 @@ export default function ProductoDetallePage() {
     ...(typeof producto.imagen === 'string' && producto.imagen.startsWith('http') ? [producto.imagen] : []),
     ...imagenesArr
   ])];
-  const [imgActiva, setImgActiva] = useState(0);
   const imagenPrincipal = todasImagenes.length > 0 ? todasImagenes[imgActiva] || todasImagenes[0] : null;
 
   return (
