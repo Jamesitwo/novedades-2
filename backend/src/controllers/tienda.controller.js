@@ -355,4 +355,86 @@ const procesarCompra = async (req, res) => {
   }
 };
 
-module.exports = { getAll, getDestacados, getOfertas, getById, create, update, remove, toggleActivo, deleteAll, getDepartamentos, getCiudades, procesarCompra };
+const importarDesdeLucidSales = async (req, res) => {
+  try {
+    if (req.usuario?.rol !== 'admin') {
+      return res.status(403).json({ error: 'Solo admins' });
+    }
+
+    const lucidsalesService = require('../services/lucidsales.service');
+    const lsProductos = await lucidsalesService.getProductos();
+    const productos = Array.isArray(lsProductos) ? lsProductos : (lsProductos?.productos || lsProductos?.data || []);
+
+    const { productoIds } = req.body;
+    const toImport = productoIds?.length
+      ? productos.filter(p => productoIds.includes(String(p.id ?? p.Id)))
+      : productos;
+
+    let importados = 0;
+    let omitidos = 0;
+
+    for (const ls of toImport) {
+      const nombre = ls.nombre || ls.Nombre || ls.name || '';
+      const categoria = ls.categoria || ls.Categoria || 'Sin categoría';
+      const precioVenta = parseFloat(ls.precio || ls.Precio || ls.price || 0);
+
+      if (!nombre || !precioVenta) {
+        omitidos++;
+        continue;
+      }
+
+      let imagen = null;
+      let imagenes = [];
+      const imgKeys = Object.keys(ls).filter(k => /imagen|image|img|foto|picture/i.test(k));
+      for (const k of imgKeys) {
+        const val = ls[k];
+        if (typeof val === 'string' && (val.startsWith('http://') || val.startsWith('https://'))) {
+          if (!imagen) imagen = val;
+          imagenes.push(val);
+        } else if (Array.isArray(val)) {
+          val.forEach(v => {
+            if (typeof v === 'string' && v.startsWith('http')) imagenes.push(v);
+          });
+        } else if (typeof val === 'string' && val.startsWith('[')) {
+          try {
+            const parsed = JSON.parse(val);
+            if (Array.isArray(parsed)) {
+              parsed.forEach(v => {
+                if (typeof v === 'string' && v.startsWith('http')) imagenes.push(v);
+              });
+            }
+          } catch {}
+        }
+        if (imagen) break;
+      }
+
+      try {
+        await prisma.productoTienda.create({
+          data: {
+            nombre,
+            descripcion: ls.descripcion || ls.Descripcion || null,
+            categoria,
+            precioVenta,
+            precioProveedor: parseFloat(ls.costo || ls.Costo || 0) || 0,
+            imagen,
+            imagenes,
+            linkCompra: ls.link || ls.Link || null,
+            stock: parseInt(ls.stock || ls.Stock || 0) || 0,
+            createdById: req.usuario.id
+          }
+        });
+        importados++;
+      } catch (e) {
+        console.error('[ImportarLS] Error creando producto:', nombre, e.message);
+        omitidos++;
+      }
+    }
+
+    res.json({ ok: true, importados, omitidos, total: toImport.length });
+  } catch (error) {
+    console.error('Importar LucidSales error:', error);
+    res.status(500).json({ error: error.message || 'Error al importar' });
+  }
+};
+
+module.exports = { getAll, getDestacados, getOfertas, getById, create, update, remove, toggleActivo, deleteAll, getDepartamentos, getCiudades, procesarCompra, importarDesdeLucidSales };

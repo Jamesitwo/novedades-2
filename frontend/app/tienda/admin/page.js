@@ -35,6 +35,11 @@ export default function TiendaAdminPage() {
   const [allProducts, setAllProducts] = useState([]);
   const [newCategory, setNewCategory] = useState('');
   const [confirm, setConfirm] = useState(null);
+  const [showImportModal, setShowImportModal] = useState(false);
+  const [lsProducts, setLsProducts] = useState([]);
+  const [importSelected, setImportSelected] = useState([]);
+  const [importing, setImporting] = useState(false);
+  const [importSearch, setImportSearch] = useState('');
   const [lucidbotConfig, setLucidbotConfig] = useState({
     activo: false, api_key: '', tag_name: '', flow_id: '', field_values: []
   });
@@ -242,6 +247,34 @@ export default function TiendaAdminPage() {
     });
   };
 
+  const openImportModal = async () => {
+    setShowImportModal(true);
+    setImportSelected([]);
+    setImportSearch('');
+    try {
+      const { data } = await api.post('/api/lucidsales/productos');
+      const list = Array.isArray(data) ? data : (data?.productos || data?.data || []);
+      setLsProducts(list);
+    } catch {
+      showToast('Error al cargar productos de LucidSales', 'error');
+    }
+  };
+
+  const handleImport = async () => {
+    if (importSelected.length === 0) return;
+    setImporting(true);
+    try {
+      const { data } = await api.post('/api/tienda/importar-lucidsales', { productoIds: importSelected });
+      showToast(`${data.importados} productos importados${data.omitidos > 0 ? `, ${data.omitidos} omitidos` : ''}`);
+      setShowImportModal(false);
+      fetchProductos();
+    } catch (e) {
+      showToast(e.response?.data?.error || 'Error al importar', 'error');
+    } finally {
+      setImporting(false);
+    }
+  };
+
   const formatPrice = (n) => '$' + Number(n).toLocaleString('es-CO', { minimumFractionDigits: 0 });
   const S = { border: '2px solid #181c1e', boxShadow: '2px 2px 0px 0px #181c1e' };
   const hasOferta = form.ofertaActiva && form.ofertaPrecio > 0;
@@ -309,6 +342,12 @@ export default function TiendaAdminPage() {
           fontSize: 14, fontWeight: 700, cursor: 'pointer', whiteSpace: 'nowrap', marginLeft: 8
         }}>
           🗑 Eliminar todos
+        </button>
+        <button onClick={openImportModal} style={{
+          ...S, background: '#3b82f6', color: '#ffffff', minHeight: 48, padding: '0 24px',
+          fontSize: 14, fontWeight: 700, cursor: 'pointer', whiteSpace: 'nowrap', marginLeft: 8
+        }}>
+          📥 Importar LucidSales
         </button>
       </div>
 
@@ -789,6 +828,90 @@ export default function TiendaAdminPage() {
           </button>
         </div>
       </div>
+
+      {showImportModal && (
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.7)', zIndex: 99997, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}
+          onClick={() => setShowImportModal(false)}>
+          <div style={{
+            background: '#ffffff', border: '2px solid #181c1e', boxShadow: '8px 8px 0px 0px #181c1e',
+            width: 'min(700px, 95vw)', maxHeight: '85vh', display: 'flex', flexDirection: 'column', fontFamily: '"Inter", sans-serif'
+          }} onClick={e => e.stopPropagation()}>
+            <div style={{
+              padding: '16px 24px', borderBottom: '2px solid #181c1e', fontWeight: 800, fontSize: 18,
+              background: '#f1f4f6', display: 'flex', justifyContent: 'space-between', alignItems: 'center'
+            }}>
+              📥 Importar desde LucidSales · {lsProducts.length} productos
+              <button onClick={() => setShowImportModal(false)} style={{ background: 'none', border: 'none', fontSize: 20, cursor: 'pointer' }}>✕</button>
+            </div>
+            <input type="text" className="admin-input" placeholder="🔍 Filtrar productos..."
+              value={importSearch} onChange={e => setImportSearch(e.target.value)}
+              style={{ margin: '12px 24px', padding: '8px 14px', flexShrink: 0 }} />
+            <div style={{ flex: 1, overflow: 'auto', padding: '0 24px' }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 0, marginBottom: 8 }}>
+                <label style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '6px 0', cursor: 'pointer', borderBottom: '2px solid #e0e3e5', fontSize: 13, fontWeight: 700 }}>
+                  <input type="checkbox" checked={importSelected.length === lsProducts.filter(p => {
+                    const name = (p.nombre || p.Nombre || p.name || '').toLowerCase();
+                    return !importSearch || name.includes(importSearch.toLowerCase());
+                  }).length && lsProducts.length > 0}
+                    onChange={() => {
+                      const filtered = lsProducts.filter(p => {
+                        const name = (p.nombre || p.Nombre || p.name || '').toLowerCase();
+                        return !importSearch || name.includes(importSearch.toLowerCase());
+                      });
+                      setImportSelected(filtered.length === importSelected.length ? [] : filtered.map(p => String(p.id ?? p.Id)));
+                    }}
+                    style={{ width: 18, height: 18, accentColor: '#f28c00' }} />
+                  Seleccionar todos visibles
+                </label>
+                {lsProducts.filter(p => {
+                  const name = (p.nombre || p.Nombre || p.name || '').toLowerCase();
+                  return !importSearch || name.includes(importSearch.toLowerCase());
+                }).slice(0, 100).map(p => {
+                  const name = p.nombre || p.Nombre || p.name || '';
+                  const id = String(p.id ?? p.Id);
+                  const selected = importSelected.includes(id);
+                  const price = p.precio || p.Precio || p.price || 0;
+                  return (
+                    <label key={id} style={{
+                      display: 'flex', alignItems: 'center', gap: 8, padding: '6px 0',
+                      borderBottom: '1px solid #e0e3e5', cursor: 'pointer', fontSize: 13
+                    }}>
+                      <input type="checkbox" checked={selected}
+                        onChange={() => setImportSelected(prev => selected ? prev.filter(x => x !== id) : [...prev, id])}
+                        style={{ width: 16, height: 16, accentColor: '#f28c00', flexShrink: 0 }} />
+                      <img src={(() => {
+                        const k = Object.keys(p).find(k2 => /imagen|image|img|foto/i.test(k2));
+                        if (!k) return '';
+                        let v = p[k];
+                        if (typeof v === 'string' && v.startsWith('[')) try { v = JSON.parse(v)[0]; } catch {}
+                        return typeof v === 'string' && v.startsWith('http') ? v : '';
+                      })()} alt="" style={{ width: 32, height: 32, objectFit: 'cover', border: '2px solid #181c1e', flexShrink: 0, background: '#f1f4f6' }}
+                        onError={e => { e.target.style.display = 'none'; }} />
+                      <span style={{ flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', fontWeight: 600 }}>
+                        {name}
+                      </span>
+                      <span style={{ fontWeight: 600, color: '#554334', fontSize: 12, whiteSpace: 'nowrap' }}>
+                        ${Number(price).toLocaleString('es-CO', { minimumFractionDigits: 0 })}
+                      </span>
+                    </label>
+                  );
+                })}
+              </div>
+            </div>
+            <div style={{ padding: '12px 24px', borderTop: '2px solid #181c1e', display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
+              <span style={{ marginRight: 'auto', fontSize: 13, fontWeight: 700, color: '#554334', alignSelf: 'center' }}>
+                {importSelected.length} seleccionados
+              </span>
+              <button onClick={() => setShowImportModal(false)} style={{ ...S, background: '#ffffff', color: '#181c1e', minHeight: 44, padding: '0 20px', cursor: 'pointer', fontSize: 14, fontWeight: 700 }}>
+                Cancelar
+              </button>
+              <button onClick={handleImport} disabled={importSelected.length === 0 || importing} style={{ ...S, background: '#f28c00', color: '#181c1e', minHeight: 44, padding: '0 20px', cursor: 'pointer', fontSize: 14, fontWeight: 800, opacity: importSelected.length === 0 || importing ? 0.5 : 1 }}>
+                {importing ? 'Importando...' : `Importar ${importSelected.length}`}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {confirm && <ConfirmDialog message={confirm.message} onConfirm={confirm.onConfirm} onCancel={confirm.onCancel} />}
     </div>
