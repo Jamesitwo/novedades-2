@@ -16,7 +16,9 @@ export default function ConfiguracionPage() {
     empresa_logo: '', empresa_banco: '', empresa_tipo_cuenta: '', empresa_numero_cuenta: '', empresa_titular_cuenta: '',
     factura_terminos: '', factura_resolucion: '', factura_rango_desde: '', factura_rango_hasta: '',
     factura_vigencia: '', factura_pie_legal: '', factura_prefijo: '',
-    lucidsales_email: '', lucidsales_password: '', lucidsales_shop_id: '', lucidsales_activo: false
+    lucidsales_email: '', lucidsales_password: '', lucidsales_shop_id: '', lucidsales_activo: false,
+    lucidbot_activo: false, lucidbot_api_key: '', lucidbot_tag_name: '', lucidbot_flow_id: '',
+    lucidbot_field_values: []
   });
   const [operadores, setOperadores] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -88,7 +90,12 @@ export default function ConfiguracionPage() {
         factura_prefijo: config.factura_prefijo,
         lucidsales_email: config.lucidsales_email, lucidsales_password: config.lucidsales_password,
         lucidsales_shop_id: Number(config.lucidsales_shop_id) || null,
-        lucidsales_activo: config.lucidsales_activo
+        lucidsales_activo: config.lucidsales_activo,
+        lucidbot_activo: config.lucidbot_activo,
+        lucidbot_api_key: config.lucidbot_api_key,
+        lucidbot_tag_name: config.lucidbot_tag_name,
+        lucidbot_flow_id: config.lucidbot_flow_id ? Number(config.lucidbot_flow_id) : null,
+        lucidbot_field_values: config.lucidbot_field_values
       });
       showToast('Configuración guardada correctamente');
     } catch (error) {
@@ -463,6 +470,99 @@ export default function ConfiguracionPage() {
             El ID de la tienda se obtiene del <code style={{ background: 'var(--bg3)', padding: '1px 4px', borderRadius: 3 }}>idEmpresa</code> en la respuesta del login. 
             Es la tienda que quedará activa para gestionar pedidos.
           </p>
+        </div>
+      </div>
+
+      <div className="table-card" style={{ maxWidth: 700, marginTop: 16 }}>
+        <div className="table-header">
+          <span className="table-header-title">LucidBot</span>
+          <span style={{ fontSize: 11, color: 'var(--text3)' }}>Integración con panel.lucidbot.co</span>
+        </div>
+        <div style={{ padding: 20, display: 'grid', gap: 14 }}>
+          <label style={{ display: 'flex', alignItems: 'center', gap: 12, cursor: 'pointer' }}>
+            <div onClick={() => handleToggle('lucidbot_activo')} style={{
+              width: 48, height: 26, borderRadius: 13, background: config.lucidbot_activo ? 'var(--accent)' : 'var(--bg3)',
+              position: 'relative', transition: 'background 0.2s', cursor: 'pointer'
+            }}>
+              <div style={{ width: 22, height: 22, borderRadius: '50%', background: '#fff',
+                position: 'absolute', top: 2, left: config.lucidbot_activo ? 24 : 2,
+                transition: 'left 0.2s', boxShadow: '0 1px 3px rgba(0,0,0,0.3)' }} />
+            </div>
+            <span style={{ fontSize: 14 }}>Activar integración con LucidBot al comprar</span>
+          </label>
+          <p style={{ color: 'var(--text3)', fontSize: 12, marginTop: -6 }}>
+            Cuando un cliente confirme una compra, se enviarán sus datos a LucidBot como contacto.
+          </p>
+
+          <div className="form-group"><label>API Key (X-ACCESS-TOKEN)</label>
+            <input type="text" value={config.lucidbot_api_key} onChange={e => setConfig(prev => ({ ...prev, lucidbot_api_key: e.target.value }))}
+              placeholder="X-ACCESS-TOKEN de LucidBot" style={{ width: '100%' }} />
+          </div>
+
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
+            <div className="form-group"><label>Tag Name</label>
+              <input type="text" value={config.lucidbot_tag_name} onChange={e => setConfig(prev => ({ ...prev, lucidbot_tag_name: e.target.value }))}
+                placeholder="pizdo_compra" style={{ width: '100%' }} />
+            </div>
+            <div className="form-group"><label>Flow ID</label>
+              <input type="number" value={config.lucidbot_flow_id} onChange={e => setConfig(prev => ({ ...prev, lucidbot_flow_id: e.target.value }))}
+                placeholder="12345" style={{ width: '100%' }} />
+            </div>
+          </div>
+
+          <div className="form-group">
+            <label>Campos personalizados (field_name → value_from)</label>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 6, marginTop: 4 }}>
+              {(config.lucidbot_field_values || []).map((fv, i) => (
+                <div key={i} style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
+                  <input type="text" value={fv.field_name}
+                    onChange={e => {
+                      const next = [...(config.lucidbot_field_values || [])];
+                      next[i] = { ...next[i], field_name: e.target.value };
+                      setConfig(prev => ({ ...prev, lucidbot_field_values: next }));
+                    }}
+                    placeholder="field_name en LucidBot" style={{ flex: 1 }} />
+                  <span style={{ color: 'var(--text3)', fontSize: 12 }}>←</span>
+                  <select value={fv.value_from || ''}
+                    onChange={e => {
+                      const next = [...(config.lucidbot_field_values || [])];
+                      next[i] = { ...next[i], value_from: e.target.value };
+                      setConfig(prev => ({ ...prev, lucidbot_field_values: next }));
+                    }}
+                    style={{ flex: 1, background: 'var(--bg3)', border: '1px solid var(--border)', borderRadius: 8, padding: '6px 10px', color: 'var(--text)', fontSize: 13, cursor: 'pointer' }}>
+                    <option value="">Seleccionar dato...</option>
+                    <option value="producto">Producto</option>
+                    <option value="precio">Precio unitario</option>
+                    <option value="total">Total</option>
+                    <option value="nombre">Nombre</option>
+                    <option value="apellido">Apellido</option>
+                    <option value="celular">Celular</option>
+                    <option value="ciudad">Ciudad</option>
+                    <option value="direccion">Dirección</option>
+                    <option value="email">Email</option>
+                    <option value="notas">Notas</option>
+                    <option value="cantidad">Cantidad</option>
+                  </select>
+                  <button onClick={() => {
+                    const next = (config.lucidbot_field_values || []).filter((_, idx) => idx !== i);
+                    setConfig(prev => ({ ...prev, lucidbot_field_values: next }));
+                  }} style={{ background: 'none', border: 'none', color: 'var(--red)', cursor: 'pointer', fontSize: 16 }}>✕</button>
+                </div>
+              ))}
+              <button onClick={() => setConfig(prev => ({
+                ...prev,
+                lucidbot_field_values: [...(prev.lucidbot_field_values || []), { field_name: '', value_from: '' }]
+              }))} style={{
+                background: 'var(--bg3)', border: '1px dashed var(--border)', borderRadius: 8,
+                padding: '8px', color: 'var(--text2)', cursor: 'pointer', fontSize: 12
+              }}>
+                + Agregar campo
+              </button>
+            </div>
+            <p style={{ color: 'var(--text3)', fontSize: 11, marginTop: 4 }}>
+              Mapea los datos del formulario de compra a custom fields de LucidBot.
+            </p>
+          </div>
         </div>
       </div>
 

@@ -257,6 +257,62 @@ const procesarCompra = async (req, res) => {
       celular, ciudad, cantidad: cantidad || 1
     });
 
+    try {
+      const config = await prisma.configuracion.findFirst();
+      if (config?.lucidbot_activo && config?.lucidbot_api_key) {
+        const qty = parseInt(cantidad) || 1;
+        const precio = producto.ofertaActiva && producto.ofertaPrecio ? producto.ofertaPrecio : producto.precioVenta;
+
+        const actions = [
+          { action: "add_tag", tag_name: config.lucidbot_tag_name || "pizdo_compra" }
+        ];
+
+        const fieldValues = typeof config.lucidbot_field_values === 'string'
+          ? JSON.parse(config.lucidbot_field_values) : (config.lucidbot_field_values || []);
+        const valueMap = {
+          producto: producto.nombre,
+          precio: String(precio),
+          total: String(precio * qty),
+          nombre, apellido, celular, ciudad, direccion,
+          email: email || '',
+          notas: notas || '',
+          cantidad: String(qty)
+        };
+
+        fieldValues.forEach(fv => {
+          if (fv.value_from && valueMap[fv.value_from] !== undefined) {
+            actions.push({ action: "set_field_value", field_name: fv.field_name, value: valueMap[fv.value_from] });
+          }
+        });
+
+        if (config.lucidbot_flow_id) {
+          actions.push({ action: "send_flow", flow_id: config.lucidbot_flow_id });
+        }
+
+        const lucidbotBody = {
+          phone: celular,
+          email: email || '',
+          first_name: nombre,
+          last_name: apellido,
+          gender: "male",
+          actions
+        };
+
+        console.log('[LucidBot] Enviando contacto:', lucidbotBody.phone, lucidbotBody.first_name);
+
+        fetch('https://panel.lucidbot.co/api/contacts', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'X-ACCESS-TOKEN': config.lucidbot_api_key },
+          body: JSON.stringify(lucidbotBody)
+        })
+          .then(r => r.text())
+          .then(r => console.log('[LucidBot] Respuesta:', r.slice(0, 200)))
+          .catch(e => console.error('[LucidBot] Error:', e.message));
+      }
+    } catch (e) {
+      console.error('[LucidBot] Error preparando datos:', e.message);
+    }
+
     res.json({ ok: true, message: 'Pedido registrado correctamente. Te contactaremos pronto.' });
   } catch (error) {
     console.error('Procesar compra error:', error);

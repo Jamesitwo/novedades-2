@@ -33,7 +33,8 @@ const updateConfiguracion = async (req, res) => {
       empresa_logo, empresa_banco, empresa_tipo_cuenta, empresa_numero_cuenta, empresa_titular_cuenta,
       factura_terminos, factura_resolucion, factura_rango_desde, factura_rango_hasta, factura_vigencia,
       factura_pie_legal, factura_prefijo,
-      lucidsales_email, lucidsales_password, lucidsales_shop_id, lucidsales_activo } = req.body;
+      lucidsales_email, lucidsales_password, lucidsales_shop_id, lucidsales_activo,
+      lucidbot_activo, lucidbot_api_key, lucidbot_tag_name, lucidbot_flow_id, lucidbot_field_values } = req.body;
 
     let config = await prisma.configuracion.findFirst();
 
@@ -59,6 +60,11 @@ const updateConfiguracion = async (req, res) => {
     if (lucidsales_password !== undefined) extraData.lucidsales_password = lucidsales_password || null;
     if (lucidsales_shop_id !== undefined) extraData.lucidsales_shop_id = lucidsales_shop_id || null;
     if (lucidsales_activo !== undefined) extraData.lucidsales_activo = lucidsales_activo;
+    if (lucidbot_activo !== undefined) extraData.lucidbot_activo = lucidbot_activo;
+    if (lucidbot_api_key !== undefined) extraData.lucidbot_api_key = lucidbot_api_key || null;
+    if (lucidbot_tag_name !== undefined) extraData.lucidbot_tag_name = lucidbot_tag_name || null;
+    if (lucidbot_flow_id !== undefined) extraData.lucidbot_flow_id = lucidbot_flow_id || null;
+    if (lucidbot_field_values !== undefined) extraData.lucidbot_field_values = lucidbot_field_values || [];
 
     if (req.body.lucidsales_reset === true) {
       extraData.lucidsales_token = null;

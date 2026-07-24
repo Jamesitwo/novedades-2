@@ -269,6 +269,11 @@ model Configuracion {
   lucidsales_token          String?   @map("lucidsales_token")
   lucidsales_token_expires  DateTime? @map("lucidsales_token_expires")
   lucidsales_activo         Boolean   @default(false) @map("lucidsales_activo")
+  lucidbot_activo           Boolean   @default(false) @map("lucidbot_activo")
+  lucidbot_api_key          String?   @map("lucidbot_api_key")
+  lucidbot_tag_name         String?   @map("lucidbot_tag_name")
+  lucidbot_flow_id          Int?      @map("lucidbot_flow_id")
+  lucidbot_field_values     Json?     @default("[]") @map("lucidbot_field_values")
 }
 
 model ApiKey {
