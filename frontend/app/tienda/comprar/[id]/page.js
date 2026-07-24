@@ -262,7 +262,23 @@ export default function ComprarPage() {
                           <div style={{ fontSize: 12, fontWeight: 700, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{rp.nombre}</div>
                           <div style={{ fontSize: 14, fontWeight: 900, color: rp.ofertaActiva && rp.ofertaPrecio ? '#ba1a1a' : '#181c1e' }}>
                             {formatPrice(rpPrecio)}
-                          </div>
+                </div>
+                <div style={{ marginTop: 12 }}>
+                  {total >= 100000 ? (
+                    <div style={{ background: '#dcfce7', border: '2px solid #22c55e', padding: '10px 14px', fontSize: 14, fontWeight: 700, color: '#166534' }}>
+                      🚚 ¡Envío gratis! Tu pedido supera los $100,000
+                    </div>
+                  ) : (
+                    <div>
+                      <div style={{ fontSize: 12, fontWeight: 700, color: '#554334', marginBottom: 6 }}>
+                        🚚 Agrega {formatPrice(100000 - total)} más para envío gratis
+                      </div>
+                      <div style={{ height: 8, background: '#f1f4f6', border: '1px solid #181c1e' }}>
+                        <div style={{ height: '100%', background: '#f28c00', width: `${Math.min(100, (total / 100000) * 100)}%`, transition: 'width 0.3s' }} />
+                      </div>
+                    </div>
+                  )}
+                </div>
                         </div>
                         <span style={{ fontSize: 11, fontWeight: 700, color: '#f28c00', whiteSpace: 'nowrap', flexShrink: 0 }}>Agregar →</span>
                       </a>

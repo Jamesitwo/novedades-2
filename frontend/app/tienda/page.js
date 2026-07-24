@@ -435,6 +435,45 @@ export default function TiendaPage() {
       </section>
 
       {/* Social proof floating toasts */}
+      {/* RECENTLY VIEWED */}
+      {(() => {
+        try {
+          const vistos = JSON.parse(localStorage.getItem('pizdo_vistos') || '[]');
+          if (vistos.length === 0) return null;
+          const formatPrice = (n) => '$' + Number(n).toLocaleString('es-CO', { minimumFractionDigits: 0 });
+          return (
+            <section className="tienda-section" style={{ padding: 'clamp(28px, 8vw, 64px) 24px', background: '#f7fafc' }}>
+              <div style={{ maxWidth: 1280, margin: '0 auto' }}>
+                <h2 style={{ fontSize: 'clamp(20px, 5vw, 32px)', fontWeight: 700, marginBottom: 24, borderLeft: '6px solid #8d4f00', paddingLeft: 12 }}>
+                  👀 Viste recientemente
+                </h2>
+                <div style={{ display: 'flex', gap: 16, overflowX: 'auto', paddingBottom: 8 }}>
+                  {vistos.map(v => (
+                    <a key={v.id} href={`/tienda/${v.id}`} style={{
+                      minWidth: 180, maxWidth: 220, textDecoration: 'none', color: '#181c1e',
+                      background: '#ffffff', border: '2px solid #181c1e', boxShadow: '3px 3px 0px 0px #181c1e',
+                      display: 'flex', flexDirection: 'column', flexShrink: 0, transition: 'transform 0.1s'
+                    }}
+                    onMouseEnter={e => e.currentTarget.style.transform = 'translate(-1px, -1px)'}
+                    onMouseLeave={e => e.currentTarget.style.transform = 'none'}>
+                      {v.imagen ? (
+                        <img src={v.imagen} alt={v.nombre} style={{ width: '100%', height: 120, objectFit: 'cover', borderBottom: '2px solid #181c1e', background: '#f1f4f6' }}
+                          onError={e => { e.target.style.display = 'none'; }} />
+                      ) : (
+                        <div style={{ width: '100%', height: 120, background: '#f1f4f6', borderBottom: '2px solid #181c1e' }} />
+                      )}
+                      <div style={{ padding: 10, fontSize: 13, fontWeight: 700, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                        {v.nombre}
+                      </div>
+                    </a>
+                  ))}
+                </div>
+              </div>
+            </section>
+          );
+        } catch { return null; }
+      })()}
+
       {upsellProductId && <UpsellPopup productoId={upsellProductId} onClose={() => setUpsellProductId(null)} />}
 
       {proofEvents.map(evt => (

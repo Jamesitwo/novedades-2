@@ -1,6 +1,7 @@
 'use client';
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import WhatsAppButton from '../../components/tienda/WhatsAppButton';
 import '../globals.css';
 
 export default function TiendaLayout({ children }) {
@@ -105,6 +106,7 @@ export default function TiendaLayout({ children }) {
           © 2026 Pizdo Industrial Tools.
         </p>
       </footer>
+      <WhatsAppButton />
     </div>
   );
 }

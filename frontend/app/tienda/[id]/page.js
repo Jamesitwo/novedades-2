@@ -21,13 +21,24 @@ export default function ProductoDetallePage() {
   const [resenaSaving, setResenaSaving] = useState(false);
   const [resenaSuccess, setResenaSuccess] = useState(false);
   const [showUpsell, setShowUpsell] = useState(false);
+  const [viendoAhora] = useState(() => Math.floor(Math.random() * 4) + 1);
+  const [comprado24h, setComprado24h] = useState(0);
   const { usuario } = useAuthStore();
   const isAdmin = usuario?.rol === 'admin';
 
   useEffect(() => {
     if (!id) return;
     api.get(`/api/tienda/${id}`)
-      .then(({ data }) => setProducto(data))
+      .then(({ data }) => {
+        setProducto(data);
+        setComprado24h(data.ventasSimuladas > 10 ? Math.floor(data.ventasSimuladas * 0.15) : 1);
+        try {
+          const vistos = JSON.parse(localStorage.getItem('pizdo_vistos') || '[]');
+          const filtrado = vistos.filter(v => v.id !== id);
+          filtrado.unshift({ id, nombre: data.nombre || '', imagen: data.imagen || '' });
+          localStorage.setItem('pizdo_vistos', JSON.stringify(filtrado.slice(0, 4)));
+        } catch {}
+      })
       .catch(() => {})
       .finally(() => setLoading(false));
   }, [id]);
@@ -204,6 +215,28 @@ export default function ProductoDetallePage() {
               🔥 <strong>{producto.ventasSimuladas}</strong> personas ya compraron este producto
             </div>
           )}
+
+          <div style={{
+            display: 'flex', gap: 12, marginBottom: 16, flexWrap: 'wrap'
+          }}>
+            <div style={{
+              background: '#f1f4f6', border: '2px solid #181c1e',
+              padding: '8px 14px', fontSize: 13, fontWeight: 700, color: '#181c1e',
+              display: 'flex', alignItems: 'center', gap: 6
+            }}>
+              <span style={{
+                width: 8, height: 8, borderRadius: '50%', background: '#22c55e',
+                display: 'inline-block', animation: 'pulse 2s infinite'
+              }} />
+              {viendoAhora} {viendoAhora === 1 ? 'persona viendo' : 'personas viendo'} esto ahora
+            </div>
+            <div style={{
+              background: '#f1f4f6', border: '2px solid #181c1e',
+              padding: '8px 14px', fontSize: 13, fontWeight: 700, color: '#181c1e'
+            }}>
+              ⏰ {comprado24h} {comprado24h === 1 ? 'compra' : 'compras'} en las últimas 24h
+            </div>
+          </div>
 
           <button onClick={() => setShowUpsell(true)} style={{
             display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 12,
