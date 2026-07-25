@@ -21,6 +21,13 @@ export default function TiendaPage() {
   const [proofEvents, setProofEvents] = useState([]);
   const [error, setError] = useState('');
   const [upsellProductId, setUpsellProductId] = useState(null);
+  const [scrollY, setScrollY] = useState(0);
+
+  useEffect(() => {
+    const onScroll = () => setScrollY(window.scrollY);
+    window.addEventListener('scroll', onScroll, { passive: true });
+    return () => window.removeEventListener('scroll', onScroll);
+  }, []);
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
@@ -127,9 +134,23 @@ export default function TiendaPage() {
               Comprar ahora
             </a>
           </div>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', position: 'relative' }}>
             <img src="https://lh3.googleusercontent.com/aida-public/AB6AXuBcSsgYjIuTXU8W2IljOR6Ud-dcffWygOFaJpx_hWqJQxygTfsfQxGOqwtDK2U06gihO1Syx6_F67RAbS9DhatpSeTfDye1sJoQVnf1QFSHHm7LUuGtYUvZnG19WXiL26GWK8I5h9wCRr_GqzIDxkxbDzYzOss2ASMyAo4U6f95CTqp6v7w8frnovUHonUEYKyjF7TNy-Ey9nAtOeDLcgIPOyKN-q6fuPYRohnuHbnIt0R1sDToRAEOY59W2yE4ZZpBGpki8I5bmxQ"
-              alt="Pizdo Power Tools" style={{ width: '100%', maxWidth: 400, height: 'auto', objectFit: 'contain', filter: 'drop-shadow(0 20px 40px rgba(0,0,0,0.4))' }} />
+              alt="Pizdo Power Tools" style={{ width: '100%', maxWidth: 400, height: 'auto', objectFit: 'contain', filter: 'drop-shadow(0 20px 40px rgba(0,0,0,0.4))', transform: `translateY(${scrollY * 0.05}px)`, transition: 'transform 0.1s ease-out' }} />
+            <div style={{
+              position: 'absolute', bottom: 20, left: -10, background: '#fff', color: '#0b1c30',
+              padding: '10px 16px', borderRadius: 12, boxShadow: '0 8px 24px rgba(0,0,0,0.12)',
+              borderLeft: '4px solid #feb700', fontSize: 13, fontWeight: 700,
+              animation: 'float 3s ease-in-out infinite'
+            }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                <span style={{ fontSize: 16 }}>⭐</span>
+                <div>
+                  <div style={{ fontWeight: 800 }}>Garantía de 5 años</div>
+                  <div style={{ fontSize: 11, color: '#897362', fontWeight: 500 }}>En herramientas eléctricas</div>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </section>
