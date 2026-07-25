@@ -282,16 +282,16 @@ export default function TiendaAdminPage() {
   if (!initialized || !isAuthenticated || usuario?.rol !== 'admin') return null;
 
   return (
-    <div style={{ maxWidth: 1200, background: '#f7fafc', padding: '24px 24px 48px', minHeight: '100%', fontFamily: '"Inter", -apple-system, sans-serif', color: '#181c1e' }}>
+    <div style={{ maxWidth: 1200, background: '#f8f9ff', padding: '24px 24px 48px', minHeight: '100%', fontFamily: '"Inter", -apple-system, sans-serif', color: '#0b1c30' }}>
       <style dangerouslySetInnerHTML={{__html: `
-        .admin-input { background: #ffffff; border: 2px solid #181c1e; padding: 8px 14px; font-size: 16px; font-weight: 700; color: #181c1e; outline: none; border-radius: 0; font-family: 'Inter', sans-serif; }
-        .admin-input:focus { box-shadow: 0 0 0 3px #f28c00; }
-        .admin-btn { min-height: 44px; padding: 0 20px; font-size: 15px; font-weight: 700; cursor: pointer; border: 2px solid #181c1e; box-shadow: 3px 3px 0px 0px #181c1e; transition: all 0.1s; display: inline-flex; align-items: center; gap: 6px; border-radius: 0; font-family: 'Inter', sans-serif; }
-        .admin-btn:active { transform: translate(1px, 1px); box-shadow: 1px 1px 0px 0px #181c1e; }
+        .admin-input { background: #ffffff; border: 1px solid #E2E8F0; padding: 10px 14px; font-size: 15px; font-weight: 600; color: #0b1c30; outline: none; border-radius: 8px; font-family: 'Inter', sans-serif; }
+        .admin-input:focus { border-color: #ff8c00; box-shadow: 0 0 0 3px rgba(255,140,0,0.15); }
+        .admin-btn { min-height: 44px; padding: 0 20px; font-size: 14px; font-weight: 700; cursor: pointer; border: 1px solid #E2E8F0; box-shadow: 0 2px 4px rgba(0,0,0,0.06); transition: all 0.15s; display: inline-flex; align-items: center; gap: 6px; border-radius: 8px; font-family: 'Inter', sans-serif; background: #fff; color: #0b1c30; }
+        .admin-btn:hover { border-color: #ff8c00; box-shadow: 0 4px 8px rgba(0,0,0,0.08); }
         .admin-table { width: 100%; border-collapse: separate; border-spacing: 0; }
-        .admin-table th { background: #f1f4f6; border-bottom: 2px solid #181c1e; padding: 10px 12px; font-size: 12px; font-weight: 900; text-transform: uppercase; letter-spacing: 1px; color: #554334; text-align: left; white-space: nowrap; }
-        .admin-table td { padding: 10px 12px; border-bottom: 1px solid #e0e3e5; font-size: 14px; vertical-align: middle; }
-        .admin-table tr:hover td { background: #f1f4f6; }
+        .admin-table th { background: #eff4ff; border-bottom: 1px solid #E2E8F0; padding: 10px 14px; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; color: #564334; text-align: left; white-space: nowrap; }
+        .admin-table td { padding: 10px 14px; border-bottom: 1px solid #E2E8F0; font-size: 14px; vertical-align: middle; }
+        .admin-table tr:hover td { background: #eff4ff; }
         @media (max-width: 768px) { .admin-table th, .admin-table td { padding: 6px 8px; font-size: 12px; } }
       `}} />
 
@@ -299,8 +299,8 @@ export default function TiendaAdminPage() {
         <div style={{
           position: 'fixed', top: 20, right: 20, zIndex: 9999,
           background: toast.type === 'error' ? '#ba1a1a' : '#22c55e',
-          color: '#fff', padding: '12px 20px', fontSize: 15, fontWeight: 700,
-          border: '2px solid #181c1e', boxShadow: '4px 4px 0px 0px #181c1e',
+          color: '#fff', padding: '12px 20px', fontSize: 14, fontWeight: 600,
+          borderRadius: 12, boxShadow: '0 8px 24px rgba(0,0,0,0.12)',
           fontFamily: '"Inter", sans-serif'
         }}>
           {toast.message}
@@ -309,18 +309,18 @@ export default function TiendaAdminPage() {
 
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 24, flexWrap: 'wrap', gap: 12 }}>
         <div>
-          <h2 style={{ fontSize: 24, fontWeight: 900, color: '#181c1e', margin: '0 0 4px', borderLeft: '6px solid #f28c00', paddingLeft: 12 }}>
+          <h2 style={{ fontSize: 24, fontWeight: 800, color: '#0b1c30', margin: '0 0 4px', borderLeft: '4px solid #ff8c00', paddingLeft: 12 }}>
             Administrar Pizdo
           </h2>
-          <div style={{ fontSize: 13, color: '#887362', marginTop: 4 }}>
-            <a href="/tienda" target="_blank" style={{ color: '#f28c00', fontWeight: 700 }}>Ver tienda pública →</a>
+          <div style={{ fontSize: 13, color: '#897362', marginTop: 4, fontWeight: 500 }}>
+            <a href="/tienda" target="_blank" style={{ color: '#ff8c00', fontWeight: 600 }}>Ver tienda pública →</a>
             <span style={{ margin: '0 8px' }}>·</span>
             {totalRecords} productos
           </div>
         </div>
         <button onClick={() => openModal()} style={{
-          ...S, background: '#f28c00', color: '#181c1e', minHeight: 48, padding: '0 24px',
-          fontSize: 16, fontWeight: 800, cursor: 'pointer', whiteSpace: 'nowrap'
+          ...S, background: '#ff8c00', color: '#fff', minHeight: 48, padding: '0 24px',
+          fontSize: 15, fontWeight: 700, cursor: 'pointer', whiteSpace: 'nowrap', border: 'none'
         }}>
           + Nuevo producto
         </button>
@@ -338,14 +338,14 @@ export default function TiendaAdminPage() {
           },
           onCancel: () => setConfirm(null)
         })} style={{
-          ...S, background: '#ba1a1a', color: '#ffffff', minHeight: 48, padding: '0 24px',
-          fontSize: 14, fontWeight: 700, cursor: 'pointer', whiteSpace: 'nowrap', marginLeft: 8
+          ...S, background: '#ba1a1a', color: '#ffffff', minHeight: 48, padding: '0 24px', border: 'none',
+          fontSize: 14, fontWeight: 600, cursor: 'pointer', whiteSpace: 'nowrap', marginLeft: 8
         }}>
           🗑 Eliminar todos
         </button>
         <button onClick={openImportModal} style={{
-          ...S, background: '#3b82f6', color: '#ffffff', minHeight: 48, padding: '0 24px',
-          fontSize: 14, fontWeight: 700, cursor: 'pointer', whiteSpace: 'nowrap', marginLeft: 8
+          ...S, background: '#eff4ff', color: '#0b1c30', minHeight: 48, padding: '0 24px', border: '1px solid #E2E8F0',
+          fontSize: 14, fontWeight: 600, cursor: 'pointer', whiteSpace: 'nowrap', marginLeft: 8
         }}>
           📥 Importar LucidSales
         </button>
@@ -366,7 +366,7 @@ export default function TiendaAdminPage() {
           <option value="activo">Activos</option>
           <option value="inactivo">Inactivos</option>
         </select>
-        <div style={{ marginLeft: 'auto', fontSize: 13, color: '#887362', fontWeight: 700 }}>
+        <div style={{ marginLeft: 'auto', fontSize: 13, color: '#897362', fontWeight: 700 }}>
           Página {page} de {totalPages}
         </div>
       </div>
@@ -374,27 +374,27 @@ export default function TiendaAdminPage() {
       {selected.length > 0 && (
         <div style={{
           display: 'flex', alignItems: 'center', gap: 8, padding: '10px 16px', marginBottom: 12,
-          background: '#ffdcc0', border: '2px solid #f28c00', boxShadow: '3px 3px 0px 0px #181c1e',
+          background: '#ffdcc0', border: '1px solid #ff8c00', boxShadow: '0 2px 4px rgba(0,0,0,0.06)',
           fontSize: 14, fontWeight: 700
         }}>
           <span>{selected.length} seleccionados</span>
           <button onClick={() => bulkToggleActivo(true)} style={{ ...S, background: '#22c55e', color: '#fff', fontSize: 12, padding: '4px 12px', minHeight: 32, cursor: 'pointer' }}>Activar</button>
           <button onClick={() => bulkToggleActivo(false)} style={{ ...S, background: '#ba1a1a', color: '#fff', fontSize: 12, padding: '4px 12px', minHeight: 32, cursor: 'pointer' }}>Desactivar</button>
-          <button onClick={bulkDelete} style={{ ...S, background: '#181c1e', color: '#ffb875', fontSize: 12, padding: '4px 12px', minHeight: 32, cursor: 'pointer' }}>Eliminar</button>
+          <button onClick={bulkDelete} style={{ ...S, background: '#0b1c30', color: '#ffb77d', fontSize: 12, padding: '4px 12px', minHeight: 32, cursor: 'pointer' }}>Eliminar</button>
           <button onClick={() => setSelected([])} style={{ marginLeft: 'auto', background: 'none', border: 'none', cursor: 'pointer', fontSize: 16 }}>✕</button>
         </div>
       )}
 
       {loading ? (
-        <div style={{ textAlign: 'center', padding: 48, fontSize: 16, fontWeight: 700, color: '#887362' }}>Cargando...</div>
+        <div style={{ textAlign: 'center', padding: 48, fontSize: 16, fontWeight: 700, color: '#897362' }}>Cargando...</div>
       ) : (
-        <div style={{ background: '#ffffff', border: '2px solid #181c1e', boxShadow: '4px 4px 0px 0px #181c1e', overflow: 'auto' }}>
+        <div style={{ background: '#ffffff', border: '1px solid #E2E8F0', boxShadow: '0 8px 24px rgba(0,0,0,0.10)', overflow: 'auto' }}>
           <table className="admin-table">
             <thead>
               <tr>
                 <th style={{ width: 40, textAlign: 'center' }}>
                   <input type="checkbox" checked={selected.length === productos.length && productos.length > 0}
-                    onChange={toggleSelectAll} style={{ width: 18, height: 18, cursor: 'pointer', accentColor: '#f28c00' }} />
+                    onChange={toggleSelectAll} style={{ width: 18, height: 18, cursor: 'pointer', accentColor: '#ff8c00' }} />
                 </th>
                 <th style={{ width: 56 }}>Img</th>
                 <th>Nombre</th>
@@ -409,35 +409,35 @@ export default function TiendaAdminPage() {
             </thead>
             <tbody>
               {productos.length === 0 ? (
-                <tr><td colSpan={10} style={{ textAlign: 'center', padding: 40, color: '#887362', fontSize: 15, fontWeight: 700 }}>No se encontraron productos</td></tr>
+                <tr><td colSpan={10} style={{ textAlign: 'center', padding: 40, color: '#897362', fontSize: 15, fontWeight: 700 }}>No se encontraron productos</td></tr>
               ) : (
                 productos.map(p => (
                   <tr key={p.id} style={{ opacity: p.activo ? 1 : 0.45 }}>
                     <td style={{ textAlign: 'center' }}>
                       <input type="checkbox" checked={selected.includes(p.id)}
-                        onChange={() => toggleSelect(p.id)} style={{ width: 18, height: 18, cursor: 'pointer', accentColor: '#f28c00' }} />
+                        onChange={() => toggleSelect(p.id)} style={{ width: 18, height: 18, cursor: 'pointer', accentColor: '#ff8c00' }} />
                     </td>
                     <td>
                       {p.imagen ? (
-                        <img src={p.imagen} alt="" style={{ width: 44, height: 44, objectFit: 'cover', border: '2px solid #181c1e', background: '#f1f4f6' }}
+                        <img src={p.imagen} alt="" style={{ width: 44, height: 44, objectFit: 'cover', border: '1px solid #E2E8F0', background: '#eff4ff' }}
                           onError={e => { e.target.outerHTML = '<div style="width:44px;height:44px;border:2px solid #181c1e;background:#f1f4f6"></div>'; }} />
                       ) : (
-                        <div style={{ width: 44, height: 44, border: '2px solid #181c1e', background: '#f1f4f6' }} />
+                        <div style={{ width: 44, height: 44, border: '1px solid #E2E8F0', background: '#eff4ff' }} />
                       )}
                     </td>
                     <td style={{ fontWeight: 700 }}>
-                      <button onClick={() => openModal(p)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#181c1e', fontWeight: 700, fontSize: 14, textAlign: 'left', padding: 0, textDecoration: 'underline', textDecorationColor: '#f28c00', textUnderlineOffset: 3 }}>
+                      <button onClick={() => openModal(p)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#0b1c30', fontWeight: 700, fontSize: 14, textAlign: 'left', padding: 0, textDecoration: 'underline', textDecorationColor: '#ff8c00', textUnderlineOffset: 3 }}>
                         {p.nombre}
                       </button>
-                      {p.descripcion && <div style={{ fontSize: 12, color: '#887362', maxWidth: 220, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', marginTop: 2 }}>{p.descripcion}</div>}
+                      {p.descripcion && <div style={{ fontSize: 12, color: '#897362', maxWidth: 220, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', marginTop: 2 }}>{p.descripcion}</div>}
                     </td>
-                    <td><span style={{ fontSize: 12, fontWeight: 700, color: '#f28c00', textTransform: 'uppercase', letterSpacing: 1 }}>{p.categoria}</span></td>
+                    <td><span style={{ fontSize: 12, fontWeight: 700, color: '#ff8c00', textTransform: 'uppercase', letterSpacing: 1 }}>{p.categoria}</span></td>
                     <td style={{ fontWeight: 700, fontFamily: 'monospace' }}>
                       {p.ofertaActiva && p.ofertaPrecio ? (
                         <>
                           <span style={{ color: '#ba1a1a' }}>{formatPrice(p.ofertaPrecio)}</span>
                           <br />
-                          <span style={{ textDecoration: 'line-through', color: '#887362', fontSize: 11 }}>{formatPrice(p.precioVenta)}</span>
+                          <span style={{ textDecoration: 'line-through', color: '#897362', fontSize: 11 }}>{formatPrice(p.precioVenta)}</span>
                         </>
                       ) : formatPrice(p.precioVenta)}
                     </td>
@@ -446,28 +446,28 @@ export default function TiendaAdminPage() {
                         <span style={{ color: '#ba1a1a', fontSize: 12, fontWeight: 700 }}>
                           {p.ofertaHasta ? new Date(p.ofertaHasta).toLocaleDateString('es-CO') : 'Activa'}
                         </span>
-                      ) : <span style={{ color: '#887362', fontSize: 12 }}>—</span>}
+                      ) : <span style={{ color: '#897362', fontSize: 12 }}>—</span>}
                     </td>
-                    <td style={{ textAlign: 'center', fontWeight: 700, fontFamily: 'monospace', color: p.stock <= 5 ? '#ba1a1a' : '#181c1e' }}>
+                    <td style={{ textAlign: 'center', fontWeight: 700, fontFamily: 'monospace', color: p.stock <= 5 ? '#ba1a1a' : '#0b1c30' }}>
                       {p.stock}
                     </td>
                     <td style={{ textAlign: 'center' }}>
                       <button onClick={() => handleToggleDestacado(p.id, p.destacado)} style={{
                         background: 'none', border: 'none', cursor: 'pointer', fontSize: 22,
-                        color: p.destacado ? '#f28c00' : '#e0e3e5'
+                        color: p.destacado ? '#ff8c00' : '#E2E8F0'
                       }}>{p.destacado ? '★' : '☆'}</button>
                     </td>
                     <td style={{ textAlign: 'center' }}>
                       <button onClick={() => handleToggleActivo(p.id)} style={{
                         minWidth: 44, height: 32, fontWeight: 800, fontSize: 12, cursor: 'pointer',
-                        border: '2px solid #181c1e', background: p.activo ? '#22c55e' : '#ba1a1a', color: '#fff',
-                        boxShadow: '2px 2px 0px 0px #181c1e'
+                        border: '1px solid #E2E8F0', background: p.activo ? '#22c55e' : '#ba1a1a', color: '#fff',
+                        boxShadow: '0 2px 4px rgba(0,0,0,0.06)'
                       }}>{p.activo ? 'ON' : 'OFF'}</button>
                     </td>
                     <td>
                       <div style={{ display: 'flex', gap: 4 }}>
-                        <button onClick={(e) => { e.stopPropagation(); openModal(p); }} style={{ ...S, background: '#f28c00', color: '#181c1e', fontSize: 11, padding: '3px 10px', minHeight: 30, cursor: 'pointer' }}>Editar</button>
-                        <button onClick={(e) => duplicateProduct(p, e)} style={{ ...S, background: '#ffffff', color: '#181c1e', fontSize: 11, padding: '3px 8px', minHeight: 30, cursor: 'pointer' }} title="Duplicar">📋</button>
+                        <button onClick={(e) => { e.stopPropagation(); openModal(p); }} style={{ ...S, background: '#ff8c00', color: '#0b1c30', fontSize: 11, padding: '3px 10px', minHeight: 30, cursor: 'pointer' }}>Editar</button>
+                        <button onClick={(e) => duplicateProduct(p, e)} style={{ ...S, background: '#ffffff', color: '#0b1c30', fontSize: 11, padding: '3px 8px', minHeight: 30, cursor: 'pointer' }} title="Duplicar">📋</button>
                         <button onClick={() => handleDelete(p)} style={{ ...S, background: '#ba1a1a', color: '#fff', fontSize: 11, padding: '3px 8px', minHeight: 30, cursor: 'pointer' }}>✕</button>
                       </div>
                     </td>
@@ -481,21 +481,21 @@ export default function TiendaAdminPage() {
 
       {totalPages > 1 && (
         <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: 8, marginTop: 20 }}>
-          <button disabled={page <= 1} onClick={() => setPage(p => p - 1)} style={{ ...S, background: page <= 1 ? '#f1f4f6' : '#ffffff', color: '#181c1e', opacity: page <= 1 ? 0.4 : 1, fontSize: 14, padding: '6px 16px', minHeight: 40, cursor: 'pointer' }}>
+          <button disabled={page <= 1} onClick={() => setPage(p => p - 1)} style={{ ...S, background: page <= 1 ? '#eff4ff' : '#ffffff', color: '#0b1c30', opacity: page <= 1 ? 0.4 : 1, fontSize: 14, padding: '6px 16px', minHeight: 40, cursor: 'pointer' }}>
             ← Anterior
           </button>
           {Array.from({ length: totalPages }, (_, i) => i + 1).filter(p => p === 1 || p === totalPages || Math.abs(p - page) <= 1).map((p, idx, arr) => (
             <span key={p}>
-              {idx > 0 && arr[idx - 1] !== p - 1 && <span style={{ color: '#887362', margin: '0 4px' }}>…</span>}
+              {idx > 0 && arr[idx - 1] !== p - 1 && <span style={{ color: '#897362', margin: '0 4px' }}>…</span>}
               <button onClick={() => setPage(p)} style={{
                 minWidth: 40, height: 40, fontWeight: 800, fontSize: 14, cursor: 'pointer',
-                border: '2px solid #181c1e', background: p === page ? '#f28c00' : '#ffffff',
-                color: p === page ? '#181c1e' : '#554334',
-                boxShadow: p === page ? '2px 2px 0px 0px #181c1e' : 'none'
+                border: '1px solid #E2E8F0', background: p === page ? '#ff8c00' : '#ffffff',
+                color: p === page ? '#0b1c30' : '#564334',
+                boxShadow: p === page ? '0 2px 4px rgba(0,0,0,0.06)' : 'none'
               }}>{p}</button>
             </span>
           ))}
-          <button disabled={page >= totalPages} onClick={() => setPage(p => p + 1)} style={{ ...S, background: page >= totalPages ? '#f1f4f6' : '#ffffff', color: '#181c1e', opacity: page >= totalPages ? 0.4 : 1, fontSize: 14, padding: '6px 16px', minHeight: 40, cursor: 'pointer' }}>
+          <button disabled={page >= totalPages} onClick={() => setPage(p => p + 1)} style={{ ...S, background: page >= totalPages ? '#eff4ff' : '#ffffff', color: '#0b1c30', opacity: page >= totalPages ? 0.4 : 1, fontSize: 14, padding: '6px 16px', minHeight: 40, cursor: 'pointer' }}>
             Siguiente →
           </button>
         </div>
@@ -505,29 +505,29 @@ export default function TiendaAdminPage() {
         <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.7)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 10000, padding: 16 }}
           onClick={() => setShowModal(false)}>
           <div style={{
-            background: '#ffffff', border: '2px solid #181c1e', boxShadow: '8px 8px 0px 0px #181c1e',
+            background: '#ffffff', border: '1px solid #E2E8F0', boxShadow: '0 16px 40px rgba(0,0,0,0.15)',
             width: 'min(900px, 96vw)', maxHeight: '92vh', overflow: 'auto'
           }} onClick={e => e.stopPropagation()}>
             <div style={{
-              padding: '20px 28px', borderBottom: '2px solid #181c1e', fontWeight: 800, fontSize: 20, color: '#181c1e',
-              background: '#f1f4f6', display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+              padding: '20px 28px', borderBottom: '1px solid #E2E8F0', fontWeight: 800, fontSize: 20, color: '#0b1c30',
+              background: '#eff4ff', display: 'flex', justifyContent: 'space-between', alignItems: 'center',
               position: 'sticky', top: 0, zIndex: 1
             }}>
               {editando ? 'Editar producto' : 'Nuevo producto'}
-              <button onClick={() => setShowModal(false)} style={{ background: 'none', border: 'none', fontSize: 24, cursor: 'pointer', color: '#181c1e' }}>✕</button>
+              <button onClick={() => setShowModal(false)} style={{ background: 'none', border: 'none', fontSize: 24, cursor: 'pointer', color: '#0b1c30' }}>✕</button>
             </div>
 
             <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 0.8fr', gap: 0 }}>
               <form onSubmit={handleSave} style={{ padding: '28px 28px', display: 'flex', flexDirection: 'column', gap: 16 }}>
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: 16 }}>
-                  <label style={{ fontSize: 13, fontWeight: 900, color: '#554334', textTransform: 'uppercase', letterSpacing: 1 }}>
+                  <label style={{ fontSize: 13, fontWeight: 900, color: '#564334', textTransform: 'uppercase', letterSpacing: 1 }}>
                     Nombre *
                     <input className="admin-input" value={form.nombre} onChange={e => setForm({...form, nombre: e.target.value})} required
                       style={{ width: '100%', marginTop: 6, padding: '10px 14px', fontSize: 16 }} />
                   </label>
                 </div>
                 <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: 14 }}>
-                  <label style={{ fontSize: 13, fontWeight: 900, color: '#554334', textTransform: 'uppercase', letterSpacing: 1 }}>
+                  <label style={{ fontSize: 13, fontWeight: 900, color: '#564334', textTransform: 'uppercase', letterSpacing: 1 }}>
                     Categoría *
                     <div style={{ display: 'flex', gap: 4, marginTop: 6 }}>
                       <select className="admin-input" value={form.categoria}
@@ -543,52 +543,52 @@ export default function TiendaAdminPage() {
                         placeholder="Escribe la nueva categoría" style={{ width: '100%', marginTop: 6 }} />
                     )}
                   </label>
-                  <label style={{ fontSize: 13, fontWeight: 900, color: '#554334', textTransform: 'uppercase', letterSpacing: 1 }}>
+                  <label style={{ fontSize: 13, fontWeight: 900, color: '#564334', textTransform: 'uppercase', letterSpacing: 1 }}>
                     Stock
                     <input type="number" min="0" className="admin-input" value={form.stock}
                       onChange={e => setForm({...form, stock: parseInt(e.target.value) || 0})} style={{ width: '100%', marginTop: 6 }} />
                   </label>
                 </div>
-                <label style={{ fontSize: 13, fontWeight: 900, color: '#554334', textTransform: 'uppercase', letterSpacing: 1 }}>
+                <label style={{ fontSize: 13, fontWeight: 900, color: '#564334', textTransform: 'uppercase', letterSpacing: 1 }}>
                   Descripción
                   <textarea className="admin-input" value={form.descripcion} onChange={e => setForm({...form, descripcion: e.target.value})} rows={3}
                     style={{ width: '100%', marginTop: 6, resize: 'vertical', fontFamily: 'Inter, sans-serif', padding: '10px 14px' }} />
                 </label>
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 14 }}>
-                  <label style={{ fontSize: 13, fontWeight: 900, color: '#554334', textTransform: 'uppercase', letterSpacing: 1 }}>
+                  <label style={{ fontSize: 13, fontWeight: 900, color: '#564334', textTransform: 'uppercase', letterSpacing: 1 }}>
                     Precio *
                     <input type="number" min="0" className="admin-input" value={form.precioVenta}
                       onChange={e => setForm({...form, precioVenta: parseFloat(e.target.value) || 0})} required style={{ width: '100%', marginTop: 6 }} />
                   </label>
-                  <label style={{ fontSize: 13, fontWeight: 900, color: '#554334', textTransform: 'uppercase', letterSpacing: 1 }}>
+                  <label style={{ fontSize: 13, fontWeight: 900, color: '#564334', textTransform: 'uppercase', letterSpacing: 1 }}>
                     Costo proveedor
                     <input type="number" min="0" className="admin-input" value={form.precioProveedor}
                       onChange={e => setForm({...form, precioProveedor: parseFloat(e.target.value) || 0})} style={{ width: '100%', marginTop: 6 }} />
                   </label>
-                  <label style={{ fontSize: 13, fontWeight: 900, color: '#554334', textTransform: 'uppercase', letterSpacing: 1 }}>
+                  <label style={{ fontSize: 13, fontWeight: 900, color: '#564334', textTransform: 'uppercase', letterSpacing: 1 }}>
                     Ventas simuladas
                     <input type="number" min="0" className="admin-input" value={form.ventasSimuladas}
                       onChange={e => setForm({...form, ventasSimuladas: parseInt(e.target.value) || 0})} style={{ width: '100%', marginTop: 6 }} />
                   </label>
                 </div>
-                <label style={{ fontSize: 13, fontWeight: 900, color: '#554334', textTransform: 'uppercase', letterSpacing: 1 }}>
+                <label style={{ fontSize: 13, fontWeight: 900, color: '#564334', textTransform: 'uppercase', letterSpacing: 1 }}>
                   Imagen principal (URL)
                   <input className="admin-input" value={form.imagen} onChange={e => setForm({...form, imagen: e.target.value})}
                     placeholder="https://..." style={{ width: '100%', marginTop: 6 }} />
                 </label>
-                <label style={{ fontSize: 13, fontWeight: 900, color: '#554334', textTransform: 'uppercase', letterSpacing: 1 }}>
+                <label style={{ fontSize: 13, fontWeight: 900, color: '#564334', textTransform: 'uppercase', letterSpacing: 1 }}>
                   Link de compra
                   <input className="admin-input" value={form.linkCompra} onChange={e => setForm({...form, linkCompra: e.target.value})}
                     placeholder="https://..." style={{ width: '100%', marginTop: 6 }} />
                 </label>
-                <label style={{ fontSize: 13, fontWeight: 900, color: '#554334', textTransform: 'uppercase', letterSpacing: 1 }}>
+                <label style={{ fontSize: 13, fontWeight: 900, color: '#564334', textTransform: 'uppercase', letterSpacing: 1 }}>
                   Más imágenes (una URL por línea)
                   <textarea className="admin-input" value={form.imagenes} onChange={e => setForm({...form, imagenes: e.target.value})} rows={3}
                     placeholder="https://..." style={{ width: '100%', marginTop: 6, resize: 'vertical', fontFamily: 'Inter, sans-serif' }} />
                 </label>
 
-                <div style={{ background: '#f1f4f6', border: '2px solid #181c1e', padding: 18 }}>
-                  <div style={{ fontSize: 13, fontWeight: 900, color: '#554334', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 10 }}>
+                <div style={{ background: '#eff4ff', border: '1px solid #E2E8F0', padding: 18 }}>
+                  <div style={{ fontSize: 13, fontWeight: 900, color: '#564334', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 10 }}>
                     🔗 Upsell (productos relacionados)
                   </div>
                   <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
@@ -602,9 +602,9 @@ export default function TiendaAdminPage() {
                           }));
                         }} style={{
                           padding: '4px 10px', fontSize: 12, fontWeight: 700, cursor: 'pointer',
-                          border: '2px solid #181c1e', background: selected ? '#f28c00' : '#ffffff',
-                          color: selected ? '#181c1e' : '#554334',
-                          boxShadow: selected ? '2px 2px 0px 0px #181c1e' : 'none',
+                          border: '1px solid #E2E8F0', background: selected ? '#ff8c00' : '#ffffff',
+                          color: selected ? '#0b1c30' : '#564334',
+                          boxShadow: selected ? '0 2px 4px rgba(0,0,0,0.06)' : 'none',
                           whiteSpace: 'nowrap'
                         }}>
                           {selected ? '✓ ' : ''}{ap.nombre}
@@ -612,24 +612,24 @@ export default function TiendaAdminPage() {
                       );
                     })}
                     {allProducts.filter(a => a.id !== (editando?.id || '')).length === 0 && (
-                      <span style={{ fontSize: 12, color: '#887362' }}>Cargando productos...</span>
+                      <span style={{ fontSize: 12, color: '#897362' }}>Cargando productos...</span>
                     )}
                   </div>
-                  <div style={{ fontSize: 11, color: '#887362', marginTop: 6 }}>
+                  <div style={{ fontSize: 11, color: '#897362', marginTop: 6 }}>
                     Selecciona productos que aparecerán como "También te puede interesar". Si no seleccionas ninguno, se muestran productos de la misma categoría.
                   </div>
                 </div>
 
-                <div style={{ background: '#f1f4f6', border: '2px solid #181c1e', padding: 18, marginTop: 4 }}>
+                <div style={{ background: '#eff4ff', border: '1px solid #E2E8F0', padding: 18, marginTop: 4 }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 24, marginBottom: form.ofertaActiva ? 14 : 0 }}>
-                    <label style={{ display: 'flex', alignItems: 'center', gap: 10, fontSize: 15, fontWeight: 700, color: '#181c1e', cursor: 'pointer' }}>
+                    <label style={{ display: 'flex', alignItems: 'center', gap: 10, fontSize: 15, fontWeight: 700, color: '#0b1c30', cursor: 'pointer' }}>
                       <input type="checkbox" checked={form.ofertaActiva} onChange={e => setForm({...form, ofertaActiva: e.target.checked})}
                         style={{ width: 22, height: 22, accentColor: '#ba1a1a', cursor: 'pointer' }} />
                       🔥 Oferta activa
                     </label>
-                    <label style={{ display: 'flex', alignItems: 'center', gap: 10, fontSize: 15, fontWeight: 700, color: '#181c1e', cursor: 'pointer' }}>
+                    <label style={{ display: 'flex', alignItems: 'center', gap: 10, fontSize: 15, fontWeight: 700, color: '#0b1c30', cursor: 'pointer' }}>
                       <input type="checkbox" checked={form.destacado} onChange={e => setForm({...form, destacado: e.target.checked})}
-                        style={{ width: 22, height: 22, accentColor: '#f28c00', cursor: 'pointer' }} />
+                        style={{ width: 22, height: 22, accentColor: '#ff8c00', cursor: 'pointer' }} />
                       ⭐ Destacado
                     </label>
                   </div>
@@ -652,10 +652,10 @@ export default function TiendaAdminPage() {
                 </div>
 
                 <div style={{ display: 'flex', gap: 12, justifyContent: 'flex-end', marginTop: 14 }}>
-                  <button type="button" onClick={() => setShowModal(false)} style={{ ...S, background: '#ffffff', color: '#181c1e', minHeight: 52, padding: '0 32px', cursor: 'pointer', fontSize: 16, fontWeight: 700 }}>
+                  <button type="button" onClick={() => setShowModal(false)} style={{ ...S, background: '#ffffff', color: '#0b1c30', minHeight: 52, padding: '0 32px', cursor: 'pointer', fontSize: 16, fontWeight: 700 }}>
                     Cancelar
                   </button>
-                  <button type="submit" disabled={saving} style={{ ...S, background: '#f28c00', color: '#181c1e', minHeight: 52, padding: '0 32px', cursor: 'pointer', fontSize: 16, fontWeight: 800, opacity: saving ? 0.6 : 1 }}>
+                  <button type="submit" disabled={saving} style={{ ...S, background: '#ff8c00', color: '#0b1c30', minHeight: 52, padding: '0 32px', cursor: 'pointer', fontSize: 16, fontWeight: 800, opacity: saving ? 0.6 : 1 }}>
                     {saving ? 'Guardando...' : 'Guardar'}
                   </button>
                 </div>
@@ -663,34 +663,34 @@ export default function TiendaAdminPage() {
 
               {/* PREVIEW */}
               <div style={{ padding: '28px 28px 28px 20px', borderLeft: '1px solid #e0e3e5', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
-                <div style={{ fontSize: 13, fontWeight: 900, color: '#554334', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 16 }}>
+                <div style={{ fontSize: 13, fontWeight: 900, color: '#564334', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 16 }}>
                   Vista previa
                 </div>
                 <div style={{
-                  border: '2px solid #181c1e', boxShadow: '3px 3px 0px 0px #181c1e',
+                  border: '1px solid #E2E8F0', boxShadow: '0 2px 4px rgba(0,0,0,0.06)',
                   background: '#ffffff', fontSize: 13
                 }}>
-                  <div style={{ height: 160, overflow: 'hidden', borderBottom: '2px solid #181c1e', background: '#f1f4f6' }}>
+                  <div style={{ height: 160, overflow: 'hidden', borderBottom: '1px solid #E2E8F0', background: '#eff4ff' }}>
                     {form.imagen ? (
                       <img src={form.imagen} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }}
                         onError={e => { e.target.outerHTML = '<div style="width:100%;height:100%;background:#f1f4f6;display:flex;align-items:center;justify-content:center;color:#887362;font-size:13px;font-weight:700">Sin imagen</div>'; }} />
                     ) : (
-                      <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#887362', fontSize: 13, fontWeight: 700 }}>Sin imagen</div>
+                      <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#897362', fontSize: 13, fontWeight: 700 }}>Sin imagen</div>
                     )}
                   </div>
                   <div style={{ padding: 14 }}>
-                    <span style={{ fontSize: 11, fontWeight: 900, color: '#f28c00', textTransform: 'uppercase', letterSpacing: 2 }}>
+                    <span style={{ fontSize: 11, fontWeight: 900, color: '#ff8c00', textTransform: 'uppercase', letterSpacing: 2 }}>
                       {form.categoria === '__new__' ? newCategory || 'Sin categoría' : form.categoria || 'Sin categoría'}
                     </span>
-                    <div style={{ fontSize: 14, fontWeight: 700, margin: '6px 0', color: '#181c1e' }}>{form.nombre || 'Nombre del producto'}</div>
+                    <div style={{ fontSize: 14, fontWeight: 700, margin: '6px 0', color: '#0b1c30' }}>{form.nombre || 'Nombre del producto'}</div>
                     <div style={{ display: 'flex', alignItems: 'baseline', gap: 8 }}>
                       {hasOferta ? (
                         <>
                           <span style={{ fontSize: 20, fontWeight: 900, color: '#ba1a1a' }}>{formatPrice(form.ofertaPrecio)}</span>
-                          <span style={{ fontSize: 14, color: '#887362', textDecoration: 'line-through' }}>{formatPrice(form.precioVenta)}</span>
+                          <span style={{ fontSize: 14, color: '#897362', textDecoration: 'line-through' }}>{formatPrice(form.precioVenta)}</span>
                         </>
                       ) : (
-                        <span style={{ fontSize: 20, fontWeight: 900, color: '#181c1e' }}>{formatPrice(form.precioVenta)}</span>
+                        <span style={{ fontSize: 20, fontWeight: 900, color: '#0b1c30' }}>{formatPrice(form.precioVenta)}</span>
                       )}
                     </div>
                     {form.ventasSimuladas > 0 && (
@@ -700,15 +700,15 @@ export default function TiendaAdminPage() {
                     )}
                     {hasOferta && form.ofertaPrecio > 0 && (
                       <div style={{
-                        fontSize: 11, fontWeight: 900, color: '#181c1e', background: '#f28c00',
-                        padding: '4px 10px', border: '2px solid #181c1e', marginTop: 8, display: 'inline-block'
+                        fontSize: 11, fontWeight: 900, color: '#0b1c30', background: '#ff8c00',
+                        padding: '4px 10px', border: '1px solid #E2E8F0', marginTop: 8, display: 'inline-block'
                       }}>
                         -{Math.round((1 - form.ofertaPrecio / (form.precioVenta || 1)) * 100)}% OFF
                       </div>
                     )}
                     <button style={{
-                      width: '100%', minHeight: 36, background: '#f28c00', color: '#181c1e',
-                      border: '2px solid #181c1e', fontSize: 14, fontWeight: 800, cursor: 'pointer', marginTop: 10
+                      width: '100%', minHeight: 36, background: '#ff8c00', color: '#0b1c30',
+                      border: '1px solid #E2E8F0', fontSize: 14, fontWeight: 800, cursor: 'pointer', marginTop: 10
                     }}>
                       🛒 Comprar
                     </button>
@@ -720,20 +720,20 @@ export default function TiendaAdminPage() {
         </div>
       )}
 
-      <div style={{ marginTop: 40, background: '#ffffff', border: '2px solid #181c1e', boxShadow: '4px 4px 0px 0px #181c1e', padding: 28 }}>
+      <div style={{ marginTop: 40, background: '#ffffff', border: '1px solid #E2E8F0', boxShadow: '0 8px 24px rgba(0,0,0,0.10)', padding: 28 }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
           <div>
-            <h3 style={{ fontSize: 20, fontWeight: 900, color: '#181c1e', margin: '0 0 4px', borderLeft: '5px solid #f28c00', paddingLeft: 10 }}>
+            <h3 style={{ fontSize: 20, fontWeight: 900, color: '#0b1c30', margin: '0 0 4px', borderLeft: '4px solid #ff8c00', paddingLeft: 10 }}>
               🤖 LucidBot
             </h3>
-            <span style={{ fontSize: 12, color: '#887362' }}>Integración con panel.lucidbot.co al confirmar una compra</span>
+            <span style={{ fontSize: 12, color: '#897362' }}>Integración con panel.lucidbot.co al confirmar una compra</span>
           </div>
         </div>
 
         <div style={{ display: 'grid', gap: 14, maxWidth: 600 }}>
           <label style={{ display: 'flex', alignItems: 'center', gap: 12, cursor: 'pointer' }}>
             <div onClick={() => setLucidbotConfig(prev => ({ ...prev, activo: !prev.activo }))} style={{
-              width: 44, height: 24, borderRadius: 12, background: lucidbotConfig.activo ? '#22c55e' : '#e0e3e5',
+              width: 44, height: 24, borderRadius: 12, background: lucidbotConfig.activo ? '#22c55e' : '#E2E8F0',
               position: 'relative', transition: 'background 0.15s', cursor: 'pointer'
             }}>
               <div style={{ width: 20, height: 20, borderRadius: '50%', background: '#fff',
@@ -744,13 +744,13 @@ export default function TiendaAdminPage() {
           </label>
 
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
-            <label style={{ fontSize: 12, fontWeight: 800, color: '#554334', textTransform: 'uppercase', letterSpacing: 1 }}>
+            <label style={{ fontSize: 12, fontWeight: 800, color: '#564334', textTransform: 'uppercase', letterSpacing: 1 }}>
               API Key (X-ACCESS-TOKEN)
               <input className="admin-input" value={lucidbotConfig.api_key}
                 onChange={e => setLucidbotConfig(prev => ({ ...prev, api_key: e.target.value }))}
                 placeholder="tu_x_access_token" style={{ width: '100%', marginTop: 4 }} />
             </label>
-            <label style={{ fontSize: 12, fontWeight: 800, color: '#554334', textTransform: 'uppercase', letterSpacing: 1 }}>
+            <label style={{ fontSize: 12, fontWeight: 800, color: '#564334', textTransform: 'uppercase', letterSpacing: 1 }}>
               Flow ID
               <input className="admin-input" type="number" value={lucidbotConfig.flow_id}
                 onChange={e => setLucidbotConfig(prev => ({ ...prev, flow_id: e.target.value }))}
@@ -758,7 +758,7 @@ export default function TiendaAdminPage() {
             </label>
           </div>
 
-          <label style={{ fontSize: 12, fontWeight: 800, color: '#554334', textTransform: 'uppercase', letterSpacing: 1 }}>
+          <label style={{ fontSize: 12, fontWeight: 800, color: '#564334', textTransform: 'uppercase', letterSpacing: 1 }}>
             Tag Name
             <input className="admin-input" value={lucidbotConfig.tag_name}
               onChange={e => setLucidbotConfig(prev => ({ ...prev, tag_name: e.target.value }))}
@@ -766,7 +766,7 @@ export default function TiendaAdminPage() {
           </label>
 
           <div>
-            <div style={{ fontSize: 12, fontWeight: 800, color: '#554334', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 8 }}>
+            <div style={{ fontSize: 12, fontWeight: 800, color: '#564334', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 8 }}>
               Campos personalizados (field_name → valor del formulario)
             </div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
@@ -779,7 +779,7 @@ export default function TiendaAdminPage() {
                       setLucidbotConfig(prev => ({ ...prev, field_values: next }));
                     }}
                     placeholder="field_name en LucidBot" style={{ flex: 1, fontSize: 13, padding: '6px 10px' }} />
-                  <span style={{ color: '#887362', fontSize: 13, fontWeight: 700 }}>←</span>
+                  <span style={{ color: '#897362', fontSize: 13, fontWeight: 700 }}>←</span>
                   <select value={fv.value_from || ''}
                     onChange={e => {
                       const next = [...(lucidbotConfig.field_values || [])];
@@ -811,8 +811,8 @@ export default function TiendaAdminPage() {
                 ...prev,
                 field_values: [...(prev.field_values || []), { field_name: '', value_from: '' }]
               }))} style={{
-                background: '#f1f4f6', border: '2px dashed #181c1e',
-                padding: '8px', color: '#554334', cursor: 'pointer', fontSize: 13, fontWeight: 700
+                background: '#eff4ff', border: '2px dashed #181c1e',
+                padding: '8px', color: '#564334', cursor: 'pointer', fontSize: 13, fontWeight: 700
               }}>
                 + Agregar campo
               </button>
@@ -820,7 +820,7 @@ export default function TiendaAdminPage() {
           </div>
 
           <button onClick={handleSaveLucidbot} disabled={savingBot} style={{
-            ...S, background: savingBot ? '#887362' : '#f28c00', color: '#181c1e',
+            ...S, background: savingBot ? '#897362' : '#ff8c00', color: '#0b1c30',
             minHeight: 48, padding: '0 28px', cursor: 'pointer', fontSize: 15, fontWeight: 800,
             justifySelf: 'start', opacity: savingBot ? 0.6 : 1
           }}>
@@ -833,12 +833,12 @@ export default function TiendaAdminPage() {
         <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.7)', zIndex: 99997, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}
           onClick={() => setShowImportModal(false)}>
           <div style={{
-            background: '#ffffff', border: '2px solid #181c1e', boxShadow: '8px 8px 0px 0px #181c1e',
+            background: '#ffffff', border: '1px solid #E2E8F0', boxShadow: '0 16px 40px rgba(0,0,0,0.15)',
             width: 'min(700px, 95vw)', maxHeight: '85vh', display: 'flex', flexDirection: 'column', fontFamily: '"Inter", sans-serif'
           }} onClick={e => e.stopPropagation()}>
             <div style={{
-              padding: '16px 24px', borderBottom: '2px solid #181c1e', fontWeight: 800, fontSize: 18,
-              background: '#f1f4f6', display: 'flex', justifyContent: 'space-between', alignItems: 'center'
+              padding: '16px 24px', borderBottom: '1px solid #E2E8F0', fontWeight: 800, fontSize: 18,
+              background: '#eff4ff', display: 'flex', justifyContent: 'space-between', alignItems: 'center'
             }}>
               📥 Importar desde LucidSales · {lsProducts.length} productos
               <button onClick={() => setShowImportModal(false)} style={{ background: 'none', border: 'none', fontSize: 20, cursor: 'pointer' }}>✕</button>
@@ -860,7 +860,7 @@ export default function TiendaAdminPage() {
                       });
                       setImportSelected(filtered.length === importSelected.length ? [] : filtered.map(p => String(p.id ?? p.Id)));
                     }}
-                    style={{ width: 18, height: 18, accentColor: '#f28c00' }} />
+                    style={{ width: 18, height: 18, accentColor: '#ff8c00' }} />
                   Seleccionar todos visibles
                 </label>
                 {lsProducts.filter(p => {
@@ -878,19 +878,19 @@ export default function TiendaAdminPage() {
                     }}>
                       <input type="checkbox" checked={selected}
                         onChange={() => setImportSelected(prev => selected ? prev.filter(x => x !== id) : [...prev, id])}
-                        style={{ width: 16, height: 16, accentColor: '#f28c00', flexShrink: 0 }} />
+                        style={{ width: 16, height: 16, accentColor: '#ff8c00', flexShrink: 0 }} />
                       <img src={(() => {
                         const k = Object.keys(p).find(k2 => /imagen|image|img|foto/i.test(k2));
                         if (!k) return '';
                         let v = p[k];
                         if (typeof v === 'string' && v.startsWith('[')) try { v = JSON.parse(v)[0]; } catch {}
                         return typeof v === 'string' && v.startsWith('http') ? v : '';
-                      })()} alt="" style={{ width: 32, height: 32, objectFit: 'cover', border: '2px solid #181c1e', flexShrink: 0, background: '#f1f4f6' }}
+                      })()} alt="" style={{ width: 32, height: 32, objectFit: 'cover', border: '1px solid #E2E8F0', flexShrink: 0, background: '#eff4ff' }}
                         onError={e => { e.target.style.display = 'none'; }} />
                       <span style={{ flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', fontWeight: 600 }}>
                         {name}
                       </span>
-                      <span style={{ fontWeight: 600, color: '#554334', fontSize: 12, whiteSpace: 'nowrap' }}>
+                      <span style={{ fontWeight: 600, color: '#564334', fontSize: 12, whiteSpace: 'nowrap' }}>
                         ${Number(price).toLocaleString('es-CO', { minimumFractionDigits: 0 })}
                       </span>
                     </label>
@@ -898,14 +898,14 @@ export default function TiendaAdminPage() {
                 })}
               </div>
             </div>
-            <div style={{ padding: '12px 24px', borderTop: '2px solid #181c1e', display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
-              <span style={{ marginRight: 'auto', fontSize: 13, fontWeight: 700, color: '#554334', alignSelf: 'center' }}>
+            <div style={{ padding: '12px 24px', borderTop: '1px solid #E2E8F0', display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
+              <span style={{ marginRight: 'auto', fontSize: 13, fontWeight: 700, color: '#564334', alignSelf: 'center' }}>
                 {importSelected.length} seleccionados
               </span>
-              <button onClick={() => setShowImportModal(false)} style={{ ...S, background: '#ffffff', color: '#181c1e', minHeight: 44, padding: '0 20px', cursor: 'pointer', fontSize: 14, fontWeight: 700 }}>
+              <button onClick={() => setShowImportModal(false)} style={{ ...S, background: '#ffffff', color: '#0b1c30', minHeight: 44, padding: '0 20px', cursor: 'pointer', fontSize: 14, fontWeight: 700 }}>
                 Cancelar
               </button>
-              <button onClick={handleImport} disabled={importSelected.length === 0 || importing} style={{ ...S, background: '#f28c00', color: '#181c1e', minHeight: 44, padding: '0 20px', cursor: 'pointer', fontSize: 14, fontWeight: 800, opacity: importSelected.length === 0 || importing ? 0.5 : 1 }}>
+              <button onClick={handleImport} disabled={importSelected.length === 0 || importing} style={{ ...S, background: '#ff8c00', color: '#0b1c30', minHeight: 44, padding: '0 20px', cursor: 'pointer', fontSize: 14, fontWeight: 800, opacity: importSelected.length === 0 || importing ? 0.5 : 1 }}>
                 {importing ? 'Importando...' : `Importar ${importSelected.length}`}
               </button>
             </div>
