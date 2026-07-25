@@ -123,9 +123,13 @@ export default function ProductoDetallePage() {
                   <span style={{ fontSize: 32, fontWeight: 800, color: C.red }}>{formatPrice(producto.ofertaPrecio)}</span>
                   <span style={{ fontSize: 16, color: C.muted, textDecoration: 'line-through' }}>{formatPrice(producto.precioVenta)}</span>
                   <span style={{ background: '#ffdad6', color: '#93000a', fontSize: 12, fontWeight: 700, padding: '4px 10px', borderRadius: 20 }}>-{Math.round((1 - producto.ofertaPrecio / producto.precioVenta) * 100)}%</span>
+                </div>
+                {producto.ofertaHasta && <CountdownTimer endsAt={producto.ofertaHasta} />}
+              </div>
+            ) : (
+              <span style={{ fontSize: 32, fontWeight: 800, color: C.text }}>{formatPrice(producto.precioVenta)}</span>
+            )}
           </div>
-        </div>
-      </div>
 
           <div style={{ background: '#e5eeff', borderRadius: 12, padding: 16, marginBottom: 16 }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
