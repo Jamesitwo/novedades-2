@@ -10,13 +10,14 @@ export default function UpsellPopup({ productoId, onClose }) {
     if (!productoId) return;
     api.get(`/api/tienda/${productoId}`)
       .then(({ data }) => setProducto(data))
-      .catch(() => {});
+      .catch(() => setProducto({ relacionado: [] }));
     requestAnimationFrame(() => setVisible(true));
   }, [productoId]);
 
-  if (!producto || !producto.relacionados?.length) return null;
+  if (!producto) return null;
 
   const formatPrice = (n) => '$' + Number(n).toLocaleString('es-CO', { minimumFractionDigits: 0 });
+  const relacionados = producto.relacionados || [];
 
   return (
     <div style={{
@@ -32,43 +33,47 @@ export default function UpsellPopup({ productoId, onClose }) {
           background: '#ff8c00', color: '#fff', padding: '14px 20px', fontSize: 17, fontWeight: 800,
           borderRadius: '16px 16px 0 0', display: 'flex', justifyContent: 'space-between', alignItems: 'center'
         }}>
-          ⚡ ¡No te vayas sin ver esto!
+          ⚡ Confirmar compra
           <button onClick={onClose} style={{ background: 'none', border: 'none', fontSize: 22, cursor: 'pointer', color: '#fff' }}>✕</button>
         </div>
         <div style={{ padding: 20 }}>
-          <p style={{ fontSize: 14, fontWeight: 600, color: '#564334', marginBottom: 16, textAlign: 'center' }}>
-            Estos productos combinan perfecto con lo que llevas
-          </p>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginBottom: 16 }}>
-            {producto.relacionados.slice(0, 3).map(rp => {
-              const precio = rp.ofertaActiva && rp.ofertaPrecio ? rp.ofertaPrecio : rp.precioVenta;
-              const tieneOferta = rp.ofertaActiva && rp.ofertaPrecio && new Date(rp.ofertaHasta) > new Date();
-              return (
-                <a key={rp.id} href={`/tienda/comprar/${rp.id}`} style={{
-                  display: 'flex', alignItems: 'center', gap: 12, padding: 10,
-                  background: '#f8f9ff', borderRadius: 8, border: '1px solid #E2E8F0',
-                  textDecoration: 'none', color: '#0b1c30', transition: 'box-shadow 0.1s'
-                }}
-                onMouseEnter={e => e.currentTarget.style.boxShadow = '0 4px 12px rgba(0,0,0,0.08)'}
-                onMouseLeave={e => e.currentTarget.style.boxShadow = 'none'}>
-                  {rp.imagen ? (
-                    <img src={rp.imagen} alt={rp.nombre} style={{ width: 48, height: 48, objectFit: 'contain', borderRadius: 6, flexShrink: 0, background: '#F8F9FA' }}
-                      onError={e => { e.target.style.display = 'none'; }} />
-                  ) : (
-                    <div style={{ width: 48, height: 48, borderRadius: 6, flexShrink: 0, background: '#F8F9FA' }} />
-                  )}
-                  <div style={{ flex: 1, minWidth: 0 }}>
-                    <div style={{ fontSize: 13, fontWeight: 700, marginBottom: 2, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{rp.nombre}</div>
-                    <div style={{ display: 'flex', alignItems: 'baseline', gap: 6 }}>
-                      <span style={{ fontSize: 15, fontWeight: 800, color: tieneOferta ? '#ba1a1a' : '#0b1c30' }}>{formatPrice(precio)}</span>
-                      {tieneOferta && <span style={{ fontSize: 12, color: '#897362', textDecoration: 'line-through' }}>{formatPrice(rp.precioVenta)}</span>}
-                    </div>
-                  </div>
-                  <span style={{ background: '#ff8c00', color: '#fff', fontWeight: 700, fontSize: 12, padding: '5px 14px', borderRadius: 8, whiteSpace: 'nowrap' }}>+ Agregar</span>
-                </a>
-              );
-            })}
-          </div>
+          {relacionados.length > 0 && (
+            <>
+              <p style={{ fontSize: 14, fontWeight: 600, color: '#564334', marginBottom: 16, textAlign: 'center' }}>
+                Estos productos combinan perfecto con lo que llevas
+              </p>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginBottom: 16 }}>
+                {relacionados.slice(0, 3).map(rp => {
+                  const precio = rp.ofertaActiva && rp.ofertaPrecio ? rp.ofertaPrecio : rp.precioVenta;
+                  const tieneOferta = rp.ofertaActiva && rp.ofertaPrecio && new Date(rp.ofertaHasta) > new Date();
+                  return (
+                    <a key={rp.id} href={`/tienda/comprar/${rp.id}`} style={{
+                      display: 'flex', alignItems: 'center', gap: 12, padding: 10,
+                      background: '#f8f9ff', borderRadius: 8, border: '1px solid #E2E8F0',
+                      textDecoration: 'none', color: '#0b1c30', transition: 'box-shadow 0.1s'
+                    }}
+                    onMouseEnter={e => e.currentTarget.style.boxShadow = '0 4px 12px rgba(0,0,0,0.08)'}
+                    onMouseLeave={e => e.currentTarget.style.boxShadow = 'none'}>
+                      {rp.imagen ? (
+                        <img src={rp.imagen} alt={rp.nombre} style={{ width: 48, height: 48, objectFit: 'contain', borderRadius: 6, flexShrink: 0, background: '#F8F9FA' }}
+                          onError={e => { e.target.style.display = 'none'; }} />
+                      ) : (
+                        <div style={{ width: 48, height: 48, borderRadius: 6, flexShrink: 0, background: '#F8F9FA' }} />
+                      )}
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <div style={{ fontSize: 13, fontWeight: 700, marginBottom: 2, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{rp.nombre}</div>
+                        <div style={{ display: 'flex', alignItems: 'baseline', gap: 6 }}>
+                          <span style={{ fontSize: 15, fontWeight: 800, color: tieneOferta ? '#ba1a1a' : '#0b1c30' }}>{formatPrice(precio)}</span>
+                          {tieneOferta && <span style={{ fontSize: 12, color: '#897362', textDecoration: 'line-through' }}>{formatPrice(rp.precioVenta)}</span>}
+                        </div>
+                      </div>
+                      <span style={{ background: '#ff8c00', color: '#fff', fontWeight: 700, fontSize: 12, padding: '5px 14px', borderRadius: 8, whiteSpace: 'nowrap' }}>+ Agregar</span>
+                    </a>
+                  );
+                })}
+              </div>
+            </>
+          )}
           <div style={{ display: 'flex', gap: 8 }}>
             <a href={`/tienda/comprar/${productoId}`} style={{
               flex: 1, minHeight: 44, background: '#ff8c00', color: '#fff', borderRadius: 8,
