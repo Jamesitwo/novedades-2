@@ -92,22 +92,22 @@ export default function ComprarPage() {
   );
 
   return (
-    <div style={{ minHeight: '100vh', background: '#f7fafc', color: '#181c1e', fontFamily: '"Inter", -apple-system, sans-serif' }}>
+    <div style={{ minHeight: '100vh', background: '#f8f9ff', color: '#0b1c30', fontFamily: '"Inter", -apple-system, sans-serif' }}>
       <style dangerouslySetInnerHTML={{__html: `
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700;800;900&display=swap');
-        .compra-input { background: #ffffff; border: 2px solid #181c1e; padding: 16px 18px; font-size: 18px; font-weight: 700; color: #181c1e; outline: none; font-family: 'Inter', sans-serif; width: 100%; box-sizing: border-box; border-radius: 0; }
-        .compra-input:focus { box-shadow: 0 0 0 4px #f28c00; }
+        .compra-input { background: #ffffff; border: 1px solid #E2E8F0; padding: 14px 16px; font-size: 16px; font-weight: 600; color: #0b1c30; outline: none; font-family: 'Inter', sans-serif; width: 100%; box-sizing: border-box; border-radius: 8px; }
+        .compra-input:focus { border-color: #ff8c00; box-shadow: 0 0 0 3px rgba(255,140,0,0.15); }
         @media (max-width: 768px) {
           .compra-grid { grid-template-columns: 1fr !important; }
-          .compra-input { font-size: 16px !important; padding: 10px 14px !important; }
+          .compra-input { font-size: 15px !important; padding: 12px 14px !important; }
         }
       `}} />
 
-      <div style={{ background: '#181c1e', borderBottom: '2px solid #181c1e', padding: '0 24px', display: 'flex', alignItems: 'center', height: 52 }}>
-        <a href={`/tienda/${id}`} style={{ color: '#ffb875', textDecoration: 'none', fontSize: 14, fontWeight: 700 }}>
+      <div style={{ background: '#213145', borderBottom: '1px solid rgba(255,255,255,0.1)', padding: '0 24px', display: 'flex', alignItems: 'center', height: 52 }}>
+        <a href={`/tienda/${id}`} style={{ color: '#ffb77d', textDecoration: 'none', fontSize: 14, fontWeight: 600 }}>
           ← Volver al producto
         </a>
-        <span style={{ marginLeft: 'auto', fontSize: 16, fontWeight: 900, color: '#ffb875', textTransform: 'uppercase', letterSpacing: 1 }}>
+        <span style={{ marginLeft: 'auto', fontSize: 16, fontWeight: 800, color: '#ffb77d', textTransform: 'uppercase', letterSpacing: 1 }}>
           PIZDO
         </span>
       </div>

@@ -276,7 +276,7 @@ export default function TiendaAdminPage() {
   };
 
   const formatPrice = (n) => '$' + Number(n).toLocaleString('es-CO', { minimumFractionDigits: 0 });
-  const S = { border: '2px solid #181c1e', boxShadow: '2px 2px 0px 0px #181c1e' };
+  const S = { border: '1px solid #E2E8F0', boxShadow: '0 2px 4px rgba(0,0,0,0.06)', borderRadius: '8px' };
   const hasOferta = form.ofertaActiva && form.ofertaPrecio > 0;
 
   if (!initialized || !isAuthenticated || usuario?.rol !== 'admin') return null;
