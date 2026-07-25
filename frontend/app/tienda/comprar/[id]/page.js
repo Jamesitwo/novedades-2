@@ -86,16 +86,16 @@ export default function ComprarPage() {
   const tieneOferta = producto?.ofertaActiva && producto?.ofertaPrecio && new Date(producto.ofertaHasta) > new Date();
   const precioFinal = tieneOferta ? producto.ofertaPrecio : producto?.precioVenta;
   const total = precioFinal * form.cantidad;
-  const S = { border: '2px solid #181c1e', boxShadow: '3px 3px 0px 0px #181c1e' };
+  const S = { border: '1px solid #E2E8F0', boxShadow: '0 2px 4px rgba(0,0,0,0.06)', borderRadius: '8px' };
 
   if (loading) return (
-    <div style={{ minHeight: '100vh', background: '#f7fafc', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: '"Inter", sans-serif', fontSize: 18, fontWeight: 700, color: '#887362' }}>
+    <div style={{ minHeight: '100vh', background: '#f8f9ff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: '"Inter", sans-serif', fontSize: 18, fontWeight: 700, color: '#897362' }}>
       Cargando...
     </div>
   );
 
   if (error && !producto) return (
-    <div style={{ minHeight: '100vh', background: '#f7fafc', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: '"Inter", sans-serif', fontSize: 18, fontWeight: 700, color: '#ba1a1a' }}>
+    <div style={{ minHeight: '100vh', background: '#f8f9ff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: '"Inter", sans-serif', fontSize: 18, fontWeight: 700, color: '#ba1a1a' }}>
       {error}
     </div>
   );
@@ -135,7 +135,7 @@ export default function ComprarPage() {
             <div style={{
               width: 80, height: 80, background: '#22c55e', color: '#fff',
               display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
-              marginBottom: 32, border: '2px solid #181c1e', boxShadow: '4px 4px 0px 0px #181c1e', fontSize: 36
+              marginBottom: 32, border: '1px solid #E2E8F0', boxShadow: '0 8px 24px rgba(0,0,0,0.10)', fontSize: 36
             }}>
               ✓
             </div>
@@ -147,7 +147,7 @@ export default function ComprarPage() {
             </p>
             <div style={{ display: 'flex', gap: 12, justifyContent: 'center', flexWrap: 'wrap' }}>
               <a href="/tienda" style={{
-                ...S, textDecoration: 'none', background: '#f28c00', color: '#181c1e',
+                ...S, textDecoration: 'none', background: '#ff8c00', color: '#0b1c30',
                 padding: '12px 28px', fontSize: 16, fontWeight: 800, display: 'inline-flex', alignItems: 'center', gap: 8
               }}>
                 🛒 Seguir comprando
@@ -242,7 +242,7 @@ export default function ComprarPage() {
                 </label>
 
                 <button type="submit" disabled={saving} style={{
-                  ...S, background: saving ? '#887362' : '#f28c00', color: '#181c1e',
+                  ...S, background: saving ? '#897362' : '#ff8c00', color: '#0b1c30',
                   minHeight: 64, fontSize: 22, fontWeight: 900, cursor: 'pointer', marginTop: 12,
                   opacity: saving ? 0.6 : 1
                 }}>
@@ -251,24 +251,24 @@ export default function ComprarPage() {
               </form>
 
               {/* ORDER SUMMARY */}
-              <div style={{ background: '#f1f4f6', border: '2px solid #181c1e', boxShadow: '4px 4px 0px 0px #181c1e', padding: 28, position: 'sticky', top: 80 }}>
+              <div style={{ background: '#eff4ff', border: '1px solid #E2E8F0', boxShadow: '0 8px 24px rgba(0,0,0,0.10)', padding: 28, position: 'sticky', top: 80 }}>
                 <div style={{ fontSize: 15, fontWeight: 900, color: '#554334', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 20 }}>
                   Resumen del pedido
                 </div>
                 {producto.imagen && (
-                  <img src={producto.imagen} alt={producto.nombre} style={{ width: '100%', height: 180, objectFit: 'cover', border: '2px solid #181c1e', marginBottom: 16, background: '#fff' }}
+                  <img src={producto.imagen} alt={producto.nombre} style={{ width: '100%', height: 180, objectFit: 'cover', border: '1px solid #E2E8F0', marginBottom: 16, background: '#fff' }}
                     onError={e => { e.target.style.display = 'none'; }} />
                 )}
-                <div style={{ fontSize: 18, fontWeight: 800, marginBottom: 8, color: '#181c1e' }}>{producto.nombre}</div>
+                <div style={{ fontSize: 18, fontWeight: 800, marginBottom: 8, color: '#0b1c30' }}>{producto.nombre}</div>
                 {tieneOferta && (
                   <div style={{
                     display: 'inline-block', background: '#ba1a1a', color: '#fff', fontSize: 12, fontWeight: 900,
-                    padding: '4px 10px', border: '2px solid #181c1e', marginBottom: 12
+                    padding: '4px 10px', border: '1px solid #E2E8F0', marginBottom: 12
                   }}>
                     -{Math.round((1 - producto.ofertaPrecio / producto.precioVenta) * 100)}% OFF
                   </div>
                 )}
-                <div style={{ marginTop: 16, padding: '16px 0', borderTop: '2px solid #181c1e', borderBottom: '2px solid #181c1e' }}>
+                <div style={{ marginTop: 16, padding: '16px 0', borderTop: '1px solid #E2E8F0', borderBottom: '1px solid #E2E8F0' }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 15, marginBottom: 8, color: '#554334' }}>
                     <span>Precio unitario</span>
                     <span style={{ fontWeight: 700 }}>{formatPrice(precioFinal)}</span>
@@ -277,13 +277,13 @@ export default function ComprarPage() {
                     <span>Cantidad</span>
                     <span style={{ fontWeight: 700 }}>x{form.cantidad}</span>
                   </div>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 20, fontWeight: 900, marginTop: 12, paddingTop: 12, borderTop: '2px solid #181c1e' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 20, fontWeight: 900, marginTop: 12, paddingTop: 12, borderTop: '1px solid #E2E8F0' }}>
                     <span>Total</span>
-                    <span style={{ color: tieneOferta ? '#ba1a1a' : '#181c1e' }}>{formatPrice(total)}</span>
+                    <span style={{ color: tieneOferta ? '#ba1a1a' : '#0b1c30' }}>{formatPrice(total)}</span>
                   </div>
                 </div>
                 {tieneOferta && (
-                  <div style={{ fontSize: 13, color: '#887362', marginTop: 12 }}>
+                  <div style={{ fontSize: 13, color: '#897362', marginTop: 12 }}>
                     Precio normal: <span style={{ textDecoration: 'line-through', fontWeight: 700 }}>{formatPrice(producto.precioVenta)}</span>
                   </div>
                 )}
@@ -298,16 +298,16 @@ export default function ComprarPage() {
                       <div style={{ fontSize: 12, fontWeight: 700, color: '#554334', marginBottom: 6 }}>
                         🚚 Agrega {formatPrice(100000 - total)} más para envío gratis
                       </div>
-                      <div style={{ height: 8, background: '#f1f4f6', border: '1px solid #181c1e' }}>
-                        <div style={{ height: '100%', background: '#f28c00', width: `${Math.min(100, (total / 100000) * 100)}%`, transition: 'width 0.3s' }} />
+                      <div style={{ height: 8, background: '#eff4ff', border: '1px solid #181c1e' }}>
+                        <div style={{ height: '100%', background: '#ff8c00', width: `${Math.min(100, (total / 100000) * 100)}%`, transition: 'width 0.3s' }} />
                       </div>
                     </div>
                   )}
                 </div>
 
                 {producto?.relacionados?.length > 0 && (
-                  <div style={{ marginTop: 20, background: '#ffffff', border: '2px solid #181c1e', boxShadow: '3px 3px 0px 0px #181c1e', padding: 16 }}>
-                    <div style={{ fontSize: 14, fontWeight: 900, color: '#f28c00', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 12 }}>
+                  <div style={{ marginTop: 20, background: '#ffffff', border: '1px solid #E2E8F0', boxShadow: '3px 3px 0px 0px #181c1e', padding: 16 }}>
+                    <div style={{ fontSize: 14, fontWeight: 900, color: '#ff8c00', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 12 }}>
                       + Agregar a tu pedido
                     </div>
                     {producto.relacionados.map(rp => {
@@ -315,26 +315,26 @@ export default function ComprarPage() {
                       return (
                         <a key={rp.id} href={`/tienda/comprar/${rp.id}`} style={{
                           display: 'flex', alignItems: 'center', gap: 12, padding: '10px 8px',
-                          borderBottom: '2px solid #e0e3e5', textDecoration: 'none', color: '#181c1e',
+                          borderBottom: '2px solid #e0e3e5', textDecoration: 'none', color: '#0b1c30',
                           cursor: 'pointer', transition: 'background 0.1s, transform 0.1s'
                         }}
-                        onMouseEnter={e => { e.currentTarget.style.background = '#f1f4f6'; e.currentTarget.style.transform = 'translateX(2px)'; }}
+                        onMouseEnter={e => { e.currentTarget.style.background = '#eff4ff'; e.currentTarget.style.transform = 'translateX(2px)'; }}
                         onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.transform = 'none'; }}>
                           {rp.imagen ? (
-                            <img src={rp.imagen} alt={rp.nombre} style={{ width: 52, height: 52, objectFit: 'cover', border: '2px solid #181c1e', flexShrink: 0, background: '#f1f4f6' }}
+                            <img src={rp.imagen} alt={rp.nombre} style={{ width: 52, height: 52, objectFit: 'cover', border: '1px solid #E2E8F0', flexShrink: 0, background: '#eff4ff' }}
                               onError={e => { e.target.style.display = 'none'; }} />
                           ) : (
-                            <div style={{ width: 52, height: 52, border: '2px solid #181c1e', flexShrink: 0, background: '#f1f4f6' }} />
+                            <div style={{ width: 52, height: 52, border: '1px solid #E2E8F0', flexShrink: 0, background: '#eff4ff' }} />
                           )}
                           <div style={{ flex: 1, minWidth: 0 }}>
                             <div style={{ fontSize: 13, fontWeight: 700, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', marginBottom: 3 }}>{rp.nombre}</div>
-                            <div style={{ fontSize: 15, fontWeight: 900, color: rp.ofertaActiva && rp.ofertaPrecio ? '#ba1a1a' : '#181c1e' }}>
+                            <div style={{ fontSize: 15, fontWeight: 900, color: rp.ofertaActiva && rp.ofertaPrecio ? '#ba1a1a' : '#0b1c30' }}>
                               {formatPrice(rpPrecio)}
                             </div>
                           </div>
                           <span style={{
-                            background: '#f28c00', color: '#181c1e', fontWeight: 800, fontSize: 12,
-                            padding: '6px 16px', border: '2px solid #181c1e', boxShadow: '2px 2px 0px 0px #181c1e',
+                            background: '#ff8c00', color: '#0b1c30', fontWeight: 800, fontSize: 12,
+                            padding: '6px 16px', border: '1px solid #E2E8F0', boxShadow: '2px 2px 0px 0px #181c1e',
                             whiteSpace: 'nowrap', flexShrink: 0, transition: 'transform 0.1s'
                           }}>
                             + Agregar
