@@ -1,5 +1,5 @@
 'use client';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useParams } from 'next/navigation';
 import api from '@/lib/api';
 import ProductCard from '../../../components/tienda/ProductCard';
@@ -26,6 +26,13 @@ export default function ProductoDetallePage() {
   const isAdmin = usuario?.rol === 'admin';
   const [imgActiva, setImgActiva] = useState(0);
   const [pauseCarousel, setPauseCarousel] = useState(false);
+  const imgCountRef = useRef(0);
+
+  useEffect(() => {
+    if (imgCountRef.current <= 1 || pauseCarousel) return;
+    const interval = setInterval(() => setImgActiva(prev => (prev + 1) % imgCountRef.current), 3500);
+    return () => clearInterval(interval);
+  }, [pauseCarousel]);
 
   useEffect(() => {
     if (!id) return;
@@ -70,13 +77,8 @@ export default function ProductoDetallePage() {
   const rawImagenes = typeof producto.imagenes === 'string' ? (() => { try { return JSON.parse(producto.imagenes); } catch { return []; } })() : producto.imagenes;
   const imagenesArr = Array.isArray(rawImagenes) ? rawImagenes : [];
   const todasImagenes = [...new Set([...(typeof producto.imagen === 'string' && producto.imagen.startsWith('http') ? [producto.imagen] : []), ...imagenesArr])];
+  imgCountRef.current = todasImagenes.length;
   const imagenPrincipal = todasImagenes.length > 0 ? todasImagenes[imgActiva] || todasImagenes[0] : null;
-
-  useEffect(() => {
-    if (todasImagenes.length <= 1 || pauseCarousel) return;
-    const interval = setInterval(() => setImgActiva(prev => (prev + 1) % todasImagenes.length), 3500);
-    return () => clearInterval(interval);
-  }, [todasImagenes.length, pauseCarousel]);
 
   return (
     <div style={{ maxWidth: 1280, margin: '0 auto', padding: '0 24px 64px' }}>
