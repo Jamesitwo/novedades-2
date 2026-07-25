@@ -274,6 +274,11 @@ model Configuracion {
   lucidbot_tag_name         String?   @map("lucidbot_tag_name")
   lucidbot_flow_id          Int?      @map("lucidbot_flow_id")
   lucidbot_field_values     Json?     @default("[]") @map("lucidbot_field_values")
+  bundle_productos          Json?     @default("[]") @map("bundle_productos")
+  bundle_titulo             String?   @map("bundle_titulo")
+  bundle_descripcion        String?   @map("bundle_descripcion")
+  bundle_precio_normal      Float?    @map("bundle_precio_normal")
+  bundle_precio_oferta      Float?    @map("bundle_precio_oferta")
 }
 
 model ApiKey {

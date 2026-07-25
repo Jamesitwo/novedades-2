@@ -22,11 +22,32 @@ export default function TiendaPage() {
   const [error, setError] = useState('');
   const [upsellProductId, setUpsellProductId] = useState(null);
   const [scrollY, setScrollY] = useState(0);
+  const [bundleConfig, setBundleConfig] = useState(null);
+  const [bundleProducts, setBundleProducts] = useState([]);
 
   useEffect(() => {
     const onScroll = () => setScrollY(window.scrollY);
     window.addEventListener('scroll', onScroll, { passive: true });
     return () => window.removeEventListener('scroll', onScroll);
+  }, []);
+
+  useEffect(() => {
+    api.get('/api/configuracion').then(({ data }) => {
+      const ids = data.bundle_productos || [];
+      if (ids.length > 0) {
+        setBundleConfig({
+          titulo: data.bundle_titulo || 'Professional DIY Kit',
+          descripcion: data.bundle_descripcion || '',
+          precioNormal: data.bundle_precio_normal || 0,
+          precioOferta: data.bundle_precio_oferta || 0
+        });
+        const params = new URLSearchParams({ limit: 20, orden: 'reciente' });
+        api.get(`/api/tienda?${params}`).then(({ data: prodData }) => {
+          const prods = (prodData.productos || []).filter(p => ids.includes(p.id));
+          setBundleProducts(prods);
+        }).catch(() => {});
+      }
+    }).catch(() => {});
   }, []);
 
   useEffect(() => {
@@ -199,32 +220,80 @@ export default function TiendaPage() {
       )}
 
       {/* BUNDLE / COMBO */}
-      <section className="ff-section" style={{ padding: '48px 24px', background: C.bg }}>
-        <div style={{ maxWidth: 1280, margin: '0 auto' }}>
-          <div className="ff-bundle" style={{ display: 'flex', background: '#e5eeff', borderRadius: 16, overflow: 'hidden', boxShadow: '0 2px 8px rgba(0,0,0,0.04)' }}>
-            <div style={{ flex: 1, padding: 'clamp(24px, 5vw, 40px)', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
-              <span style={{ color: '#904d00', fontWeight: 700, textTransform: 'uppercase', fontSize: 12, letterSpacing: 1, marginBottom: 8 }}>Compra en Combo y Ahorra</span>
-              <h2 style={{ fontSize: 'clamp(22px, 4vw, 28px)', fontWeight: 800, color: C.text, marginBottom: 12 }}>Professional DIY Kit</h2>
-              <p style={{ color: C.subtext, fontSize: 15, marginBottom: 20, lineHeight: 1.5 }}>Todo lo que necesitas para empezar. Taladro percutor de impacto + Set de 50 brocas + Maletín de transporte reforzado.</p>
-              <div style={{ background: C.surface, borderRadius: 12, padding: 16, border: '1px solid ' + C.border, display: 'inline-flex', flexDirection: 'column', alignSelf: 'flex-start', marginBottom: 16 }}>
-                <span style={{ fontSize: 12, color: C.muted, textDecoration: 'line-through', marginBottom: 4 }}>Precio por separado: $340.000</span>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                  <span style={{ fontSize: 28, fontWeight: 800, color: C.primaryDark }}>$295.000</span>
-                  <span style={{ background: '#ffdad6', color: '#93000a', fontSize: 12, fontWeight: 700, padding: '4px 10px', borderRadius: 20 }}>Ahorras $45.000</span>
-                </div>
+      {bundleConfig && bundleProducts.length > 0 ? (
+        <section className="ff-section" style={{ padding: '48px 24px', background: C.bg }}>
+          <div style={{ maxWidth: 1280, margin: '0 auto' }}>
+            <div className="ff-bundle" style={{ display: 'flex', background: '#e5eeff', borderRadius: 16, overflow: 'hidden', boxShadow: '0 2px 8px rgba(0,0,0,0.04)' }}>
+              <div style={{ flex: 1, padding: 'clamp(24px, 5vw, 40px)', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
+                <span style={{ color: '#904d00', fontWeight: 700, textTransform: 'uppercase', fontSize: 12, letterSpacing: 1, marginBottom: 8 }}>Compra en Combo y Ahorra</span>
+                <h2 style={{ fontSize: 'clamp(22px, 4vw, 28px)', fontWeight: 800, color: C.text, marginBottom: 12 }}>{bundleConfig.titulo}</h2>
+                <p style={{ color: C.subtext, fontSize: 15, marginBottom: 20, lineHeight: 1.5 }}>{bundleConfig.descripcion || `${bundleProducts.map(p => p.nombre).join(' + ')}.`}</p>
+                {bundleConfig.precioOferta > 0 && (
+                  <div style={{ background: C.surface, borderRadius: 12, padding: 16, border: '1px solid ' + C.border, display: 'inline-flex', flexDirection: 'column', alignSelf: 'flex-start', marginBottom: 16 }}>
+                    {bundleConfig.precioNormal > 0 && <span style={{ fontSize: 12, color: C.muted, textDecoration: 'line-through', marginBottom: 4 }}>Precio por separado: {formatPrice(bundleConfig.precioNormal)}</span>}
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                      <span style={{ fontSize: 28, fontWeight: 800, color: C.primaryDark }}>{formatPrice(bundleConfig.precioOferta)}</span>
+                      {bundleConfig.precioNormal > 0 && (
+                        <span style={{ background: '#ffdad6', color: '#93000a', fontSize: 12, fontWeight: 700, padding: '4px 10px', borderRadius: 20 }}>Ahorras {formatPrice(bundleConfig.precioNormal - bundleConfig.precioOferta)}</span>
+                      )}
+                    </div>
+                  </div>
+                )}
+                {bundleProducts.length > 0 && (
+                  <a href={`/tienda/comprar/${bundleProducts[0].id}`} style={{
+                    background: C.primary, color: '#fff', border: 'none', borderRadius: 8, fontWeight: 700, fontSize: 15,
+                    padding: '12px 28px', textDecoration: 'none', alignSelf: 'flex-start', boxShadow: '0 4px 12px rgba(255,140,0,0.3)', display: 'inline-flex'
+                  }}>Comprar Combo</a>
+                )}
               </div>
-              <button style={{
-                background: C.primary, color: '#fff', border: 'none', borderRadius: 8, fontWeight: 700, fontSize: 15,
-                padding: '12px 28px', cursor: 'pointer', alignSelf: 'flex-start', boxShadow: '0 4px 12px rgba(255,140,0,0.3)'
-              }}>Comprar Combo</button>
-            </div>
-            <div style={{ flex: 1, background: C.heroBg, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 32, minHeight: 300 }}>
-              <img src="https://lh3.googleusercontent.com/aida-public/AB6AXuDphn2wxQrXf940TeJFs7VVWWWnQ9hwyw8qe5IQfw2F6n2cZewEuNT8eWRJi3dB6wY6oLuIYqlsWJArezBEzLNKroWTi3TO9NAkZ-HKvoj0sVYd3ByYaqVEl38kz1VNdsdwuFYNO8zmJz8YWznF6HrRRBQffjMQGf6K8m8d7RWM7chbMSd0yL47GhU73UuzmFz-aZaxpfCF7W4WzlererXdGQ-FXhRYjCXkg342X4uMGBA5VGMDXkp03WLIXK8PEc3gYdmJxGS_YCw"
-                alt="Professional DIY Kit Bundle" style={{ maxWidth: '100%', maxHeight: 280, objectFit: 'contain', filter: 'drop-shadow(0 20px 40px rgba(0,0,0,0.4))' }} />
+              <div style={{ flex: 1, background: C.heroBg, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 32, minHeight: 300, gap: 8, flexWrap: 'wrap' }}>
+                {bundleProducts.map((p, i) => (
+                  <div key={p.id} style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                    {i > 0 && <span style={{ color: '#fff', fontSize: 24, fontWeight: 700, flexShrink: 0 }}>+</span>}
+                    <a href={`/tienda/${p.id}`} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', textDecoration: 'none', color: '#fff', gap: 6 }}>
+                      {p.imagen ? (
+                        <img src={p.imagen} alt={p.nombre} style={{ width: 80, height: 80, objectFit: 'contain', filter: 'drop-shadow(0 4px 8px rgba(0,0,0,0.3))', borderRadius: 8, background: '#F8F9FA' }} />
+                      ) : (
+                        <div style={{ width: 80, height: 80, borderRadius: 8, background: '#F8F9FA' }} />
+                      )}
+                      <span style={{ fontSize: 10, fontWeight: 600, textAlign: 'center', maxWidth: 90, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                        {p.nombre}
+                      </span>
+                    </a>
+                  </div>
+                ))}
+              </div>
             </div>
           </div>
-        </div>
-      </section>
+        </section>
+      ) : (
+        <section className="ff-section" style={{ padding: '48px 24px', background: C.bg }}>
+          <div style={{ maxWidth: 1280, margin: '0 auto' }}>
+            <div className="ff-bundle" style={{ display: 'flex', background: '#e5eeff', borderRadius: 16, overflow: 'hidden', boxShadow: '0 2px 8px rgba(0,0,0,0.04)' }}>
+              <div style={{ flex: 1, padding: 'clamp(24px, 5vw, 40px)', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
+                <span style={{ color: '#904d00', fontWeight: 700, textTransform: 'uppercase', fontSize: 12, letterSpacing: 1, marginBottom: 8 }}>Compra en Combo y Ahorra</span>
+                <h2 style={{ fontSize: 'clamp(22px, 4vw, 28px)', fontWeight: 800, color: C.text, marginBottom: 12 }}>Professional DIY Kit</h2>
+                <p style={{ color: C.subtext, fontSize: 15, marginBottom: 20, lineHeight: 1.5 }}>Todo lo que necesitas para empezar. Taladro percutor de impacto + Set de 50 brocas + Maletín de transporte reforzado.</p>
+                <div style={{ background: C.surface, borderRadius: 12, padding: 16, border: '1px solid ' + C.border, display: 'inline-flex', flexDirection: 'column', alignSelf: 'flex-start', marginBottom: 16 }}>
+                  <span style={{ fontSize: 12, color: C.muted, textDecoration: 'line-through', marginBottom: 4 }}>Precio por separado: $340.000</span>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                    <span style={{ fontSize: 28, fontWeight: 800, color: C.primaryDark }}>$295.000</span>
+                    <span style={{ background: '#ffdad6', color: '#93000a', fontSize: 12, fontWeight: 700, padding: '4px 10px', borderRadius: 20 }}>Ahorras $45.000</span>
+                  </div>
+                </div>
+                <button style={{
+                  background: C.primary, color: '#fff', border: 'none', borderRadius: 8, fontWeight: 700, fontSize: 15,
+                  padding: '12px 28px', cursor: 'pointer', alignSelf: 'flex-start', boxShadow: '0 4px 12px rgba(255,140,0,0.3)'
+                }}>Comprar Combo</button>
+              </div>
+              <div style={{ flex: 1, background: C.heroBg, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 32, minHeight: 300 }}>
+                <img src="https://lh3.googleusercontent.com/aida-public/AB6AXuDphn2wxQrXf940TeJFs7VVWWWnQ9hwyw8qe5IQfw2F6n2cZewEuNT8eWRJi3dB6wY6oLuIYqlsWJArezBEzLNKroWTi3TO9NAkZ-HKvoj0sVYd3ByYaqVEl38kz1VNdsdwuFYNO8zmJz8YWznF6HrRRBQffjMQGf6K8m8d7RWM7chbMSd0yL47GhU73UuzmFz-aZaxpfCF7W4WzlererXdGQ-FXhRYjCXkg342X4uMGBA5VGMDXkp03WLIXK8PEc3gYdmJxGS_YCw"
+                  alt="Professional DIY Kit Bundle" style={{ maxWidth: '100%', maxHeight: 280, objectFit: 'contain', filter: 'drop-shadow(0 20px 40px rgba(0,0,0,0.4))' }} />
+              </div>
+            </div>
+          </div>
+        </section>
+      )}
 
       {/* OFERTAS RELÁMPAGO */}
       {ofertas.length > 0 && (

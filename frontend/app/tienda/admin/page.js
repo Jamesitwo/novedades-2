@@ -44,6 +44,10 @@ export default function TiendaAdminPage() {
     activo: false, api_key: '', tag_name: '', flow_id: '', field_values: []
   });
   const [savingBot, setSavingBot] = useState(false);
+  const [bundleConfig, setBundleConfig] = useState({
+    productos: [], titulo: '', descripcion: '', precioNormal: '', precioOferta: ''
+  });
+  const [savingBundle, setSavingBundle] = useState(false);
 
   useEffect(() => {
     api.get('/api/configuracion').then(({ data }) => {
@@ -53,6 +57,13 @@ export default function TiendaAdminPage() {
         tag_name: data.lucidbot_tag_name || '',
         flow_id: data.lucidbot_flow_id || '',
         field_values: data.lucidbot_field_values || []
+      });
+      setBundleConfig({
+        productos: data.bundle_productos || [],
+        titulo: data.bundle_titulo || 'Professional DIY Kit',
+        descripcion: data.bundle_descripcion || 'Todo lo que necesitas para empezar.',
+        precioNormal: data.bundle_precio_normal || '',
+        precioOferta: data.bundle_precio_oferta || ''
       });
     }).catch(() => {});
   }, [isAuthenticated, usuario]);
@@ -719,6 +730,92 @@ export default function TiendaAdminPage() {
           </div>
         </div>
       )}
+
+      <div style={{ marginTop: 40, background: '#ffffff', border: '1px solid #E2E8F0', boxShadow: '0 8px 24px rgba(0,0,0,0.10)', padding: 28 }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
+          <div>
+            <h3 style={{ fontSize: 20, fontWeight: 900, color: '#0b1c30', margin: '0 0 4px', borderLeft: '4px solid #ff8c00', paddingLeft: 10 }}>
+              📦 Bundle / Combo (Homepage)
+            </h3>
+            <span style={{ fontSize: 12, color: '#897362' }}>Configura la sección "Compra en Combo y Ahorra" de la página principal</span>
+          </div>
+        </div>
+
+        <div style={{ display: 'grid', gap: 14, maxWidth: 600 }}>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+            <label style={{ fontSize: 12, fontWeight: 800, color: '#564334', textTransform: 'uppercase', letterSpacing: 1 }}>
+              Título del bundle
+              <input className="admin-input" value={bundleConfig.titulo} onChange={e => setBundleConfig(prev => ({ ...prev, titulo: e.target.value }))}
+                placeholder="Professional DIY Kit" style={{ width: '100%', marginTop: 4 }} />
+            </label>
+            <label style={{ fontSize: 12, fontWeight: 800, color: '#564334', textTransform: 'uppercase', letterSpacing: 1 }}>
+              Descripción
+              <input className="admin-input" value={bundleConfig.descripcion} onChange={e => setBundleConfig(prev => ({ ...prev, descripcion: e.target.value }))}
+                placeholder="Todo lo que necesitas..." style={{ width: '100%', marginTop: 4 }} />
+            </label>
+          </div>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+            <label style={{ fontSize: 12, fontWeight: 800, color: '#564334', textTransform: 'uppercase', letterSpacing: 1 }}>
+              Precio normal
+              <input className="admin-input" type="number" value={bundleConfig.precioNormal} onChange={e => setBundleConfig(prev => ({ ...prev, precioNormal: e.target.value }))}
+                placeholder="340000" style={{ width: '100%', marginTop: 4 }} />
+            </label>
+            <label style={{ fontSize: 12, fontWeight: 800, color: '#564334', textTransform: 'uppercase', letterSpacing: 1 }}>
+              Precio oferta
+              <input className="admin-input" type="number" value={bundleConfig.precioOferta} onChange={e => setBundleConfig(prev => ({ ...prev, precioOferta: e.target.value }))}
+                placeholder="295000" style={{ width: '100%', marginTop: 4 }} />
+            </label>
+          </div>
+
+          <div>
+            <div style={{ fontSize: 12, fontWeight: 800, color: '#564334', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 8 }}>
+              Productos del bundle (selecciona 2-4)
+            </div>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+              {allProducts.slice(0, 30).map(ap => {
+                const selected = bundleConfig.productos.includes(ap.id);
+                return (
+                  <button key={ap.id} type="button" onClick={() => {
+                    setBundleConfig(prev => ({
+                      ...prev,
+                      productos: selected ? prev.productos.filter(id => id !== ap.id) : prev.productos.length < 4 ? [...prev.productos, ap.id] : prev.productos
+                    }));
+                  }} style={{
+                    padding: '4px 10px', fontSize: 12, fontWeight: 700, cursor: 'pointer',
+                    border: '1px solid #E2E8F0', borderRadius: 8, background: selected ? '#ff8c00' : '#ffffff',
+                    color: selected ? '#fff' : '#564334', opacity: !selected && bundleConfig.productos.length >= 4 ? 0.4 : 1,
+                    cursor: !selected && bundleConfig.productos.length >= 4 ? 'not-allowed' : 'pointer',
+                    whiteSpace: 'nowrap'
+                  }}>
+                    {selected ? '✓ ' : ''}{ap.nombre}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+          <button onClick={async () => {
+            setSavingBundle(true);
+            try {
+              await api.put('/api/configuracion', {
+                bundle_productos: bundleConfig.productos,
+                bundle_titulo: bundleConfig.titulo,
+                bundle_descripcion: bundleConfig.descripcion,
+                bundle_precio_normal: bundleConfig.precioNormal ? Number(bundleConfig.precioNormal) : null,
+                bundle_precio_oferta: bundleConfig.precioOferta ? Number(bundleConfig.precioOferta) : null
+              });
+              showToast('Bundle guardado correctamente');
+            } catch (e) { showToast('Error al guardar', 'error'); }
+            finally { setSavingBundle(false); }
+          }} disabled={savingBundle} style={{
+            ...S, background: savingBundle ? '#897362' : '#ff8c00', color: '#fff',
+            minHeight: 48, padding: '0 28px', cursor: 'pointer', fontSize: 15, fontWeight: 700,
+            justifySelf: 'start', opacity: savingBundle ? 0.6 : 1, border: 'none'
+          }}>
+            {savingBundle ? 'Guardando...' : '💾 Guardar Bundle'}
+          </button>
+        </div>
+      </div>
 
       <div style={{ marginTop: 40, background: '#ffffff', border: '1px solid #E2E8F0', boxShadow: '0 8px 24px rgba(0,0,0,0.10)', padding: 28 }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>

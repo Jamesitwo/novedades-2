@@ -34,7 +34,8 @@ const updateConfiguracion = async (req, res) => {
       factura_terminos, factura_resolucion, factura_rango_desde, factura_rango_hasta, factura_vigencia,
       factura_pie_legal, factura_prefijo,
       lucidsales_email, lucidsales_password, lucidsales_shop_id, lucidsales_activo,
-      lucidbot_activo, lucidbot_api_key, lucidbot_tag_name, lucidbot_flow_id, lucidbot_field_values } = req.body;
+      lucidbot_activo, lucidbot_api_key, lucidbot_tag_name, lucidbot_flow_id, lucidbot_field_values,
+      bundle_productos, bundle_titulo, bundle_descripcion, bundle_precio_normal, bundle_precio_oferta } = req.body;
 
     let config = await prisma.configuracion.findFirst();
 
@@ -65,6 +66,11 @@ const updateConfiguracion = async (req, res) => {
     if (lucidbot_tag_name !== undefined) extraData.lucidbot_tag_name = lucidbot_tag_name || null;
     if (lucidbot_flow_id !== undefined) extraData.lucidbot_flow_id = lucidbot_flow_id || null;
     if (lucidbot_field_values !== undefined) extraData.lucidbot_field_values = lucidbot_field_values || [];
+    if (bundle_productos !== undefined) extraData.bundle_productos = bundle_productos || [];
+    if (bundle_titulo !== undefined) extraData.bundle_titulo = bundle_titulo || null;
+    if (bundle_descripcion !== undefined) extraData.bundle_descripcion = bundle_descripcion || null;
+    if (bundle_precio_normal !== undefined) extraData.bundle_precio_normal = bundle_precio_normal || null;
+    if (bundle_precio_oferta !== undefined) extraData.bundle_precio_oferta = bundle_precio_oferta || null;
 
     if (req.body.lucidsales_reset === true) {
       extraData.lucidsales_token = null;
