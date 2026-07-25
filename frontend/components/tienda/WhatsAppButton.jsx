@@ -1,7 +1,8 @@
 'use client';
 import { useState, useEffect } from 'react';
 
-export default function WhatsAppButton() {
+export default function WhatsAppButton({ phone }) {
+  const numero = phone || '573000000000';
   const [showTooltip, setShowTooltip] = useState(false);
 
   useEffect(() => {
@@ -25,7 +26,7 @@ export default function WhatsAppButton() {
           <div style={{ position: 'absolute', bottom: -6, right: 16, width: 12, height: 12, background: '#fff', transform: 'rotate(45deg)', borderRight: '1px solid #E2E8F0', borderBottom: '1px solid #E2E8F0' }} />
         </div>
       )}
-      <a href="https://wa.me/573000000000" target="_blank" rel="noopener noreferrer" style={{
+      <a href={`https://wa.me/${numero}`} target="_blank" rel="noopener noreferrer" style={{
         display: 'flex', alignItems: 'center', justifyContent: 'center',
         width: 52, height: 52, background: '#25D366', color: '#fff', borderRadius: '50%',
         fontSize: 24, textDecoration: 'none', cursor: 'pointer',

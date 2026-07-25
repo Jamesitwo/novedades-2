@@ -1,6 +1,7 @@
 'use client';
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import api from '@/lib/api';
 import WhatsAppButton from '../../components/tienda/WhatsAppButton';
 import '../globals.css';
 
@@ -11,6 +12,7 @@ export default function TiendaLayout({ children }) {
   const [cartBounce, setCartBounce] = useState(false);
   const [installPrompt, setInstallPrompt] = useState(null);
   const [dismissedInstall, setDismissedInstall] = useState(false);
+  const [whatsappPhone, setWhatsappPhone] = useState('');
 
   const handleSearch = (e) => {
     e.preventDefault();
@@ -44,6 +46,12 @@ export default function TiendaLayout({ children }) {
 
   useEffect(() => {
     try { setDismissedInstall(localStorage.getItem('pizdo_pwa_dismissed') === '1'); } catch {}
+  }, []);
+
+  useEffect(() => {
+    api.get('/api/configuracion').then(({ data }) => {
+      if (data.whatsapp_numero) setWhatsappPhone(data.whatsapp_numero);
+    }).catch(() => {});
   }, []);
 
   const handleInstall = () => {
@@ -152,7 +160,7 @@ export default function TiendaLayout({ children }) {
         </div>
         <div style={{ borderTop: '1px solid rgba(255,255,255,0.1)', padding: '16px 24px', textAlign: 'center', fontSize: 13, color: '#cbdbf5', opacity: 0.6 }}>© 2026 Pizdo Industrial Tools.</div>
       </footer>
-      <WhatsAppButton />
+      <WhatsAppButton phone={whatsappPhone} />
     </div>
   );
 }

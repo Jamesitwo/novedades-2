@@ -51,7 +51,8 @@ export default function TiendaAdminPage() {
   const [homeConfig, setHomeConfig] = useState({
     hero_titulo: '', hero_subtitulo: '', hero_boton_texto: '', hero_imagen_url: '',
     seccion_bestsellers_titulo: '', seccion_catalogo_titulo: '',
-    coupon_activo: false, coupon_codigo: '', coupon_texto: '', coupon_descuento: ''
+    coupon_activo: false, coupon_codigo: '', coupon_texto: '', coupon_descuento: '',
+    whatsapp_numero: ''
   });
   const [savingHome, setSavingHome] = useState(false);
 
@@ -81,7 +82,8 @@ export default function TiendaAdminPage() {
         coupon_activo: data.coupon_activo || false,
         coupon_codigo: data.coupon_codigo || '',
         coupon_texto: data.coupon_texto || '',
-        coupon_descuento: data.coupon_descuento || ''
+        coupon_descuento: data.coupon_descuento || '',
+        whatsapp_numero: data.whatsapp_numero || ''
       });
     }).catch(() => {});
   }, [isAuthenticated, usuario]);
@@ -890,6 +892,11 @@ export default function TiendaAdminPage() {
                   placeholder="Catálogo completo" style={{ width: '100%', marginTop: 4 }} />
               </label>
             </div>
+            <label style={{ fontSize: 11, fontWeight: 700, color: '#564334', textTransform: 'uppercase', marginTop: 10 }}>
+              📱 Número WhatsApp (ej: 573001234567)
+              <input className="admin-input" value={homeConfig.whatsapp_numero} onChange={e => setHomeConfig(prev => ({ ...prev, whatsapp_numero: e.target.value }))}
+                placeholder="573000000000" style={{ width: '100%', marginTop: 4 }} />
+            </label>
           </div>
 
           <div style={{ background: '#f8f9ff', borderRadius: 10, padding: 16 }}>
@@ -937,7 +944,8 @@ export default function TiendaAdminPage() {
                 coupon_activo: homeConfig.coupon_activo,
                 coupon_codigo: homeConfig.coupon_codigo || null,
                 coupon_texto: homeConfig.coupon_texto || null,
-                coupon_descuento: homeConfig.coupon_descuento ? Number(homeConfig.coupon_descuento) : null
+                coupon_descuento: homeConfig.coupon_descuento ? Number(homeConfig.coupon_descuento) : null,
+                whatsapp_numero: homeConfig.whatsapp_numero || null
               });
               showToast('Homepage guardada correctamente');
             } catch (e) { showToast('Error al guardar', 'error'); }

@@ -38,7 +38,8 @@ const updateConfiguracion = async (req, res) => {
       bundle_productos, bundle_titulo, bundle_descripcion, bundle_precio_normal, bundle_precio_oferta,
       hero_titulo, hero_subtitulo, hero_boton_texto, hero_imagen_url,
       seccion_bestsellers_titulo, seccion_catalogo_titulo,
-      coupon_activo, coupon_codigo, coupon_texto, coupon_descuento } = req.body;
+      coupon_activo, coupon_codigo, coupon_texto, coupon_descuento,
+      whatsapp_numero } = req.body;
 
     let config = await prisma.configuracion.findFirst();
 
@@ -84,6 +85,7 @@ const updateConfiguracion = async (req, res) => {
     if (coupon_codigo !== undefined) extraData.coupon_codigo = coupon_codigo || null;
     if (coupon_texto !== undefined) extraData.coupon_texto = coupon_texto || null;
     if (coupon_descuento !== undefined) extraData.coupon_descuento = coupon_descuento || null;
+    if (whatsapp_numero !== undefined) extraData.whatsapp_numero = whatsapp_numero || null;
 
     if (req.body.lucidsales_reset === true) {
       extraData.lucidsales_token = null;
