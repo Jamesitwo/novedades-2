@@ -8,7 +8,7 @@ export default function UpsellPopup({ productoId, onClose }) {
 
   useEffect(() => {
     if (!productoId) return;
-    api.get(`/api/producto/${productoId}`)
+    api.get(`/api/tienda/${productoId}`)
       .then(({ data }) => setProducto(data))
       .catch(() => setProducto({ relacionado: [] }));
     requestAnimationFrame(() => setVisible(true));

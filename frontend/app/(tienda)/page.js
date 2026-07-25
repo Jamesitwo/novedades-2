@@ -78,8 +78,8 @@ export default function TiendaPage() {
       if (search) params.append('search', search);
       const [prodRes, destRes, ofertasRes] = await Promise.all([
         api.get(`/api/tienda?${params}`),
-        api.get('/api/producto/destacados'),
-        api.get('/api/producto/ofertas')
+        api.get('/api/tienda/destacados'),
+        api.get('/api/tienda/ofertas')
       ]);
       setProductos(prodRes.data?.productos || []);
       setCategorias(prodRes.data?.categorias || []);
