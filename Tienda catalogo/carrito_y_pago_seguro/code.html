@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+
+<html class="light" lang="es"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Carrito y Pago | Pizdo Industrial Tools</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;800;900&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "surface-container-highest": "#e0e3e5",
+                        "primary": "#8d4f00",
+                        "on-primary-container": "#5a3100",
+                        "on-primary-fixed-variant": "#6b3b00",
+                        "on-primary-fixed": "#2d1600",
+                        "surface-bright": "#f7fafc",
+                        "primary-container": "#f28c00",
+                        "on-secondary-fixed-variant": "#414754",
+                        "on-tertiary-fixed-variant": "#00468c",
+                        "inverse-surface": "#2d3133",
+                        "on-tertiary-fixed": "#001b3d",
+                        "surface-container-lowest": "#ffffff",
+                        "on-secondary": "#ffffff",
+                        "tertiary-container": "#6da6ff",
+                        "on-surface": "#181c1e",
+                        "surface-variant": "#e0e3e5",
+                        "on-tertiary-container": "#003a76",
+                        "on-background": "#181c1e",
+                        "secondary-fixed": "#dde2f3",
+                        "outline": "#887362",
+                        "outline-variant": "#dbc2ae",
+                        "secondary-container": "#dde2f3",
+                        "tertiary-fixed-dim": "#a9c7ff",
+                        "surface-dim": "#d7dadc",
+                        "surface": "#f7fafc",
+                        "on-secondary-container": "#5e6473",
+                        "surface-container-low": "#f1f4f6",
+                        "surface-container": "#ebeef0",
+                        "inverse-primary": "#ffb875",
+                        "tertiary": "#005db6",
+                        "tertiary-fixed": "#d6e3ff",
+                        "on-primary": "#ffffff",
+                        "secondary-fixed-dim": "#c1c6d7",
+                        "surface-container-high": "#e5e9eb",
+                        "primary-fixed-dim": "#ffb875",
+                        "inverse-on-surface": "#eef1f3",
+                        "on-surface-variant": "#554334",
+                        "secondary": "#585e6c",
+                        "on-secondary-fixed": "#161c27",
+                        "error-container": "#ffdad6",
+                        "error": "#ba1a1a",
+                        "on-error": "#ffffff",
+                        "on-error-container": "#93000a",
+                        "surface-tint": "#8d4f00",
+                        "primary-fixed": "#ffdcc0",
+                        "background": "#f7fafc",
+                        "on-tertiary": "#ffffff"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.125rem",
+                        "lg": "0.25rem",
+                        "xl": "0.5rem",
+                        "full": "0.75rem"
+                    },
+                    "spacing": {
+                        "touch-target-min": "56px",
+                        "gutter": "24px",
+                        "unit": "8px",
+                        "container-max": "1280px",
+                        "section-padding": "64px"
+                    },
+                    "fontFamily": {
+                        "headline-md": ["Inter"],
+                        "display-lg-mobile": ["Inter"],
+                        "label-bold": ["Inter"],
+                        "body-md": ["Inter"],
+                        "display-lg": ["Inter"],
+                        "headline-md-mobile": ["Inter"],
+                        "body-lg": ["Inter"],
+                        "button-text": ["Inter"]
+                    },
+                    "fontSize": {
+                        "headline-md": ["32px", {"lineHeight": "1.3", "fontWeight": "700"}],
+                        "display-lg-mobile": ["32px", {"lineHeight": "1.2", "fontWeight": "800"}],
+                        "label-bold": ["18px", {"lineHeight": "1.2", "fontWeight": "700"}],
+                        "body-md": ["18px", {"lineHeight": "1.6", "fontWeight": "400"}],
+                        "display-lg": ["48px", {"lineHeight": "1.1", "letterSpacing": "-0.02em", "fontWeight": "800"}],
+                        "headline-md-mobile": ["24px", {"lineHeight": "1.3", "fontWeight": "700"}],
+                        "body-lg": ["20px", {"lineHeight": "1.6", "fontWeight": "400"}],
+                        "button-text": ["20px", {"lineHeight": "1.0", "fontWeight": "700"}]
+                    }
+                },
+            },
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 700, 'GRAD' 0, 'opsz' 48;
+        }
+        .industrial-shadow {
+            box-shadow: 4px 4px 0px 0px #1a202c;
+        }
+        .industrial-border {
+            border: 2px solid #1a202c;
+        }
+        .active-step {
+            background-color: #f28c00;
+            color: #2d1600;
+            border-color: #1a202c;
+        }
+        input:focus {
+            outline: none;
+            box-shadow: 0 0 0 4px #f28c00;
+        }
+    </style>
+</head>
+<body class="bg-surface text-on-surface font-body-md min-h-screen flex flex-col">
+<!-- Top Navigation Anchor (As specified in JSON hierarchy) -->
+<header class="bg-surface border-b-2 border-on-surface w-full h-touch-target-min">
+<div class="flex justify-between items-center w-full px-gutter h-full max-w-container-max mx-auto">
+<div class="flex items-center gap-unit">
+<span class="material-symbols-outlined text-primary text-4xl" style="font-variation-settings: 'FILL' 1;">build</span>
+<span class="font-display-lg text-headline-md font-black text-primary uppercase tracking-tighter">PIZDO</span>
+</div>
+<div class="hidden md:flex gap-gutter items-center">
+<span class="font-label-bold text-label-bold text-on-surface">Carrito de Compra</span>
+<div class="w-px h-8 bg-surface-variant"></div>
+<button class="flex items-center gap-2 font-label-bold text-label-bold text-on-surface hover:text-primary">
+<span class="material-symbols-outlined">account_circle</span>
+                    Cuenta
+                </button>
+</div>
+</div>
+</header>
+<main class="flex-grow w-full max-w-container-max mx-auto px-gutter py-section-padding">
+<!-- Industrial Stepper -->
+<nav class="mb-12">
+<div class="flex items-center justify-between max-w-2xl mx-auto relative">
+<!-- Connector Line -->
+<div class="absolute top-1/2 left-0 w-full h-1 bg-surface-container-highest -z-10 -translate-y-1/2 industrial-border"></div>
+<!-- Step 1: Active -->
+<div class="flex flex-col items-center gap-2">
+<div class="w-14 h-14 industrial-border bg-primary-container flex items-center justify-center text-on-primary-fixed font-black text-xl rounded-none shadow-[4px_4px_0px_#1a202c]">
+                        1
+                    </div>
+<span class="font-label-bold text-label-bold uppercase">Carrito</span>
+</div>
+<!-- Step 2: Inactive -->
+<div class="flex flex-col items-center gap-2">
+<div class="w-14 h-14 industrial-border bg-surface-container-lowest flex items-center justify-center text-on-surface-variant font-black text-xl rounded-none">
+                        2
+                    </div>
+<span class="font-label-bold text-label-bold uppercase opacity-40">Envío</span>
+</div>
+<!-- Step 3: Inactive -->
+<div class="flex flex-col items-center gap-2">
+<div class="w-14 h-14 industrial-border bg-surface-container-lowest flex items-center justify-center text-on-surface-variant font-black text-xl rounded-none">
+                        3
+                    </div>
+<span class="font-label-bold text-label-bold uppercase opacity-40">Pago</span>
+</div>
+</div>
+</nav>
+<!-- Checkout Layout -->
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-gutter items-start">
+<!-- Left Column: Cart Items -->
+<section class="lg:col-span-8 space-y-gutter">
+<h1 class="font-headline-md text-headline-md text-on-surface mb-6 border-l-8 border-primary pl-4">Tu Herramientas (2)</h1>
+<!-- Product Card 1 -->
+<div class="industrial-border bg-surface-container-lowest p-6 flex flex-col md:flex-row gap-gutter group transition-all">
+<div class="w-full md:w-48 h-48 bg-surface-container-low industrial-border overflow-hidden shrink-0">
+<img class="w-full h-full object-contain" data-alt="A professional-grade heavy-duty orange circular saw for industrial construction, shot in high-contrast studio lighting with a clean white background. The metal blade and sturdy black handle are sharply focused, reflecting a reliable and powerful aesthetic consistent with the Pizdo tool brand." src="https://lh3.googleusercontent.com/aida-public/AB6AXuB0RQkizOa4Sykwa1-48r4wl7vj08GXYJXD4Hon63PmitnUflJ8XyVDswBFqKSjBnkCl-PH0msj7eyKX3Jul0FhqF4bw8Nahnur5EIt0-ZBERhl2OxhMRKFNXPF2xnWgPxMEIUSxrZHdBi286I2ZLI3PenjMRcorn8cOrCppT77jf6a-vc5BHTf7Lxe4CE7dymIyNJmED2VPm6gEJF4QVOu-x6ZSG51PmGA-6e3qN71UXYYC0P-WFWg159C7iIDJ0WIe1CNB2Mjz6M"/>
+</div>
+<div class="flex flex-col justify-between flex-grow">
+<div>
+<div class="flex justify-between items-start">
+<h3 class="font-headline-md text-2xl mb-1 uppercase">Sierra Circular Pro-Series 18V</h3>
+<p class="font-headline-md text-2xl text-primary">$249.99</p>
+</div>
+<p class="text-on-surface-variant mb-4">SKU: PZ-8829-SC | Garantía de por vida</p>
+<div class="flex items-center gap-4">
+<div class="flex items-center industrial-border bg-surface">
+<button class="w-12 h-12 flex items-center justify-center hover:bg-primary-container border-r-2 border-on-surface"><span class="material-symbols-outlined">remove</span></button>
+<span class="w-16 text-center font-bold text-xl">1</span>
+<button class="w-12 h-12 flex items-center justify-center hover:bg-primary-container border-l-2 border-on-surface"><span class="material-symbols-outlined">add</span></button>
+</div>
+<button class="flex items-center gap-1 text-error font-label-bold uppercase hover:underline ml-auto">
+<span class="material-symbols-outlined text-sm">delete</span> Eliminar
+                                </button>
+</div>
+</div>
+</div>
+</div>
+<!-- Product Card 2 -->
+<div class="industrial-border bg-surface-container-lowest p-6 flex flex-col md:flex-row gap-gutter">
+<div class="w-full md:w-48 h-48 bg-surface-container-low industrial-border overflow-hidden shrink-0">
+<img class="w-full h-full object-contain" data-alt="A rugged set of high-torque industrial wrenches in various sizes, made of chrome-vanadium steel with a matte black finish. They are organized neatly on a wooden workbench under bright, direct workshop lighting, emphasizing their sturdy construction and professional reliability for mechanical repairs." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBu5X8fekFh6P3zQTCdRfrGS8XsjTTpgLcq4QQTpgEhw9gRMMpangmg4bVxrsVH-5jrQYodWRZXaE6rtl3O02rXO1qqmLnBkyDlZqiX93qgXJDS2mvtken-lMBoq8kRZtUeVR8CW0ftoDe0CqOYcxibI8GNhzB3D_7Vo0f5fQIvt7VafWqlnnesJyNuM23SFUKIH9UfmAj_xcFYmg7oLUgB74u2b7JddAL0wzEXlV4owSzhJBZTISUkPHlRNXxEP2cUZw_--u5KEow"/>
+</div>
+<div class="flex flex-col justify-between flex-grow">
+<div>
+<div class="flex justify-between items-start">
+<h3 class="font-headline-md text-2xl mb-1 uppercase">Set Llaves de Impacto (24 Pzs)</h3>
+<p class="font-headline-md text-2xl text-primary">$89.50</p>
+</div>
+<p class="text-on-surface-variant mb-4">SKU: PZ-1104-LI | Acero Reforzado</p>
+<div class="flex items-center gap-4">
+<div class="flex items-center industrial-border bg-surface">
+<button class="w-12 h-12 flex items-center justify-center hover:bg-primary-container border-r-2 border-on-surface"><span class="material-symbols-outlined">remove</span></button>
+<span class="w-16 text-center font-bold text-xl">1</span>
+<button class="w-12 h-12 flex items-center justify-center hover:bg-primary-container border-l-2 border-on-surface"><span class="material-symbols-outlined">add</span></button>
+</div>
+<button class="flex items-center gap-1 text-error font-label-bold uppercase hover:underline ml-auto">
+<span class="material-symbols-outlined text-sm">delete</span> Eliminar
+                                </button>
+</div>
+</div>
+</div>
+</div>
+<!-- Back Action -->
+<button class="flex items-center gap-2 font-label-bold text-on-surface hover:text-primary transition-colors">
+<span class="material-symbols-outlined">arrow_back</span>
+                    Seguir Comprando
+                </button>
+</section>
+<!-- Right Column: Order Summary -->
+<aside class="lg:col-span-4 sticky top-gutter">
+<div class="industrial-border bg-on-surface p-8 text-surface industrial-shadow">
+<h2 class="font-headline-md text-2xl uppercase border-b-2 border-surface-variant pb-4 mb-6">Resumen del Pedido</h2>
+<div class="space-y-4 mb-8">
+<div class="flex justify-between text-body-lg">
+<span>Subtotal</span>
+<span>$339.49</span>
+</div>
+<div class="flex justify-between text-body-lg text-primary-fixed-dim">
+<span>Envío Estándar</span>
+<span>GRATIS</span>
+</div>
+<div class="flex justify-between text-body-lg">
+<span>Impuestos (IVA)</span>
+<span>$54.32</span>
+</div>
+<div class="h-1 bg-surface-variant opacity-20 my-4"></div>
+<div class="flex justify-between font-black text-3xl text-primary-container">
+<span>TOTAL</span>
+<span>$393.81</span>
+</div>
+</div>
+<!-- Main Action Button -->
+<button class="w-full bg-primary-container text-on-primary-fixed h-touch-target-min font-black text-2xl uppercase industrial-border hover:bg-primary hover:text-on-primary transition-all flex items-center justify-center gap-2 active:translate-y-1 active:shadow-none shadow-[6px_6px_0px_#f7fafc33]">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">local_shipping</span>
+                        Continuar al Envío
+                    </button>
+<p class="text-center text-sm text-surface-variant mt-6 flex items-center justify-center gap-2">
+<span class="material-symbols-outlined text-sm">lock</span>
+                        Pago 100% Seguro y Encriptado
+                    </p>
+</div>
+<!-- Simple Instructions Card -->
+<div class="mt-8 p-6 industrial-border bg-surface-container-low">
+<h4 class="font-label-bold uppercase mb-4 flex items-center gap-2">
+<span class="material-symbols-outlined text-primary">info</span>
+                        Información Importante
+                    </h4>
+<ul class="space-y-3 text-body-md">
+<li class="flex gap-2">
+<span class="text-primary">•</span> 
+                            Entrega estimada: 2-4 días hábiles.
+                        </li>
+<li class="flex gap-2">
+<span class="text-primary">•</span> 
+                            Devoluciones gratuitas hasta 30 días.
+                        </li>
+</ul>
+</div>
+</aside>
+</div>
+</main>
+<!-- Footer (As specified in JSON) -->
+<footer class="w-full py-section-padding px-gutter flex flex-col items-center gap-unit bg-inverse-surface border-t-4 border-on-surface">
+<div class="flex items-center gap-unit mb-4">
+<span class="material-symbols-outlined text-primary-fixed text-3xl" style="font-variation-settings: 'FILL' 1;">build</span>
+<span class="font-headline-md text-headline-md text-primary-fixed">PIZDO</span>
+</div>
+<div class="flex flex-wrap justify-center gap-gutter mb-8">
+<a class="text-surface-variant font-body-md hover:text-primary-container transition-opacity" href="#">Customer Support</a>
+<a class="text-surface-variant font-body-md hover:text-primary-container transition-opacity" href="#">Store Locator</a>
+<a class="text-surface-variant font-body-md hover:text-primary-container transition-opacity" href="#">Privacy Policy</a>
+<a class="text-surface-variant font-body-md hover:text-primary-container transition-opacity" href="#">Safety Guides</a>
+</div>
+<p class="text-surface-variant font-body-md opacity-70">© 2024 Pizdo Industrial Tools. Built for Reliability.</p>
+</footer>
+<!-- Micro-interaction Script -->
+<script>
+        // Placeholder for future interactivity
+        document.querySelectorAll('button').forEach(btn => {
+            btn.addEventListener('click', function(e) {
+                // Subtle feedback if needed
+                console.log('Action triggered:', this.innerText);
+            });
+        });
+    </script>
+</body></html>

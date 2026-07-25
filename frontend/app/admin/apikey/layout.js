@@ -17,9 +17,9 @@ export default function ApiKeyLayout({ children }) {
   useEffect(() => {
     if (!initialized) return;
     if (!isAuthenticated) {
-      router.push('/login');
+      router.push('/admin/login');
     } else if (usuario?.rol !== 'admin') {
-      router.push('/dashboard');
+      router.push('/admin/dashboard');
     }
   }, [isAuthenticated, initialized, usuario, router]);
 

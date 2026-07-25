@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+
+<html class="light" lang="es"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;800;900&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "surface-container-highest": "#e0e3e5",
+                    "primary": "#8d4f00",
+                    "on-primary-container": "#5a3100",
+                    "on-primary-fixed-variant": "#6b3b00",
+                    "on-primary-fixed": "#2d1600",
+                    "surface-bright": "#f7fafc",
+                    "primary-container": "#f28c00",
+                    "on-secondary-fixed-variant": "#414754",
+                    "on-tertiary-fixed-variant": "#00468c",
+                    "inverse-surface": "#2d3133",
+                    "on-tertiary-fixed": "#001b3d",
+                    "surface-container-lowest": "#ffffff",
+                    "on-secondary": "#ffffff",
+                    "tertiary-container": "#6da6ff",
+                    "on-surface": "#181c1e",
+                    "surface-variant": "#e0e3e5",
+                    "on-tertiary-container": "#003a76",
+                    "on-background": "#181c1e",
+                    "secondary-fixed": "#dde2f3",
+                    "outline": "#887362",
+                    "outline-variant": "#dbc2ae",
+                    "secondary-container": "#dde2f3",
+                    "tertiary-fixed-dim": "#a9c7ff",
+                    "surface-dim": "#d7dadc",
+                    "surface": "#f7fafc",
+                    "on-secondary-container": "#5e6473",
+                    "surface-container-low": "#f1f4f6",
+                    "surface-container": "#ebeef0",
+                    "inverse-primary": "#ffb875",
+                    "tertiary": "#005db6",
+                    "tertiary-fixed": "#d6e3ff",
+                    "on-primary": "#ffffff",
+                    "secondary-fixed-dim": "#c1c6d7",
+                    "surface-container-high": "#e5e9eb",
+                    "primary-fixed-dim": "#ffb875",
+                    "inverse-on-surface": "#eef1f3",
+                    "on-surface-variant": "#554334",
+                    "secondary": "#585e6c",
+                    "on-secondary-fixed": "#161c27",
+                    "error-container": "#ffdad6",
+                    "error": "#ba1a1a",
+                    "on-error": "#ffffff",
+                    "on-error-container": "#93000a",
+                    "surface-tint": "#8d4f00",
+                    "primary-fixed": "#ffdcc0",
+                    "background": "#f7fafc",
+                    "on-tertiary": "#ffffff"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.125rem",
+                    "lg": "0.25rem",
+                    "xl": "0.5rem",
+                    "full": "0.75rem"
+            },
+            "spacing": {
+                    "touch-target-min": "56px",
+                    "gutter": "24px",
+                    "unit": "8px",
+                    "container-max": "1280px",
+                    "section-padding": "64px"
+            },
+            "fontFamily": {
+                    "headline-md": ["Inter"],
+                    "display-lg-mobile": ["Inter"],
+                    "label-bold": ["Inter"],
+                    "body-md": ["Inter"],
+                    "display-lg": ["Inter"],
+                    "headline-md-mobile": ["Inter"],
+                    "body-lg": ["Inter"],
+                    "button-text": ["Inter"]
+            },
+            "fontSize": {
+                    "headline-md": ["32px", {"lineHeight": "1.3", "fontWeight": "700"}],
+                    "display-lg-mobile": ["32px", {"lineHeight": "1.2", "fontWeight": "800"}],
+                    "label-bold": ["18px", {"lineHeight": "1.2", "fontWeight": "700"}],
+                    "body-md": ["18px", {"lineHeight": "1.6", "fontWeight": "400"}],
+                    "display-lg": ["48px", {"lineHeight": "1.1", "letterSpacing": "-0.02em", "fontWeight": "800"}],
+                    "headline-md-mobile": ["24px", {"lineHeight": "1.3", "fontWeight": "700"}],
+                    "body-lg": ["20px", {"lineHeight": "1.6", "fontWeight": "400"}],
+                    "button-text": ["20px", {"lineHeight": "1.0", "fontWeight": "700"}]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 48;
+        }
+        .offset-border {
+            box-shadow: 6px 6px 0px 0px #181c1e;
+        }
+        .active-nav-link {
+            border-bottom: 4px solid #8d4f00;
+            padding-bottom: 0.25rem;
+        }
+    </style>
+</head>
+<body class="bg-background text-on-background font-body-md antialiased min-h-screen flex flex-col">
+<!-- TopNavBar -->
+<nav class="bg-surface sticky top-0 z-50 border-b-2 border-on-surface">
+<div class="flex justify-between items-center w-full px-gutter h-touch-target-min max-w-container-max mx-auto">
+<div class="flex items-center gap-4">
+<span class="font-display-lg text-primary uppercase tracking-tighter font-black">Pizdo</span>
+</div>
+<div class="hidden md:flex gap-8 items-center h-full">
+<a class="text-primary border-b-4 border-primary pb-1 font-label-bold text-label-bold transition-colors duration-100" href="#">Gardening</a>
+<a class="text-on-surface font-label-bold text-label-bold hover:bg-primary hover:text-on-primary transition-colors duration-100" href="#">Repair</a>
+<a class="text-on-surface font-label-bold text-label-bold hover:bg-primary hover:text-on-primary transition-colors duration-100" href="#">Painting</a>
+<a class="text-on-surface font-label-bold text-label-bold hover:bg-primary hover:text-on-primary transition-colors duration-100" href="#">Deals</a>
+</div>
+<div class="flex items-center gap-6">
+<button class="flex items-center gap-2 font-label-bold text-label-bold text-on-surface active:translate-y-1">
+<span class="material-symbols-outlined">shopping_cart</span>
+<span class="hidden sm:inline">Cart</span>
+</button>
+<button class="flex items-center gap-2 font-label-bold text-label-bold text-on-surface active:translate-y-1">
+<span class="material-symbols-outlined">person</span>
+<span class="hidden sm:inline">Account</span>
+</button>
+</div>
+</div>
+</nav>
+<main class="flex-grow max-w-container-max mx-auto w-full px-gutter py-12">
+<!-- Breadcrumbs -->
+<nav class="mb-8 flex gap-2 text-on-surface-variant font-label-bold">
+<a class="hover:underline" href="#">Home</a>
+<span>/</span>
+<a class="hover:underline" href="#">Gardening</a>
+<span>/</span>
+<span class="text-on-surface">Kit de Jardinería Ergonómico</span>
+</nav>
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-12">
+<!-- Giant Product Image Section -->
+<div class="lg:col-span-7">
+<div class="relative bg-white border-2 border-on-surface p-4 offset-border overflow-hidden group">
+<img class="w-full h-auto object-cover aspect-[4/3] group-hover:scale-105 transition-transform duration-500" data-alt="A massive, detailed studio photograph of a premium ergonomic gardening kit set on a clean workbench. The tools feature high-contrast orange non-slip rubber handles and polished steel blades. The lighting is crisp and industrial, highlighting the sturdy construction and professional-grade materials of the trowel, rake, and pruners. Soft grey background with a focus on functional reliability and heavy-duty design." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDiXVhu1vAu9Jc7LbvobIH7TAPFFMEZAFkEPqhW3skbmeAzph4QHBeha4N13aAfyLdCTT9HsPkOmsDz4A0mqeorLeJ9eQhlL7SCtxnoobQ2EQfosyKK6usXV5hblsNBYLvE--JomYt6LQgQBPf_tR90_5Xruy2sfnuXdISbkzjLMGwACf3dx_-ZcmkBoZH2dbCEZ4O4asSDoX7vZlcVNbjp1fyhLh7C5k_P6AXtD1D8xTReZe4C27ZOsF6yVidesg9YxM2UInEczfw"/>
+<div class="absolute top-4 left-4 bg-primary text-on-primary font-black px-4 py-2 text-label-bold border-2 border-on-surface shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] uppercase">
+                        Best Seller
+                    </div>
+</div>
+<!-- Thumbnails/Extra Info -->
+<div class="grid grid-cols-3 gap-4 mt-8">
+<div class="border-2 border-on-surface aspect-square flex items-center justify-center p-2 bg-surface cursor-pointer hover:border-primary transition-colors">
+<img class="w-full h-full object-contain" data-alt="Close-up detail shot of the ergonomic tool handle with a deep texture for maximum grip, industrial orange and black colors, studio lighting." src="https://lh3.googleusercontent.com/aida-public/AB6AXuB4-LdWVA6VxlV6CrtP4eg9QUQ2CL1g6otqZl8Vvqz9mBb1aLwfIdrxb2w1Mq4S3cK7JnNCQzbNoXoweXUyGmS1Mp843SV5D15F0aKveMOjKa9XZgZBM4-xx_nKPVl2TMUXBC1jjsXTgbNbzV6Kj-xoL8LwD0IsBeMvwSAleFkSAwgFktsB3M5GI7LDud917-zPdt1f1n42F1dix47_RW_rdS2r2_A8xMLwD8_YMi_H5zbcR7RqyyDI0OTr094fqpaydrlyZXbByYc"/>
+</div>
+<div class="border-2 border-on-surface aspect-square flex items-center justify-center p-2 bg-surface cursor-pointer hover:border-primary transition-colors">
+<img class="w-full h-full object-contain" data-alt="Macro photo of the high-strength carbon steel pruner blade cutting through a thick stem with ease, industrial style." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDrKvLSDtvGcMdoPJHjmYErcdFdAReZ-cGYth9xh-8GlcyMNietyNQHs0ESH5-fov-w6qYyhRYYNVBRxlqXi0j7U76XWsr3jcM-iUife473pD1rcCpn3Wk6ef7jUzhRvKIvLYQezRuzbLD82pAWMAeqxRF5Oh8yXCpRvwTOAniHOx6t0Yp3jqkZDXg7CRlLNyVZ4GfNjfFO5uvKdcsAdPadYGZw_of-GeSEQmfXa6GOrJ0o_GQ0jmDGk0UDLpg9pZuE0rBrWVt5OAk"/>
+</div>
+<div class="border-2 border-on-surface aspect-square flex items-center justify-center p-2 bg-surface cursor-pointer hover:border-primary transition-colors">
+<img class="w-full h-full object-contain" data-alt="The complete gardening kit packed in its heavy-duty carrying case, organized neatly on a garden table, bright daylight." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBQ2QL7WkUXK-OCywuX0kY6AUdaf_gfrwir8sVQWoTq0kpOKyYjUwVnhISrHULD8dWjxlLlIyF1oS21Q7EAjLVF9axnM0stfoFKBGI0e3ixO0XpCQeV4xKoU-qddZrMmwGuUSpWVGal2krZN3yZ-AE3nX3WgENo89NSBR5Lrm0IbuYpt7aE3x5hhAlYKPl2s9IpZPltpKCm1AnQ1tn0WHXEgAGc7cNbXV7eSH0hqZM3BNL-EJ7q5lJ3mjP2AQTeYPv3Gd7SSxr_fXk"/>
+</div>
+</div>
+</div>
+<!-- Product Details Section -->
+<div class="lg:col-span-5 flex flex-col gap-8">
+<div>
+<h1 class="font-display-lg text-display-lg text-on-surface mb-2 uppercase tracking-tight">Kit de Jardinería Ergonómico</h1>
+<div class="flex items-center gap-2 mb-4">
+<div class="flex text-primary">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">star</span>
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">star</span>
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">star</span>
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">star</span>
+<span class="material-symbols-outlined">star</span>
+</div>
+<span class="font-label-bold text-on-surface-variant">(124 Reviews)</span>
+</div>
+</div>
+<!-- Price Section -->
+<div class="bg-surface-container p-6 border-2 border-on-surface">
+<span class="block text-body-md font-label-bold text-on-surface-variant mb-1 uppercase tracking-widest">Precio Especial</span>
+<div class="flex items-baseline gap-4">
+<span class="font-display-lg text-display-lg text-primary">$89.99</span>
+<span class="text-on-surface-variant line-through font-headline-md text-headline-md">$119.99</span>
+</div>
+</div>
+<!-- Benefits List -->
+<div class="flex flex-col gap-4">
+<h2 class="font-headline-md text-headline-md uppercase border-b-2 border-on-surface pb-2">Características Clave</h2>
+<ul class="space-y-4">
+<li class="flex items-start gap-4 p-4 bg-white border-2 border-on-surface">
+<span class="material-symbols-outlined text-primary text-4xl" style="font-variation-settings: 'wght' 700;">pan_tool_alt</span>
+<div>
+<strong class="block text-label-bold text-on-surface text-xl">Mango antideslizante</strong>
+<p class="text-on-surface-variant">Diseño industrial texturizado para un control total incluso con guantes o humedad.</p>
+</div>
+</li>
+<li class="flex items-start gap-4 p-4 bg-white border-2 border-on-surface">
+<span class="material-symbols-outlined text-primary text-4xl" style="font-variation-settings: 'wght' 700;">weight</span>
+<div>
+<strong class="block text-label-bold text-on-surface text-xl">Ligero</strong>
+<p class="text-on-surface-variant">Aleación de aluminio de grado aeronáutico que reduce la fatiga muscular en usos prolongados.</p>
+</div>
+</li>
+<li class="flex items-start gap-4 p-4 bg-white border-2 border-on-surface">
+<span class="material-symbols-outlined text-primary text-4xl" style="font-variation-settings: 'wght' 700;">back_hand</span>
+<div>
+<strong class="block text-label-bold text-on-surface text-xl">Fácil de agarrar</strong>
+<p class="text-on-surface-variant">Contorno ergonómico diseñado para reducir los puntos de presión en la palma de la mano.</p>
+</div>
+</li>
+</ul>
+</div>
+<!-- CTA Button -->
+<button class="w-full h-touch-target-min bg-primary text-on-primary font-button-text text-button-text uppercase flex items-center justify-center gap-4 border-2 border-on-surface offset-border active:translate-y-1 active:shadow-none transition-all">
+<span class="material-symbols-outlined text-3xl">shopping_cart_checkout</span>
+                    Comprar Ahora
+                </button>
+<!-- Help Section -->
+<div class="mt-4 p-6 bg-secondary-container border-2 border-on-surface flex items-center gap-6">
+<div class="bg-on-secondary-container p-3 text-secondary-container rounded-full">
+<span class="material-symbols-outlined text-4xl">support_agent</span>
+</div>
+<div>
+<p class="font-label-bold text-on-secondary-container text-xl">¿Necesitas ayuda con tu pedido?</p>
+<a class="text-primary font-black text-2xl hover:underline" href="tel:+1800PIZDO">Llámanos al 800-PIZDO</a>
+</div>
+</div>
+</div>
+</div>
+<!-- Extra Details Bento Grid -->
+<section class="mt-24">
+<h2 class="font-display-lg text-display-lg-mobile md:text-display-lg text-on-surface mb-12 uppercase">Hecho para durar toda la vida</h2>
+<div class="grid grid-cols-1 md:grid-cols-4 gap-6">
+<div class="md:col-span-2 bg-surface-container-high p-8 border-2 border-on-surface">
+<span class="material-symbols-outlined text-primary text-5xl mb-4">shield</span>
+<h3 class="font-headline-md text-headline-md mb-2">Garantía Vitalicia</h3>
+<p class="text-body-lg">Si una de nuestras herramientas se rompe bajo uso normal, la reemplazamos sin preguntas. Confiamos en nuestro acero industrial.</p>
+</div>
+<div class="bg-on-surface p-8 text-surface border-2 border-on-surface">
+<h3 class="font-headline-md text-headline-md mb-2">98%</h3>
+<p class="text-body-md">De satisfacción reportada por profesionales del paisajismo en el último año.</p>
+</div>
+<div class="bg-primary p-8 text-on-primary border-2 border-on-surface">
+<span class="material-symbols-outlined text-4xl mb-4">local_shipping</span>
+<h3 class="font-label-bold text-xl uppercase">Envío Express</h3>
+<p class="text-body-md">Recíbelo en 24-48h en todo el territorio nacional.</p>
+</div>
+</div>
+</section>
+</main>
+<!-- Footer -->
+<footer class="bg-inverse-surface w-full py-section-padding px-gutter flex flex-col items-center gap-unit border-t-4 border-on-surface">
+<div class="max-w-container-max w-full flex flex-col md:flex-row justify-between items-center gap-12">
+<div class="flex flex-col items-center md:items-start gap-4">
+<span class="font-headline-md text-headline-md text-primary-fixed uppercase font-black">Pizdo</span>
+<p class="text-surface-variant max-w-xs text-center md:text-left">© 2024 Pizdo Industrial Tools. Built for Reliability.</p>
+</div>
+<div class="grid grid-cols-2 gap-x-12 gap-y-4">
+<a class="text-surface-variant hover:text-primary-container font-body-md transition-opacity duration-200" href="#">Customer Support</a>
+<a class="text-surface-variant hover:text-primary-container font-body-md transition-opacity duration-200" href="#">Store Locator</a>
+<a class="text-surface-variant hover:text-primary-container font-body-md transition-opacity duration-200" href="#">Privacy Policy</a>
+<a class="text-surface-variant hover:text-primary-container font-body-md transition-opacity duration-200" href="#">Safety Guides</a>
+</div>
+<div class="flex gap-4">
+<button class="w-12 h-12 bg-on-surface border-2 border-surface-variant flex items-center justify-center text-surface-variant hover:bg-primary transition-colors">
+<span class="material-symbols-outlined">share</span>
+</button>
+<button class="w-12 h-12 bg-on-surface border-2 border-surface-variant flex items-center justify-center text-surface-variant hover:bg-primary transition-colors">
+<span class="material-symbols-outlined">mail</span>
+</button>
+</div>
+</div>
+</footer>
+<!-- Micro-interaction script -->
+<script>
+        // Simple click interaction for the main CTA
+        const ctaBtn = document.querySelector('button.bg-primary');
+        ctaBtn.addEventListener('click', () => {
+            ctaBtn.innerText = "Añadido al Carrito!";
+            ctaBtn.classList.remove('bg-primary');
+            ctaBtn.classList.add('bg-green-600');
+            setTimeout(() => {
+                ctaBtn.innerHTML = `<span class="material-symbols-outlined text-3xl">shopping_cart_checkout</span>Comprar Ahora`;
+                ctaBtn.classList.remove('bg-green-600');
+                ctaBtn.classList.add('bg-primary');
+            }, 2000);
+        });
+
+        // Hover effect for product thumbnails
+        document.querySelectorAll('.lg\\:col-span-7 .cursor-pointer').forEach(thumb => {
+            thumb.addEventListener('mouseenter', () => {
+                thumb.classList.add('offset-border');
+            });
+            thumb.addEventListener('mouseleave', () => {
+                thumb.classList.remove('offset-border');
+            });
+        });
+    </script>
+</body></html>

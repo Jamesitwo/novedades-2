@@ -1,0 +1,451 @@
+<!DOCTYPE html>
+
+<html lang="es"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Pizdo - Herramientas Industriales</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;800;900&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "surface-container": "#e5eeff",
+                        "secondary-fixed-dim": "#ffba20",
+                        "tertiary": "#5f5e5e",
+                        "primary-fixed-dim": "#ffb77d",
+                        "on-error-container": "#93000a",
+                        "on-tertiary": "#ffffff",
+                        "background": "#f8f9ff",
+                        "on-tertiary-fixed-variant": "#474747",
+                        "primary-fixed": "#ffdcc3",
+                        "tertiary-fixed-dim": "#c8c6c6",
+                        "on-tertiary-container": "#3e3e3e",
+                        "secondary-container": "#feb700",
+                        "on-primary-container": "#623200",
+                        "outline-variant": "#ddc1ae",
+                        "surface-container-highest": "#d3e4fe",
+                        "on-background": "#0b1c30",
+                        "on-secondary-fixed-variant": "#5e4200",
+                        "error": "#ba1a1a",
+                        "outline": "#897362",
+                        "on-surface-variant": "#564334",
+                        "surface-container-high": "#dce9ff",
+                        "primary": "#904d00",
+                        "on-error": "#ffffff",
+                        "surface-bright": "#f8f9ff",
+                        "on-tertiary-fixed": "#1b1c1c",
+                        "surface": "#f8f9ff",
+                        "inverse-on-surface": "#eaf1ff",
+                        "on-primary-fixed": "#2f1500",
+                        "surface-tint": "#904d00",
+                        "tertiary-fixed": "#e4e2e1",
+                        "surface-dim": "#cbdbf5",
+                        "tertiary-container": "#aba9a9",
+                        "on-primary": "#ffffff",
+                        "on-secondary": "#ffffff",
+                        "secondary-fixed": "#ffdea8",
+                        "inverse-surface": "#213145",
+                        "secondary": "#7c5800",
+                        "error-container": "#ffdad6",
+                        "surface-container-lowest": "#ffffff",
+                        "on-surface": "#0b1c30",
+                        "on-primary-fixed-variant": "#6e3900",
+                        "on-secondary-container": "#6b4b00",
+                        "surface-variant": "#d3e4fe",
+                        "primary-container": "#ff8c00",
+                        "on-secondary-fixed": "#271900",
+                        "inverse-primary": "#ffb77d",
+                        "surface-container-low": "#eff4ff"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "xs": "4px",
+                        "3xl": "64px",
+                        "container-max": "1280px",
+                        "base": "4px",
+                        "sm": "8px",
+                        "gutter": "24px",
+                        "xl": "32px",
+                        "md": "16px",
+                        "lg": "24px",
+                        "2xl": "48px"
+                    },
+                    "fontFamily": {
+                        "label-bold": ["Inter"],
+                        "body-sm": ["Inter"],
+                        "display-lg-mobile": ["Inter"],
+                        "headline-md": ["Inter"],
+                        "headline-lg-mobile": ["Inter"],
+                        "headline-lg": ["Inter"],
+                        "label-md": ["Inter"],
+                        "body-md": ["Inter"],
+                        "body-lg": ["Inter"],
+                        "display-lg": ["Inter"]
+                    },
+                    "fontSize": {
+                        "label-bold": ["12px", { "lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "700" }],
+                        "body-sm": ["14px", { "lineHeight": "20px", "fontWeight": "400" }],
+                        "display-lg-mobile": ["36px", { "lineHeight": "44px", "letterSpacing": "-0.02em", "fontWeight": "800" }],
+                        "headline-md": ["20px", { "lineHeight": "28px", "fontWeight": "700" }],
+                        "headline-lg-mobile": ["24px", { "lineHeight": "32px", "letterSpacing": "-0.01em", "fontWeight": "700" }],
+                        "headline-lg": ["32px", { "lineHeight": "40px", "letterSpacing": "-0.01em", "fontWeight": "700" }],
+                        "label-md": ["12px", { "lineHeight": "16px", "fontWeight": "500" }],
+                        "body-md": ["16px", { "lineHeight": "24px", "fontWeight": "400" }],
+                        "body-lg": ["18px", { "lineHeight": "28px", "fontWeight": "400" }],
+                        "display-lg": ["48px", { "lineHeight": "56px", "letterSpacing": "-0.02em", "fontWeight": "800" }]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .hero-clip {
+            clip-path: polygon(0 0, 100% 0, 100% 90%, 0% 100%);
+        }
+    </style>
+</head>
+<body class="bg-surface text-on-surface antialiased font-body-md overflow-x-hidden">
+<!-- Promo Bar -->
+<div class="bg-primary text-on-primary text-center py-2 text-label-bold font-label-bold tracking-widest uppercase">
+        Envío gratis en compras +$100.000
+    </div>
+<!-- TopNavBar -->
+<header class="bg-surface shadow-sm docked full-width top-0 sticky flex flex-col w-full z-50 border-b border-outline-variant">
+<div class="max-w-container-max mx-auto px-gutter py-md w-full flex items-center justify-between gap-xl">
+<!-- Brand -->
+<div class="flex-shrink-0 flex items-center gap-sm">
+<img alt="Pizdo Logo" class="h-10 w-auto object-contain rounded-md" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAk_Muj-hZZ8r2YIkkxqr2mykVyNmXxw3d-Bsh7K_-pjUk3LDKTyct2M9894gQUelWiK40iixPiMDQsJygNNQ5n2uN01UtwwgiEI1BHSMvue79bavFgpGLGyXck-X9qqbO52E-UgZJTAGXlLHU54UBBsqmTLKEL19FrU9rozR-7l6BAqNONJCTSw-NUJvER3HilotSYyI_QDPYEHT2bMIky_nqHbdRZHGr4n_RnnJ-c7WF81CdUSTWbG3cLtIqGPPuu9g1VJq3SFno"/>
+<span class="text-headline-lg font-headline-lg font-black text-primary tracking-tighter">Pizdo</span>
+</div>
+<!-- Search (Search Bar: on_left) -->
+<div class="flex-1 max-w-xl hidden md:flex items-center">
+<div class="relative w-full">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant" data-weight="fill" style="font-variation-settings: 'FILL' 1;">search</span>
+<input class="w-full pl-10 pr-4 py-2 bg-surface-container-low border border-outline-variant rounded-lg focus:outline-none focus:border-primary-container focus:ring-1 focus:ring-primary-container text-body-md transition-colors text-on-surface" placeholder="Buscar herramientas..." type="text"/>
+</div>
+</div>
+<!-- Navigation Links -->
+<nav class="hidden lg:flex items-center gap-lg">
+<a class="text-on-surface-variant hover:text-primary hover:bg-surface-container-low transition-all text-label-md font-label-md px-2 py-1 rounded" href="#">Power Tools</a>
+<a class="text-on-surface-variant hover:text-primary hover:bg-surface-container-low transition-all text-label-md font-label-md px-2 py-1 rounded" href="#">Hand Tools</a>
+<a class="text-on-surface-variant hover:text-primary hover:bg-surface-container-low transition-all text-label-md font-label-md px-2 py-1 rounded" href="#">Garden</a>
+<a class="text-on-surface-variant hover:text-primary hover:bg-surface-container-low transition-all text-label-md font-label-md px-2 py-1 rounded" href="#">Safety</a>
+<a class="text-primary border-b-2 border-primary font-bold pb-1 text-label-md font-label-md opacity-80 scale-95 transition-all duration-150" href="#">Deals</a>
+</nav>
+<!-- Trailing Icons -->
+<div class="flex items-center gap-sm text-primary">
+<button aria-label="shopping_cart" class="p-2 hover:bg-surface-container-low transition-all rounded-full relative">
+<span class="material-symbols-outlined" data-icon="shopping_cart">shopping_cart</span>
+<span class="absolute top-0 right-0 bg-error text-on-error text-xs w-4 h-4 rounded-full flex items-center justify-center font-bold">2</span>
+</button>
+<button aria-label="person" class="p-2 hover:bg-surface-container-low transition-all rounded-full hidden md:block">
+<span class="material-symbols-outlined" data-icon="person">person</span>
+</button>
+</div>
+</div>
+</header>
+<main>
+<!-- Hero Section -->
+<section class="relative hero-clip bg-inverse-surface text-on-tertiary overflow-hidden pb-3xl pt-2xl">
+<div class="absolute inset-0 z-0 opacity-20">
+<div class="bg-cover bg-center w-full h-full" data-alt="A massive, high-contrast, wide-angle shot of sparks flying from an industrial angle grinder cutting thick steel. The scene is illuminated by dramatic, warm glowing sparks against a dark, moody charcoal and deep orange background. The aesthetic is raw, professional, and powerful, conveying heavy-duty industrial hardware reliability." style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuCyolydRYgMJsRGBysH3sYmG3NfubXTap0KMk8cdrO-6uFmDFYMnS9dmHwFiy2DZYRiaf4oCrE0fz3zH0CFtcW5oOxe-q46O-9-ryZB3G0ka68OLib0yK-QU0_PuvnXY4zZrFM1Mg4-4jbfcG0BZih6AYbGFm7Dxab_t231FMzy4tTWtl90TzdzxG-rRm8hgHqLlDqWOPJAgcuiDpKn9mhaLb0NBP6Cjkz7qU29Zosd6mYFA9Kil4o7XMbGsvx7JZyMgbpwW1D6s4k')"></div>
+</div>
+<div class="max-w-container-max mx-auto px-gutter relative z-10 grid grid-cols-1 md:grid-cols-2 gap-2xl items-center py-2xl">
+<div class="space-y-lg">
+<h1 class="text-display-lg-mobile md:text-display-lg font-display-lg-mobile md:font-display-lg font-black text-on-tertiary leading-tight tracking-tight">
+                        Pizdo — Las herramientas que necesitas, cuando las necesitas
+                    </h1>
+<p class="text-body-lg font-body-lg text-tertiary-fixed-dim max-w-xl">
+                        Calidad profesional para tus proyectos más exigentes. Diseñadas para resistir y rendir al máximo.
+                    </p>
+<div class="flex gap-md pt-sm">
+<button class="bg-primary-container text-on-tertiary font-bold py-3 px-8 rounded-lg hover:brightness-90 transition-all shadow-md text-headline-sm">
+                            Comprar ahora
+                        </button>
+</div>
+</div>
+<div class="hidden md:block relative">
+<!-- Hero Image Graphic Area -->
+<div class="relative w-full aspect-square rounded-full bg-gradient-to-br from-surface-container-low/10 to-transparent flex items-center justify-center border-4 border-primary-container/20 p-8 shadow-2xl">
+<img class="object-contain w-full h-full drop-shadow-2xl hover:scale-105 transition-transform duration-500" data-alt="A clean, modern studio shot of a high-end, rugged professional power drill isolated on a minimalist dark gray background. The drill is highlighted with dramatic, professional lighting emphasizing its heavy-duty texture, robust yellow/orange branding, and ergonomic grip. The style is premium SaaS-meets-industrial hardware, extremely sharp and high definition." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBcSsgYjIuTXU8W2IljOR6Ud-dcffWygOFaJpx_hWqJQxygTfsfQxGOqwtDK2U06gihO1Syx6_F67RAbS9DhatpSeTfDye1sJoQVnf1QFSHHm7LUuGtYUvZnG19WXiL26GWK8I5h9wCRr_GqzIDxkxbDzYzOss2ASMyAo4U6f95CTqp6v7w8frnovUHonUEYKyjF7TNy-Ey9nAtOeDLcgIPOyKN-q6fuPYRohnuHbnIt0R1sDToRAEOY59W2yE4ZZpBGpki8I5bmxQ"/>
+</div>
+<!-- Floating badge -->
+<div class="absolute bottom-10 -left-6 bg-surface text-on-surface px-6 py-4 rounded-xl shadow-lg border-l-4 border-secondary-container animate-bounce">
+<div class="flex items-center gap-sm">
+<span class="material-symbols-outlined text-secondary-container" data-icon="star" data-weight="fill">star</span>
+<div class="text-sm">
+<p class="font-bold">Garantía de 5 años</p>
+<p class="text-on-surface-variant text-xs">En herramientas eléctricas</p>
+</div>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- Urgency Bar -->
+<div class="bg-primary-container text-on-tertiary py-3 px-gutter w-full shadow-md z-20 relative -mt-10 mx-auto max-w-container-max rounded-xl flex flex-col md:flex-row items-center justify-between">
+<div class="flex items-center gap-sm font-bold text-body-md">
+<span class="material-symbols-outlined animate-pulse" data-icon="timer">timer</span>
+<span>Oferta flash termina en:</span>
+</div>
+<div class="font-display-lg-mobile md:font-headline-lg font-black tracking-widest tabular-nums mt-2 md:mt-0" id="countdown">
+                 05:23:10
+             </div>
+</div>
+<script>
+            // Simple visual countdown script for demo
+            let time = 5 * 3600 + 23 * 60 + 10;
+            const timerEl = document.getElementById('countdown');
+            setInterval(() => {
+                if(time <= 0) return;
+                time--;
+                const h = Math.floor(time / 3600).toString().padStart(2, '0');
+                const m = Math.floor((time % 3600) / 60).toString().padStart(2, '0');
+                const s = Math.floor(time % 60).toString().padStart(2, '0');
+                timerEl.textContent = `${h}:${m}:${s}`;
+            }, 1000);
+        </script>
+<!-- Categories -->
+<section class="py-3xl max-w-container-max mx-auto px-gutter">
+<h2 class="text-headline-lg font-headline-lg font-bold text-on-surface mb-xl border-l-4 border-primary pl-4">Categorías destacadas</h2>
+<div class="grid grid-cols-2 md:grid-cols-5 gap-md">
+<!-- Card 1 -->
+<a class="group flex flex-col items-center justify-center p-xl bg-surface-container-lowest border border-outline-variant rounded-xl shadow-sm hover:shadow-md hover:border-primary-container transition-all" href="#">
+<div class="w-16 h-16 bg-surface-container rounded-full flex items-center justify-center mb-sm group-hover:bg-primary-fixed transition-colors">
+<span class="material-symbols-outlined text-3xl text-primary" data-icon="bolt">bolt</span>
+</div>
+<span class="text-label-md font-label-md font-bold text-on-surface text-center">Eléctricas</span>
+</a>
+<!-- Card 2 -->
+<a class="group flex flex-col items-center justify-center p-xl bg-surface-container-lowest border border-outline-variant rounded-xl shadow-sm hover:shadow-md hover:border-primary-container transition-all" href="#">
+<div class="w-16 h-16 bg-surface-container rounded-full flex items-center justify-center mb-sm group-hover:bg-primary-fixed transition-colors">
+<span class="material-symbols-outlined text-3xl text-primary" data-icon="handyman">handyman</span>
+</div>
+<span class="text-label-md font-label-md font-bold text-on-surface text-center">Manuales</span>
+</a>
+<!-- Card 3 -->
+<a class="group flex flex-col items-center justify-center p-xl bg-surface-container-lowest border border-outline-variant rounded-xl shadow-sm hover:shadow-md hover:border-primary-container transition-all" href="#">
+<div class="w-16 h-16 bg-surface-container rounded-full flex items-center justify-center mb-sm group-hover:bg-primary-fixed transition-colors">
+<span class="material-symbols-outlined text-3xl text-primary" data-icon="nature">nature</span>
+</div>
+<span class="text-label-md font-label-md font-bold text-on-surface text-center">Jardín</span>
+</a>
+<!-- Card 4 -->
+<a class="group flex flex-col items-center justify-center p-xl bg-surface-container-lowest border border-outline-variant rounded-xl shadow-sm hover:shadow-md hover:border-primary-container transition-all" href="#">
+<div class="w-16 h-16 bg-surface-container rounded-full flex items-center justify-center mb-sm group-hover:bg-primary-fixed transition-colors">
+<span class="material-symbols-outlined text-3xl text-primary" data-icon="health_and_safety">health_and_safety</span>
+</div>
+<span class="text-label-md font-label-md font-bold text-on-surface text-center">Seguridad</span>
+</a>
+<!-- Card 5 -->
+<a class="group flex flex-col items-center justify-center p-xl bg-surface-container-lowest border border-outline-variant rounded-xl shadow-sm hover:shadow-md hover:border-primary-container transition-all" href="#">
+<div class="w-16 h-16 bg-surface-container rounded-full flex items-center justify-center mb-sm group-hover:bg-primary-fixed transition-colors">
+<span class="material-symbols-outlined text-3xl text-primary" data-icon="precision_manufacturing">precision_manufacturing</span>
+</div>
+<span class="text-label-md font-label-md font-bold text-on-surface text-center">Industrial</span>
+</a>
+</div>
+</section>
+<!-- Best Sellers Carousel (Grid simulation for simplicity) -->
+<section class="py-2xl bg-surface-container-lowest border-y border-outline-variant">
+<div class="max-w-container-max mx-auto px-gutter">
+<div class="flex justify-between items-end mb-xl">
+<h2 class="text-headline-lg font-headline-lg font-bold text-on-surface border-l-4 border-primary pl-4">Productos más vendidos</h2>
+<a class="text-primary font-bold hover:underline hidden md:block" href="#">Ver todos →</a>
+</div>
+<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-lg">
+<!-- Product Card 1 -->
+<div class="bg-surface border border-outline-variant rounded-lg p-md shadow-[0_4px_12px_rgba(0,0,0,0.05)] relative flex flex-col h-full hover:shadow-[0_8px_24px_rgba(0,0,0,0.10)] transition-shadow">
+<span class="absolute top-2 left-2 bg-error text-on-error text-xs font-bold px-2 py-1 rounded z-10">-25% OFF</span>
+<div class="bg-[#F8F9FA] rounded-md h-48 mb-4 flex items-center justify-center p-4 relative overflow-hidden">
+<img class="object-contain h-full w-full" data-alt="A clean product shot of a rugged, professional 20V brushless hammer drill in industrial orange and black, isolated against a crisp light gray background. High-resolution, sharp lighting highlighting the tool's robust build quality." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDhtpvTyjXt0ykQFZqG28Zu33SvBlhzeBe0sfR55iqbnom5Im-Bc6bgkAiPOo8Jf36vmIabLXzjGYPsI4BE44BXb9lPqM9NTd1IEZV5eWaz69bQiecfdkTG_9IMsPxD24UIt0RLlYzGvDWsoBTHBRMgHfPehl_OGBWt1s6xkua-XVdLNJecEiF-1oCp3IL2n5dTu8ZXXMJ1FVDKBzd-QgZKd23jWOiFoHWhVZTQ3zWHwz70vfXWSDuQNQdh0MY4hEmLjF8_JEpSsjo"/>
+</div>
+<h3 class="text-body-md font-bold text-on-surface mb-2 line-clamp-2 h-12">Taladro Percutor 20V Brushless</h3>
+<div class="flex items-center gap-1 mb-2">
+<span class="material-symbols-outlined text-secondary-container text-sm" data-icon="star" data-weight="fill">star</span>
+<span class="material-symbols-outlined text-secondary-container text-sm" data-icon="star" data-weight="fill">star</span>
+<span class="material-symbols-outlined text-secondary-container text-sm" data-icon="star" data-weight="fill">star</span>
+<span class="material-symbols-outlined text-secondary-container text-sm" data-icon="star" data-weight="fill">star</span>
+<span class="material-symbols-outlined text-secondary-container text-sm" data-icon="star" data-weight="fill">star</span>
+<span class="text-xs text-on-surface-variant ml-1">(124)</span>
+</div>
+<div class="flex items-baseline gap-2 mb-1">
+<span class="text-headline-md font-bold text-on-surface">$262.500</span>
+<span class="text-sm text-on-surface-variant line-through">$350.000</span>
+</div>
+<p class="text-error text-xs font-bold mb-4">¡Solo quedan 3 unidades!</p>
+<button class="mt-auto w-full bg-transparent border-2 border-[#2D2D2D] text-[#2D2D2D] font-bold py-2 rounded-md hover:bg-[#2D2D2D] hover:text-white transition-colors flex items-center justify-center gap-2">
+<span class="material-symbols-outlined text-sm" data-icon="shopping_cart">shopping_cart</span>
+                            Agregar al carrito
+                        </button>
+</div>
+<!-- Product Card 2 -->
+<div class="bg-surface border border-outline-variant rounded-lg p-md shadow-[0_4px_12px_rgba(0,0,0,0.05)] relative flex flex-col h-full hover:shadow-[0_8px_24px_rgba(0,0,0,0.10)] transition-shadow">
+<span class="absolute top-2 left-2 bg-secondary-container text-on-secondary-container text-xs font-bold px-2 py-1 rounded z-10">MÁS VENDIDO</span>
+<div class="bg-[#F8F9FA] rounded-md h-48 mb-4 flex items-center justify-center p-4 relative overflow-hidden">
+<img class="object-contain h-full w-full" data-alt="A studio shot of a heavy-duty industrial angle grinder in vibrant orange and dark grey, presented cleanly against a soft gray background. The metallic disc is sharp and highly detailed. Professional lighting setup." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDrBll29fF4SYGBdQSAdz9OYbdQXjWByQj_aQD1IdPT-AvFd1t2YjPOeBBLLacwnAH5uU8wGruGVVMXMOJEHDN8DUArAc67AMSZA9voARx-Y-PJpZaR7h8mVbwavyqrpvuX1Hb5ZNka6BvC2wu-fL-UdVgsVSebVNwqapTJce3kdxoaKIlyIJ_EkF-IB7Nyi_gr_fdl-W6Z2dWxCSCbN3KuTAZ5CovQk9mlgkhGf4EsubMHX4mdf9emDksKEBt1FhGUFNVxivjGPTw"/>
+</div>
+<h3 class="text-body-md font-bold text-on-surface mb-2 line-clamp-2 h-12">Amoladora Angular 9" Industrial Profesional</h3>
+<div class="flex items-center gap-1 mb-2">
+<span class="material-symbols-outlined text-secondary-container text-sm" data-icon="star" data-weight="fill">star</span>
+<span class="material-symbols-outlined text-secondary-container text-sm" data-icon="star" data-weight="fill">star</span>
+<span class="material-symbols-outlined text-secondary-container text-sm" data-icon="star" data-weight="fill">star</span>
+<span class="material-symbols-outlined text-secondary-container text-sm" data-icon="star" data-weight="fill">star</span>
+<span class="material-symbols-outlined text-secondary-container text-sm" data-icon="star_half" data-weight="fill">star_half</span>
+<span class="text-xs text-on-surface-variant ml-1">(89)</span>
+</div>
+<div class="flex items-baseline gap-2 mb-1">
+<span class="text-headline-md font-bold text-on-surface">$185.000</span>
+</div>
+<p class="text-surface text-xs mb-4 select-none">Espacio oculto</p> <!-- spacer -->
+<button class="mt-auto w-full bg-transparent border-2 border-[#2D2D2D] text-[#2D2D2D] font-bold py-2 rounded-md hover:bg-[#2D2D2D] hover:text-white transition-colors flex items-center justify-center gap-2">
+<span class="material-symbols-outlined text-sm" data-icon="shopping_cart">shopping_cart</span>
+                            Agregar al carrito
+                        </button>
+</div>
+<!-- Product Card 3 -->
+<div class="bg-surface border border-outline-variant rounded-lg p-md shadow-[0_4px_12px_rgba(0,0,0,0.05)] relative flex flex-col h-full hover:shadow-[0_8px_24px_rgba(0,0,0,0.10)] transition-shadow">
+<div class="bg-[#F8F9FA] rounded-md h-48 mb-4 flex items-center justify-center p-4 relative overflow-hidden">
+<img class="object-contain h-full w-full" data-alt="A comprehensive mechanics hand tool set inside a durable black molded case, open to show gleaming chrome vanadium wrenches and sockets. Isolated on a light gray background, highlighting the extensive piece count." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBz7j1pD3LRxrS_i-Zv99e4r81wH0LFaty3w7yVF9Cb2uWif4Y9jd-cGwQ20ZkC1_ZnurSJiHSWA1BhdGOFN_XvbcxiPeYOIraX9RHU0zVQUJXfkNQoiHTAvgT2jtQmkiHQ_L43BIp4I1ZoAjoKsLhamjBikYLhNczkoCfesK1FBjg9MfABev9HSHSGl3zmU9OVcgYQ0Id83Gjz2ucO3H4KF-4UCLM2I7jDA_FL5QT1VlTyVNaTZDp_2OtymZ4AVUUOg2UFMgKEVS0"/>
+</div>
+<h3 class="text-body-md font-bold text-on-surface mb-2 line-clamp-2 h-12">Set de Herramientas Mecánicas 150 Piezas</h3>
+<div class="flex items-center gap-1 mb-2">
+<span class="material-symbols-outlined text-secondary-container text-sm" data-icon="star" data-weight="fill">star</span>
+<span class="material-symbols-outlined text-secondary-container text-sm" data-icon="star" data-weight="fill">star</span>
+<span class="material-symbols-outlined text-secondary-container text-sm" data-icon="star" data-weight="fill">star</span>
+<span class="material-symbols-outlined text-secondary-container text-sm" data-icon="star" data-weight="fill">star</span>
+<span class="material-symbols-outlined text-secondary-container text-sm" data-icon="star" data-weight="fill">star</span>
+<span class="text-xs text-on-surface-variant ml-1">(210)</span>
+</div>
+<div class="flex items-baseline gap-2 mb-1">
+<span class="text-headline-md font-bold text-on-surface">$420.000</span>
+</div>
+<p class="text-surface text-xs mb-4 select-none">Espacio oculto</p>
+<button class="mt-auto w-full bg-transparent border-2 border-[#2D2D2D] text-[#2D2D2D] font-bold py-2 rounded-md hover:bg-[#2D2D2D] hover:text-white transition-colors flex items-center justify-center gap-2">
+<span class="material-symbols-outlined text-sm" data-icon="shopping_cart">shopping_cart</span>
+                            Agregar al carrito
+                        </button>
+</div>
+<!-- Product Card 4 -->
+<div class="bg-surface border border-outline-variant rounded-lg p-md shadow-[0_4px_12px_rgba(0,0,0,0.05)] relative flex flex-col h-full hidden lg:flex hover:shadow-[0_8px_24px_rgba(0,0,0,0.10)] transition-shadow">
+<span class="absolute top-2 left-2 bg-primary-container text-on-tertiary text-xs font-bold px-2 py-1 rounded z-10">NUEVO</span>
+<div class="bg-[#F8F9FA] rounded-md h-48 mb-4 flex items-center justify-center p-4 relative overflow-hidden">
+<img class="object-contain h-full w-full" data-alt="A modern, high-visibility orange laser level tool projecting a bright green beam, set against a pristine light gray studio background. Crisp, sharp imagery highlighting its precision industrial design." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCydZFUCS4UmLQLP1mX-jy3t8TWeMK7v9lBIpfDEvQcrrqDaWaZNGv18ZTl4Jy2umNL6HJA5agS2HL1XKmwR8tWxS0-OQfzi-F5i13h0018w4A4udBTQMmHYVI6J4Vjrg39rtDZn8EjoDNfdaRcuScnJF-PMOHDgYYBZHst65SsUVYVR8evI3suuAA3YofPEwgl5WOqtI4SzkWlpt5w91uXewmD36V5xCrhH672jS73xInw2Xiykr1odyTj650W2ZLDg55NjS9WDSY"/>
+</div>
+<h3 class="text-body-md font-bold text-on-surface mb-2 line-clamp-2 h-12">Nivel Láser Verde Autonivelante 360°</h3>
+<div class="flex items-center gap-1 mb-2">
+<span class="material-symbols-outlined text-secondary-container text-sm" data-icon="star" data-weight="fill">star</span>
+<span class="material-symbols-outlined text-secondary-container text-sm" data-icon="star" data-weight="fill">star</span>
+<span class="material-symbols-outlined text-secondary-container text-sm" data-icon="star" data-weight="fill">star</span>
+<span class="material-symbols-outlined text-secondary-container text-sm" data-icon="star" data-weight="fill">star</span>
+<span class="material-symbols-outlined text-surface-variant text-sm" data-icon="star" data-weight="fill">star</span>
+<span class="text-xs text-on-surface-variant ml-1">(12)</span>
+</div>
+<div class="flex items-baseline gap-2 mb-1">
+<span class="text-headline-md font-bold text-on-surface">$145.000</span>
+</div>
+<p class="text-surface text-xs mb-4 select-none">Espacio oculto</p>
+<button class="mt-auto w-full bg-transparent border-2 border-[#2D2D2D] text-[#2D2D2D] font-bold py-2 rounded-md hover:bg-[#2D2D2D] hover:text-white transition-colors flex items-center justify-center gap-2">
+<span class="material-symbols-outlined text-sm" data-icon="shopping_cart">shopping_cart</span>
+                            Agregar al carrito
+                        </button>
+</div>
+</div>
+</div>
+</section>
+<!-- Bundles Section -->
+<section class="py-3xl max-w-container-max mx-auto px-gutter">
+<div class="bg-surface-container rounded-2xl overflow-hidden shadow-sm flex flex-col md:flex-row">
+<div class="p-xl md:w-1/2 flex flex-col justify-center">
+<span class="text-primary font-bold uppercase tracking-wide text-sm mb-2">Compra en Combo y Ahorra</span>
+<h2 class="text-headline-lg font-headline-lg font-black text-on-surface mb-md leading-tight">Professional DIY Kit</h2>
+<p class="text-body-lg text-on-surface-variant mb-xl">Todo lo que necesitas para empezar. Taladro percutor de impacto + Set de 50 brocas + Maletín de transporte reforzado.</p>
+<div class="bg-surface p-md rounded-xl mb-xl border border-outline-variant inline-block self-start">
+<div class="text-xs text-on-surface-variant line-through mb-1">Precio por separado: $340.000</div>
+<div class="flex items-center gap-sm">
+<span class="text-display-lg-mobile font-display-lg-mobile font-bold text-primary">$295.000</span>
+<span class="bg-error-container text-on-error-container text-sm font-bold px-2 py-1 rounded">Ahorras $45.000</span>
+</div>
+</div>
+<button class="bg-primary-container text-on-tertiary font-bold py-3 px-8 rounded-lg hover:brightness-90 transition-all self-start shadow-md w-full md:w-auto text-center">
+                        Comprar Combo
+                    </button>
+</div>
+<div class="md:w-1/2 bg-inverse-surface relative min-h-[300px] flex items-center justify-center p-8">
+<!-- Geometric overlay pattern -->
+<div class="absolute inset-0 opacity-10 bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-white to-transparent" style="background-size: 20px 20px;"></div>
+<img class="object-contain w-full max-w-md relative z-10 drop-shadow-[0_20px_40px_rgba(0,0,0,0.4)]" data-alt="A dynamic, dramatic composition of a bundle kit: A heavy-duty power drill, an organized set of drill bits in a case, and a rugged canvas tool bag, all arranged beautifully against a dark industrial charcoal background. Bright, high-contrast spotlighting gives it a premium, cinematic feel." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDphn2wxQrXf940TeJFs7VVWWWnQ9hwyw8qe5IQfw2F6n2cZewEuNT8eWRJi3dB6wY6oLuIYqlsWJArezBEzLNKroWTi3TO9NAkZ-HKvoj0sVYd3ByYaqVEl38kz1VNdsdwuFYNO8zmJz8YWznF6HrRRBQffjMQGf6K8m8d7RWM7chbMSd0yL47GhU73UuzmFz-aZaxpfCF7W4WzlererXdGQ-FXhRYjCXkg342X4uMGBA5VGMDXkp03WLIXK8PEc3gYdmJxGS_YCw"/>
+</div>
+</div>
+</section>
+<!-- Coupon Banner -->
+<section class="max-w-container-max mx-auto px-gutter mb-3xl">
+<div class="bg-gradient-to-r from-primary-container to-primary text-on-tertiary rounded-xl p-xl shadow-lg relative overflow-hidden flex flex-col md:flex-row items-center justify-between">
+<!-- Diagonal stripes background pattern -->
+<div class="absolute inset-0 opacity-10 pointer-events-none" style="background-image: repeating-linear-gradient(45deg, transparent, transparent 10px, #000 10px, #000 20px);"></div>
+<div class="relative z-10 flex items-center gap-lg mb-6 md:mb-0">
+<div class="bg-surface text-primary rounded-full p-4 hidden sm:block">
+<span class="material-symbols-outlined text-4xl" data-icon="local_offer">local_offer</span>
+</div>
+<div>
+<h3 class="text-headline-md font-bold mb-1">10% OFF en tu primera compra</h3>
+<p class="text-primary-fixed-dim">Usa el código en el checkout. Válido para todos los productos.</p>
+</div>
+</div>
+<div class="relative z-10 bg-surface/20 border-2 border-dashed border-on-tertiary/50 rounded-lg px-8 py-3 text-center cursor-copy hover:bg-surface/30 transition-colors group">
+<span class="font-display-lg-mobile font-black tracking-widest text-on-tertiary group-hover:scale-105 transition-transform inline-block">PIZDO10</span>
+<span class="block text-xs mt-1 opacity-80">Haz clic para copiar</span>
+</div>
+</div>
+</section>
+<!-- Footer -->
+<footer class="bg-inverse-surface text-primary-fixed full-width border-t border-outline-variant mt-2xl pt-2xl">
+<div class="max-w-container-max mx-auto px-gutter py-2xl grid grid-cols-1 md:grid-cols-4 gap-lg">
+<!-- Brand / Col 1 -->
+<div class="flex flex-col gap-md">
+<div class="text-headline-md font-headline-md font-black text-primary-fixed">Pizdo</div>
+<p class="text-surface-variant opacity-80 text-body-md font-body-md">
+                        Las herramientas que necesitas, cuando las necesitas. Calidad profesional garantizada.
+                    </p>
+</div>
+<!-- Links Col 1 -->
+<div class="flex flex-col gap-sm">
+<h4 class="text-headline-sm font-headline-sm text-primary-fixed mb-sm">Compañía</h4>
+<a class="text-surface-variant opacity-80 hover:opacity-100 hover:text-primary-fixed transition-colors text-body-md font-body-md w-fit hover:translate-x-1" href="#">About Us</a>
+<a class="text-surface-variant opacity-80 hover:opacity-100 hover:text-primary-fixed transition-colors text-body-md font-body-md w-fit hover:translate-x-1" href="#">Contact Support</a>
+</div>
+<!-- Links Col 2 -->
+<div class="flex flex-col gap-sm">
+<h4 class="text-headline-sm font-headline-sm text-primary-fixed mb-sm">Políticas</h4>
+<a class="text-surface-variant opacity-80 hover:opacity-100 hover:text-primary-fixed transition-colors text-body-md font-body-md w-fit hover:translate-x-1" href="#">Shipping Policy</a>
+<a class="text-surface-variant opacity-80 hover:opacity-100 hover:text-primary-fixed transition-colors text-body-md font-body-md w-fit hover:translate-x-1" href="#">Returns</a>
+<a class="text-surface-variant opacity-80 hover:opacity-100 hover:text-primary-fixed transition-colors text-body-md font-body-md w-fit hover:translate-x-1" href="#">Privacy Policy</a>
+</div>
+<!-- Newsletter / Social -->
+<div class="flex flex-col gap-sm">
+<h4 class="text-headline-sm font-headline-sm text-primary-fixed mb-sm">Boletín</h4>
+<div class="flex mt-1">
+<input class="w-full bg-surface-container-lowest text-on-surface px-3 py-2 rounded-l border border-outline-variant focus:outline-none" placeholder="Email" type="email"/>
+<button class="bg-primary-container text-on-primary-container px-4 py-2 rounded-r font-bold">Ok</button>
+</div>
+</div>
+</div>
+<div class="border-t border-tertiary/20 mt-lg py-md text-center">
+<p class="text-surface-variant opacity-80 text-sm">© 2024 Pizdo Industrial Tools. All rights reserved.</p>
+</div>
+</footer>
+</main>
+</body></html>
