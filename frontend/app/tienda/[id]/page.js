@@ -4,7 +4,6 @@ import { useParams } from 'next/navigation';
 import api from '@/lib/api';
 import ProductCard from '../../../components/tienda/ProductCard';
 import CountdownTimer from '../../../components/tienda/CountdownTimer';
-import UpsellPopup from '../../../components/tienda/UpsellPopup';
 import { useAuthStore } from '@/store/authStore';
 
 export default function ProductoDetallePage() {
@@ -20,7 +19,6 @@ export default function ProductoDetallePage() {
   const [resenaForm, setResenaForm] = useState({ nombre: '', calificacion: 5, comentario: '' });
   const [resenaSaving, setResenaSaving] = useState(false);
   const [resenaSuccess, setResenaSuccess] = useState(false);
-  const [showUpsell, setShowUpsell] = useState(false);
   const [viendoAhora] = useState(() => Math.floor(Math.random() * 4) + 1);
   const [comprado24h, setComprado24h] = useState(0);
   const [reviewConfig, setReviewConfig] = useState({ cantidad: 10, distribucion: { 5: 45, 4: 25, 3: 12, 2: 10, 1: 8 }, diasMax: 90, conComentario: 75 });
@@ -125,39 +123,9 @@ export default function ProductoDetallePage() {
                   <span style={{ fontSize: 32, fontWeight: 800, color: C.red }}>{formatPrice(producto.ofertaPrecio)}</span>
                   <span style={{ fontSize: 16, color: C.muted, textDecoration: 'line-through' }}>{formatPrice(producto.precioVenta)}</span>
                   <span style={{ background: '#ffdad6', color: '#93000a', fontSize: 12, fontWeight: 700, padding: '4px 10px', borderRadius: 20 }}>-{Math.round((1 - producto.ofertaPrecio / producto.precioVenta) * 100)}%</span>
-                </div>
-                {producto.ofertaHasta && <CountdownTimer endsAt={producto.ofertaHasta} />}
-              </div>
-              ) : (
-                <span style={{ fontSize: 32, fontWeight: 800, color: C.text }}>{formatPrice(producto.precioVenta)}</span>
-              )}
           </div>
-
-          {producto.stock > 0 && producto.stock <= 5 && <div style={{ color: C.red, fontWeight: 700, fontSize: 14, marginBottom: 16 }}>¡Solo quedan {producto.stock} unidades!</div>}
-          {producto.ventasSimuladas > 0 && (
-            <div style={{ background: '#eff4ff', borderRadius: 8, padding: '10px 14px', marginBottom: 16, display: 'flex', alignItems: 'center', gap: 8, border: '1px solid #ff8c00', fontSize: 13, fontWeight: 600, color: C.primaryDark }}>
-              ⭐ Gana {Math.floor((tieneOferta ? producto.ofertaPrecio : producto.precioVenta) / 1000)} puntos con esta compra
-            </div>
-          )}
-
-          {viendoAhora > 0 && (
-            <div style={{ background: '#ffdad6', borderRadius: 8, padding: '10px 14px', marginBottom: 16, display: 'flex', alignItems: 'center', gap: 8, border: '1px solid ' + C.red, fontSize: 13, fontWeight: 600 }}>
-              ⚡ Oferta limitada — {comprado24h} {comprado24h === 1 ? 'persona compró' : 'personas compraron'} en las últimas 24h
-            </div>
-          )}
-
-          <div style={{ display: 'flex', gap: 8, marginBottom: 16 }}>
-            <a href={`/tienda/comprar/${producto.id}`} style={{
-              flex: 1, minHeight: 48, background: C.primary, color: '#fff', border: 'none', borderRadius: 8,
-              fontWeight: 700, fontSize: 16, cursor: 'pointer', textDecoration: 'none',
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-              boxShadow: '0 4px 12px rgba(255,140,0,0.3)'
-            }}>
-              🛒 Comprar ahora
-            </a>
-          </div>
-
-          {showUpsell && <UpsellPopup productoId={producto.id} onClose={() => setShowUpsell(false)} />}
+        </div>
+      </div>
 
           <div style={{ background: '#e5eeff', borderRadius: 12, padding: 16, marginBottom: 16 }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
