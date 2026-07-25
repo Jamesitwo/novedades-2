@@ -1,8 +1,10 @@
 const express = require('express');
 const router = express.Router();
-const { getConfiguracion, updateConfiguracion } = require('../controllers/configuracion.controller');
+const { getPublicConfig, getConfiguracion, updateConfiguracion } = require('../controllers/configuracion.controller');
 const { authMiddleware } = require('../middlewares/auth.middleware');
 const { adminOnly } = require('../middlewares/roles.middleware');
+
+router.get('/public', getPublicConfig);
 
 router.use(authMiddleware);
 

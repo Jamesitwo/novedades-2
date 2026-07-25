@@ -50,7 +50,7 @@ export default function TiendaLayout({ children }) {
   }, []);
 
   useEffect(() => {
-    api.get('/api/configuracion').then(({ data }) => {
+    api.get('/api/configuracion/public').then(({ data }) => {
       if (data.whatsapp_numero) setWhatsappPhone(data.whatsapp_numero);
       if (data.promo_bar_texto) setPromoText(data.promo_bar_texto);
     }).catch(() => {});

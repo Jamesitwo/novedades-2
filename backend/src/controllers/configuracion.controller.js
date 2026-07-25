@@ -131,4 +131,33 @@ const updateConfiguracion = async (req, res) => {
   }
 };
 
-module.exports = { getConfiguracion, updateConfiguracion };
+const getPublicConfig = async (req, res) => {
+  try {
+    const config = await prisma.configuracion.findFirst();
+    if (!config) return res.json({});
+    res.json({
+      hero_titulo: config.hero_titulo || null,
+      hero_subtitulo: config.hero_subtitulo || null,
+      hero_boton_texto: config.hero_boton_texto || null,
+      hero_imagen_url: config.hero_imagen_url || null,
+      seccion_bestsellers_titulo: config.seccion_bestsellers_titulo || null,
+      seccion_catalogo_titulo: config.seccion_catalogo_titulo || null,
+      coupon_activo: config.coupon_activo || false,
+      coupon_codigo: config.coupon_codigo || null,
+      coupon_texto: config.coupon_texto || null,
+      coupon_descuento: config.coupon_descuento || null,
+      bundle_productos: config.bundle_productos || [],
+      bundle_titulo: config.bundle_titulo || null,
+      bundle_descripcion: config.bundle_descripcion || null,
+      bundle_precio_normal: config.bundle_precio_normal || null,
+      bundle_precio_oferta: config.bundle_precio_oferta || null,
+      whatsapp_numero: config.whatsapp_numero || null,
+      promo_bar_texto: config.promo_bar_texto || null
+    });
+  } catch (error) {
+    console.error('Get public config error:', error);
+    res.status(500).json({ error: 'Error en el servidor' });
+  }
+};
+
+module.exports = { getPublicConfig, getConfiguracion, updateConfiguracion };

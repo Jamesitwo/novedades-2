@@ -34,7 +34,7 @@ export default function TiendaPage() {
   }, []);
 
   useEffect(() => {
-    api.get('/api/configuracion').then(({ data }) => {
+    api.get('/api/configuracion/public').then(({ data }) => {
       setHomeConfig({
         hero_titulo: data.hero_titulo || '',
         hero_subtitulo: data.hero_subtitulo || '',
