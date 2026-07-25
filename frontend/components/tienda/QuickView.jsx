@@ -50,7 +50,7 @@ export default function QuickView({ producto, onClose }) {
             {producto.ventasSimuladas > 0 && <span style={{ color: '#904d00' }}>🔥 {producto.ventasSimuladas} vendidos</span>}
           </div>
           <div style={{ display: 'flex', gap: 10 }}>
-            <a href={""/comprar/${producto.id}`} style={{
+            <a href={`/comprar/${producto.id}`} style={{
               flex: 1, minHeight: 48, background: '#ff8c00', color: '#fff', borderRadius: 8,
               textDecoration: 'none', fontWeight: 700, fontSize: 15, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8
             }}>🛒 Comprar ahora</a>

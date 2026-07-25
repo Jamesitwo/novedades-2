@@ -2,10 +2,10 @@
 
 import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { useAuthStore } from '../../../store/'authStore';
-import Sidebar from '../../../components/layout/'Sidebar';
-import Header from '../../../components/layout/'Header';
-import WebSocketProvider from '../../components/providers/WebSocketProvider';
+import { useAuthStore } from '../../../store/authStore';
+import Sidebar from '../../../components/layout/Sidebar';
+import Header from '../../../components/layout/Header';
+import WebSocketProvider from '../../../components/providers/WebSocketProvider';
 
 export default function DashboardLayout({ children }) {
   const router = useRouter();

@@ -47,7 +47,7 @@ export default function UpsellPopup({ productoId, onClose }) {
                   const precio = rp.ofertaActiva && rp.ofertaPrecio ? rp.ofertaPrecio : rp.precioVenta;
                   const tieneOferta = rp.ofertaActiva && rp.ofertaPrecio && new Date(rp.ofertaHasta) > new Date();
                   return (
-                    <a key={rp.id} href={""/comprar/${rp.id}`} style={{
+                    <a key={rp.id} href={`/comprar/${rp.id}`} style={{
                       display: 'flex', alignItems: 'center', gap: 12, padding: 10,
                       background: '#f8f9ff', borderRadius: 8, border: '1px solid #E2E8F0',
                       textDecoration: 'none', color: '#0b1c30', transition: 'box-shadow 0.1s'
@@ -75,11 +75,11 @@ export default function UpsellPopup({ productoId, onClose }) {
             </>
           )}
           <div style={{ display: 'flex', gap: 8 }}>
-            <a href={""/comprar/${productoId}`} style={{
+            <a href={`/comprar/${productoId}`} style={{
               flex: 1, minHeight: 44, background: '#ff8c00', color: '#fff', borderRadius: 8,
               textDecoration: 'none', fontWeight: 700, fontSize: 15, display: 'flex', alignItems: 'center', justifyContent: 'center'
             }}>🛒 Ir al checkout</a>
-            <a href={""/comprar/${productoId}`} style={{
+            <a href={`/comprar/${productoId}`} style={{
               minHeight: 44, padding: '0 20px', background: '#fff', color: '#2D2D2D', border: '2px solid #2D2D2D', borderRadius: 8,
               textDecoration: 'none', fontWeight: 600, fontSize: 14, display: 'flex', alignItems: 'center'
             }}>Solo este producto</a>
