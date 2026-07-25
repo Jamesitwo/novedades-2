@@ -2,9 +2,9 @@
 
 import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { useAuthStore } from '../../store/authStore';
-import Sidebar from '../../components/layout/Sidebar';
-import Header from '../../components/layout/Header';
+import { useAuthStore } from '../../../store/'authStore';
+import Sidebar from '../../../components/layout/'Sidebar';
+import Header from '../../../components/layout/'Header';
 
 export default function NovedadesLayout({ children }) {
   const router = useRouter();
