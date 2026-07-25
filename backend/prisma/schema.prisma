@@ -279,6 +279,16 @@ model Configuracion {
   bundle_descripcion        String?   @map("bundle_descripcion")
   bundle_precio_normal      Float?    @map("bundle_precio_normal")
   bundle_precio_oferta      Float?    @map("bundle_precio_oferta")
+  hero_titulo               String?   @map("hero_titulo")
+  hero_subtitulo            String?   @map("hero_subtitulo")
+  hero_boton_texto          String?   @map("hero_boton_texto")
+  hero_imagen_url           String?   @map("hero_imagen_url")
+  seccion_bestsellers_titulo String?  @map("seccion_bestsellers_titulo")
+  seccion_catalogo_titulo   String?   @map("seccion_catalogo_titulo")
+  coupon_activo             Boolean   @default(false) @map("coupon_activo")
+  coupon_codigo             String?   @map("coupon_codigo")
+  coupon_texto              String?   @map("coupon_texto")
+  coupon_descuento          Int?      @map("coupon_descuento")
 }
 
 model ApiKey {

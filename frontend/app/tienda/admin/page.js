@@ -48,6 +48,12 @@ export default function TiendaAdminPage() {
     productos: [], titulo: '', descripcion: '', precioNormal: '', precioOferta: ''
   });
   const [savingBundle, setSavingBundle] = useState(false);
+  const [homeConfig, setHomeConfig] = useState({
+    hero_titulo: '', hero_subtitulo: '', hero_boton_texto: '', hero_imagen_url: '',
+    seccion_bestsellers_titulo: '', seccion_catalogo_titulo: '',
+    coupon_activo: false, coupon_codigo: '', coupon_texto: '', coupon_descuento: ''
+  });
+  const [savingHome, setSavingHome] = useState(false);
 
   useEffect(() => {
     api.get('/api/configuracion').then(({ data }) => {
@@ -64,6 +70,18 @@ export default function TiendaAdminPage() {
         descripcion: data.bundle_descripcion || 'Todo lo que necesitas para empezar.',
         precioNormal: data.bundle_precio_normal || '',
         precioOferta: data.bundle_precio_oferta || ''
+      });
+      setHomeConfig({
+        hero_titulo: data.hero_titulo || '',
+        hero_subtitulo: data.hero_subtitulo || '',
+        hero_boton_texto: data.hero_boton_texto || '',
+        hero_imagen_url: data.hero_imagen_url || '',
+        seccion_bestsellers_titulo: data.seccion_bestsellers_titulo || '',
+        seccion_catalogo_titulo: data.seccion_catalogo_titulo || '',
+        coupon_activo: data.coupon_activo || false,
+        coupon_codigo: data.coupon_codigo || '',
+        coupon_texto: data.coupon_texto || '',
+        coupon_descuento: data.coupon_descuento || ''
       });
     }).catch(() => {});
   }, [isAuthenticated, usuario]);
@@ -813,6 +831,123 @@ export default function TiendaAdminPage() {
             justifySelf: 'start', opacity: savingBundle ? 0.6 : 1, border: 'none'
           }}>
             {savingBundle ? 'Guardando...' : '💾 Guardar Bundle'}
+          </button>
+        </div>
+      </div>
+
+      <div style={{ marginTop: 40, background: '#ffffff', border: '1px solid #E2E8F0', boxShadow: '0 8px 24px rgba(0,0,0,0.10)', padding: 28 }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
+          <div>
+            <h3 style={{ fontSize: 20, fontWeight: 900, color: '#0b1c30', margin: '0 0 4px', borderLeft: '4px solid #ff8c00', paddingLeft: 10 }}>
+              🏠 Contenido de la Homepage
+            </h3>
+            <span style={{ fontSize: 12, color: '#897362' }}>Personaliza los textos, imágenes y promociones de la página principal</span>
+          </div>
+        </div>
+
+        <div style={{ display: 'grid', gap: 18, maxWidth: 700 }}>
+          <div style={{ background: '#eff4ff', borderRadius: 10, padding: 16 }}>
+            <div style={{ fontSize: 13, fontWeight: 800, color: '#904d00', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 12 }}>🎯 Hero (banner principal)</div>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+              <label style={{ fontSize: 11, fontWeight: 700, color: '#564334', textTransform: 'uppercase' }}>
+                Título
+                <textarea className="admin-input" value={homeConfig.hero_titulo} onChange={e => setHomeConfig(prev => ({ ...prev, hero_titulo: e.target.value }))}
+                  rows={2} placeholder="Pizdo — Las herramientas que necesitas..."
+                  style={{ width: '100%', marginTop: 4, resize: 'vertical', fontSize: 13, padding: '8px 10px' }} />
+              </label>
+              <label style={{ fontSize: 11, fontWeight: 700, color: '#564334', textTransform: 'uppercase' }}>
+                Subtítulo
+                <textarea className="admin-input" value={homeConfig.hero_subtitulo} onChange={e => setHomeConfig(prev => ({ ...prev, hero_subtitulo: e.target.value }))}
+                  rows={2} placeholder="Calidad profesional para tus proyectos..."
+                  style={{ width: '100%', marginTop: 4, resize: 'vertical', fontSize: 13, padding: '8px 10px' }} />
+              </label>
+            </div>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginTop: 10 }}>
+              <label style={{ fontSize: 11, fontWeight: 700, color: '#564334', textTransform: 'uppercase' }}>
+                Texto del botón
+                <input className="admin-input" value={homeConfig.hero_boton_texto} onChange={e => setHomeConfig(prev => ({ ...prev, hero_boton_texto: e.target.value }))}
+                  placeholder="Comprar ahora" style={{ width: '100%', marginTop: 4 }} />
+              </label>
+              <label style={{ fontSize: 11, fontWeight: 700, color: '#564334', textTransform: 'uppercase' }}>
+                URL de imagen
+                <input className="admin-input" value={homeConfig.hero_imagen_url} onChange={e => setHomeConfig(prev => ({ ...prev, hero_imagen_url: e.target.value }))}
+                  placeholder="https://..." style={{ width: '100%', marginTop: 4 }} />
+              </label>
+            </div>
+          </div>
+
+          <div style={{ background: '#f8f9ff', borderRadius: 10, padding: 16 }}>
+            <div style={{ fontSize: 13, fontWeight: 800, color: '#904d00', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 12 }}>📦 Títulos de secciones</div>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+              <label style={{ fontSize: 11, fontWeight: 700, color: '#564334', textTransform: 'uppercase' }}>
+                Best Sellers
+                <input className="admin-input" value={homeConfig.seccion_bestsellers_titulo} onChange={e => setHomeConfig(prev => ({ ...prev, seccion_bestsellers_titulo: e.target.value }))}
+                  placeholder="Más vendidos" style={{ width: '100%', marginTop: 4 }} />
+              </label>
+              <label style={{ fontSize: 11, fontWeight: 700, color: '#564334', textTransform: 'uppercase' }}>
+                Catálogo
+                <input className="admin-input" value={homeConfig.seccion_catalogo_titulo} onChange={e => setHomeConfig(prev => ({ ...prev, seccion_catalogo_titulo: e.target.value }))}
+                  placeholder="Catálogo completo" style={{ width: '100%', marginTop: 4 }} />
+              </label>
+            </div>
+          </div>
+
+          <div style={{ background: '#f8f9ff', borderRadius: 10, padding: 16 }}>
+            <div style={{ fontSize: 13, fontWeight: 800, color: '#904d00', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 12 }}>🎫 Cupón de descuento</div>
+            <label style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 10, cursor: 'pointer' }}>
+              <div onClick={() => setHomeConfig(prev => ({ ...prev, coupon_activo: !prev.coupon_activo }))} style={{
+                width: 44, height: 24, borderRadius: 12, background: homeConfig.coupon_activo ? '#22c55e' : '#E2E8F0',
+                position: 'relative', transition: 'background 0.15s', cursor: 'pointer'
+              }}>
+                <div style={{ width: 20, height: 20, borderRadius: '50%', background: '#fff', position: 'absolute', top: 2, left: homeConfig.coupon_activo ? 22 : 2, transition: 'left 0.15s', boxShadow: '0 1px 3px rgba(0,0,0,0.2)' }} />
+              </div>
+              <span style={{ fontSize: 14, fontWeight: 600 }}>Mostrar cupón en la homepage</span>
+            </label>
+            {homeConfig.coupon_activo && (
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 10 }}>
+                <label style={{ fontSize: 11, fontWeight: 700, color: '#564334', textTransform: 'uppercase' }}>
+                  Código
+                  <input className="admin-input" value={homeConfig.coupon_codigo} onChange={e => setHomeConfig(prev => ({ ...prev, coupon_codigo: e.target.value }))}
+                    placeholder="PIZDO10" style={{ width: '100%', marginTop: 4 }} />
+                </label>
+                <label style={{ fontSize: 11, fontWeight: 700, color: '#564334', textTransform: 'uppercase' }}>
+                  Texto
+                  <input className="admin-input" value={homeConfig.coupon_texto} onChange={e => setHomeConfig(prev => ({ ...prev, coupon_texto: e.target.value }))}
+                    placeholder="10% OFF tu primera compra" style={{ width: '100%', marginTop: 4 }} />
+                </label>
+                <label style={{ fontSize: 11, fontWeight: 700, color: '#564334', textTransform: 'uppercase' }}>
+                  % Descuento
+                  <input className="admin-input" type="number" value={homeConfig.coupon_descuento} onChange={e => setHomeConfig(prev => ({ ...prev, coupon_descuento: e.target.value }))}
+                    placeholder="10" style={{ width: '100%', marginTop: 4 }} />
+                </label>
+              </div>
+            )}
+          </div>
+
+          <button onClick={async () => {
+            setSavingHome(true);
+            try {
+              await api.put('/api/configuracion', {
+                hero_titulo: homeConfig.hero_titulo || null,
+                hero_subtitulo: homeConfig.hero_subtitulo || null,
+                hero_boton_texto: homeConfig.hero_boton_texto || null,
+                hero_imagen_url: homeConfig.hero_imagen_url || null,
+                seccion_bestsellers_titulo: homeConfig.seccion_bestsellers_titulo || null,
+                seccion_catalogo_titulo: homeConfig.seccion_catalogo_titulo || null,
+                coupon_activo: homeConfig.coupon_activo,
+                coupon_codigo: homeConfig.coupon_codigo || null,
+                coupon_texto: homeConfig.coupon_texto || null,
+                coupon_descuento: homeConfig.coupon_descuento ? Number(homeConfig.coupon_descuento) : null
+              });
+              showToast('Homepage guardada correctamente');
+            } catch (e) { showToast('Error al guardar', 'error'); }
+            finally { setSavingHome(false); }
+          }} disabled={savingHome} style={{
+            ...S, background: savingHome ? '#897362' : '#ff8c00', color: '#fff',
+            minHeight: 48, padding: '0 28px', cursor: 'pointer', fontSize: 15, fontWeight: 700,
+            justifySelf: 'start', opacity: savingHome ? 0.6 : 1, border: 'none'
+          }}>
+            {savingHome ? 'Guardando...' : '💾 Guardar Homepage'}
           </button>
         </div>
       </div>

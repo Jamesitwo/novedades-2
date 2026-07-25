@@ -24,6 +24,7 @@ export default function TiendaPage() {
   const [scrollY, setScrollY] = useState(0);
   const [bundleConfig, setBundleConfig] = useState(null);
   const [bundleProducts, setBundleProducts] = useState([]);
+  const [homeConfig, setHomeConfig] = useState({});
 
   useEffect(() => {
     const onScroll = () => setScrollY(window.scrollY);
@@ -33,6 +34,18 @@ export default function TiendaPage() {
 
   useEffect(() => {
     api.get('/api/configuracion').then(({ data }) => {
+      setHomeConfig({
+        hero_titulo: data.hero_titulo || '',
+        hero_subtitulo: data.hero_subtitulo || '',
+        hero_boton_texto: data.hero_boton_texto || '',
+        hero_imagen_url: data.hero_imagen_url || '',
+        seccion_bestsellers_titulo: data.seccion_bestsellers_titulo || '',
+        seccion_catalogo_titulo: data.seccion_catalogo_titulo || '',
+        coupon_activo: data.coupon_activo || false,
+        coupon_codigo: data.coupon_codigo || '',
+        coupon_texto: data.coupon_texto || '',
+        coupon_descuento: data.coupon_descuento || ''
+      });
       const ids = data.bundle_productos || [];
       if (ids.length > 0) {
         setBundleConfig({
@@ -140,10 +153,10 @@ export default function TiendaPage() {
         <div style={{ maxWidth: 1280, margin: '0 auto', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 48, alignItems: 'center' }}>
           <div style={{ position: 'relative', zIndex: 1 }}>
             <h1 style={{ fontSize: 'clamp(22px, 5vw, 44px)', fontWeight: 800, lineHeight: 1.15, marginBottom: 16, letterSpacing: -1 }}>
-              Pizdo — Las herramientas que necesitas, cuando las necesitas
+              {homeConfig.hero_titulo || 'Pizdo — Las herramientas que necesitas, cuando las necesitas'}
             </h1>
             <p style={{ fontSize: 'clamp(15px, 2vw, 18px)', color: '#c8c6c6', marginBottom: 28, lineHeight: 1.5 }}>
-              Calidad profesional para tus proyectos más exigentes. Diseñadas para resistir y rendir al máximo.
+              {homeConfig.hero_subtitulo || 'Calidad profesional para tus proyectos más exigentes. Diseñadas para resistir y rendir al máximo.'}
             </p>
             <a href="#catalogo" style={{
               display: 'inline-flex', alignItems: 'center', gap: 8, background: C.primary, color: '#fff',
@@ -152,7 +165,7 @@ export default function TiendaPage() {
             }}
             onMouseEnter={e => e.currentTarget.style.opacity = '0.9'}
             onMouseLeave={e => e.currentTarget.style.opacity = '1'}>
-              Comprar ahora
+              {homeConfig.hero_boton_texto || 'Comprar ahora'}
             </a>
           </div>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', position: 'relative' }}>
@@ -208,7 +221,7 @@ export default function TiendaPage() {
           <div style={{ maxWidth: 1280, margin: '0 auto' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: 32 }}>
               <h2 style={{ fontSize: 'clamp(22px, 4vw, 28px)', fontWeight: 700, borderLeft: '4px solid #ff8c00', paddingLeft: 12, color: C.text, margin: 0 }}>
-                Más vendidos
+                {homeConfig.seccion_bestsellers_titulo || 'Más vendidos'}
               </h2>
               <a href="#catalogo" style={{ color: C.primary, fontSize: 14, fontWeight: 700, textDecoration: 'none' }}>Ver todos →</a>
             </div>
@@ -295,6 +308,24 @@ export default function TiendaPage() {
         </section>
       )}
 
+      {homeConfig.coupon_activo && homeConfig.coupon_codigo && (
+        <section style={{ maxWidth: 1280, margin: '0 auto', padding: '0 24px 48px' }}>
+          <div style={{ background: 'linear-gradient(135deg, #ff8c00 0%, #904d00 100%)', color: '#fff', borderRadius: 16, padding: 'clamp(20px, 4vw, 32px)', boxShadow: '0 4px 16px rgba(255,140,0,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 16 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+              <div style={{ background: 'rgba(255,255,255,0.2)', borderRadius: 12, padding: '12px 16px', fontSize: 24 }}>🎫</div>
+              <div>
+                <div style={{ fontWeight: 800, fontSize: 'clamp(16px, 3vw, 22px)' }}>{homeConfig.coupon_texto || `${homeConfig.coupon_descuento || 10}% OFF en tu primera compra`}</div>
+                <div style={{ fontSize: 13, opacity: 0.8, marginTop: 4 }}>{homeConfig.coupon_descuento ? `Usa el código en el checkout. Válido para todos los productos.` : ''}</div>
+              </div>
+            </div>
+            <div style={{ background: 'rgba(255,255,255,0.15)', borderRadius: 10, padding: '12px 24px', fontSize: 'clamp(18px, 4vw, 28px)', fontWeight: 800, letterSpacing: 2, cursor: 'pointer' }}
+              onClick={() => { navigator.clipboard.writeText(homeConfig.coupon_codigo); }}>
+              {homeConfig.coupon_codigo}
+            </div>
+          </div>
+        </section>
+      )}
+
       {/* OFERTAS RELÁMPAGO */}
       {ofertas.length > 0 && (
         <section id="ofertas" className="ff-section" style={{ padding: '48px 24px', background: C.bg }}>
@@ -349,7 +380,7 @@ export default function TiendaPage() {
         <div style={{ maxWidth: 1280, margin: '0 auto' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 24, flexWrap: 'wrap' }}>
             <h2 style={{ fontSize: 'clamp(22px, 4vw, 28px)', fontWeight: 700, color: C.text, margin: 0 }}>
-              {search ? `🔍 Resultados para "${search}"` : '📦 Catálogo completo'}
+              {search ? `🔍 Resultados para "${search}"` : homeConfig.seccion_catalogo_titulo || '📦 Catálogo completo'}
             </h2>
             {search && (
               <button onClick={() => { setSearch(''); router.push('/tienda'); }} style={{
