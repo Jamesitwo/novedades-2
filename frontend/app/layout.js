@@ -1,4 +1,5 @@
 import './globals.css';
+import Script from 'next/script';
 
 export const metadata = {
   metadataBase: new URL('https://pizdo.info'),
@@ -39,26 +40,25 @@ export const metadata = {
 export default function RootLayout({ children }) {
   return (
     <html lang="es" suppressHydrationWarning>
-      <head>
-        <script dangerouslySetInnerHTML={{
-          __html: `(function(){try{var t=localStorage.getItem('theme')||'dark';document.documentElement.setAttribute('data-theme',t);}catch(e){}})()`
-        }} />
-        <script
-          type="application/ld+json"
-          dangerouslySetInnerHTML={{
-            __html: JSON.stringify({
-              '@context': 'https://schema.org',
-              '@type': 'Organization',
-              name: 'Pizdo Industrial Tools',
-              url: 'https://pizdo.info',
-              description: 'Herramientas industriales de calidad profesional.',
-              contactPoint: { '@type': 'ContactPoint', contactType: 'customer service', telephone: '+57-300-000-0000', availableLanguage: 'es' }
-            })
-          }}
-        />
-      </head>
-      <body>
+      <body suppressHydrationWarning>
         <div className="sidebar-overlay" />
+        <Script id="theme-init" strategy="beforeInteractive">
+          {`(function(){try{var t=localStorage.getItem('theme')||'dark';document.documentElement.setAttribute('data-theme',t);}catch(e){}})()`}
+        </Script>
+        <Script
+          id="json-ld"
+          type="application/ld+json"
+          strategy="afterInteractive"
+        >
+          {JSON.stringify({
+            '@context': 'https://schema.org',
+            '@type': 'Organization',
+            name: 'Pizdo Industrial Tools',
+            url: 'https://pizdo.info',
+            description: 'Herramientas industriales de calidad profesional.',
+            contactPoint: { '@type': 'ContactPoint', contactType: 'customer service', telephone: '+57-300-000-0000', availableLanguage: 'es' }
+          })}
+        </Script>
         {children}
       </body>
     </html>
