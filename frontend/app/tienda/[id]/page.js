@@ -28,12 +28,6 @@ export default function ProductoDetallePage() {
   const [pauseCarousel, setPauseCarousel] = useState(false);
 
   useEffect(() => {
-    if (todasImagenes.length <= 1 || pauseCarousel) return;
-    const interval = setInterval(() => setImgActiva(prev => (prev + 1) % todasImagenes.length), 3500);
-    return () => clearInterval(interval);
-  }, [todasImagenes.length, pauseCarousel]);
-
-  useEffect(() => {
     if (!id) return;
     api.get(`/api/tienda/${id}`)
       .then(({ data }) => {
@@ -77,6 +71,12 @@ export default function ProductoDetallePage() {
   const imagenesArr = Array.isArray(rawImagenes) ? rawImagenes : [];
   const todasImagenes = [...new Set([...(typeof producto.imagen === 'string' && producto.imagen.startsWith('http') ? [producto.imagen] : []), ...imagenesArr])];
   const imagenPrincipal = todasImagenes.length > 0 ? todasImagenes[imgActiva] || todasImagenes[0] : null;
+
+  useEffect(() => {
+    if (todasImagenes.length <= 1 || pauseCarousel) return;
+    const interval = setInterval(() => setImgActiva(prev => (prev + 1) % todasImagenes.length), 3500);
+    return () => clearInterval(interval);
+  }, [todasImagenes.length, pauseCarousel]);
 
   return (
     <div style={{ maxWidth: 1280, margin: '0 auto', padding: '0 24px 64px' }}>
