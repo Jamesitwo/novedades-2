@@ -147,13 +147,14 @@ export default function ProductoDetallePage() {
           )}
 
           <div style={{ display: 'flex', gap: 8, marginBottom: 16 }}>
-            <button onClick={() => setShowUpsell(true)} style={{
+            <a href={`/tienda/comprar/${producto.id}`} style={{
               flex: 1, minHeight: 48, background: C.primary, color: '#fff', border: 'none', borderRadius: 8,
-              fontWeight: 700, fontSize: 16, cursor: 'pointer', fontFamily: '"Inter", sans-serif',
+              fontWeight: 700, fontSize: 16, cursor: 'pointer', textDecoration: 'none',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
               boxShadow: '0 4px 12px rgba(255,140,0,0.3)'
             }}>
               🛒 Comprar ahora
-            </button>
+            </a>
           </div>
 
           {showUpsell && <UpsellPopup productoId={producto.id} onClose={() => setShowUpsell(false)} />}
