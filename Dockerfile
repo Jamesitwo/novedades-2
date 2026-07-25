@@ -2,7 +2,7 @@ FROM node:20-alpine AS frontend-builder
 WORKDIR /build/frontend
 COPY frontend/package.json frontend/package-lock.json ./
 RUN npm ci
-ARG CACHEBUST=10
+ARG CACHEBUST=11
 COPY frontend/ .
 ENV NEXT_TELEMETRY_DISABLED=1
 RUN npm run build
@@ -17,7 +17,7 @@ RUN npx prisma generate --schema prisma/schema.prisma
 COPY backend/ .
 
 FROM node:20-alpine
-ARG CACHEBUST=10
+ARG CACHEBUST=11
 WORKDIR /app
 RUN apk add --no-cache openssl
 RUN addgroup -S appgroup && adduser -S appuser -G appgroup
