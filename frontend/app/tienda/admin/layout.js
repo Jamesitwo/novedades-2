@@ -12,8 +12,8 @@ export default function TiendaAdminLayout({ children }) {
 
   useEffect(() => {
     if (!initialized) return;
-    if (!isAuthenticated) { router.push('/login'); return; }
-    if (usuario?.rol !== 'admin') { router.push('/dashboard'); }
+    if (!isAuthenticated) { router.push('/admin/login'); return; }
+    if (usuario?.rol !== 'admin') { router.push('/admin/dashboard'); }
   }, [isAuthenticated, initialized, usuario, router]);
 
   if (!initialized || !isAuthenticated || usuario?.rol !== 'admin') return null;

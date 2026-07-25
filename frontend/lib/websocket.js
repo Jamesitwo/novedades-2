@@ -62,7 +62,7 @@ export function connect(token) {
     if (typeof window !== 'undefined') {
       localStorage.removeItem('token');
       localStorage.removeItem('usuario');
-      window.location.href = '/login';
+      window.location.href = '/admin/login';
     }
   });
 

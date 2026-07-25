@@ -52,7 +52,7 @@ export default function ProductCard({ producto, onFavChange }) {
       position: 'relative', opacity: visible ? 1 : 0, transform: visible ? 'translateY(0)' : 'translateY(20px)',
       transition: 'opacity 0.5s ease, transform 0.5s ease'
     }}>
-      <a href={`/tienda/${producto.id}`} style={{
+      <a href={`/producto/${producto.id}`} style={{
         textDecoration: 'none', color: '#0b1c30', display: 'flex', flexDirection: 'column',
         background: '#ffffff', border: '1px solid #E2E8F0', borderRadius: 8,
         boxShadow: '0 4px 12px rgba(0,0,0,0.05)', transition: 'box-shadow 0.2s, transform 0.2s',

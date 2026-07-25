@@ -110,8 +110,8 @@ export default function TiendaAdminPage() {
   useEffect(() => { initialize(); }, []);
   useEffect(() => {
     if (!initialized) return;
-    if (!isAuthenticated) { router.push('/login'); return; }
-    if (usuario?.rol !== 'admin') { router.push('/dashboard'); return; }
+    if (!isAuthenticated) { router.push('/admin/login'); return; }
+    if (usuario?.rol !== 'admin') { router.push('/admin/dashboard'); return; }
   }, [initialized, isAuthenticated, usuario, router]);
 
   const showToast = (msg, type = 'success') => {

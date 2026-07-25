@@ -55,38 +55,38 @@ export default function Sidebar() {
   const showLucidsales = isAdmin || usuario?.accesoLucidsales === true;
 
   const mainItems = [
-    { href: '/dashboard', label: 'Dashboard', icon: '▣' },
-    ...(canNov ? [{ href: '/novedades', label: 'Novedades', icon: '⚠', badge: counts.novedadesActivas > 0 ? counts.novedadesActivas : null, badgeColor: 'amber' }] : []),
-    ...(canOfi ? [{ href: '/oficina', label: 'En oficina', icon: '📦', badge: counts.oficinaActivos > 0 ? counts.oficinaActivos : null }] : []),
-    ...(canNov || canOfi ? [{ href: '/devoluciones', label: 'Devoluciones', icon: '↩️', badge: counts.devoluciones > 0 ? counts.devoluciones : null, badgeColor: 'purple' }] : []),
+    { href: '/admin/dashboard', label: 'Dashboard', icon: '▣' },
+    ...(canNov ? [{ href: '/admin/novedades', label: 'Novedades', icon: '⚠', badge: counts.novedadesActivas > 0 ? counts.novedadesActivas : null, badgeColor: 'amber' }] : []),
+    ...(canOfi ? [{ href: '/admin/oficina', label: 'En oficina', icon: '📦', badge: counts.oficinaActivos > 0 ? counts.oficinaActivos : null }] : []),
+    ...(canNov || canOfi ? [{ href: '/admin/devoluciones', label: 'Devoluciones', icon: '↩️', badge: counts.devoluciones > 0 ? counts.devoluciones : null, badgeColor: 'purple' }] : []),
   ];
 
   const pedidosItems = [
-    ...(canNov ? [{ href: '/solucionados', label: 'Solucionados', icon: '✅' }] : []),
-    ...(canOfi ? [{ href: '/recoger', label: 'Por Recoger', icon: '📦' }] : []),
-    { href: '/facturas', label: 'Facturas', icon: '📄' },
-    { href: '/garantias', label: 'Garantías', icon: '📋' },
-    { href: '/etiquetas', label: 'Etiquetas', icon: '🏷️' },
+    ...(canNov ? [{ href: '/admin/solucionados', label: 'Solucionados', icon: '✅' }] : []),
+    ...(canOfi ? [{ href: '/admin/recoger', label: 'Por Recoger', icon: '📦' }] : []),
+    { href: '/admin/facturas', label: 'Facturas', icon: '📄' },
+    { href: '/admin/garantias', label: 'Garantías', icon: '📋' },
+    { href: '/admin/etiquetas', label: 'Etiquetas', icon: '🏷️' },
   ];
 
   const pizdoItems = [
     ...(showLucidsales || isAdmin ? [{ href: '/tienda', label: 'Tienda', icon: '🛒' }] : []),
-    ...(isAdmin ? [{ href: '/tienda/admin', label: 'Admin Tienda', icon: '⚙' }] : []),
+    ...(isAdmin ? [{ href: '/admin/tienda', label: 'Admin Tienda', icon: '⚙' }] : []),
   ];
 
   const adminItems = isAdmin ? [
-    { href: '/dashboard/metricas', label: 'Métricas', icon: '📊' },
-    { href: '/pizdo', label: 'Productos Ganadores', icon: '🏆' },
-    { href: '/tareas', label: 'Tareas', icon: '📋' },
-    { href: '/usuarios', label: 'Usuarios', icon: '👥' },
-    { href: '/configuracion', label: 'Configuración', icon: '⚙' },
+    { href: '/admin/dashboard/metricas', label: 'Métricas', icon: '📊' },
+    { href: '/admin/pizdo', label: 'Productos Ganadores', icon: '🏆' },
+    { href: '/admin/tareas', label: 'Tareas', icon: '📋' },
+    { href: '/admin/usuarios', label: 'Usuarios', icon: '👥' },
+    { href: '/admin/configuracion', label: 'Configuración', icon: '⚙' },
     { href: '/apikey', label: 'API Keys', icon: '🔑' },
-    { href: '/sesiones', label: 'Sesiones', icon: '🔐' },
+    { href: '/admin/sesiones', label: 'Sesiones', icon: '🔐' },
   ] : [];
 
   const lucidsalesItems = showLucidsales ? [
-    { href: '/lucidsales', label: 'LucidSales', icon: '💎' },
-    { href: '/lucidsales/productos', label: 'Prod. LucidSales', icon: '📦' },
+    { href: '/admin/lucidsales', label: 'LucidSales', icon: '💎' },
+    { href: '/admin/lucidsales/productos', label: 'Prod. LucidSales', icon: '📦' },
   ] : [];
 
   const toggleSection = (key) => {
@@ -208,7 +208,7 @@ export default function Sidebar() {
         <button onClick={toggleTheme} className="btn btn-ghost" style={{ width: '100%', marginTop: 4, justifyContent: 'center', gap: 8 }}>
           {theme === 'dark' ? '☀️ Modo claro' : '🌙 Modo oscuro'}
         </button>
-        <button onClick={() => { logout(); router.push('/login'); }} className="btn btn-ghost" style={{ width: '100%', marginTop: 4, justifyContent: 'center' }}>
+        <button onClick={() => { logout(); router.push('/admin/login'); }} className="btn btn-ghost" style={{ width: '100%', marginTop: 4, justifyContent: 'center' }}>
           Cerrar Sesión
         </button>
       </div>

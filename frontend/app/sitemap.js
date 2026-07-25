@@ -2,8 +2,8 @@ export default async function sitemap() {
   const baseUrl = 'https://pizdo.info';
 
   const staticPages = [
-    { url: `${baseUrl}/tienda`, lastModified: new Date(), changeFrequency: 'daily', priority: 1 },
-    { url: `${baseUrl}/tienda?oferta=true`, lastModified: new Date(), changeFrequency: 'daily', priority: 0.8 },
+    { url: baseUrl, lastModified: new Date(), changeFrequency: 'daily', priority: 1 },
+    { url: `${baseUrl}?oferta=true`, lastModified: new Date(), changeFrequency: 'daily', priority: 0.8 },
   ];
 
   let productPages = [];
@@ -16,7 +16,7 @@ export default async function sitemap() {
       const data = await res.json();
       const productos = data.productos || [];
       productPages = productos.map(p => ({
-        url: `${baseUrl}/tienda/${p.id}`,
+        url: `${baseUrl}/producto/${p.id}`,
         lastModified: new Date(p.updatedAt || Date.now()),
         changeFrequency: 'weekly',
         priority: 0.7

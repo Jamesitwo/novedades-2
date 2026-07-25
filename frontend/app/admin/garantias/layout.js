@@ -1,0 +1,36 @@
+'use client';
+
+import { useEffect } from 'react';
+import { useRouter, usePathname } from 'next/navigation';
+import { useAuthStore } from '../../store/authStore';
+import Sidebar from '../../components/layout/Sidebar';
+import Header from '../../components/layout/Header';
+
+export default function GarantiasLayout({ children }) {
+  const router = useRouter();
+  const pathname = usePathname();
+  const { isAuthenticated, initialized, initialize } = useAuthStore();
+  const isPublic = pathname.includes('/registro/');
+
+  useEffect(() => { initialize(); }, [initialize]);
+
+  useEffect(() => {
+    if (isPublic) return;
+    if (!initialized) return;
+    if (!isAuthenticated) router.push('/admin/login');
+  }, [isAuthenticated, initialized, router, isPublic]);
+
+  if (isPublic) return children;
+
+  if (!initialized || !isAuthenticated) return null;
+
+  return (
+    <div className="layout">
+      <Sidebar />
+      <div className="main">
+        <Header />
+        {children}
+      </div>
+    </div>
+  );
+}

@@ -29,24 +29,24 @@ export default function Header() {
   };
 
   const getTitle = () => {
-    if (pathname === '/dashboard') return 'Dashboard';
-    if (pathname.startsWith('/dashboard/metricas')) return 'Métricas';
-    if (pathname.startsWith('/novedades')) return 'Novedades de entrega';
-    if (pathname.startsWith('/oficina')) return 'Paquetes en oficina';
-    if (pathname.startsWith('/usuarios')) return 'Gestión de usuarios';
-    if (pathname.startsWith('/configuracion')) return 'Configuración';
+    if (pathname === '/admin/dashboard') return 'Dashboard';
+    if (pathname.startsWith('/admin/dashboard/metricas')) return 'Métricas';
+    if (pathname.startsWith('/admin/novedades')) return 'Novedades de entrega';
+    if (pathname.startsWith('/admin/oficina')) return 'Paquetes en oficina';
+    if (pathname.startsWith('/admin/usuarios')) return 'Gestión de usuarios';
+    if (pathname.startsWith('/admin/configuracion')) return 'Configuración';
     if (pathname.startsWith('/apikey')) return 'API Keys';
-    if (pathname.startsWith('/sesiones')) return 'Sesiones';
-    if (pathname.startsWith('/devoluciones')) return 'Devoluciones';
-    if (pathname.startsWith('/solucionados')) return 'Solucionados';
-    if (pathname.startsWith('/recoger')) return 'Por Recoger';
-    if (pathname.startsWith('/pizdo')) return 'Pizdo · Productos Ganadores';
-    if (pathname.startsWith('/etiquetas')) return 'Etiquetas';
-    if (pathname.startsWith('/facturas')) return 'Facturas';
-    if (pathname.startsWith('/garantias')) return 'Garantías';
-    if (pathname.startsWith('/tareas')) return 'Tareas';
-    if (pathname.startsWith('/lucidsales/productos')) return 'LucidSales · Productos';
-    if (pathname.startsWith('/lucidsales')) return 'LucidSales · Pedidos';
+    if (pathname.startsWith('/admin/sesiones')) return 'Sesiones';
+    if (pathname.startsWith('/admin/devoluciones')) return 'Devoluciones';
+    if (pathname.startsWith('/admin/solucionados')) return 'Solucionados';
+    if (pathname.startsWith('/admin/recoger')) return 'Por Recoger';
+    if (pathname.startsWith('/admin/pizdo')) return 'Pizdo · Productos Ganadores';
+    if (pathname.startsWith('/admin/etiquetas')) return 'Etiquetas';
+    if (pathname.startsWith('/admin/facturas')) return 'Facturas';
+    if (pathname.startsWith('/admin/garantias')) return 'Garantías';
+    if (pathname.startsWith('/admin/tareas')) return 'Tareas';
+    if (pathname.startsWith('/admin/lucidsales/productos')) return 'LucidSales · Productos';
+    if (pathname.startsWith('/admin/lucidsales')) return 'LucidSales · Pedidos';
     return '';
   };
 
