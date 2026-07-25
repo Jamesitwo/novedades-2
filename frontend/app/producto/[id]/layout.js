@@ -1,8 +1,14 @@
 export async function generateMetadata({ params }) {
   const id = params.id;
   try {
-    const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'https://pizdo.info';
-    const res = await fetch(`${apiUrl}/api/tienda/${id}`, { next: { revalidate: 3600 } });
+    const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 5000);
+    const res = await fetch(`${baseUrl}/api/tienda/${id}`, {
+      signal: controller.signal,
+      next: { revalidate: 3600 }
+    });
+    clearTimeout(timeout);
     if (!res.ok) return { title: 'Producto | Pizdo' };
     const producto = await res.json();
     const nombre = producto.nombre || 'Producto';
@@ -11,14 +17,14 @@ export async function generateMetadata({ params }) {
     
     return {
       title: `${nombre} — Pizdo Industrial Tools`,
-      description: `${descripcion} Precio: $${Number(precio).toLocaleString('es-CO')}. Envíos a toda Colombia.`,
+      description: `${descripcion} Precio: ${Number(precio).toLocaleString('es-CO')}. Envíos a toda Colombia.`,
       openGraph: {
         title: `${nombre} | Pizdo`,
-        description: `${descripcion} — $${Number(precio).toLocaleString('es-CO')}`,
+        description: `${descripcion} — ${Number(precio).toLocaleString('es-CO')}`,
         images: producto.imagen ? [{ url: producto.imagen, width: 800, height: 800 }] : [],
         type: 'product',
       },
-      alternates: { canonical: `https://pizdo.info/${id}` }
+      alternates: { canonical: `https://pizdo.info/producto/${id}` }
     };
   } catch {
     return { title: 'Producto | Pizdo' };
