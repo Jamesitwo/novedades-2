@@ -2,10 +2,10 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import api from '@/lib/api';
-import ProductCard from '../../components/producto/ProductCard';
-import CountdownTimer from '../../components/producto/CountdownTimer';
-import SocialProofToast from '../../components/producto/SocialProofToast';
-import UpsellPopup from '../../components/producto/UpsellPopup';
+import ProductCard from '../../components/tienda/ProductCard';
+import CountdownTimer from '../../components/tienda/CountdownTimer';
+import SocialProofToast from '../../components/tienda/SocialProofToast';
+import UpsellPopup from '../../components/tienda/UpsellPopup';
 import { on } from '@/lib/websocket';
 
 export default function TiendaPage() {
