@@ -13,6 +13,7 @@ export default function TiendaLayout({ children }) {
   const [installPrompt, setInstallPrompt] = useState(null);
   const [dismissedInstall, setDismissedInstall] = useState(false);
   const [whatsappPhone, setWhatsappPhone] = useState('');
+  const [promoText, setPromoText] = useState('');
 
   const handleSearch = (e) => {
     e.preventDefault();
@@ -51,6 +52,7 @@ export default function TiendaLayout({ children }) {
   useEffect(() => {
     api.get('/api/configuracion').then(({ data }) => {
       if (data.whatsapp_numero) setWhatsappPhone(data.whatsapp_numero);
+      if (data.promo_bar_texto) setPromoText(data.promo_bar_texto);
     }).catch(() => {});
   }, []);
 
@@ -82,7 +84,7 @@ export default function TiendaLayout({ children }) {
       `}} />
 
       <div style={{ background: '#ff8c00', color: '#fff', textAlign: 'center', padding: '8px 16px', fontSize: 12, fontWeight: 700, letterSpacing: 1, textTransform: 'uppercase' }}>
-        Envío gratis en compras +$100.000
+        {promoText || 'Envío gratis en compras +$100.000'}
       </div>
 
       <header style={{ background: '#fff', borderBottom: '1px solid #E2E8F0', position: 'sticky', top: 0, zIndex: 100 }}>

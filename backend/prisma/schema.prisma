@@ -290,6 +290,7 @@ model Configuracion {
   coupon_texto              String?   @map("coupon_texto")
   coupon_descuento          Int?      @map("coupon_descuento")
   whatsapp_numero           String?   @map("whatsapp_numero")
+  promo_bar_texto           String?   @map("promo_bar_texto")
 }
 
 model ApiKey {

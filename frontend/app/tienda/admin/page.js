@@ -52,7 +52,7 @@ export default function TiendaAdminPage() {
     hero_titulo: '', hero_subtitulo: '', hero_boton_texto: '', hero_imagen_url: '',
     seccion_bestsellers_titulo: '', seccion_catalogo_titulo: '',
     coupon_activo: false, coupon_codigo: '', coupon_texto: '', coupon_descuento: '',
-    whatsapp_numero: ''
+    whatsapp_numero: '', promo_bar_texto: ''
   });
   const [savingHome, setSavingHome] = useState(false);
 
@@ -83,7 +83,8 @@ export default function TiendaAdminPage() {
         coupon_codigo: data.coupon_codigo || '',
         coupon_texto: data.coupon_texto || '',
         coupon_descuento: data.coupon_descuento || '',
-        whatsapp_numero: data.whatsapp_numero || ''
+        whatsapp_numero: data.whatsapp_numero || '',
+        promo_bar_texto: data.promo_bar_texto || ''
       });
     }).catch(() => {});
   }, [isAuthenticated, usuario]);
@@ -850,6 +851,11 @@ export default function TiendaAdminPage() {
         <div style={{ display: 'grid', gap: 18, maxWidth: 700 }}>
           <div style={{ background: '#eff4ff', borderRadius: 10, padding: 16 }}>
             <div style={{ fontSize: 13, fontWeight: 800, color: '#904d00', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 12 }}>🎯 Hero (banner principal)</div>
+            <label style={{ fontSize: 11, fontWeight: 700, color: '#564334', textTransform: 'uppercase', marginBottom: 10 }}>
+              📢 Barra promocional superior
+              <input className="admin-input" value={homeConfig.promo_bar_texto} onChange={e => setHomeConfig(prev => ({ ...prev, promo_bar_texto: e.target.value }))}
+                placeholder="Envío gratis en compras +$100.000" style={{ width: '100%', marginTop: 4 }} />
+            </label>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
               <label style={{ fontSize: 11, fontWeight: 700, color: '#564334', textTransform: 'uppercase' }}>
                 Título
@@ -945,7 +951,8 @@ export default function TiendaAdminPage() {
                 coupon_codigo: homeConfig.coupon_codigo || null,
                 coupon_texto: homeConfig.coupon_texto || null,
                 coupon_descuento: homeConfig.coupon_descuento ? Number(homeConfig.coupon_descuento) : null,
-                whatsapp_numero: homeConfig.whatsapp_numero || null
+                whatsapp_numero: homeConfig.whatsapp_numero || null,
+                promo_bar_texto: homeConfig.promo_bar_texto || null
               });
               showToast('Homepage guardada correctamente');
             } catch (e) { showToast('Error al guardar', 'error'); }
