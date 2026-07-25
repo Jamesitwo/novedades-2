@@ -259,17 +259,17 @@ export default function TiendaPage() {
                   }}>Comprar Combo</a>
                 )}
               </div>
-              <div style={{ flex: 1, background: C.heroBg, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 32, minHeight: 300, gap: 8, flexWrap: 'wrap' }}>
+              <div style={{ flex: 1.2, background: C.heroBg, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24, minHeight: 350, gap: 12, flexWrap: 'wrap' }}>
                 {bundleProducts.map((p, i) => (
-                  <div key={p.id} style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                    {i > 0 && <span style={{ color: '#fff', fontSize: 24, fontWeight: 700, flexShrink: 0 }}>+</span>}
-                    <a href={`/tienda/${p.id}`} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', textDecoration: 'none', color: '#fff', gap: 6 }}>
+                  <div key={p.id} style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                    {i > 0 && <span style={{ color: '#fff', fontSize: 28, fontWeight: 700, flexShrink: 0 }}>+</span>}
+                    <a href={`/tienda/${p.id}`} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', textDecoration: 'none', color: '#fff', gap: 8 }}>
                       {p.imagen ? (
-                        <img src={p.imagen} alt={p.nombre} style={{ width: 120, height: 120, objectFit: 'contain', filter: 'drop-shadow(0 4px 8px rgba(0,0,0,0.3))', borderRadius: 8, background: '#F8F9FA' }} />
+                        <img src={p.imagen} alt={p.nombre} style={{ width: 160, height: 160, objectFit: 'contain', filter: 'drop-shadow(0 6px 16px rgba(0,0,0,0.35))', borderRadius: 10, background: '#F8F9FA', padding: 8 }} />
                       ) : (
-                        <div style={{ width: 120, height: 120, borderRadius: 8, background: '#F8F9FA' }} />
+                        <div style={{ width: 160, height: 160, borderRadius: 10, background: '#F8F9FA', padding: 8 }} />
                       )}
-                      <span style={{ fontSize: 10, fontWeight: 600, textAlign: 'center', maxWidth: 90, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                      <span style={{ fontSize: 12, fontWeight: 600, textAlign: 'center', maxWidth: 140, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                         {p.nombre}
                       </span>
                     </a>
