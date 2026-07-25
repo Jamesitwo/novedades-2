@@ -2,8 +2,8 @@
 import { useState, useEffect, useRef } from 'react';
 import { useParams } from 'next/navigation';
 import api from '@/lib/api';
-import ProductCard from '../../../components/tienda/ProductCard';
-import CountdownTimer from '../../../components/tienda/CountdownTimer';
+import ProductCard from '@/components/tienda/ProductCard';
+import CountdownTimer from '@/components/tienda/CountdownTimer';
 import { useAuthStore } from '@/store/authStore';
 
 export default function ProductoDetallePage() {
