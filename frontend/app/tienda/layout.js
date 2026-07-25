@@ -6,6 +6,7 @@ export const metadata = {
     default: 'Pizdo — Herramientas Industriales de Calidad Profesional',
     template: '%s | Pizdo'
   },
+  verification: { google: 'HpRjJhdHiDUIJ22y3ZGdblE6N6z7hbm5wKDvFV94hFU' },
   description: 'Catálogo de herramientas industriales profesionales. Taladros, amoladoras, sets de mecánica y más. Calidad garantizada con envíos a toda Colombia. Compra ahora.',
   keywords: ['herramientas', 'industriales', 'taladro', 'amoladora', 'herramientas eléctricas', 'Pizdo', 'ferretería', 'Colombia'],
   authors: [{ name: 'Pizdo Industrial Tools' }],
