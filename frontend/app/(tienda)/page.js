@@ -383,7 +383,7 @@ export default function TiendaPage() {
               {search ? `🔍 Resultados para "${search}"` : homeConfig.seccion_catalogo_titulo || '📦 Catálogo completo'}
             </h2>
             {search && (
-              <button onClick={() => { setSearch(''); router.push('/tienda'); }} style={{
+              <button onClick={() => { setSearch(''); router.push('/'); }} style={{
                 background: '#2D2D2D', color: '#fff', border: 'none', borderRadius: 8, padding: '4px 14px', fontSize: 13, fontWeight: 600, cursor: 'pointer'
               }}>✕ Limpiar</button>
             )}
