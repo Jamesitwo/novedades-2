@@ -265,9 +265,9 @@ export default function TiendaPage() {
                     {i > 0 && <span style={{ color: '#fff', fontSize: 24, fontWeight: 700, flexShrink: 0 }}>+</span>}
                     <a href={`/tienda/${p.id}`} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', textDecoration: 'none', color: '#fff', gap: 6 }}>
                       {p.imagen ? (
-                        <img src={p.imagen} alt={p.nombre} style={{ width: 80, height: 80, objectFit: 'contain', filter: 'drop-shadow(0 4px 8px rgba(0,0,0,0.3))', borderRadius: 8, background: '#F8F9FA' }} />
+                        <img src={p.imagen} alt={p.nombre} style={{ width: 120, height: 120, objectFit: 'contain', filter: 'drop-shadow(0 4px 8px rgba(0,0,0,0.3))', borderRadius: 8, background: '#F8F9FA' }} />
                       ) : (
-                        <div style={{ width: 80, height: 80, borderRadius: 8, background: '#F8F9FA' }} />
+                        <div style={{ width: 120, height: 120, borderRadius: 8, background: '#F8F9FA' }} />
                       )}
                       <span style={{ fontSize: 10, fontWeight: 600, textAlign: 'center', maxWidth: 90, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                         {p.nombre}
