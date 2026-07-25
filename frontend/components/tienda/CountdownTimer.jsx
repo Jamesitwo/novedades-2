@@ -12,7 +12,7 @@ export default function CountdownTimer({ endsAt }) {
       const h = Math.floor(diff / 3600000);
       const m = Math.floor((diff % 3600000) / 60000);
       const s = Math.floor((diff % 60000) / 1000);
-      setTimeLeft(`${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`);
+      setTimeLeft({ text: `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`, urgent: diff < 3600000 });
     };
     calc();
     const interval = setInterval(calc, 1000);
@@ -23,10 +23,12 @@ export default function CountdownTimer({ endsAt }) {
 
   return (
     <span style={{
-      fontFamily: '"Inter", monospace', fontSize: 15, fontWeight: 800, color: '#0b1c30',
-      background: '#ffdad6', padding: '4px 10px', borderRadius: 8, letterSpacing: 1
+      fontFamily: '"Inter", monospace', fontSize: 15, fontWeight: 800, color: timeLeft.urgent ? '#ba1a1a' : '#0b1c30',
+      background: timeLeft.urgent ? '#ffdad6' : '#ffdad6', padding: '4px 10px', borderRadius: 8,
+      letterSpacing: 1, display: 'inline-block',
+      animation: timeLeft.urgent ? 'pulse-red 1s infinite' : 'none'
     }}>
-      ⏱ {timeLeft}
+      ⏱ {timeLeft.text}
     </span>
   );
 }

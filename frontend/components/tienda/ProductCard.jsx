@@ -1,5 +1,5 @@
 'use client';
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import UpsellPopup from './UpsellPopup';
 import QuickView from './QuickView';
 
@@ -12,6 +12,26 @@ export default function ProductCard({ producto, onFavChange }) {
     try { return JSON.parse(localStorage.getItem('pizdo_favs') || '[]').includes(producto.id); }
     catch { return false; }
   });
+  const [clicked, setClicked] = useState(false);
+  const [visible, setVisible] = useState(false);
+  const cardRef = useRef(null);
+
+  useEffect(() => {
+    const el = cardRef.current;
+    if (!el) return;
+    const observer = new IntersectionObserver(([entry]) => {
+      if (entry.isIntersecting) { setVisible(true); observer.disconnect(); }
+    }, { threshold: 0.1 });
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, []);
+
+  const handleBuy = (e) => {
+    e.preventDefault(); e.stopPropagation();
+    setClicked(true);
+    setTimeout(() => setClicked(false), 1500);
+    setTimeout(() => setShowUpsell(true), 300);
+  };
 
   const toggleFav = (e) => {
     e.preventDefault(); e.stopPropagation();
@@ -28,7 +48,10 @@ export default function ProductCard({ producto, onFavChange }) {
   const precioFinal = tieneOferta ? producto.ofertaPrecio : producto.precioVenta;
 
   return (
-    <div style={{ position: 'relative' }}>
+    <div ref={cardRef} style={{
+      position: 'relative', opacity: visible ? 1 : 0, transform: visible ? 'translateY(0)' : 'translateY(20px)',
+      transition: 'opacity 0.5s ease, transform 0.5s ease'
+    }}>
       <a href={`/tienda/${producto.id}`} style={{
         textDecoration: 'none', color: '#0b1c30', display: 'flex', flexDirection: 'column',
         background: '#ffffff', border: '1px solid #E2E8F0', borderRadius: 8,
@@ -40,17 +63,17 @@ export default function ProductCard({ producto, onFavChange }) {
         
         <div style={{ position: 'absolute', top: 8, left: 8, zIndex: 2, display: 'flex', flexDirection: 'column', gap: 4 }}>
           {tieneOferta && (
-            <span style={{ background: '#ba1a1a', color: '#fff', fontSize: 11, fontWeight: 700, padding: '3px 10px', borderRadius: 20 }}>
+            <span className="shimmer-badge" style={{ background: '#ba1a1a', color: '#fff', fontSize: 11, fontWeight: 700, padding: '3px 10px', borderRadius: 20, position: 'relative', overflow: 'hidden' }}>
               -{Math.round((1 - producto.ofertaPrecio / producto.precioVenta) * 100)}%
             </span>
           )}
           {esTop && (
-            <span style={{ background: '#feb700', color: '#271900', fontSize: 11, fontWeight: 700, padding: '3px 10px', borderRadius: 20 }}>
+            <span className="shimmer-badge" style={{ background: '#feb700', color: '#271900', fontSize: 11, fontWeight: 700, padding: '3px 10px', borderRadius: 20, position: 'relative', overflow: 'hidden' }}>
               MÁS VENDIDO
             </span>
           )}
           {esNuevo && (
-            <span style={{ background: '#ff8c00', color: '#fff', fontSize: 11, fontWeight: 700, padding: '3px 10px', borderRadius: 20 }}>
+            <span className="shimmer-badge" style={{ background: '#ff8c00', color: '#fff', fontSize: 11, fontWeight: 700, padding: '3px 10px', borderRadius: 20, position: 'relative', overflow: 'hidden' }}>
               NUEVO
             </span>
           )}
@@ -112,14 +135,15 @@ export default function ProductCard({ producto, onFavChange }) {
           )}
 
           <div style={{ display: 'flex', gap: 6, marginTop: 'auto' }}>
-            <button onClick={(e) => { e.preventDefault(); e.stopPropagation(); setShowUpsell(true); }} style={{
-              flex: 1, minHeight: 40, background: '#fff', color: '#2D2D2D', border: '2px solid #2D2D2D',
+            <button onClick={handleBuy} style={{
+              flex: 1, minHeight: 40, background: clicked ? '#22c55e' : '#fff', color: clicked ? '#fff' : '#2D2D2D',
+              border: clicked ? '2px solid #22c55e' : '2px solid #2D2D2D',
               borderRadius: 8, fontSize: 13, fontWeight: 700, cursor: 'pointer', fontFamily: '"Inter", sans-serif',
-              transition: 'all 0.15s'
+              transition: 'all 0.2s', transform: clicked ? 'scale(1.05)' : 'scale(1)'
             }}
-            onMouseEnter={e => { e.currentTarget.style.background = '#2D2D2D'; e.currentTarget.style.color = '#fff'; }}
-            onMouseLeave={e => { e.currentTarget.style.background = '#fff'; e.currentTarget.style.color = '#2D2D2D'; }}>
-              🛒 Agregar
+            onMouseEnter={e => { if (!clicked) { e.currentTarget.style.background = '#2D2D2D'; e.currentTarget.style.color = '#fff'; } }}
+            onMouseLeave={e => { if (!clicked) { e.currentTarget.style.background = '#fff'; e.currentTarget.style.color = '#2D2D2D'; } }}>
+              {clicked ? '✓ Agregado!' : '🛒 Agregar'}
             </button>
             <button onClick={(e) => { e.preventDefault(); e.stopPropagation(); setShowQuickView(true); }} style={{
               minHeight: 40, padding: '0 10px', background: '#fff', color: '#2D2D2D', border: '2px solid #2D2D2D',

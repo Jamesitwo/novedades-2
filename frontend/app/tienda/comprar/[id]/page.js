@@ -10,6 +10,7 @@ export default function ComprarPage() {
   const [producto, setProducto] = useState(null);
   const [loading, setLoading] = useState(true);
   const [enviado, setEnviado] = useState(false);
+  const [confetti, setConfetti] = useState([]);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
   const [form, setForm] = useState({
@@ -66,6 +67,14 @@ export default function ComprarPage() {
         cantidad: form.cantidad || 1
       });
       setEnviado(true);
+      const colors = ['#ff8c00', '#feb700', '#fff', '#22c55e', '#ba1a1a'];
+      const particles = Array.from({ length: 60 }, (_, i) => ({
+        id: i, left: Math.random() * 100 + '%',
+        delay: Math.random() * 2 + 's', duration: (Math.random() * 2 + 2) + 's',
+        color: colors[Math.floor(Math.random() * colors.length)],
+        size: Math.floor(Math.random() * 10 + 6) + 'px'
+      }));
+      setConfetti(particles);
     } catch (e) {
       setError(e.response?.data?.error || 'Error al enviar el pedido. Intenta de nuevo.');
     } finally {
@@ -96,7 +105,8 @@ export default function ComprarPage() {
       <style dangerouslySetInnerHTML={{__html: `
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700;800;900&display=swap');
         .compra-input { background: #ffffff; border: 1px solid #E2E8F0; padding: 14px 16px; font-size: 16px; font-weight: 600; color: #0b1c30; outline: none; font-family: 'Inter', sans-serif; width: 100%; box-sizing: border-box; border-radius: 8px; }
-        .compra-input:focus { border-color: #ff8c00; box-shadow: 0 0 0 3px rgba(255,140,0,0.15); }
+        .compra-input:focus { border-color: '#ff8c00; box-shadow: 0 0 0 3px rgba(255,140,0,0.15); }
+        @keyframes confetti-fall { 0% { transform: translateY(-100vh) rotate(0deg); opacity: 1; } 100% { transform: translateY(100vh) rotate(720deg); opacity: 0; } }
         @media (max-width: 768px) {
           .compra-grid { grid-template-columns: 1fr !important; }
           .compra-input { font-size: 15px !important; padding: 12px 14px !important; }
@@ -114,7 +124,14 @@ export default function ComprarPage() {
 
       <div style={{ maxWidth: 960, margin: '0 auto', padding: 'clamp(32px, 6vw, 56px) 24px' }}>
         {enviado ? (
-          <div style={{ textAlign: 'center', padding: 'clamp(32px, 8vw, 64px) 24px' }}>
+          <div style={{ textAlign: 'center', padding: 'clamp(32px, 8vw, 64px) 24px', position: 'relative', overflow: 'hidden' }}>
+            {confetti.map(p => (
+              <div key={p.id} style={{
+                position: 'absolute', top: -20, left: p.left, width: p.size, height: p.size,
+                background: p.color, borderRadius: '50%', animation: `confetti-fall ${p.duration} ${p.delay} linear`,
+                pointerEvents: 'none'
+              }} />
+            ))}
             <div style={{
               width: 80, height: 80, background: '#22c55e', color: '#fff',
               display: 'inline-flex', alignItems: 'center', justifyContent: 'center',

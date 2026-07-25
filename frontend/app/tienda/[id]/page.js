@@ -25,6 +25,13 @@ export default function ProductoDetallePage() {
   const { usuario } = useAuthStore();
   const isAdmin = usuario?.rol === 'admin';
   const [imgActiva, setImgActiva] = useState(0);
+  const [pauseCarousel, setPauseCarousel] = useState(false);
+
+  useEffect(() => {
+    if (todasImagenes.length <= 1 || pauseCarousel) return;
+    const interval = setInterval(() => setImgActiva(prev => (prev + 1) % todasImagenes.length), 3500);
+    return () => clearInterval(interval);
+  }, [todasImagenes.length, pauseCarousel]);
 
   useEffect(() => {
     if (!id) return;
@@ -80,11 +87,13 @@ export default function ProductoDetallePage() {
       <a href="/tienda" style={{ color: C.primary, textDecoration: 'none', fontSize: 14, fontWeight: 600, display: 'inline-block', margin: '24px 0' }}>← Volver a la tienda</a>
 
       <div className="detalle-grid-v2" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 48 }}>
-        <div>
+        <div onMouseEnter={() => setPauseCarousel(true)} onMouseLeave={() => setPauseCarousel(false)}>
           <div style={{ background: '#F8F9FA', borderRadius: 12, overflow: 'hidden', border: '1px solid ' + C.border, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 32, position: 'relative', minHeight: 380 }}>
             {tieneOferta && <span style={{ position: 'absolute', top: 12, left: 12, background: '#feb700', color: '#271900', fontSize: 12, fontWeight: 700, padding: '4px 12px', borderRadius: 20, textTransform: 'uppercase' }}>Best Seller</span>}
             {imagenPrincipal ? (
-              <img src={imagenPrincipal} alt={producto.nombre} style={{ width: '100%', maxHeight: 400, objectFit: 'contain' }} />
+              <img src={imagenPrincipal} alt={producto.nombre} style={{ width: '100%', maxHeight: 400, objectFit: 'contain', transition: 'transform 0.4s ease' }}
+                onMouseEnter={e => e.currentTarget.style.transform = 'scale(1.06)'}
+                onMouseLeave={e => e.currentTarget.style.transform = 'scale(1)'} />
             ) : (
               <div style={{ color: C.muted, fontSize: 16, fontWeight: 500 }}>Sin imagen</div>
             )}
@@ -129,6 +138,22 @@ export default function ProductoDetallePage() {
             ) : (
               <span style={{ fontSize: 32, fontWeight: 800, color: C.text }}>{formatPrice(producto.precioVenta)}</span>
             )}
+          </div>
+
+          {producto.stock > 0 && producto.stock <= 5 && (
+            <div style={{ color: '#ba1a1a', fontSize: 14, fontWeight: 700, marginBottom: 16 }}>¡Solo quedan {producto.stock} unidades!</div>
+          )}
+          <div style={{ display: 'flex', gap: 8, marginBottom: 16 }}>
+            <a href={`/tienda/comprar/${producto.id}`} onClick={() => window.dispatchEvent(new Event('pizdo-cart-add'))} style={{
+              flex: 1, minHeight: 48, background: C.primary, color: '#fff', border: 'none', borderRadius: 8,
+              fontWeight: 700, fontSize: 16, cursor: 'pointer', textDecoration: 'none',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              boxShadow: '0 4px 12px rgba(255,140,0,0.3)', transition: 'transform 0.15s'
+            }}
+            onMouseEnter={e => e.currentTarget.style.transform = 'scale(1.02)'}
+            onMouseLeave={e => e.currentTarget.style.transform = 'scale(1)'}>
+              🛒 Comprar ahora
+            </a>
           </div>
 
           <div style={{ background: '#e5eeff', borderRadius: 12, padding: 16, marginBottom: 16 }}>
