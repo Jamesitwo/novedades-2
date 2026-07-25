@@ -4,6 +4,7 @@ import AuthHeartbeat from '@/components/providers/AuthHeartbeat';
 export const metadata = {
   title: 'Gestión Novedades',
   description: 'Plataforma de gestión de novedades y pedidos en oficina',
+  verification: { google: 'HpRjJhdHiDUIJ22y3ZGdblE6N6z7hbm5wKDvFV94hFU' },
 };
 
 export default function RootLayout({ children }) {
