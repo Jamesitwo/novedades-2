@@ -35,7 +35,6 @@ export default function TiendaPage() {
       const params = new URLSearchParams({ limit: 50, orden });
       if (categoria) params.append('categoria', categoria);
       if (search) params.append('search', search);
-      console.log('[TIENDA] fetching...', categoria, orden, search);
       const [prodRes, destRes, ofertasRes] = await Promise.all([
         api.get(`/api/tienda?${params}`),
         api.get('/api/tienda/destacados'),
@@ -46,8 +45,8 @@ export default function TiendaPage() {
       setDestacados(Array.isArray(destRes.data) ? destRes.data : []);
       setOfertas(Array.isArray(ofertasRes.data) ? ofertasRes.data : []);
     } catch (e) {
-      console.error('[TIENDA] error:', e);
-      setError(e.response?.data?.error || e.message || 'Error al cargar');
+      console.error(e);
+      setError('Error al cargar productos');
     } finally {
       setLoading(false);
     }
@@ -64,7 +63,7 @@ export default function TiendaPage() {
 
   useEffect(() => {
     if (productos.length === 0) return;
-    const generateNotification = () => {
+    const interval = setInterval(() => {
       const randomProduct = productos[Math.floor(Math.random() * productos.length)];
       const mins = Math.floor(Math.random() * 45) + 1;
       setProofEvents(prev => [...prev.slice(-5), {
@@ -72,236 +71,179 @@ export default function TiendaPage() {
         mensaje: `Alguien compró "${randomProduct.nombre.substring(0, 30)}${randomProduct.nombre.length > 30 ? '...' : ''}"`,
         hace: `${mins} min`
       }]);
-    };
-    const interval = setInterval(generateNotification, 15000 + Math.random() * 20000);
+    }, 15000 + Math.random() * 20000);
     return () => clearInterval(interval);
   }, [productos]);
 
   const formatPrice = (n) => '$' + Number(n).toLocaleString('es-CO', { minimumFractionDigits: 0 });
 
+  const C = {
+    heroBg: '#213145', heroText: '#eaf1ff',
+    primary: '#ff8c00', primaryDark: '#904d00',
+    secondary: '#feb700', accent: '#ff8c00',
+    bg: '#f8f9ff', surface: '#fff', border: '#E2E8F0',
+    text: '#0b1c30', subtext: '#564334', muted: '#897362',
+    red: '#ba1a1a', green: '#22c55e'
+  };
+
   return (
     <div>
       <style dangerouslySetInnerHTML={{__html: `
-        .industrial-border { box-shadow: 4px 4px 0px 0px #181c1e; }
-        .industrial-border:hover { box-shadow: 6px 6px 0px 0px #181c1e; transform: translate(-2px, -2px); }
-        .cat-card { transition: all 0.15s; }
-        .cat-card:hover { background: #ffb875 !important; transform: translate(-2px, -2px); box-shadow: 6px 6px 0px 0px #181c1e; }
         @media (max-width: 768px) {
-          .hero-grid { grid-template-columns: 1fr !important; }
-          .tienda-hero { padding: 40px 16px !important; }
-          .tienda-hero h1 { font-size: 26px !important; }
-          .tienda-hero p { font-size: 16px !important; }
-          .tienda-hero a, .tienda-hero button { font-size: 16px !important; min-height: 48px !important; padding: 0 20px !important; }
-          .tienda-hero img { height: 240px !important; }
-          .tienda-cats { grid-template-columns: 1fr !important; }
-          .tienda-cat-card { padding: 24px !important; }
-          .tienda-cat-card h3 { font-size: 22px !important; }
-          .tienda-grid { grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)) !important; gap: 12px !important; }
-          .tienda-section { padding: 40px 16px !important; }
-          .tienda-section h2 { font-size: 24px !important; }
-          .tienda-filters { gap: 4px !important; }
-          .tienda-filters button, .tienda-filters select { font-size: 13px !important; padding: 6px 12px !important; }
-          .tienda-newsletter-form { flex-direction: column !important; }
-          .tienda-newsletter-form input { min-height: 52px !important; font-size: 16px !important; }
-          .tienda-newsletter-form button { min-height: 52px !important; font-size: 18px !important; }
-          .tienda-offers-grid { grid-template-columns: 1fr !important; }
+          .ff-hero { padding: 40px 16px !important; }
+          .ff-hero h1 { font-size: 26px !important; }
+          .ff-hero p { font-size: 15px !important; }
+          .ff-grid { grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)) !important; gap: 12px !important; }
+          .ff-section { padding: 40px 16px !important; }
+          .ff-section h2 { font-size: 22px !important; }
+          .ff-cats { grid-template-columns: repeat(3, 1fr) !important; }
+          .ff-bundle { flex-direction: column !important; }
         }
         @media (max-width: 480px) {
-          .tienda-hero h1 { font-size: 22px !important; }
-          .tienda-hero p { font-size: 15px !important; }
-          .tienda-hero a, .tienda-hero button { font-size: 14px !important; min-height: 44px !important; padding: 0 16px !important; }
-          .tienda-hero img { height: 200px !important; }
-          .tienda-grid { grid-template-columns: repeat(2, 1fr) !important; gap: 8px !important; }
-          .tienda-section h2 { font-size: 20px !important; padding-left: 10px !important; border-left-width: 5px !important; }
-          .tienda-section { padding: 28px 12px !important; }
-          .tienda-cat-card h3 { font-size: 20px !important; }
-          .tienda-cat-card p { font-size: 15px !important; }
+          .ff-hero { padding: 28px 12px !important; }
+          .ff-hero h1 { font-size: 22px !important; }
+          .ff-grid { grid-template-columns: repeat(2, 1fr) !important; gap: 8px !important; }
+          .ff-cats { grid-template-columns: repeat(2, 1fr) !important; }
         }
       `}} />
 
       {/* HERO */}
-      <section className="tienda-hero tienda-section" style={{
-        background: '#ebeef0', borderBottom: '4px solid #181c1e',
-        padding: 'clamp(40px, 8vw, 64px) 24px', position: 'relative', overflow: 'hidden'
-      }}>
-        <div className="hero-grid" style={{
-          maxWidth: 1280, margin: '0 auto', display: 'grid',
-          gridTemplateColumns: '1fr 1fr', gap: 48, alignItems: 'center'
-        }}>
-          <div style={{ position: 'relative', zIndex: 10 }}>
-            <h1 style={{
-              fontSize: 'clamp(22px, 5vw, 48px)', fontWeight: 900,
-              lineHeight: 1.1, marginBottom: 24, color: '#181c1e',
-              letterSpacing: -1
-            }}>
-              Herramientas fáciles de usar para tu hogar
+      <section className="ff-hero" style={{ background: C.heroBg, color: C.heroText, padding: '80px 24px', position: 'relative', overflow: 'hidden' }}>
+        <div style={{ maxWidth: 1280, margin: '0 auto', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 48, alignItems: 'center' }}>
+          <div style={{ position: 'relative', zIndex: 1 }}>
+            <h1 style={{ fontSize: 'clamp(22px, 5vw, 44px)', fontWeight: 800, lineHeight: 1.15, marginBottom: 16, letterSpacing: -1 }}>
+              Pizdo — Las herramientas que necesitas, cuando las necesitas
             </h1>
-            <p style={{ fontSize: 'clamp(15px, 2.5vw, 20px)', marginBottom: 32, maxWidth: 500, color: '#554334', lineHeight: 1.6 }}>
-              Diseñadas para durar, pensadas para la comodidad. En Pizdo, creemos que cualquier proyecto es posible con el equipo correcto.
+            <p style={{ fontSize: 'clamp(15px, 2vw, 18px)', color: '#c8c6c6', marginBottom: 28, lineHeight: 1.5 }}>
+              Calidad profesional para tus proyectos más exigentes. Diseñadas para resistir y rendir al máximo.
             </p>
-            <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
-              <a href="#catalogo" style={{
-                minHeight: 'clamp(44px, 7vw, 56px)', padding: '0 clamp(16px, 3vw, 32px)', background: '#f28c00', color: '#181c1e',
-                border: '2px solid #181c1e', boxShadow: '4px 4px 0px 0px #181c1e',
-                fontSize: 'clamp(14px, 2.5vw, 20px)', fontWeight: 900, cursor: 'pointer', textDecoration: 'none',
-                display: 'inline-flex', alignItems: 'center', gap: 8,
-                transition: 'transform 0.1s, box-shadow 0.1s'
-              }}
-              onMouseEnter={e => { e.currentTarget.style.transform = 'translate(-2px, -2px)'; e.currentTarget.style.boxShadow = '6px 6px 0px 0px #181c1e'; }}
-              onMouseLeave={e => { e.currentTarget.style.transform = 'none'; e.currentTarget.style.boxShadow = '4px 4px 0px 0px #181c1e'; }}>
-                🔧 Explorar Catálogo
-              </a>
-              <a href="#ofertas" style={{
-                minHeight: 'clamp(44px, 7vw, 56px)', padding: '0 clamp(16px, 3vw, 32px)', background: '#ffffff', color: '#181c1e',
-                border: '2px solid #181c1e', boxShadow: '4px 4px 0px 0px #181c1e',
-                fontSize: 'clamp(14px, 2.5vw, 20px)', fontWeight: 900, cursor: 'pointer', textDecoration: 'none',
-                display: 'inline-flex', alignItems: 'center', gap: 8,
-                transition: 'transform 0.1s, box-shadow 0.1s'
-              }}
-              onMouseEnter={e => { e.currentTarget.style.transform = 'translate(-2px, -2px)'; e.currentTarget.style.boxShadow = '6px 6px 0px 0px #181c1e'; }}
-              onMouseLeave={e => { e.currentTarget.style.transform = 'none'; e.currentTarget.style.boxShadow = '4px 4px 0px 0px #181c1e'; }}>
-                🔥 Ver Ofertas
-              </a>
-            </div>
+            <a href="#catalogo" style={{
+              display: 'inline-flex', alignItems: 'center', gap: 8, background: C.primary, color: '#fff',
+              padding: '14px 32px', borderRadius: 8, fontWeight: 700, fontSize: 16, textDecoration: 'none',
+              boxShadow: '0 4px 12px rgba(255,140,0,0.3)', transition: 'opacity 0.15s'
+            }}
+            onMouseEnter={e => e.currentTarget.style.opacity = '0.9'}
+            onMouseLeave={e => e.currentTarget.style.opacity = '1'}>
+              Comprar ahora
+            </a>
           </div>
-          <div style={{ position: 'relative' }}>
-            <div style={{
-              position: 'absolute', inset: -8, background: '#f28c00',
-              transform: 'rotate(-1deg)', boxShadow: '4px 4px 0px 0px #181c1e'
-            }} />
-            <img
-              src="https://images.unsplash.com/photo-1504917595217-d4dc5ebe6122?w=600"
-              alt="Herramientas industriales Pizdo"
-              style={{ position: 'relative', width: '100%', height: 'clamp(200px, 35vw, 350px)', objectFit: 'cover', border: '2px solid #181c1e' }}
-            />
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <img src="https://lh3.googleusercontent.com/aida-public/AB6AXuBcSsgYjIuTXU8W2IljOR6Ud-dcffWygOFaJpx_hWqJQxygTfsfQxGOqwtDK2U06gihO1Syx6_F67RAbS9DhatpSeTfDye1sJoQVnf1QFSHHm7LUuGtYUvZnG19WXiL26GWK8I5h9wCRr_GqzIDxkxbDzYzOss2ASMyAo4U6f95CTqp6v7w8frnovUHonUEYKyjF7TNy-Ey9nAtOeDLcgIPOyKN-q6fuPYRohnuHbnIt0R1sDToRAEOY59W2yE4ZZpBGpki8I5bmxQ"
+              alt="Pizdo Power Tools" style={{ width: '100%', maxWidth: 400, height: 'auto', objectFit: 'contain', filter: 'drop-shadow(0 20px 40px rgba(0,0,0,0.4))' }} />
           </div>
         </div>
       </section>
 
       {/* CATEGORÍAS */}
-      <section className="tienda-section" style={{ padding: 'clamp(28px, 8vw, 64px) 24px', background: '#f7fafc' }}>
+      <section className="ff-section" style={{ padding: '64px 24px', background: C.bg }}>
         <div style={{ maxWidth: 1280, margin: '0 auto' }}>
-          <h2 style={{ fontSize: 'clamp(20px, 5vw, 32px)', fontWeight: 700, marginBottom: 'clamp(24px, 4vw, 48px)', borderLeft: '8px solid #8d4f00', paddingLeft: 'clamp(10px, 2vw, 16px)' }}>
+          <h2 style={{ fontSize: 'clamp(22px, 4vw, 28px)', fontWeight: 700, marginBottom: 32, borderLeft: '4px solid #ff8c00', paddingLeft: 12, color: C.text }}>
             Categorías destacadas
           </h2>
-          <div className="tienda-cats" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: 'clamp(16px, 3vw, 32px)' }}>
-            {['Herramientas', 'Electrónica', 'Hogar', 'Deportes', 'Oficina', 'Belleza'].slice(0, 3).map((cat, i) => {
-              const iconos = ['🔧', '📱', '🏠'];
-              const descs = ['Mantén tu espacio impecable con nuestra selección profesional.', 'Tecnología de punta para tu día a día.', 'Todo para hacer de tu casa un hogar.'];
-              return (
-                <a key={cat} href={`/tienda?categoria=${cat}`} className="cat-card"
-                  onClick={e => { e.preventDefault(); setCategoria(cat); }}
-                  style={{
-                    textDecoration: 'none', color: '#181c1e', display: 'block',
-                    padding: 'clamp(24px, 4vw, 32px)', background: '#f1f4f6', border: '2px solid #181c1e',
-                    boxShadow: '4px 4px 0px 0px #181c1e'
-                  }}>
-                  <div style={{
-                    width: 64, height: 64, background: '#f28c00', color: '#ffffff',
-                    display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    marginBottom: 24, border: '2px solid #181c1e', fontSize: 28
-                  }}>
-                    {iconos[i]}
-                  </div>
-                  <h3 style={{ fontSize: 'clamp(20px, 3vw, 24px)', fontWeight: 700, marginBottom: 8 }}>{cat}</h3>
-                  <p style={{ fontSize: 'clamp(15px, 2vw, 18px)', color: '#554334', marginBottom: 24 }}>{descs[i]}</p>
-                  <div style={{ fontSize: 'clamp(15px, 2vw, 18px)', fontWeight: 700, color: '#8d4f00', display: 'flex', alignItems: 'center', gap: 4 }}>
-                    Ver todo <span>→</span>
-                  </div>
-                </a>
-              );
-            })}
+          <div className="ff-cats" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: 16 }}>
+            {['Herramientas', 'Electrónica', 'Hogar', 'Deportes', 'Oficina'].map(cat => (
+              <a key={cat} href="#" onClick={e => { e.preventDefault(); setCategoria(cat); }}
+                style={{
+                  textDecoration: 'none', color: C.text, display: 'flex', flexDirection: 'column', alignItems: 'center',
+                  justifyContent: 'center', padding: 24, background: C.surface, border: '1px solid ' + C.border,
+                  borderRadius: 12, boxShadow: '0 2px 8px rgba(0,0,0,0.04)', transition: 'all 0.15s'
+                }}
+                onMouseEnter={e => { e.currentTarget.style.borderColor = C.primary; e.currentTarget.style.boxShadow = '0 4px 16px rgba(0,0,0,0.08)'; }}
+                onMouseLeave={e => { e.currentTarget.style.borderColor = C.border; e.currentTarget.style.boxShadow = '0 2px 8px rgba(0,0,0,0.04)'; }}>
+                <div style={{ width: 56, height: 56, background: '#e5eeff', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 12, fontSize: 22 }}>
+                  {['🔧', '📱', '🏠', '⚽', '💼'][['Herramientas', 'Electrónica', 'Hogar', 'Deportes', 'Oficina'].indexOf(cat)]}
+                </div>
+                <span style={{ fontSize: 13, fontWeight: 700, textAlign: 'center' }}>{cat}</span>
+              </a>
+            ))}
           </div>
         </div>
       </section>
 
-      {/* MÁS BUSCADOS */}
-      <section className="tienda-section" style={{ padding: 'clamp(28px, 8vw, 64px) 24px', background: '#2d3133', color: '#eef1f3' }}>
-        <div style={{ maxWidth: 1280, margin: '0 auto' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: 'clamp(24px, 4vw, 48px)', flexWrap: 'wrap', gap: 16 }}>
-            <div>
-              <h2 style={{ fontSize: 'clamp(20px, 5vw, 32px)', fontWeight: 800, color: '#ffb875', marginBottom: 8, textTransform: 'uppercase', letterSpacing: -1 }}>
-                Los más buscados
+      {/* BEST SELLERS */}
+      {destacados.length > 0 && (
+        <section className="ff-section" style={{ padding: '48px 24px', background: C.surface, borderTop: '1px solid ' + C.border, borderBottom: '1px solid ' + C.border }}>
+          <div style={{ maxWidth: 1280, margin: '0 auto' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: 32 }}>
+              <h2 style={{ fontSize: 'clamp(22px, 4vw, 28px)', fontWeight: 700, borderLeft: '4px solid #ff8c00', paddingLeft: 12, color: C.text, margin: 0 }}>
+                Más vendidos
               </h2>
-              <p style={{ fontSize: 'clamp(15px, 2.5vw, 20px)', color: '#e0e3e5' }}>Nuestras herramientas estrella, calificadas por profesionales.</p>
+              <a href="#catalogo" style={{ color: C.primary, fontSize: 14, fontWeight: 700, textDecoration: 'none' }}>Ver todos →</a>
             </div>
-            <a href="#catalogo" style={{ fontSize: 'clamp(14px, 2vw, 18px)', fontWeight: 700, color: '#ffb875', textDecoration: 'underline' }}>
-              Ver toda la selección
-            </a>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))', gap: 20 }}>
+              {destacados.slice(0, 4).map(p => <ProductCard key={p.id} producto={p} />)}
+            </div>
           </div>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))', gap: 'clamp(12px, 2vw, 24px)' }}>
-            {destacados.slice(0, 4).map(p => <ProductCard key={p.id} producto={p} />)}
+        </section>
+      )}
+
+      {/* BUNDLE / COMBO */}
+      <section className="ff-section" style={{ padding: '48px 24px', background: C.bg }}>
+        <div style={{ maxWidth: 1280, margin: '0 auto' }}>
+          <div className="ff-bundle" style={{ display: 'flex', background: '#e5eeff', borderRadius: 16, overflow: 'hidden', boxShadow: '0 2px 8px rgba(0,0,0,0.04)' }}>
+            <div style={{ flex: 1, padding: 'clamp(24px, 5vw, 40px)', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
+              <span style={{ color: '#904d00', fontWeight: 700, textTransform: 'uppercase', fontSize: 12, letterSpacing: 1, marginBottom: 8 }}>Compra en Combo y Ahorra</span>
+              <h2 style={{ fontSize: 'clamp(22px, 4vw, 28px)', fontWeight: 800, color: C.text, marginBottom: 12 }}>Professional DIY Kit</h2>
+              <p style={{ color: C.subtext, fontSize: 15, marginBottom: 20, lineHeight: 1.5 }}>Todo lo que necesitas para empezar. Taladro percutor de impacto + Set de 50 brocas + Maletín de transporte reforzado.</p>
+              <div style={{ background: C.surface, borderRadius: 12, padding: 16, border: '1px solid ' + C.border, display: 'inline-flex', flexDirection: 'column', alignSelf: 'flex-start', marginBottom: 16 }}>
+                <span style={{ fontSize: 12, color: C.muted, textDecoration: 'line-through', marginBottom: 4 }}>Precio por separado: $340.000</span>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                  <span style={{ fontSize: 28, fontWeight: 800, color: C.primaryDark }}>$295.000</span>
+                  <span style={{ background: '#ffdad6', color: '#93000a', fontSize: 12, fontWeight: 700, padding: '4px 10px', borderRadius: 20 }}>Ahorras $45.000</span>
+                </div>
+              </div>
+              <button style={{
+                background: C.primary, color: '#fff', border: 'none', borderRadius: 8, fontWeight: 700, fontSize: 15,
+                padding: '12px 28px', cursor: 'pointer', alignSelf: 'flex-start', boxShadow: '0 4px 12px rgba(255,140,0,0.3)'
+              }}>Comprar Combo</button>
+            </div>
+            <div style={{ flex: 1, background: C.heroBg, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 32, minHeight: 300 }}>
+              <img src="https://lh3.googleusercontent.com/aida-public/AB6AXuDphn2wxQrXf940TeJFs7VVWWWnQ9hwyw8qe5IQfw2F6n2cZewEuNT8eWRJi3dB6wY6oLuIYqlsWJArezBEzLNKroWTi3TO9NAkZ-HKvoj0sVYd3ByYaqVEl38kz1VNdsdwuFYNO8zmJz8YWznF6HrRRBQffjMQGf6K8m8d7RWM7chbMSd0yL47GhU73UuzmFz-aZaxpfCF7W4WzlererXdGQ-FXhRYjCXkg342X4uMGBA5VGMDXkp03WLIXK8PEc3gYdmJxGS_YCw"
+                alt="Professional DIY Kit Bundle" style={{ maxWidth: '100%', maxHeight: 280, objectFit: 'contain', filter: 'drop-shadow(0 20px 40px rgba(0,0,0,0.4))' }} />
+            </div>
           </div>
         </div>
       </section>
 
       {/* OFERTAS RELÁMPAGO */}
       {ofertas.length > 0 && (
-        <section id="ofertas" className="tienda-section" style={{ padding: 'clamp(28px, 8vw, 64px) 24px', background: '#f7fafc' }}>
+        <section id="ofertas" className="ff-section" style={{ padding: '48px 24px', background: C.bg }}>
           <div style={{ maxWidth: 1280, margin: '0 auto' }}>
-            <div style={{ marginBottom: 'clamp(20px, 3vw, 32px)' }}>
-              <h2 style={{ fontSize: 'clamp(20px, 5vw, 32px)', fontWeight: 800, color: '#ba1a1a', marginBottom: 8 }}>
-                🔥 Ofertas relámpago
-              </h2>
-              <p style={{ fontSize: 'clamp(15px, 2.5vw, 20px)', color: '#554334' }}>Por tiempo limitado — no dejes pasar estas oportunidades</p>
-            </div>
-            <div className="tienda-offers-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))', gap: 'clamp(12px, 2vw, 24px)' }}>
+            <h2 style={{ fontSize: 'clamp(22px, 4vw, 28px)', fontWeight: 700, marginBottom: 8, borderLeft: '4px solid #ba1a1a', paddingLeft: 12, color: C.text }}>
+              🔥 Ofertas relámpago
+            </h2>
+            <p style={{ color: C.subtext, fontSize: 15, marginBottom: 24 }}>Por tiempo limitado — no dejes pasar estas oportunidades</p>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))', gap: 20 }}>
               {ofertas.map(p => (
                 <div key={p.id} style={{
-                  background: '#ffffff', border: '2px solid #ba1a1a',
-                  boxShadow: '4px 4px 0px 0px #ba1a1a', display: 'flex', flexDirection: 'column'
+                  background: C.surface, border: '1px solid ' + C.border, borderRadius: 12,
+                  boxShadow: '0 4px 12px rgba(0,0,0,0.05)', overflow: 'hidden', display: 'flex', flexDirection: 'column'
                 }}>
-                  <div style={{ position: 'relative', height: 220, overflow: 'hidden', borderBottom: '2px solid #ba1a1a', background: '#f1f4f6' }}>
+                  <div style={{ position: 'relative', height: 200, background: '#F8F9FA', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}>
                     {p.imagen ? (
                       <a href={`/tienda/${p.id}`}>
-                        <img src={p.imagen} alt={p.nombre} style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-                          onError={(e) => { e.target.style.display = 'none'; }} />
+                        <img src={p.imagen} alt={p.nombre} style={{ width: '100%', height: '100%', objectFit: 'contain' }}
+                          onError={e => { e.target.style.display = 'none'; }} />
                       </a>
                     ) : null}
-                    <div style={{
-                      position: 'absolute', top: 12, left: 12,
-                      background: '#ba1a1a', color: '#ffffff', fontSize: 14, fontWeight: 900,
-                      padding: '4px 12px', border: '2px solid #181c1e'
-                    }}>
-                      -{Math.round((1 - p.ofertaPrecio / p.precioVenta) * 100)}% OFF
+                    <div style={{ position: 'absolute', top: 10, left: 10, background: '#ba1a1a', color: '#fff', fontSize: 12, fontWeight: 700, padding: '4px 12px', borderRadius: 20 }}>
+                      -{Math.round((1 - p.ofertaPrecio / p.precioVenta) * 100)}%
                     </div>
-                    {p.ofertaHasta && (
-                      <div style={{ position: 'absolute', top: 12, right: 12 }}>
-                        <CountdownTimer endsAt={p.ofertaHasta} />
-                      </div>
-                    )}
+                    {p.ofertaHasta && <div style={{ position: 'absolute', top: 10, right: 10 }}><CountdownTimer endsAt={p.ofertaHasta} /></div>}
                   </div>
-                  <div style={{ padding: 20, flex: 1, display: 'flex', flexDirection: 'column' }}>
-                    <a href={`/tienda/${p.id}`} style={{ textDecoration: 'none', color: '#181c1e', fontWeight: 700, fontSize: 18, marginBottom: 12 }}>
-                      {p.nombre}
-                    </a>
-                    <div style={{ display: 'flex', alignItems: 'baseline', gap: 10, marginBottom: 8 }}>
-                      <span style={{ fontSize: 28, fontWeight: 900, color: '#ba1a1a' }}>
-                        {formatPrice(p.ofertaPrecio)}
-                      </span>
-                      <span style={{ fontSize: 16, color: '#887362', textDecoration: 'line-through', fontWeight: 700 }}>
-                        {formatPrice(p.precioVenta)}
-                      </span>
+                  <div style={{ padding: 16, flex: 1, display: 'flex', flexDirection: 'column' }}>
+                    <a href={`/tienda/${p.id}`} style={{ textDecoration: 'none', color: C.text, fontWeight: 700, fontSize: 14, marginBottom: 8 }}>{p.nombre}</a>
+                    <div style={{ display: 'flex', alignItems: 'baseline', gap: 8, marginBottom: 6 }}>
+                      <span style={{ fontSize: 22, fontWeight: 800, color: '#ba1a1a' }}>{formatPrice(p.ofertaPrecio)}</span>
+                      <span style={{ fontSize: 13, color: C.muted, textDecoration: 'line-through' }}>{formatPrice(p.precioVenta)}</span>
                     </div>
-                    {p.stock > 0 && p.stock <= 5 && (
-                      <div style={{ fontSize: 14, fontWeight: 700, color: '#ba1a1a', marginBottom: 12 }}>
-                        ⚡ Solo quedan {p.stock}
-                      </div>
-                    )}
-                    {p.ventasSimuladas > 0 && (
-                      <div style={{ fontSize: 14, fontWeight: 700, color: '#8d4f00', marginBottom: 12 }}>
-                        🔥 {p.ventasSimuladas} personas lo compraron
-                      </div>
-                    )}
                     <button onClick={() => setUpsellProductId(p.id)} style={{
-                      width: '100%', minHeight: 56, background: '#f28c00', color: '#181c1e',
-                      border: '2px solid #181c1e', boxShadow: '3px 3px 0px 0px #181c1e',
-                      fontWeight: 900, fontSize: 18, cursor: 'pointer',
-                      display: 'flex', alignItems: 'center', justifyContent: 'center',
-                      marginTop: 'auto', transition: 'transform 0.1s', fontFamily: '"Inter", sans-serif'
+                      width: '100%', minHeight: 42, background: '#fff', color: '#2D2D2D', border: '2px solid #2D2D2D',
+                      borderRadius: 8, fontSize: 13, fontWeight: 700, cursor: 'pointer', marginTop: 'auto',
+                      fontFamily: '"Inter", sans-serif', transition: 'all 0.15s'
                     }}
-                    onMouseEnter={e => { e.currentTarget.style.transform = 'translate(-1px, -1px)'; e.currentTarget.style.boxShadow = '4px 4px 0px 0px #181c1e'; }}
-                    onMouseLeave={e => { e.currentTarget.style.transform = 'none'; e.currentTarget.style.boxShadow = '3px 3px 0px 0px #181c1e'; }}>
+                    onMouseEnter={e => { e.currentTarget.style.background = '#2D2D2D'; e.currentTarget.style.color = '#fff'; }}
+                    onMouseLeave={e => { e.currentTarget.style.background = '#fff'; e.currentTarget.style.color = '#2D2D2D'; }}>
                       ¡Comprar ahora!
                     </button>
                   </div>
@@ -313,48 +255,35 @@ export default function TiendaPage() {
       )}
 
       {/* CATÁLOGO */}
-      <section id="catalogo" className="tienda-section" style={{ padding: 'clamp(28px, 8vw, 64px) 24px', background: '#f7fafc' }}>
+      <section id="catalogo" className="ff-section" style={{ padding: '48px 24px', background: C.bg }}>
         <div style={{ maxWidth: 1280, margin: '0 auto' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 'clamp(20px, 3vw, 32px)', flexWrap: 'wrap' }}>
-            <h2 style={{ fontSize: 'clamp(20px, 5vw, 32px)', fontWeight: 700, color: '#181c1e', margin: 0 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 24, flexWrap: 'wrap' }}>
+            <h2 style={{ fontSize: 'clamp(22px, 4vw, 28px)', fontWeight: 700, color: C.text, margin: 0 }}>
               {search ? `🔍 Resultados para "${search}"` : '📦 Catálogo completo'}
             </h2>
             {search && (
               <button onClick={() => { setSearch(''); router.push('/tienda'); }} style={{
-                background: '#181c1e', color: '#ffb875', border: '2px solid #181c1e',
-                padding: '4px 14px', fontSize: 14, fontWeight: 700, cursor: 'pointer'
-              }}>
-                ✕ Limpiar
-              </button>
+                background: '#2D2D2D', color: '#fff', border: 'none', borderRadius: 8, padding: '4px 14px', fontSize: 13, fontWeight: 600, cursor: 'pointer'
+              }}>✕ Limpiar</button>
             )}
           </div>
 
-          <div className="tienda-filters" style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginBottom: 'clamp(16px, 2vw, 32px)', alignItems: 'center' }}>
+          <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginBottom: 24, alignItems: 'center' }}>
             <button onClick={() => setCategoria('')} style={{
-              padding: 'clamp(6px, 1vw, 8px) clamp(12px, 2vw, 20px)', border: '2px solid #181c1e',
-              background: !categoria ? '#f28c00' : '#ffffff',
-              color: !categoria ? '#181c1e' : '#554334',
-              fontSize: 'clamp(13px, 2vw, 16px)', fontWeight: 700, cursor: 'pointer',
-              boxShadow: !categoria ? '2px 2px 0px 0px #181c1e' : 'none', whiteSpace: 'nowrap'
-            }}>
-              Todos
-            </button>
+              padding: '6px 16px', borderRadius: 20, border: '1px solid ' + C.border,
+              background: !categoria ? C.primary : C.surface, color: !categoria ? '#fff' : C.text,
+              fontSize: 13, fontWeight: 600, cursor: 'pointer', transition: 'all 0.15s'
+            }}>Todos</button>
             {categorias.map(c => (
               <button key={c} onClick={() => setCategoria(c)} style={{
-                padding: 'clamp(6px, 1vw, 8px) clamp(12px, 2vw, 20px)', border: '2px solid #181c1e',
-                background: categoria === c ? '#f28c00' : '#ffffff',
-                color: categoria === c ? '#181c1e' : '#554334',
-                fontSize: 'clamp(13px, 2vw, 16px)', fontWeight: 700, cursor: 'pointer',
-                boxShadow: categoria === c ? '2px 2px 0px 0px #181c1e' : 'none', whiteSpace: 'nowrap'
-              }}>
-                {c}
-              </button>
+                padding: '6px 16px', borderRadius: 20, border: '1px solid ' + C.border,
+                background: categoria === c ? C.primary : C.surface, color: categoria === c ? '#fff' : C.text,
+                fontSize: 13, fontWeight: 600, cursor: 'pointer', transition: 'all 0.15s'
+              }}>{c}</button>
             ))}
             <select value={orden} onChange={e => setOrden(e.target.value)} style={{
-              marginLeft: 'auto', background: '#ffffff', border: '2px solid #181c1e',
-              padding: 'clamp(6px, 1vw, 8px) clamp(12px, 2vw, 20px)', color: '#181c1e',
-              fontSize: 'clamp(13px, 2vw, 16px)', fontWeight: 700, cursor: 'pointer',
-              boxShadow: '2px 2px 0px 0px #181c1e', minHeight: 40
+              marginLeft: 'auto', padding: '6px 14px', borderRadius: 20, border: '1px solid ' + C.border,
+              background: C.surface, color: C.text, fontSize: 13, fontWeight: 600, cursor: 'pointer'
             }}>
               <option value="reciente">Más recientes</option>
               <option value="precio-asc">Precio: menor a mayor</option>
@@ -364,107 +293,44 @@ export default function TiendaPage() {
           </div>
 
           {loading ? (
-            <div style={{ textAlign: 'center', padding: 64, fontSize: 18, fontWeight: 700, color: '#887362' }}>
-              Cargando catálogo...
-            </div>
+            <div style={{ textAlign: 'center', padding: 60, fontSize: 15, fontWeight: 600, color: C.muted }}>Cargando catálogo...</div>
           ) : error ? (
-            <div style={{
-              textAlign: 'center', padding: 64, fontSize: 18, fontWeight: 700, color: '#ba1a1a',
-              border: '2px dashed #ba1a1a', boxShadow: '4px 4px 0px 0px #181c1e'
-            }}>
+            <div style={{ textAlign: 'center', padding: 60, fontSize: 15, fontWeight: 600, color: C.red }}>
               {error}
               <br />
-              <button onClick={fetchData} style={{
-                marginTop: 16, background: '#f28c00', color: '#181c1e',
-                border: '2px solid #181c1e', boxShadow: '3px 3px 0px 0px #181c1e',
-                padding: '10px 24px', fontSize: 16, fontWeight: 700, cursor: 'pointer', minHeight: 48
-              }}>Reintentar</button>
+              <button onClick={fetchData} style={{ marginTop: 12, padding: '8px 20px', background: C.primary, color: '#fff', border: 'none', borderRadius: 8, fontWeight: 600, cursor: 'pointer' }}>Reintentar</button>
             </div>
           ) : productos.length === 0 ? (
-            <div style={{
-              textAlign: 'center', padding: 64, fontSize: 18, fontWeight: 700, color: '#887362',
-              border: '2px dashed #181c1e', boxShadow: '4px 4px 0px 0px #181c1e'
-            }}>
+            <div style={{ textAlign: 'center', padding: 60, fontSize: 15, fontWeight: 600, color: C.muted, border: '1px dashed ' + C.border, borderRadius: 12 }}>
               No hay productos en esta categoría.
             </div>
           ) : (
-            <div className="tienda-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))', gap: 24 }}>
+            <div className="ff-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))', gap: 20 }}>
               {productos.map(p => <ProductCard key={p.id} producto={p} />)}
             </div>
           )}
         </div>
       </section>
 
-      {/* NEWSLETTER */}
-      <section className="tienda-section" style={{ padding: 'clamp(28px, 8vw, 64px) 24px', background: '#f7fafc', borderTop: '4px solid #181c1e' }}>
-        <div style={{ maxWidth: 640, margin: '0 auto', textAlign: 'center' }}>
-          <div style={{
-            width: 'clamp(60px, 10vw, 80px)', height: 'clamp(60px, 10vw, 80px)', background: '#f28c00', color: '#ffffff',
-            display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
-            marginBottom: 32, border: '2px solid #181c1e', boxShadow: '4px 4px 0px 0px #181c1e',
-            transform: 'rotate(1deg)', fontSize: 'clamp(24px, 4vw, 32px)'
-          }}>
-            ✅
-          </div>
-          <h2 style={{ fontSize: 'clamp(20px, 5vw, 32px)', fontWeight: 700, marginBottom: 24 }}>
-            Únete a la Comunidad Pizdo
-          </h2>
-          <p style={{ fontSize: 'clamp(15px, 2.5vw, 20px)', color: '#554334', marginBottom: 'clamp(24px, 4vw, 48px)', lineHeight: 1.6 }}>
-            Recibe guías de reparación, consejos de jardinería y ofertas exclusivas directamente en tu correo. Sin spam, solo herramientas.
-          </p>
-          <div className="tienda-newsletter-form" style={{ display: 'flex', gap: 12, maxWidth: 480, margin: '0 auto' }}>
-            <input
-              type="email" placeholder="tu@email.com"
-              style={{
-                flex: 1, minHeight: 56, padding: '0 20px', fontSize: 18, fontWeight: 700,
-                border: '2px solid #181c1e', boxShadow: '3px 3px 0px 0px #181c1e',
-                outline: 'none', background: '#ffffff'
-              }}
-            />
-            <button style={{
-              minHeight: 56, padding: '0 24px', background: '#181c1e', color: '#ffffff',
-              border: '2px solid #181c1e', fontSize: 20, fontWeight: 900, cursor: 'pointer',
-              whiteSpace: 'nowrap', transition: 'transform 0.1s'
-            }}
-            onMouseEnter={e => { e.currentTarget.style.transform = 'translate(-1px, -1px)'; }}
-            onMouseLeave={e => { e.currentTarget.style.transform = 'none'; }}>
-              Suscribirse
-            </button>
-          </div>
-        </div>
-      </section>
-
-      {/* Social proof floating toasts */}
       {/* RECENTLY VIEWED */}
       {(() => {
         try {
           const vistos = JSON.parse(localStorage.getItem('pizdo_vistos') || '[]');
           if (vistos.length === 0) return null;
-          const formatPrice = (n) => '$' + Number(n).toLocaleString('es-CO', { minimumFractionDigits: 0 });
           return (
-            <section className="tienda-section" style={{ padding: 'clamp(28px, 8vw, 64px) 24px', background: '#f7fafc' }}>
+            <section className="ff-section" style={{ padding: '48px 24px', background: C.surface, borderTop: '1px solid ' + C.border }}>
               <div style={{ maxWidth: 1280, margin: '0 auto' }}>
-                <h2 style={{ fontSize: 'clamp(20px, 5vw, 32px)', fontWeight: 700, marginBottom: 24, borderLeft: '6px solid #8d4f00', paddingLeft: 12 }}>
-                  👀 Viste recientemente
-                </h2>
-                <div style={{ display: 'flex', gap: 16, overflowX: 'auto', paddingBottom: 8 }}>
+                <h2 style={{ fontSize: 'clamp(20px, 4vw, 24px)', fontWeight: 700, marginBottom: 20, borderLeft: '4px solid #ff8c00', paddingLeft: 12, color: C.text }}>👀 Viste recientemente</h2>
+                <div style={{ display: 'flex', gap: 16, overflowX: 'auto', paddingBottom: 4 }}>
                   {vistos.map(v => (
                     <a key={v.id} href={`/tienda/${v.id}`} style={{
-                      minWidth: 180, maxWidth: 220, textDecoration: 'none', color: '#181c1e',
-                      background: '#ffffff', border: '2px solid #181c1e', boxShadow: '3px 3px 0px 0px #181c1e',
-                      display: 'flex', flexDirection: 'column', flexShrink: 0, transition: 'transform 0.1s'
-                    }}
-                    onMouseEnter={e => e.currentTarget.style.transform = 'translate(-1px, -1px)'}
-                    onMouseLeave={e => e.currentTarget.style.transform = 'none'}>
-                      {v.imagen ? (
-                        <img src={v.imagen} alt={v.nombre} style={{ width: '100%', height: 120, objectFit: 'cover', borderBottom: '2px solid #181c1e', background: '#f1f4f6' }}
-                          onError={e => { e.target.style.display = 'none'; }} />
-                      ) : (
-                        <div style={{ width: '100%', height: 120, background: '#f1f4f6', borderBottom: '2px solid #181c1e' }} />
-                      )}
-                      <div style={{ padding: 10, fontSize: 13, fontWeight: 700, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                        {v.nombre}
-                      </div>
+                      minWidth: 160, maxWidth: 200, textDecoration: 'none', color: C.text, background: C.surface,
+                      border: '1px solid ' + C.border, borderRadius: 8, boxShadow: '0 2px 8px rgba(0,0,0,0.04)',
+                      display: 'flex', flexDirection: 'column', flexShrink: 0
+                    }}>
+                      {v.imagen ? <img src={v.imagen} alt={v.nombre} style={{ width: '100%', height: 100, objectFit: 'contain', borderBottom: '1px solid ' + C.border, background: '#F8F9FA', borderRadius: '8px 8px 0 0' }} onError={e => { e.target.style.display = 'none'; }} />
+                        : <div style={{ height: 100, background: '#F8F9FA', borderBottom: '1px solid ' + C.border, borderRadius: '8px 8px 0 0' }} />}
+                      <div style={{ padding: 10, fontSize: 12, fontWeight: 600, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{v.nombre}</div>
                     </a>
                   ))}
                 </div>
@@ -475,7 +341,6 @@ export default function TiendaPage() {
       })()}
 
       {upsellProductId && <UpsellPopup productoId={upsellProductId} onClose={() => setUpsellProductId(null)} />}
-
       {proofEvents.map(evt => (
         <SocialProofToast key={evt.id} data={evt} onDone={() => setProofEvents(prev => prev.filter(e => e.id !== evt.id))} />
       ))}

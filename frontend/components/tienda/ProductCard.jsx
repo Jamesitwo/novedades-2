@@ -14,8 +14,7 @@ export default function ProductCard({ producto, onFavChange }) {
   });
 
   const toggleFav = (e) => {
-    e.preventDefault();
-    e.stopPropagation();
+    e.preventDefault(); e.stopPropagation();
     const favs = JSON.parse(localStorage.getItem('pizdo_favs') || '[]');
     const next = faved ? favs.filter(id => id !== producto.id) : [...favs, producto.id];
     localStorage.setItem('pizdo_favs', JSON.stringify(next));
@@ -26,104 +25,108 @@ export default function ProductCard({ producto, onFavChange }) {
   const esNuevo = producto.createdAt ? (new Date() - new Date(producto.createdAt)) < 7 * 86400000 : false;
   const esTop = producto.ventasSimuladas > 100;
 
+  const precioFinal = tieneOferta ? producto.ofertaPrecio : producto.precioVenta;
+
   return (
     <div style={{ position: 'relative' }}>
-      <a href={`/tienda/${producto.id}`} className="industrial-card" style={{
-        textDecoration: 'none', color: '#181c1e', display: 'flex', flexDirection: 'column',
-        background: '#ffffff', border: '2px solid #181c1e',
-        boxShadow: '4px 4px 0px 0px #181c1e', position: 'relative',
-        transition: 'transform 0.15s, box-shadow 0.15s'
+      <a href={`/tienda/${producto.id}`} style={{
+        textDecoration: 'none', color: '#0b1c30', display: 'flex', flexDirection: 'column',
+        background: '#ffffff', border: '1px solid #E2E8F0', borderRadius: 8,
+        boxShadow: '0 4px 12px rgba(0,0,0,0.05)', transition: 'box-shadow 0.2s, transform 0.2s',
+        overflow: 'hidden'
       }}
-      onMouseEnter={e => { e.currentTarget.style.transform = 'translate(-2px, -2px)'; e.currentTarget.style.boxShadow = '6px 6px 0px 0px #181c1e'; }}
-      onMouseLeave={e => { e.currentTarget.style.transform = 'none'; e.currentTarget.style.boxShadow = '4px 4px 0px 0px #181c1e'; }}>
+      onMouseEnter={e => { e.currentTarget.style.boxShadow = '0 8px 24px rgba(0,0,0,0.10)'; e.currentTarget.style.transform = 'translateY(-2px)'; }}
+      onMouseLeave={e => { e.currentTarget.style.boxShadow = '0 4px 12px rgba(0,0,0,0.05)'; e.currentTarget.style.transform = 'none'; }}>
         
-        <div style={{ position: 'absolute', top: 10, left: 10, zIndex: 2, display: 'flex', flexDirection: 'column', gap: 4 }}>
+        <div style={{ position: 'absolute', top: 8, left: 8, zIndex: 2, display: 'flex', flexDirection: 'column', gap: 4 }}>
           {tieneOferta && (
-            <span style={{ background: '#ba1a1a', color: '#fff', fontSize: 12, fontWeight: 900, padding: '3px 10px', border: '2px solid #181c1e', boxShadow: '2px 2px 0px 0px #181c1e' }}>
-              -{Math.round((1 - producto.ofertaPrecio / producto.precioVenta) * 100)}% OFF
-            </span>
-          )}
-          {esNuevo && (
-            <span style={{ background: '#3b82f6', color: '#fff', fontSize: 11, fontWeight: 900, padding: '2px 8px', border: '2px solid #181c1e', boxShadow: '2px 2px 0px 0px #181c1e' }}>
-              🆕 NUEVO
+            <span style={{ background: '#ba1a1a', color: '#fff', fontSize: 11, fontWeight: 700, padding: '3px 10px', borderRadius: 20 }}>
+              -{Math.round((1 - producto.ofertaPrecio / producto.precioVenta) * 100)}%
             </span>
           )}
           {esTop && (
-            <span style={{ background: '#8d4f00', color: '#ffb875', fontSize: 11, fontWeight: 900, padding: '2px 8px', border: '2px solid #181c1e', boxShadow: '2px 2px 0px 0px #181c1e' }}>
-              🔥 TOP
+            <span style={{ background: '#feb700', color: '#271900', fontSize: 11, fontWeight: 700, padding: '3px 10px', borderRadius: 20 }}>
+              MÁS VENDIDO
+            </span>
+          )}
+          {esNuevo && (
+            <span style={{ background: '#ff8c00', color: '#fff', fontSize: 11, fontWeight: 700, padding: '3px 10px', borderRadius: 20 }}>
+              NUEVO
             </span>
           )}
         </div>
 
         <button onClick={toggleFav} style={{
-          position: 'absolute', top: 10, right: 10, zIndex: 2, width: 36, height: 36,
-          background: faved ? '#ffdad6' : '#ffffff', border: '2px solid #181c1e',
-          cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
-          fontSize: 18, boxShadow: faved ? '2px 2px 0px 0px #ba1a1a' : '2px 2px 0px 0px #181c1e',
-          transition: 'all 0.15s'
+          position: 'absolute', top: 8, right: 8, zIndex: 2, width: 32, height: 32,
+          background: faved ? '#ffdad6' : '#fff', border: '1px solid #E2E8F0', borderRadius: 8,
+          cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 14,
+          boxShadow: '0 2px 4px rgba(0,0,0,0.05)'
         }}>
           {faved ? '❤️' : '🤍'}
         </button>
 
         {producto.stock > 0 && producto.stock <= 5 && (
           <div style={{
-            position: 'absolute', top: esNuevo || tieneOferta ? (esNuevo && tieneOferta ? 90 : tieneOferta ? 56 : esNuevo ? 56 : 46) : 46, right: 10, zIndex: 2,
-            background: '#ffdad6', color: '#93000a', fontSize: 11, fontWeight: 900,
-            padding: '3px 10px', border: '2px solid #ba1a1a', boxShadow: '2px 2px 0px 0px #181c1e'
+            position: 'absolute', top: 8, right: 48, zIndex: 2,
+            background: '#ffdad6', color: '#93000a', fontSize: 10, fontWeight: 700,
+            padding: '3px 8px', borderRadius: 20
           }}>
             Solo {producto.stock}
           </div>
         )}
 
-        <div style={{ height: 'clamp(160px, 30vw, 240px)', overflow: 'hidden', borderBottom: '2px solid #181c1e', background: '#f1f4f6' }}>
+        <div style={{ height: 200, overflow: 'hidden', background: '#F8F9FA', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}>
           {producto.imagen ? (
-            <img src={producto.imagen} alt={producto.nombre}
-              style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-              onError={(e) => { e.target.outerHTML = '<div style="width:100%;height:100%;background:#f1f4f6;display:flex;align-items:center;justify-content:center;color:#887362;font-size:14px;font-weight:700">Sin imagen</div>'; }} />
+            <img src={producto.imagen} alt={producto.nombre} style={{ width: '100%', height: '100%', objectFit: 'contain' }}
+              onError={(e) => { e.target.outerHTML = '<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;color:#897362;font-size:13px;font-weight:500">Sin imagen</div>'; }} />
           ) : (
-            <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#887362', fontSize: 14, fontWeight: 700 }}>Sin imagen</div>
+            <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#897362', fontSize: 13, fontWeight: 500 }}>Sin imagen</div>
           )}
         </div>
 
-        <div style={{ padding: 20, flex: 1, display: 'flex', flexDirection: 'column' }}>
-          <span style={{ fontSize: 12, fontWeight: 900, color: '#f28c00', textTransform: 'uppercase', letterSpacing: 2, marginBottom: 8 }}>
+        <div style={{ padding: 16, flex: 1, display: 'flex', flexDirection: 'column' }}>
+          <span style={{ fontSize: 11, fontWeight: 700, color: '#ff8c00', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 6 }}>
             {producto.categoria}
           </span>
-          <div style={{ fontSize: 18, fontWeight: 700, marginBottom: 16, lineHeight: 1.3, flex: 1 }}>
+          <div style={{ fontSize: 15, fontWeight: 700, marginBottom: 8, lineHeight: 1.3, flex: 1, display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden', height: 40 }}>
             {producto.nombre}
           </div>
 
-          <div style={{ display: 'flex', alignItems: 'baseline', gap: 10, marginBottom: 8 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 4, marginBottom: 8, color: '#feb700', fontSize: 13 }}>
+            {'★'.repeat(5)} <span style={{ color: '#897362', fontSize: 11, fontWeight: 500, marginLeft: 4 }}>({Math.floor(producto.ventasSimuladas / 10) || Math.floor(Math.random() * 50 + 10)})</span>
+          </div>
+
+          <div style={{ display: 'flex', alignItems: 'baseline', gap: 8, marginBottom: 4 }}>
             {tieneOferta ? (
               <>
-                <span style={{ fontSize: 28, fontWeight: 900, color: '#ba1a1a' }}>{formatPrice(producto.ofertaPrecio)}</span>
-                <span style={{ fontSize: 16, color: '#887362', textDecoration: 'line-through', fontWeight: 700 }}>{formatPrice(producto.precioVenta)}</span>
+                <span style={{ fontSize: 20, fontWeight: 800, color: '#0b1c30' }}>{formatPrice(producto.ofertaPrecio)}</span>
+                <span style={{ fontSize: 13, color: '#897362', textDecoration: 'line-through', fontWeight: 500 }}>{formatPrice(producto.precioVenta)}</span>
               </>
             ) : (
-              <span style={{ fontSize: 28, fontWeight: 900 }}>{formatPrice(producto.precioVenta)}</span>
+              <span style={{ fontSize: 20, fontWeight: 800, color: '#0b1c30' }}>{formatPrice(producto.precioVenta)}</span>
             )}
           </div>
 
-          {producto.ventasSimuladas > 0 && (
-            <div style={{ fontSize: 14, fontWeight: 700, color: '#8d4f00', marginBottom: 12 }}>
-              🔥 {producto.ventasSimuladas} vendidos
-            </div>
+          {producto.stock > 0 && producto.stock <= 5 && (
+            <div style={{ color: '#ba1a1a', fontSize: 12, fontWeight: 700, marginBottom: 8 }}>¡Solo quedan {producto.stock}!</div>
           )}
 
-          <div style={{ display: 'flex', gap: 6 }}>
+          <div style={{ display: 'flex', gap: 6, marginTop: 'auto' }}>
             <button onClick={(e) => { e.preventDefault(); e.stopPropagation(); setShowUpsell(true); }} style={{
-              flex: 1, minHeight: 52, background: '#f28c00', color: '#181c1e',
-              border: '2px solid #181c1e', boxShadow: '3px 3px 0px 0px #181c1e',
-              fontSize: 16, fontWeight: 900, cursor: 'pointer',
-              fontFamily: '"Inter", sans-serif', transition: 'transform 0.1s'
-            }}>
-              🛒 Comprar
+              flex: 1, minHeight: 40, background: '#fff', color: '#2D2D2D', border: '2px solid #2D2D2D',
+              borderRadius: 8, fontSize: 13, fontWeight: 700, cursor: 'pointer', fontFamily: '"Inter", sans-serif',
+              transition: 'all 0.15s'
+            }}
+            onMouseEnter={e => { e.currentTarget.style.background = '#2D2D2D'; e.currentTarget.style.color = '#fff'; }}
+            onMouseLeave={e => { e.currentTarget.style.background = '#fff'; e.currentTarget.style.color = '#2D2D2D'; }}>
+              🛒 Agregar
             </button>
             <button onClick={(e) => { e.preventDefault(); e.stopPropagation(); setShowQuickView(true); }} style={{
-              minHeight: 52, padding: '0 14px', background: '#ffffff', color: '#181c1e',
-              border: '2px solid #181c1e', boxShadow: '3px 3px 0px 0px #181c1e',
-              fontSize: 16, cursor: 'pointer', fontFamily: '"Inter", sans-serif'
-            }} title="Vista rápida">
+              minHeight: 40, padding: '0 10px', background: '#fff', color: '#2D2D2D', border: '2px solid #2D2D2D',
+              borderRadius: 8, fontSize: 14, cursor: 'pointer', fontFamily: '"Inter", sans-serif', transition: 'all 0.15s'
+            }}
+            onMouseEnter={e => { e.currentTarget.style.background = '#2D2D2D'; e.currentTarget.style.color = '#fff'; }}
+            onMouseLeave={e => { e.currentTarget.style.background = '#fff'; e.currentTarget.style.color = '#2D2D2D'; }} title="Vista rápida">
               👁
             </button>
           </div>

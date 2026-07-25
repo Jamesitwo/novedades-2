@@ -19,13 +19,12 @@ export default function CountdownTimer({ endsAt }) {
     return () => clearInterval(interval);
   }, [endsAt]);
 
-  if (!timeLeft) return <span style={{ fontSize: 12, fontWeight: 700, color: '#ba1a1a' }}>FINALIZADA</span>;
+  if (!timeLeft) return <span style={{ fontSize: 12, fontWeight: 700, color: '#ba1a1a' }}>Finalizada</span>;
 
   return (
     <span style={{
-      fontFamily: '"Inter", monospace', fontSize: 16, fontWeight: 900, color: '#181c1e',
-      background: '#ffdad6', padding: '4px 12px', border: '2px solid #ba1a1a',
-      letterSpacing: 1
+      fontFamily: '"Inter", monospace', fontSize: 15, fontWeight: 800, color: '#0b1c30',
+      background: '#ffdad6', padding: '4px 10px', borderRadius: 8, letterSpacing: 1
     }}>
       ⏱ {timeLeft}
     </span>
