@@ -20,7 +20,7 @@ export default function TiendaAdminLayout({ children }) {
 
   return (
     <div style={{
-      minHeight: '100vh', background: '#f7fafc', color: '#181c1e',
+      minHeight: '100vh', background: '#f8f9ff', color: '#0b1c30',
       fontFamily: '"Inter", -apple-system, sans-serif', fontSize: 16
     }}>
       <style dangerouslySetInnerHTML={{__html: `
@@ -30,24 +30,24 @@ export default function TiendaAdminLayout({ children }) {
         }
       `}} />
       <div style={{
-        background: '#181c1e', borderBottom: '2px solid #181c1e',
+        background: '#213145', borderBottom: '1px solid rgba(255,255,255,0.1)',
         padding: '0 24px', display: 'flex', alignItems: 'center', justifyContent: 'space-between',
         height: 52, position: 'sticky', top: 0, zIndex: 100
       }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 20 }}>
-          <a href="/dashboard" style={{ color: '#ffb875', textDecoration: 'none', fontSize: 14, fontWeight: 700 }}>
+          <a href="/dashboard" style={{ color: '#ffb77d', textDecoration: 'none', fontSize: 14, fontWeight: 600 }}>
             ← Dashboard
           </a>
-          <span style={{ color: '#887362', fontSize: 18 }}>|</span>
-          <a href="/tienda" target="_blank" style={{ color: '#f28c00', textDecoration: 'none', fontSize: 14, fontWeight: 800 }}>
+          <span style={{ color: '#cbdbf5', opacity: 0.4, fontSize: 18 }}>|</span>
+          <a href="/tienda" target="_blank" style={{ color: '#ff8c00', textDecoration: 'none', fontSize: 14, fontWeight: 700 }}>
             Ver Tienda →
           </a>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
-          <span style={{ color: '#ffb875', fontSize: 16, fontWeight: 900, textTransform: 'uppercase', letterSpacing: 1 }}>
+          <span style={{ color: '#ffb77d', fontSize: 16, fontWeight: 800, textTransform: 'uppercase', letterSpacing: 1 }}>
             PIZDO ADMIN
           </span>
-          <span style={{ color: '#887362', fontSize: 13, fontWeight: 700 }}>
+          <span style={{ color: '#cbdbf5', fontSize: 13, fontWeight: 600, opacity: 0.7 }}>
             {usuario?.nombre}
           </span>
         </div>
