@@ -16,7 +16,7 @@ RUN npx prisma generate --schema prisma/schema.prisma
 COPY backend/ .
 
 FROM node:20-alpine
-ARG CACHEBUST=2
+ARG CACHEBUST=3
 WORKDIR /app
 RUN apk add --no-cache openssl
 RUN addgroup -S appgroup && adduser -S appuser -G appgroup
