@@ -116,7 +116,7 @@ export default function ProductCard({ producto, onFavChange }) {
           </div>
 
           <div style={{ display: 'flex', alignItems: 'center', gap: 4, marginBottom: 8, color: '#feb700', fontSize: 13 }}>
-            {'★'.repeat(5)} <span style={{ color: '#897362', fontSize: 11, fontWeight: 500, marginLeft: 4 }}>({Math.floor(producto.ventasSimuladas / 10) || Math.floor(Math.random() * 50 + 10)})</span>
+            {'★'.repeat(5)} <span style={{ color: '#897362', fontSize: 11, fontWeight: 500, marginLeft: 4 }}>({producto.ventasSimuladas || Math.floor(Math.random() * 80 + 20)} ventas)</span>
           </div>
 
           <div style={{ display: 'flex', alignItems: 'baseline', gap: 8, marginBottom: 4 }}>
