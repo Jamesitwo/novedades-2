@@ -1,5 +1,4 @@
 import './globals.css';
-import Script from 'next/script';
 
 export const metadata = {
   metadataBase: new URL('https://pizdo.info'),
@@ -10,17 +9,13 @@ export const metadata = {
   verification: { google: 'HpRjJhdHiDUIJ22y3ZGdblE6N6z7hbm5wKDvFV94hFU' },
   description: 'Catálogo de herramientas industriales profesionales. Taladros, amoladoras, sets de mecánica y más. Calidad garantizada con envíos a toda Colombia. Compra ahora.',
   keywords: ['herramientas', 'industriales', 'taladro', 'amoladora', 'herramientas eléctricas', 'Pizdo', 'ferretería', 'Colombia'],
-  authors: [{ name: 'Pizdo Industrial Tools' }],
-  creator: 'Pizdo Industrial Tools',
-  publisher: 'Pizdo Industrial Tools',
-  formatDetection: { telephone: false },
   openGraph: {
     type: 'website',
     locale: 'es_CO',
     url: 'https://pizdo.info',
     siteName: 'Pizdo Industrial Tools',
     title: 'Pizdo — Herramientas Industriales de Calidad Profesional',
-    description: 'Catálogo de herramientas industriales profesionales. Taladros, amoladoras, sets de mecánica y más. Calidad garantizada.',
+    description: 'Catálogo de herramientas industriales profesionales.',
     images: [{ url: '/og-image.jpg', width: 1200, height: 630, alt: 'Pizdo Industrial Tools' }]
   },
   twitter: {
@@ -29,36 +24,18 @@ export const metadata = {
     description: 'Catálogo de herramientas industriales profesionales.',
     images: ['/og-image.jpg']
   },
-  robots: {
-    index: true,
-    follow: true,
-    googleBot: { index: true, follow: true }
-  },
+  robots: { index: true, follow: true, googleBot: { index: true, follow: true } },
   alternates: { canonical: 'https://pizdo.info' }
 };
 
 export default function RootLayout({ children }) {
   return (
     <html lang="es" suppressHydrationWarning>
-      <body suppressHydrationWarning>
+      <head>
+        <script dangerouslySetInnerHTML={{ __html: `(function(){try{var t=localStorage.getItem('theme')||'dark';document.documentElement.setAttribute('data-theme',t);}catch(e){}})()` }} />
+      </head>
+      <body>
         <div className="sidebar-overlay" />
-        <Script id="theme-init" strategy="beforeInteractive">
-          {`(function(){try{var t=localStorage.getItem('theme')||'dark';document.documentElement.setAttribute('data-theme',t);}catch(e){}})()`}
-        </Script>
-        <Script
-          id="json-ld"
-          type="application/ld+json"
-          strategy="afterInteractive"
-        >
-          {JSON.stringify({
-            '@context': 'https://schema.org',
-            '@type': 'Organization',
-            name: 'Pizdo Industrial Tools',
-            url: 'https://pizdo.info',
-            description: 'Herramientas industriales de calidad profesional.',
-            contactPoint: { '@type': 'ContactPoint', contactType: 'customer service', telephone: '+57-300-000-0000', availableLanguage: 'es' }
-          })}
-        </Script>
         {children}
       </body>
     </html>
