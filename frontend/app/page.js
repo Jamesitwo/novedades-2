@@ -2,10 +2,11 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import api from '@/lib/api';
-import ProductCard from '../../components/tienda/ProductCard';
-import CountdownTimer from '../../components/tienda/CountdownTimer';
-import SocialProofToast from '../../components/tienda/SocialProofToast';
-import UpsellPopup from '../../components/tienda/UpsellPopup';
+import ClientLayout from './ClientLayout';
+import ProductCard from '../components/tienda/ProductCard';
+import CountdownTimer from '../components/tienda/CountdownTimer';
+import SocialProofToast from '../components/tienda/SocialProofToast';
+import UpsellPopup from '../components/tienda/UpsellPopup';
 import { on } from '@/lib/websocket';
 
 export default function TiendaPage() {
@@ -128,7 +129,7 @@ export default function TiendaPage() {
   };
 
   return (
-    <div>
+    <ClientLayout><div>
       <style dangerouslySetInnerHTML={{__html: `
         @media (max-width: 768px) {
           .ff-hero { padding: 40px 16px !important; }
@@ -465,6 +466,6 @@ export default function TiendaPage() {
       {proofEvents.map(evt => (
         <SocialProofToast key={evt.id} data={evt} onDone={() => setProofEvents(prev => prev.filter(e => e.id !== evt.id))} />
       ))}
-    </div>
+    </div></ClientLayout>
   );
 }

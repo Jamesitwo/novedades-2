@@ -5,6 +5,7 @@ import api from '@/lib/api';
 import ProductCard from '@/components/tienda/ProductCard';
 import CountdownTimer from '@/components/tienda/CountdownTimer';
 import { useAuthStore } from '@/store/authStore';
+import ClientLayout from '../../ClientLayout';
 
 export default function ProductoDetallePage() {
   const params = useParams();
@@ -81,12 +82,12 @@ export default function ProductoDetallePage() {
   const imagenPrincipal = todasImagenes.length > 0 ? todasImagenes[imgActiva] || todasImagenes[0] : null;
 
   return (
-    <div style={{ maxWidth: 1280, margin: '0 auto', padding: '0 24px 64px' }}>
+    <ClientLayout><div style={{ maxWidth: 1280, margin: '0 auto', padding: '0 24px 64px' }}>
       <style dangerouslySetInnerHTML={{__html: `
         @media (max-width: 768px) { .detalle-grid-v2 { grid-template-columns: 1fr !important; } .detalle-titulo { font-size: 22px !important; } }
       `}} />
 
-      <a href="/tienda" style={{ color: C.primary, textDecoration: 'none', fontSize: 14, fontWeight: 600, display: 'inline-block', margin: '24px 0' }}>← Volver a la tienda</a>
+      <a href="/" style={{ color: C.primary, textDecoration: 'none', fontSize: 14, fontWeight: 600, display: 'inline-block', margin: '24px 0' }}>← Volver a la tienda</a>
 
       <div className="detalle-grid-v2" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 48 }}>
         <div onMouseEnter={() => setPauseCarousel(true)} onMouseLeave={() => setPauseCarousel(false)}>
@@ -146,7 +147,7 @@ export default function ProductoDetallePage() {
             <div style={{ color: '#ba1a1a', fontSize: 14, fontWeight: 700, marginBottom: 16 }}>¡Solo quedan {producto.stock} unidades!</div>
           )}
           <div style={{ display: 'flex', gap: 8, marginBottom: 16 }}>
-            <a href={`/tienda/comprar/${producto.id}`} onClick={() => window.dispatchEvent(new Event('pizdo-cart-add'))} style={{
+            <a href={`/comprar/${producto.id}`} onClick={() => window.dispatchEvent(new Event('pizdo-cart-add'))} style={{
               flex: 1, minHeight: 48, background: C.primary, color: '#fff', border: 'none', borderRadius: 8,
               fontWeight: 700, fontSize: 16, cursor: 'pointer', textDecoration: 'none',
               display: 'flex', alignItems: 'center', justifyContent: 'center',
@@ -276,6 +277,6 @@ export default function ProductoDetallePage() {
           <div style={{ textAlign: 'center', color: C.muted, padding: 30, border: '1px dashed ' + C.border, borderRadius: 10, fontSize: 14, fontWeight: 500 }}>Sé el primero en dejar una reseña</div>
         )}
       </section>
-    </div>
+    </div></ClientLayout>
   );
 }

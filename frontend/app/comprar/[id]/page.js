@@ -82,7 +82,7 @@ export default function ComprarPage() {
       `}} />
 
       <div style={{ background: C.navy, borderBottom: '1px solid rgba(255,255,255,0.1)', padding: '0 24px', display: 'flex', alignItems: 'center', height: 52 }}>
-        <a href={`/tienda/${id}`} style={{ color: '#ffb77d', textDecoration: 'none', fontSize: 14, fontWeight: 600 }}>← Volver al producto</a>
+        <a href={`/producto/${id}`} style={{ color: '#ffb77d', textDecoration: 'none', fontSize: 14, fontWeight: 600 }}>← Volver al producto</a>
         <span style={{ marginLeft: 'auto', fontSize: 18, fontWeight: 800, color: '#ffb77d', textTransform: 'uppercase', letterSpacing: 1 }}>Pizdo</span>
       </div>
 
@@ -93,7 +93,7 @@ export default function ComprarPage() {
             <div style={{ width: 88, height: 88, background: C.green, color: '#fff', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', marginBottom: 32, borderRadius: 16, boxShadow: '0 8px 32px rgba(34,197,94,0.25)', fontSize: 36, fontWeight: 700 }}>✓</div>
             <h1 style={{ fontSize: 'clamp(24px, 5vw, 36px)', fontWeight: 800, marginBottom: 16, color: C.text }}>¡Pedido registrado!</h1>
             <p style={{ fontSize: 'clamp(16px, 2.5vw, 18px)', color: C.subtext, marginBottom: 32, lineHeight: 1.6 }}>Gracias {form.nombre}. Te contactaremos al <strong>{form.celular}</strong> para coordinar la entrega en <strong>{form.ciudad}</strong>.</p>
-            <a href="/tienda" style={{ display: 'inline-flex', alignItems: 'center', gap: 8, background: C.primary, color: '#fff', padding: '14px 32px', borderRadius: 10, fontWeight: 700, fontSize: 16, textDecoration: 'none', boxShadow: '0 4px 16px rgba(255,140,0,0.3)' }}>🛒 Seguir comprando</a>
+            <a href="/" style={{ display: 'inline-flex', alignItems: 'center', gap: 8, background: C.primary, color: '#fff', padding: '14px 32px', borderRadius: 10, fontWeight: 700, fontSize: 16, textDecoration: 'none', boxShadow: '0 4px 16px rgba(255,140,0,0.3)' }}>🛒 Seguir comprando</a>
           </div>
         ) : (
           <div>
@@ -217,7 +217,7 @@ export default function ComprarPage() {
                     {producto.relacionados.map(rp => {
                       const rpPrecio = rp.ofertaActiva && rp.ofertaPrecio ? rp.ofertaPrecio : rp.precioVenta;
                       return (
-                        <a key={rp.id} href={`/tienda/comprar/${rp.id}`} style={{
+                        <a key={rp.id} href={`/comprar/${rp.id}`} style={{
                           display: 'flex', alignItems: 'center', gap: 10, padding: '10px 0',
                           borderBottom: '1px solid ' + C.border, textDecoration: 'none', color: C.text, transition: 'background 0.1s'
                         }}

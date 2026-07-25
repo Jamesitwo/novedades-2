@@ -2,8 +2,8 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import api from '@/lib/api';
-import WhatsAppButton from '../../components/tienda/WhatsAppButton';
-import '../globals.css';
+import WhatsAppButton from '../components/tienda/WhatsAppButton';
+import './globals.css';
 
 export default function TiendaLayout({ children }) {
   const router = useRouter();
