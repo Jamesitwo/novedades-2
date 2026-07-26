@@ -216,7 +216,7 @@ export default function TiendaPage() {
               const emojiMap = { 'Herramientas': '🔧', 'Electrónica': '📱', 'Hogar': '🏠', 'Deportes': '⚽', 'Oficina': '💼', 'Belleza': '💄', 'Ropa': '👕', 'Calzado': '👟' };
               const emoji = emojiMap[cat] || '📦';
               return (
-                <a key={cat} href="#" onClick={e => { e.preventDefault(); setCategoria(cat); }}
+                <a key={cat} href="#catalogo" onClick={e => { e.preventDefault(); setCategoria(cat); setTimeout(() => document.getElementById('catalogo')?.scrollIntoView({ behavior: 'smooth' }), 100); }}
                 style={{
                   textDecoration: 'none', color: C.text, display: 'flex', flexDirection: 'column', alignItems: 'center',
                   justifyContent: 'center', padding: 24, background: C.surface, border: '1px solid ' + C.border,
