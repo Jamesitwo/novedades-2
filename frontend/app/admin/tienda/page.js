@@ -101,7 +101,7 @@ export default function TiendaAdminPage() {
         lucidbot_activo: lucidbotConfig.activo,
         lucidbot_api_key: lucidbotConfig.api_key,
         lucidbot_tag_name: lucidbotConfig.tag_name,
-        lucidbot_flow_id: lucidbotConfig.flow_id ? Number(lucidbotConfig.flow_id) : null,
+        lucidbot_flow_id: lucidbotConfig.flow_id || null,
         lucidbot_field_values: lucidbotConfig.field_values
       });
       showToast('LucidBot guardado correctamente');
@@ -1042,7 +1042,7 @@ export default function TiendaAdminPage() {
             </label>
             <label style={{ fontSize: 12, fontWeight: 800, color: '#564334', textTransform: 'uppercase', letterSpacing: 1 }}>
               Flow ID
-              <input className="admin-input" type="number" value={lucidbotConfig.flow_id}
+              <input className="admin-input" type="text" value={lucidbotConfig.flow_id}
                 onChange={e => setLucidbotConfig(prev => ({ ...prev, flow_id: e.target.value }))}
                 placeholder="12345" style={{ width: '100%', marginTop: 4 }} />
             </label>

@@ -272,7 +272,7 @@ model Configuracion {
   lucidbot_activo           Boolean   @default(false) @map("lucidbot_activo")
   lucidbot_api_key          String?   @map("lucidbot_api_key")
   lucidbot_tag_name         String?   @map("lucidbot_tag_name")
-  lucidbot_flow_id          Int?      @map("lucidbot_flow_id")
+  lucidbot_flow_id          String?   @map("lucidbot_flow_id")
   lucidbot_field_values     Json?     @default("[]") @map("lucidbot_field_values")
   bundle_productos          Json?     @default("[]") @map("bundle_productos")
   bundle_titulo             String?   @map("bundle_titulo")
