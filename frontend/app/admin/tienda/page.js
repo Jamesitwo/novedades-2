@@ -122,7 +122,7 @@ export default function TiendaAdminPage() {
   const fetchProductos = useCallback(async () => {
     setLoading(true);
     try {
-      const params = new URLSearchParams({ page, limit: LIMIT });
+      const params = new URLSearchParams({ page, limit: LIMIT, todos: 'true' });
       if (search) params.append('search', search);
       if (filtroCategoria) params.append('categoria', filtroCategoria);
       const { data } = await api.get(`/api/tienda?${params}`);
@@ -145,7 +145,7 @@ export default function TiendaAdminPage() {
 
   useEffect(() => {
     if (!isAuthenticated || usuario?.rol !== 'admin') return;
-    api.get('/api/tienda?limit=200&orden=reciente')
+    api.get('/api/tienda?limit=200&orden=reciente&todos=true')
       .then(({ data }) => setAllProducts(data.productos))
       .catch(() => {});
   }, [isAuthenticated, usuario]);
@@ -644,9 +644,12 @@ export default function TiendaAdminPage() {
                     🔗 Upsell (productos relacionados)
                   </div>
                   <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
-                    {allProducts.filter(a => a.id !== (editando?.id || '')).slice(0, 30).map(ap => {
-                      const selected = form.upsellIds.includes(ap.id);
-                      return (
+                    {allProducts.filter(a => a.id !== (editando?.id || '')).length === 0 ? (
+                      <span style={{ fontSize: 12, color: '#897362' }}>Cargando productos...</span>
+                    ) : (
+                      allProducts.filter(a => a.id !== (editando?.id || '')).map(ap => {
+                        const selected = form.upsellIds.includes(ap.id);
+                        return (
                         <button key={ap.id} type="button" onClick={() => {
                           setForm(prev => ({
                             ...prev,
@@ -662,10 +665,7 @@ export default function TiendaAdminPage() {
                           {selected ? '✓ ' : ''}{ap.nombre}
                         </button>
                       );
-                    })}
-                    {allProducts.filter(a => a.id !== (editando?.id || '')).length === 0 && (
-                      <span style={{ fontSize: 12, color: '#897362' }}>Cargando productos...</span>
-                    )}
+                    }))}
                   </div>
                   <div style={{ fontSize: 11, color: '#897362', marginTop: 6 }}>
                     Selecciona productos que aparecerán como "También te puede interesar". Si no seleccionas ninguno, se muestran productos de la misma categoría.
@@ -817,7 +817,10 @@ export default function TiendaAdminPage() {
               Productos del bundle (selecciona 2-4)
             </div>
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
-              {allProducts.slice(0, 30).map(ap => {
+              {allProducts.length === 0 ? (
+                <span style={{ fontSize: 12, color: '#897362' }}>Cargando productos...</span>
+              ) : (
+                allProducts.map(ap => {
                 const selected = bundleConfig.productos.includes(ap.id);
                 return (
                   <button key={ap.id} type="button" onClick={() => {
@@ -826,16 +829,16 @@ export default function TiendaAdminPage() {
                       productos: selected ? prev.productos.filter(id => id !== ap.id) : prev.productos.length < 4 ? [...prev.productos, ap.id] : prev.productos
                     }));
                   }} style={{
-                    padding: '4px 10px', fontSize: 12, fontWeight: 700, cursor: 'pointer',
+                    padding: '4px 10px', fontSize: 12, fontWeight: 700, cursor: prev.productos.length >= 4 && !selected ? 'not-allowed' : 'pointer',
                     border: '1px solid #E2E8F0', borderRadius: 8, background: selected ? '#ff8c00' : '#ffffff',
-                    color: selected ? '#fff' : '#564334', opacity: !selected && bundleConfig.productos.length >= 4 ? 0.4 : 1,
-                    cursor: !selected && bundleConfig.productos.length >= 4 ? 'not-allowed' : 'pointer',
+                    color: selected ? '#fff' : '#564334',
+                    opacity: !selected && bundleConfig.productos.length >= 4 ? 0.4 : 1,
                     whiteSpace: 'nowrap'
                   }}>
                     {selected ? '✓ ' : ''}{ap.nombre}
                   </button>
                 );
-              })}
+              }))}
             </div>
           </div>
 

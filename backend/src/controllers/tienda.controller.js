@@ -3,10 +3,11 @@ const { paginate } = require('../utils/paginate');
 
 const getAll = async (req, res) => {
   try {
-    const { page = 1, limit = 20, categoria, search, destacado, oferta, orden = 'reciente' } = req.query;
+    const { page = 1, limit = 20, categoria, search, destacado, oferta, orden = 'reciente', todos } = req.query;
     const skip = (parseInt(page) - 1) * parseInt(limit);
 
-    const where = { activo: true };
+    const where = {};
+    if (todos !== 'true') where.activo = true;
 
     if (categoria) where.categoria = categoria;
     if (destacado === 'true') where.destacado = true;
