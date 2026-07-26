@@ -45,7 +45,7 @@ export default function TiendaAdminPage() {
   });
   const [savingBot, setSavingBot] = useState(false);
   const [bundleConfig, setBundleConfig] = useState({
-    productos: [], titulo: '', descripcion: '', precioNormal: '', precioOferta: ''
+    productos: [], titulo: '', descripcion: '', precioNormal: '', precioOferta: '', badgeTexto: ''
   });
   const [savingBundle, setSavingBundle] = useState(false);
   const [homeConfig, setHomeConfig] = useState({
@@ -70,7 +70,8 @@ export default function TiendaAdminPage() {
         titulo: data.bundle_titulo || 'Professional DIY Kit',
         descripcion: data.bundle_descripcion || 'Todo lo que necesitas para empezar.',
         precioNormal: data.bundle_precio_normal || '',
-        precioOferta: data.bundle_precio_oferta || ''
+        precioOferta: data.bundle_precio_oferta || '',
+        badgeTexto: data.bundle_badge_texto || 'Compra en Combo y Ahorra'
       });
       setHomeConfig({
         hero_titulo: data.hero_titulo || '',
@@ -797,6 +798,11 @@ export default function TiendaAdminPage() {
         <div style={{ display: 'grid', gap: 14, maxWidth: 600 }}>
           <div className="form-2col" style={{ gap: 12 }}>
             <label style={{ fontSize: 12, fontWeight: 800, color: '#564334', textTransform: 'uppercase', letterSpacing: 1 }}>
+              Texto del badge
+              <input className="admin-input" value={bundleConfig.badgeTexto} onChange={e => setBundleConfig(prev => ({ ...prev, badgeTexto: e.target.value }))}
+                placeholder="Compra en Combo y Ahorra" style={{ width: '100%', marginTop: 4 }} />
+            </label>
+            <label style={{ fontSize: 12, fontWeight: 800, color: '#564334', textTransform: 'uppercase', letterSpacing: 1 }}>
               Título del bundle
               <input className="admin-input" value={bundleConfig.titulo} onChange={e => setBundleConfig(prev => ({ ...prev, titulo: e.target.value }))}
                 placeholder="Professional DIY Kit" style={{ width: '100%', marginTop: 4 }} />
@@ -866,7 +872,8 @@ export default function TiendaAdminPage() {
                 bundle_titulo: bundleConfig.titulo,
                 bundle_descripcion: bundleConfig.descripcion,
                 bundle_precio_normal: bundleConfig.precioNormal ? Number(bundleConfig.precioNormal) : null,
-                bundle_precio_oferta: bundleConfig.precioOferta ? Number(bundleConfig.precioOferta) : null
+                bundle_precio_oferta: bundleConfig.precioOferta ? Number(bundleConfig.precioOferta) : null,
+                bundle_badge_texto: bundleConfig.badgeTexto || null
               });
               showToast('Bundle guardado correctamente');
             } catch (e) { showToast('Error al guardar', 'error'); }

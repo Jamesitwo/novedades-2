@@ -53,7 +53,8 @@ export default function TiendaPage() {
           titulo: data.bundle_titulo || 'Professional DIY Kit',
           descripcion: data.bundle_descripcion || '',
           precioNormal: data.bundle_precio_normal || 0,
-          precioOferta: data.bundle_precio_oferta || 0
+          precioOferta: data.bundle_precio_oferta || 0,
+          badgeTexto: data.bundle_badge_texto || 'Compra en Combo y Ahorra'
         });
         const params = new URLSearchParams({ limit: 20, orden: 'reciente' });
         api.get(`/api/tienda?${params}`).then(({ data: prodData }) => {
@@ -241,7 +242,7 @@ export default function TiendaPage() {
           <div style={{ maxWidth: 1280, margin: '0 auto' }}>
             <div className="ff-bundle" style={{ display: 'flex', background: '#e5eeff', borderRadius: 16, overflow: 'hidden', boxShadow: '0 2px 8px rgba(0,0,0,0.04)' }}>
               <div style={{ flex: 1, padding: 'clamp(24px, 5vw, 40px)', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
-                <span style={{ color: '#904d00', fontWeight: 700, textTransform: 'uppercase', fontSize: 12, letterSpacing: 1, marginBottom: 8 }}>Compra en Combo y Ahorra</span>
+                <span style={{ color: '#904d00', fontWeight: 700, textTransform: 'uppercase', fontSize: 12, letterSpacing: 1, marginBottom: 8 }}>{bundleConfig?.badgeTexto || 'Compra en Combo y Ahorra'}</span>
                 <h2 style={{ fontSize: 'clamp(22px, 4vw, 28px)', fontWeight: 800, color: C.text, marginBottom: 12 }}>{bundleConfig.titulo}</h2>
                 <p style={{ color: C.subtext, fontSize: 15, marginBottom: 20, lineHeight: 1.5 }}>{bundleConfig.descripcion || `${bundleProducts.map(p => p.nombre).join(' + ')}.`}</p>
                 {bundleConfig.precioOferta > 0 && (
@@ -287,7 +288,7 @@ export default function TiendaPage() {
           <div style={{ maxWidth: 1280, margin: '0 auto' }}>
             <div className="ff-bundle" style={{ display: 'flex', background: '#e5eeff', borderRadius: 16, overflow: 'hidden', boxShadow: '0 2px 8px rgba(0,0,0,0.04)' }}>
               <div style={{ flex: 1, padding: 'clamp(24px, 5vw, 40px)', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
-                <span style={{ color: '#904d00', fontWeight: 700, textTransform: 'uppercase', fontSize: 12, letterSpacing: 1, marginBottom: 8 }}>Compra en Combo y Ahorra</span>
+                <span style={{ color: '#904d00', fontWeight: 700, textTransform: 'uppercase', fontSize: 12, letterSpacing: 1, marginBottom: 8 }}>{bundleConfig?.badgeTexto || 'Compra en Combo y Ahorra'}</span>
                 <h2 style={{ fontSize: 'clamp(22px, 4vw, 28px)', fontWeight: 800, color: C.text, marginBottom: 12 }}>Professional DIY Kit</h2>
                 <p style={{ color: C.subtext, fontSize: 15, marginBottom: 20, lineHeight: 1.5 }}>Todo lo que necesitas para empezar. Taladro percutor de impacto + Set de 50 brocas + Maletín de transporte reforzado.</p>
                 <div style={{ background: C.surface, borderRadius: 12, padding: 16, border: '1px solid ' + C.border, display: 'inline-flex', flexDirection: 'column', alignSelf: 'flex-start', marginBottom: 16 }}>

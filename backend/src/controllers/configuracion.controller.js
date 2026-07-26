@@ -35,7 +35,7 @@ const updateConfiguracion = async (req, res) => {
       factura_pie_legal, factura_prefijo,
       lucidsales_email, lucidsales_password, lucidsales_shop_id, lucidsales_activo,
       lucidbot_activo, lucidbot_api_key, lucidbot_tag_name, lucidbot_flow_id, lucidbot_field_values,
-      bundle_productos, bundle_titulo, bundle_descripcion, bundle_precio_normal, bundle_precio_oferta,
+      bundle_productos, bundle_titulo, bundle_descripcion, bundle_precio_normal, bundle_precio_oferta, bundle_badge_texto,
       hero_titulo, hero_subtitulo, hero_boton_texto, hero_imagen_url,
       seccion_bestsellers_titulo, seccion_catalogo_titulo,
       coupon_activo, coupon_codigo, coupon_texto, coupon_descuento,
@@ -76,6 +76,7 @@ const updateConfiguracion = async (req, res) => {
     if (bundle_descripcion !== undefined) extraData.bundle_descripcion = bundle_descripcion || null;
     if (bundle_precio_normal !== undefined) extraData.bundle_precio_normal = bundle_precio_normal || null;
     if (bundle_precio_oferta !== undefined) extraData.bundle_precio_oferta = bundle_precio_oferta || null;
+    if (bundle_badge_texto !== undefined) extraData.bundle_badge_texto = bundle_badge_texto || null;
     if (hero_titulo !== undefined) extraData.hero_titulo = hero_titulo || null;
     if (hero_subtitulo !== undefined) extraData.hero_subtitulo = hero_subtitulo || null;
     if (hero_boton_texto !== undefined) extraData.hero_boton_texto = hero_boton_texto || null;
@@ -151,6 +152,7 @@ const getPublicConfig = async (req, res) => {
       bundle_descripcion: config.bundle_descripcion || null,
       bundle_precio_normal: config.bundle_precio_normal || null,
       bundle_precio_oferta: config.bundle_precio_oferta || null,
+      bundle_badge_texto: config.bundle_badge_texto || null,
       whatsapp_numero: config.whatsapp_numero || null,
       promo_bar_texto: config.promo_bar_texto || null
     });
