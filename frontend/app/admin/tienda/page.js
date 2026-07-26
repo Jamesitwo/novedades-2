@@ -55,7 +55,6 @@ export default function TiendaAdminPage() {
     whatsapp_numero: '', promo_bar_texto: ''
   });
   const [homeCategorias, setHomeCategorias] = useState([]);
-  const [homeCatInput, setHomeCatInput] = useState('');
   const [savingHome, setSavingHome] = useState(false);
 
   useEffect(() => {
@@ -972,24 +971,19 @@ export default function TiendaAdminPage() {
                 </span>
               ))}
             </div>
-            <div style={{ display: 'flex', gap: 8 }}>
-              <input className="admin-input" value={homeCatInput} onChange={e => setHomeCatInput(e.target.value)}
-                placeholder="Nombre de categoría" style={{ flex: 1, padding: '6px 10px', fontSize: 13 }}
-                onKeyDown={e => {
-                  if (e.key === 'Enter' && homeCatInput.trim()) {
-                    e.preventDefault();
-                    setHomeCategorias(prev => [...prev, homeCatInput.trim()]);
-                    setHomeCatInput('');
-                  }
-                }} />
-              <button onClick={() => {
-                if (homeCatInput.trim()) {
-                  setHomeCategorias(prev => [...prev, homeCatInput.trim()]);
-                  setHomeCatInput('');
-                }
-              }} style={{
-                ...S, background: '#ff8c00', color: '#fff', minHeight: 40, padding: '0 16px', cursor: 'pointer', fontSize: 13, fontWeight: 700, border: 'none'
-              }}>+ Agregar</button>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginBottom: 4 }}>
+              {categorias.filter(c => !homeCategorias.includes(c)).map(cat => (
+                <button key={cat} onClick={() => setHomeCategorias(prev => [...prev, cat])} style={{
+                  padding: '4px 10px', fontSize: 12, fontWeight: 700, cursor: 'pointer',
+                  border: '1px solid #E2E8F0', borderRadius: 20, background: '#fff', color: '#564334',
+                  whiteSpace: 'nowrap'
+                }}>
+                  + {cat}
+                </button>
+              ))}
+              {categorias.filter(c => !homeCategorias.includes(c)).length === 0 && homeCategorias.length === 0 && (
+                <span style={{ fontSize: 12, color: '#897362' }}>No hay categorías disponibles. Crea productos primero.</span>
+              )}
             </div>
           </div>
 
