@@ -538,7 +538,7 @@ export default function TiendaAdminPage() {
           onClick={() => setShowModal(false)}>
           <div style={{
             background: '#ffffff', border: '1px solid #E2E8F0', boxShadow: '0 16px 40px rgba(0,0,0,0.15)',
-            width: 'min(900px, 96vw)', maxHeight: '92vh', overflow: 'auto'
+            width: 'min(1100px, 98vw)', maxHeight: '92vh', overflow: 'auto'
           }} onClick={e => e.stopPropagation()}>
             <div style={{
               padding: '20px 28px', borderBottom: '1px solid #E2E8F0', fontWeight: 800, fontSize: 20, color: '#0b1c30',
@@ -549,7 +549,7 @@ export default function TiendaAdminPage() {
               <button onClick={() => setShowModal(false)} style={{ background: 'none', border: 'none', fontSize: 24, cursor: 'pointer', color: '#0b1c30' }}>✕</button>
             </div>
 
-            <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 0.8fr', gap: 0 }}>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 0 }}>
               <form onSubmit={handleSave} style={{ padding: '28px 28px', display: 'flex', flexDirection: 'column', gap: 16 }}>
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: 16 }}>
                   <label style={{ fontSize: 13, fontWeight: 900, color: '#564334', textTransform: 'uppercase', letterSpacing: 1 }}>
@@ -694,55 +694,59 @@ export default function TiendaAdminPage() {
               </form>
 
               {/* PREVIEW */}
-              <div style={{ padding: '28px 28px 28px 20px', borderLeft: '1px solid #e0e3e5', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
+              <div style={{ padding: '28px', borderLeft: '1px solid #E2E8F0', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
                 <div style={{ fontSize: 13, fontWeight: 900, color: '#564334', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 16 }}>
                   Vista previa
                 </div>
                 <div style={{
-                  border: '1px solid #E2E8F0', boxShadow: '0 2px 4px rgba(0,0,0,0.06)',
-                  background: '#ffffff', fontSize: 13
+                  border: '1px solid #E2E8F0', borderRadius: 12, boxShadow: '0 4px 12px rgba(0,0,0,0.06)',
+                  background: '#ffffff', fontSize: 13, overflow: 'hidden'
                 }}>
-                  <div style={{ height: 160, overflow: 'hidden', borderBottom: '1px solid #E2E8F0', background: '#eff4ff' }}>
+                  <div style={{ height: 220, overflow: 'hidden', borderBottom: '1px solid #E2E8F0', background: '#F8F9FA' }}>
                     {form.imagen ? (
-                      <img src={form.imagen} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-                        onError={e => { e.target.outerHTML = '<div style="width:100%;height:100%;background:#f1f4f6;display:flex;align-items:center;justify-content:center;color:#887362;font-size:13px;font-weight:700">Sin imagen</div>'; }} />
+                      <img src={form.imagen} alt="" style={{ width: '100%', height: '100%', objectFit: 'contain', padding: 16 }}
+                        onError={e => { e.target.outerHTML = '<div style="width:100%;height:100%;background:#F8F9FA;display:flex;align-items:center;justify-content:center;color:#897362;font-size:13px;font-weight:700">Sin imagen</div>'; }} />
                     ) : (
-                      <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#897362', fontSize: 13, fontWeight: 700 }}>Sin imagen</div>
+                      <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#897362', fontSize: 14, fontWeight: 600 }}>Sin imagen</div>
                     )}
                   </div>
-                  <div style={{ padding: 14 }}>
-                    <span style={{ fontSize: 11, fontWeight: 900, color: '#ff8c00', textTransform: 'uppercase', letterSpacing: 2 }}>
+                  <div style={{ padding: 20 }}>
+                    <span style={{ fontSize: 11, fontWeight: 800, color: '#ff8c00', textTransform: 'uppercase', letterSpacing: 1 }}>
                       {form.categoria === '__new__' ? newCategory || 'Sin categoría' : form.categoria || 'Sin categoría'}
                     </span>
-                    <div style={{ fontSize: 14, fontWeight: 700, margin: '6px 0', color: '#0b1c30' }}>{form.nombre || 'Nombre del producto'}</div>
-                    <div style={{ display: 'flex', alignItems: 'baseline', gap: 8 }}>
+                    <div style={{ fontSize: 16, fontWeight: 700, margin: '8px 0', color: '#0b1c30', lineHeight: 1.3 }}>{form.nombre || 'Nombre del producto'}</div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 4, color: '#feb700', fontSize: 14, marginBottom: 8 }}>
+                      {'★'.repeat(5)}
+                    </div>
+                    <div style={{ display: 'flex', alignItems: 'baseline', gap: 10 }}>
                       {hasOferta ? (
                         <>
-                          <span style={{ fontSize: 20, fontWeight: 900, color: '#ba1a1a' }}>{formatPrice(form.ofertaPrecio)}</span>
+                          <span style={{ fontSize: 24, fontWeight: 800, color: '#ba1a1a' }}>{formatPrice(form.ofertaPrecio)}</span>
                           <span style={{ fontSize: 14, color: '#897362', textDecoration: 'line-through' }}>{formatPrice(form.precioVenta)}</span>
                         </>
                       ) : (
-                        <span style={{ fontSize: 20, fontWeight: 900, color: '#0b1c30' }}>{formatPrice(form.precioVenta)}</span>
+                        <span style={{ fontSize: 24, fontWeight: 800, color: '#0b1c30' }}>{formatPrice(form.precioVenta)}</span>
                       )}
                     </div>
                     {form.ventasSimuladas > 0 && (
-                      <div style={{ fontSize: 12, fontWeight: 700, color: '#8d4f00', marginTop: 6 }}>
-                        🔥 {form.ventasSimuladas} vendidos
+                      <div style={{ fontSize: 12, fontWeight: 700, color: '#564334', marginTop: 8 }}>
+                        🔥 {form.ventasSimuladas} ventas
                       </div>
                     )}
                     {hasOferta && form.ofertaPrecio > 0 && (
                       <div style={{
-                        fontSize: 11, fontWeight: 900, color: '#0b1c30', background: '#ff8c00',
-                        padding: '4px 10px', border: '1px solid #E2E8F0', marginTop: 8, display: 'inline-block'
+                        fontSize: 12, fontWeight: 800, color: '#fff', background: '#ba1a1a',
+                        padding: '4px 12px', borderRadius: 20, marginTop: 10, display: 'inline-block'
                       }}>
                         -{Math.round((1 - form.ofertaPrecio / (form.precioVenta || 1)) * 100)}% OFF
                       </div>
                     )}
-                    <button style={{
-                      width: '100%', minHeight: 36, background: '#ff8c00', color: '#0b1c30',
-                      border: '1px solid #E2E8F0', fontSize: 14, fontWeight: 800, cursor: 'pointer', marginTop: 10
+                    <button disabled style={{
+                      width: '100%', minHeight: 44, background: '#ff8c00', color: '#fff',
+                      border: 'none', borderRadius: 10, fontSize: 15, fontWeight: 700, cursor: 'default', marginTop: 16,
+                      boxShadow: '0 4px 12px rgba(255,140,0,0.25)'
                     }}>
-                      🛒 Comprar
+                      🛒 Agregar al carrito
                     </button>
                   </div>
                 </div>
