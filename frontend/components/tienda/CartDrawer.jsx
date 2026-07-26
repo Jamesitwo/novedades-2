@@ -88,16 +88,13 @@ export default function CartDrawer() {
               <span>Total</span>
               <span>{formatPrice(total)}</span>
             </div>
-            <a href={items.length === 1 ? `/comprar/${items[0].id}` : '#'} onClick={(e) => {
-              if (items.length > 1) e.preventDefault();
-              closeDrawer();
-            }} style={{
+            <a href={`/comprar/${items[0].id}`} onClick={closeDrawer} style={{
               display: 'flex', alignItems: 'center', justifyContent: 'center',
               width: '100%', minHeight: 48, background: '#ff8c00', color: '#fff',
               borderRadius: 10, fontWeight: 700, fontSize: 16, textDecoration: 'none',
               boxShadow: '0 4px 12px rgba(255,140,0,0.3)', cursor: 'pointer', border: 'none'
             }}>
-              {items.length === 1 ? '🛒 Ir a checkout' : '🛒 Comprar productos'}
+              🛒 Ir a checkout
             </a>
           </div>
         )}

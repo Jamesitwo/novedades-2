@@ -21,57 +21,15 @@ export default function ComprarPage() {
   });
   const [departamentos, setDepartamentos] = useState([]);
   const [ciudades, setCiudades] = useState([]);
-  const { addItem, init } = useCartStore();
+  const { addItem, init, items: cartItems, getTotal } = useCartStore();
 
   useEffect(() => { init(); }, []);
 
-  useEffect(() => {
-    if (!id) return;
-    api.get(`/api/tienda/${id}`)
-      .then(({ data }) => setProducto(data))
-      .catch(() => setError('Producto no encontrado'))
-      .finally(() => setLoading(false));
-    api.get('/api/tienda/departamentos')
-      .then(({ data }) => setDepartamentos(data.sort((a, b) => a.name.localeCompare(b.name))))
-      .catch(() => {});
-  }, [id]);
-
-  useEffect(() => {
-    if (!form.departamento) { setCiudades([]); return; }
-    const depto = departamentos.find(d => d.name === form.departamento);
-    if (!depto) { setCiudades([]); return; }
-    api.get(`/api/tienda/ciudades?deptoId=${depto.id}`)
-      .then(({ data }) => setCiudades(data.sort((a, b) => a.name.localeCompare(b.name))))
-      .catch(() => setCiudades([]));
-  }, [form.departamento, departamentos]);
-
-  const handleChange = (field, value) => { setForm(prev => ({ ...prev, [field]: value })); };
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    if (!form.nombre.trim() || !form.apellido.trim() || !form.celular.trim() || !form.direccion.trim() || !form.departamento || !form.ciudad.trim()) {
-      setError('Completa todos los campos requeridos');
-      return;
-    }
-    setSaving(true); setError('');
-    try {
-      await api.post('/api/tienda/comprar', {
-        productoId: id, nombre: form.nombre.trim(), apellido: form.apellido.trim(),
-        celular: form.celular.trim(), direccion: form.direccion.trim(),
-        departamento: form.departamento, ciudad: form.ciudad.trim(),
-        email: form.email.trim() || null, notas: form.notas.trim() || null, cantidad: form.cantidad || 1
-      });
-      setEnviado(true);
-      const colors = ['#ff8c00', '#feb700', '#fff', '#22c55e', '#ba1a1a'];
-      setConfetti(Array.from({ length: 60 }, (_, i) => ({ id: i, left: Math.random() * 100 + '%', delay: Math.random() * 2 + 's', duration: (Math.random() * 2 + 2) + 's', color: colors[Math.floor(Math.random() * colors.length)], size: Math.floor(Math.random() * 10 + 6) + 'px' })));
-    } catch (e) { setError(e.response?.data?.error || 'Error al enviar el pedido. Intenta de nuevo.'); }
-    finally { setSaving(false); }
-  };
-
-  const formatPrice = (n) => '$' + Number(n).toLocaleString('es-CO', { minimumFractionDigits: 0 });
+  const cartTotal = getTotal();
   const tieneOferta = producto?.ofertaActiva && producto?.ofertaPrecio && new Date(producto.ofertaHasta) > new Date();
-  const precioFinal = tieneOferta ? producto.ofertaPrecio : producto?.precioVenta;
-  const total = precioFinal * form.cantidad;
+  const precioFinal = tieneOferta ? producto?.ofertaPrecio : producto?.precioVenta;
+  const subtotalProducto = precioFinal * form.cantidad;
+  const total = subtotalProducto + (cartItems.length > 0 ? cartTotal : 0);
   const C = { primary: '#ff8c00', primaryDark: '#904d00', text: '#0b1c30', subtext: '#564334', muted: '#897362', bg: '#f8f9ff', surface: '#fff', border: '#E2E8F0', red: '#ba1a1a', amber: '#feb700', green: '#22c55e', navy: '#213145' };
 
   if (loading) return <div style={{ minHeight: '100vh', background: C.bg, display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: '"Inter", sans-serif', fontSize: 18, fontWeight: 600, color: C.muted }}>Cargando...</div>;
