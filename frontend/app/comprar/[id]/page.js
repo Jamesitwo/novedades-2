@@ -25,6 +25,26 @@ export default function ComprarPage() {
 
   useEffect(() => { init(); }, []);
 
+  useEffect(() => {
+    if (!id) return;
+    api.get(`/api/tienda/${id}`)
+      .then(({ data }) => setProducto(data))
+      .catch(() => setError('Producto no encontrado'))
+      .finally(() => setLoading(false));
+    api.get('/api/tienda/departamentos')
+      .then(({ data }) => setDepartamentos(data.sort((a, b) => a.name.localeCompare(b.name))))
+      .catch(() => {});
+  }, [id]);
+
+  useEffect(() => {
+    if (!form.departamento) { setCiudades([]); return; }
+    const depto = departamentos.find(d => d.name === form.departamento);
+    if (!depto) { setCiudades([]); return; }
+    api.get(`/api/tienda/ciudades?deptoId=${depto.id}`)
+      .then(({ data }) => setCiudades(data.sort((a, b) => a.name.localeCompare(b.name))))
+      .catch(() => setCiudades([]));
+  }, [form.departamento, departamentos]);
+
   const cartTotal = getTotal();
   const formatPrice = (n) => '$' + Number(n).toLocaleString('es-CO', { minimumFractionDigits: 0 });
   const tieneOferta = producto?.ofertaActiva && producto?.ofertaPrecio && new Date(producto.ofertaHasta) > new Date();
