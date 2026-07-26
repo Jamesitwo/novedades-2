@@ -148,7 +148,7 @@ const create = async (req, res) => {
       return res.status(403).json({ error: 'Solo admins pueden crear productos' });
     }
 
-    const { nombre, descripcion, categoria, precioVenta, precioProveedor, imagen, imagenes, linkCompra, stock, ofertaActiva, ofertaPrecio, ofertaHasta, ventasSimuladas, activo, destacado, upsellIds } = req.body;
+    const { nombre, descripcion, categoria, precioVenta, precioProveedor, imagen, imagenes, linkCompra, stock, ofertaActiva, ofertaPrecio, ofertaHasta, ventasSimuladas, activo, destacado, upsellIds, landingConfig } = req.body;
 
     if (!nombre || !categoria || !precioVenta) {
       return res.status(400).json({ error: 'nombre, categoria y precioVenta son requeridos' });
@@ -173,6 +173,7 @@ const create = async (req, res) => {
         activo: activo !== false,
         destacado: destacado || false,
         upsellIds: Array.isArray(upsellIds) ? upsellIds : [],
+        landingConfig: landingConfig || null,
         createdById: req.usuario.id
       }
     });
@@ -191,7 +192,7 @@ const update = async (req, res) => {
     }
 
     const { id } = req.params;
-    const { nombre, descripcion, categoria, precioVenta, precioProveedor, imagen, imagenes, linkCompra, stock, ofertaActiva, ofertaPrecio, ofertaHasta, ventasSimuladas, activo, destacado, upsellIds } = req.body;
+    const { nombre, descripcion, categoria, precioVenta, precioProveedor, imagen, imagenes, linkCompra, stock, ofertaActiva, ofertaPrecio, ofertaHasta, ventasSimuladas, activo, destacado, upsellIds, landingConfig } = req.body;
 
     const data = {};
     if (nombre !== undefined) { data.nombre = nombre; data.slug = generateSlug(nombre); }
@@ -210,6 +211,7 @@ const update = async (req, res) => {
     if (activo !== undefined) data.activo = activo;
     if (destacado !== undefined) data.destacado = destacado;
     if (upsellIds !== undefined) data.upsellIds = Array.isArray(upsellIds) ? upsellIds : [];
+    if (landingConfig !== undefined) data.landingConfig = landingConfig;
 
     const producto = await prisma.productoTienda.update({ where: { id }, data });
     res.json(producto);

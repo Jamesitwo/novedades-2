@@ -30,7 +30,8 @@ export default function TiendaAdminPage() {
     imagen: '', imagenes: '', linkCompra: '', stock: 0,
     ofertaActiva: false, ofertaPrecio: 0, ofertaHasta: '',
     ventasSimuladas: 0, activo: true, destacado: false,
-    upsellIds: []
+    upsellIds: [],
+    landingConfig: {}
   });
   const [allProducts, setAllProducts] = useState([]);
   const [newCategory, setNewCategory] = useState('');
@@ -177,7 +178,8 @@ export default function TiendaAdminPage() {
         ofertaActiva: p.ofertaActiva, ofertaPrecio: p.ofertaPrecio || 0,
         ofertaHasta: p.ofertaHasta ? new Date(p.ofertaHasta).toISOString().slice(0, 16) : '',
         ventasSimuladas: p.ventasSimuladas, activo: p.activo, destacado: p.destacado,
-        upsellIds: Array.isArray(p.upsellIds) ? p.upsellIds : []
+        upsellIds: Array.isArray(p.upsellIds) ? p.upsellIds : [],
+        landingConfig: typeof p.landingConfig === 'string' ? JSON.parse(p.landingConfig || '{}') : (p.landingConfig || {})
       });
     } else {
       setEditando(null);
@@ -186,7 +188,8 @@ export default function TiendaAdminPage() {
         imagen: '', imagenes: '', linkCompra: '', stock: 0,
         ofertaActiva: false, ofertaPrecio: 0, ofertaHasta: '',
         ventasSimuladas: 0, activo: true, destacado: false,
-        upsellIds: []
+        upsellIds: [],
+        landingConfig: {}
       });
     }
     setNewCategory('');
@@ -223,7 +226,8 @@ export default function TiendaAdminPage() {
         ...form,
         categoria,
         imagenes: form.imagenes ? form.imagenes.split('\n').map(s => s.trim()).filter(Boolean) : [],
-        ofertaHasta: form.ofertaHasta || null
+        ofertaHasta: form.ofertaHasta || null,
+        landingConfig: form.landingConfig
       };
       if (editando) {
         await api.put(`/api/tienda/${editando.id}`, payload);
@@ -686,6 +690,51 @@ export default function TiendaAdminPage() {
                   <div style={{ fontSize: 11, color: '#897362', marginTop: 6 }}>
                     Selecciona productos que aparecerán como "También te puede interesar". Si no seleccionas ninguno, se muestran productos de la misma categoría.
                   </div>
+                </div>
+
+                <div style={{ background: '#eff4ff', border: '1px solid #E2E8F0', padding: 18, marginTop: 4 }}>
+                  <div style={{ fontSize: 13, fontWeight: 900, color: '#564334', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 12 }}>
+                    📄 Landing Page
+                  </div>
+                  <div style={{ fontSize: 11, color: '#897362', marginBottom: 12 }}>
+                    Agrega secciones informativas a la página del producto. Solo se muestran las que actives (✓).
+                  </div>
+                  {[
+                    { key: 'beneficios', label: '✨ Beneficios' },
+                    { key: 'autoridad', label: '🏆 Certificaciones' },
+                    { key: 'testimonios', label: '💬 Testimonios' },
+                    { key: 'modoUso', label: '📋 Modo de Uso' },
+                    { key: 'logistica', label: '🚚 Envío y Entrega' },
+                    { key: 'faq', label: '❓ Preguntas Frecuentes' },
+                    { key: 'oferta', label: '🔥 Oferta Especial' }
+                  ].map(sec => {
+                    const val = form.landingConfig[sec.key] || {};
+                    const enabled = val.enabled || false;
+                    const [show, setShow] = [false, () => {}];
+                    return (
+                      <div key={sec.key} style={{ marginBottom: 10, background: enabled ? '#fff' : '#f8f9ff', border: enabled ? '1px solid #ff8c00' : '1px solid #E2E8F0', borderRadius: 8, padding: 10, opacity: enabled ? 1 : 0.7 }}>
+                        <label style={{ display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer', fontWeight: 700, fontSize: 13, color: C.text }}>
+                          <input type="checkbox" checked={enabled}
+                            onChange={e => setForm(prev => ({ ...prev, landingConfig: { ...prev.landingConfig, [sec.key]: { ...val, enabled: e.target.checked } } }))}
+                            style={{ width: 18, height: 18, accentColor: '#ff8c00', cursor: 'pointer' }} />
+                          {sec.label}
+                        </label>
+                        {enabled && (
+                          <div style={{ marginTop: 8, display: 'grid', gap: 6 }}>
+                            <input className="admin-input" placeholder="Título" value={val.titulo || ''}
+                              onChange={e => setForm(prev => ({ ...prev, landingConfig: { ...prev.landingConfig, [sec.key]: { ...val, titulo: e.target.value } } }))}
+                              style={{ fontSize: 13, padding: '6px 10px' }} />
+                            <textarea className="admin-input" placeholder="Contenido (una idea por línea)" value={val.contenido || ''} rows={3}
+                              onChange={e => setForm(prev => ({ ...prev, landingConfig: { ...prev.landingConfig, [sec.key]: { ...val, contenido: e.target.value } } }))}
+                              style={{ fontSize: 13, padding: '6px 10px', resize: 'vertical', fontFamily: '"Inter", sans-serif' }} />
+                            <input className="admin-input" placeholder="URL de imagen (opcional)" value={val.imagen || ''}
+                              onChange={e => setForm(prev => ({ ...prev, landingConfig: { ...prev.landingConfig, [sec.key]: { ...val, imagen: e.target.value } } }))}
+                              style={{ fontSize: 13, padding: '6px 10px' }} />
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
                 </div>
 
                 <div style={{ background: '#eff4ff', border: '1px solid #E2E8F0', padding: 18, marginTop: 4 }}>

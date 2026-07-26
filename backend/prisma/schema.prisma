@@ -347,6 +347,7 @@ model ProductoTienda {
   activo          Boolean   @default(true)
   destacado       Boolean   @default(false)
   upsellIds       Json?     @default("[]") @map("upsell_ids")
+  landingConfig   Json?     @default("{}") @map("landing_config")
   createdById     String    @map("created_by")
   createdBy       Usuario   @relation(fields: [createdById], references: [id])
   resenas         Resena[]

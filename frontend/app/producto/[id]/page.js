@@ -284,6 +284,38 @@ export default function ProductoDetallePage() {
           <div style={{ textAlign: 'center', color: C.muted, padding: 30, border: '1px dashed ' + C.border, borderRadius: 10, fontSize: 14, fontWeight: 500 }}>Sé el primero en dejar una reseña</div>
         )}
       </section>
+
+      {producto.landingConfig && (() => {
+        const lc = typeof producto.landingConfig === 'string' ? JSON.parse(producto.landingConfig) : producto.landingConfig;
+        const sections = [
+          { key: 'beneficios', icon: '✨', defaultTitle: 'Beneficios' },
+          { key: 'autoridad', icon: '🏆', defaultTitle: 'Certificaciones' },
+          { key: 'testimonios', icon: '💬', defaultTitle: 'Testimonios' },
+          { key: 'modoUso', icon: '📋', defaultTitle: 'Modo de Uso' },
+          { key: 'logistica', icon: '🚚', defaultTitle: 'Envío y Entrega' },
+          { key: 'faq', icon: '❓', defaultTitle: 'Preguntas Frecuentes' },
+          { key: 'oferta', icon: '🔥', defaultTitle: 'Oferta Especial' }
+        ];
+        return sections.filter(s => lc[s.key]?.enabled).map(s => (
+          <section key={s.key} style={{ marginTop: 48, borderTop: '1px solid ' + C.border, paddingTop: 32 }}>
+            <h2 style={{ fontSize: 22, fontWeight: 700, marginBottom: 16, borderLeft: '4px solid #ff8c00', paddingLeft: 12, color: C.text }}>
+              {s.icon} {lc[s.key].titulo || s.defaultTitle}
+            </h2>
+            <div style={{ display: 'grid', gridTemplateColumns: lc[s.key].imagen ? '1fr 1fr' : '1fr', gap: 32, alignItems: 'center' }}>
+              <div>
+                {lc[s.key].contenido?.split('\n').map((p, i) => (
+                  <p key={i} style={{ color: C.subtext, fontSize: 15, lineHeight: 1.7, marginBottom: 12 }}>{p}</p>
+                ))}
+              </div>
+              {lc[s.key].imagen && (
+                <img src={lc[s.key].imagen} alt={lc[s.key].titulo} style={{ width: '100%', borderRadius: 12, objectFit: 'cover', maxHeight: 300, border: '1px solid ' + C.border }}
+                  onError={e => { e.target.style.display = 'none'; }} />
+              )}
+            </div>
+          </section>
+        ));
+      })()}
+
     </div></ClientLayout>
   );
 }
