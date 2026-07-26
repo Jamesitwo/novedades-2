@@ -132,7 +132,7 @@ export default function TiendaPage() {
     <ClientLayout><div>
       <style dangerouslySetInnerHTML={{__html: `
         .ff-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 20px; }
-        .ff-grid > * { height: 100%; }
+        .ff-grid > * { height: 100%; min-width: 0; width: 100%; }
         @media (max-width: 768px) {
           .ff-hero { padding: 40px 16px !important; }
           .ff-hero h1 { font-size: 26px !important; }

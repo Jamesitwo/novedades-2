@@ -50,13 +50,13 @@ export default function ProductCard({ producto, onFavChange }) {
   return (
     <div ref={cardRef} style={{
       position: 'relative', opacity: visible ? 1 : 0, transform: visible ? 'translateY(0)' : 'translateY(20px)',
-      transition: 'opacity 0.5s ease, transform 0.5s ease', height: '100%'
+      transition: 'opacity 0.5s ease, transform 0.5s ease', height: '100%', width: '100%', minWidth: 0
     }}>
       <a href={`/producto/${producto.id}`} style={{
-        textDecoration: 'none', color: '#0b1c30', display: 'flex', flexDirection: 'column', height: '100%',
+        textDecoration: 'none', color: '#0b1c30', display: 'flex', flexDirection: 'column', height: '100%', width: '100%',
         background: '#ffffff', border: '1px solid #E2E8F0', borderRadius: 8,
         boxShadow: '0 4px 12px rgba(0,0,0,0.05)', transition: 'box-shadow 0.2s, transform 0.2s',
-        overflow: 'hidden'
+        overflow: 'hidden', minWidth: 0
       }}
       onMouseEnter={e => { e.currentTarget.style.boxShadow = '0 8px 24px rgba(0,0,0,0.10)'; e.currentTarget.style.transform = 'translateY(-2px)'; }}
       onMouseLeave={e => { e.currentTarget.style.boxShadow = '0 4px 12px rgba(0,0,0,0.05)'; e.currentTarget.style.transform = 'none'; }}>
