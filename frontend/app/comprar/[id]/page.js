@@ -237,7 +237,7 @@ export default function ComprarPage() {
                             <div style={{ fontSize: 13, fontWeight: 600, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', marginBottom: 2 }}>{rp.nombre}</div>
                             <div style={{ fontSize: 14, fontWeight: 700, color: rp.ofertaActiva && rp.ofertaPrecio ? C.red : C.text }}>{formatPrice(rpPrecio)}</div>
                           </div>
-                          <button onClick={() => addItem(rp)} style={{ background: C.primary, color: '#fff', fontWeight: 700, fontSize: 11, padding: '5px 12px', borderRadius: 8, whiteSpace: 'nowrap', flexShrink: 0, border: 'none', cursor: 'pointer' }}>+ Agregar</button>
+                          <button type="button" onClick={() => addItem(rp)} style={{ background: C.primary, color: '#fff', fontWeight: 700, fontSize: 11, padding: '5px 12px', borderRadius: 8, whiteSpace: 'nowrap', flexShrink: 0, border: 'none', cursor: 'pointer' }}>+ Agregar</button>
                         </div>
                       );
                     })}
