@@ -146,7 +146,15 @@ export default function TiendaAdminPage() {
   useEffect(() => {
     if (!isAuthenticated || usuario?.rol !== 'admin') return;
     api.get('/api/tienda?limit=200&orden=reciente&todos=true')
-      .then(({ data }) => setAllProducts(data.productos))
+      .then(({ data }) => {
+        const prods = data.productos || [];
+        setAllProducts(prods);
+        const validIds = new Set(prods.map(p => p.id));
+        setBundleConfig(prev => ({
+          ...prev,
+          productos: (prev.productos || []).filter(id => validIds.has(id))
+        }));
+      })
       .catch(() => {});
   }, [isAuthenticated, usuario]);
 
