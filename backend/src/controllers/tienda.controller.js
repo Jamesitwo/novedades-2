@@ -1,6 +1,15 @@
 const { prisma } = require('../prisma/client');
 const { paginate } = require('../utils/paginate');
 
+const generateSlug = (nombre) => {
+  return nombre
+    .toLowerCase()
+    .normalize('NFD').replace(/[\u0300-\u036f]/g, '') // quitar acentos
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '')
+    .substring(0, 80);
+};
+
 const getAll = async (req, res) => {
   try {
     const { page = 1, limit = 20, categoria, search, destacado, oferta, orden = 'reciente', todos } = req.query;
@@ -94,7 +103,10 @@ const getOfertas = async (req, res) => {
 const getById = async (req, res) => {
   try {
     const { id } = req.params;
-    const producto = await prisma.productoTienda.findUnique({ where: { id } });
+    const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id);
+    const producto = isUuid
+      ? await prisma.productoTienda.findUnique({ where: { id } })
+      : await prisma.productoTienda.findFirst({ where: { slug: id } });
     if (!producto) {
       return res.status(404).json({ error: 'Producto no encontrado' });
     }
@@ -145,6 +157,7 @@ const create = async (req, res) => {
     const producto = await prisma.productoTienda.create({
       data: {
         nombre,
+        slug: generateSlug(nombre),
         descripcion: descripcion || null,
         categoria,
         precioVenta: parseFloat(precioVenta),
@@ -181,7 +194,7 @@ const update = async (req, res) => {
     const { nombre, descripcion, categoria, precioVenta, precioProveedor, imagen, imagenes, linkCompra, stock, ofertaActiva, ofertaPrecio, ofertaHasta, ventasSimuladas, activo, destacado, upsellIds } = req.body;
 
     const data = {};
-    if (nombre !== undefined) data.nombre = nombre;
+    if (nombre !== undefined) { data.nombre = nombre; data.slug = generateSlug(nombre); }
     if (descripcion !== undefined) data.descripcion = descripcion;
     if (categoria !== undefined) data.categoria = categoria;
     if (precioVenta !== undefined) data.precioVenta = parseFloat(precioVenta);

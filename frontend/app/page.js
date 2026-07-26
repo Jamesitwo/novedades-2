@@ -283,7 +283,7 @@ export default function TiendaPage() {
                 {bundleProducts.map((p, i) => (
                   <div key={p.id} style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
                     {i > 0 && <span style={{ color: '#fff', fontSize: 32, fontWeight: 700, flexShrink: 0 }}>+</span>}
-                    <a href={`/producto/${p.id}`} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', textDecoration: 'none', color: '#fff', gap: 10 }}>
+                    <a href={`/producto/${p.slug || p.id}`} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', textDecoration: 'none', color: '#fff', gap: 10 }}>
                       {p.imagen ? (
                         <img src={p.imagen} alt={p.nombre} style={{ width: 200, height: 200, objectFit: 'contain', filter: 'drop-shadow(0 8px 20px rgba(0,0,0,0.4))', borderRadius: 12, background: '#F8F9FA', padding: 10 }} />
             ) : (
@@ -362,7 +362,7 @@ export default function TiendaPage() {
                 }}>
                   <div style={{ position: 'relative', height: 200, background: '#F8F9FA', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}>
                     {p.imagen ? (
-                      <a href={`/producto/${p.id}`}>
+                      <a href={`/producto/${p.slug || p.id}`}>
                         <img src={p.imagen} alt={p.nombre} style={{ width: '100%', height: '100%', objectFit: 'contain' }}
                           onError={e => { e.target.style.display = 'none'; }} />
                       </a>
@@ -373,7 +373,7 @@ export default function TiendaPage() {
                     {p.ofertaHasta && <div style={{ position: 'absolute', top: 10, right: 10 }}><CountdownTimer endsAt={p.ofertaHasta} /></div>}
                   </div>
                   <div style={{ padding: 16, flex: 1, display: 'flex', flexDirection: 'column' }}>
-                    <a href={`/producto/${p.id}`} style={{ textDecoration: 'none', color: C.text, fontWeight: 700, fontSize: 14, marginBottom: 8 }}>{p.nombre}</a>
+                    <a href={`/producto/${p.slug || p.id}`} style={{ textDecoration: 'none', color: C.text, fontWeight: 700, fontSize: 14, marginBottom: 8 }}>{p.nombre}</a>
                     <div style={{ display: 'flex', alignItems: 'baseline', gap: 8, marginBottom: 6 }}>
                       <span style={{ fontSize: 22, fontWeight: 800, color: '#ba1a1a' }}>{formatPrice(p.ofertaPrecio)}</span>
                       <span style={{ fontSize: 13, color: C.muted, textDecoration: 'line-through' }}>{formatPrice(p.precioVenta)}</span>
@@ -464,7 +464,7 @@ export default function TiendaPage() {
                 <h2 style={{ fontSize: 'clamp(20px, 4vw, 24px)', fontWeight: 700, marginBottom: 20, borderLeft: '4px solid #ff8c00', paddingLeft: 12, color: C.text }}>👀 Viste recientemente</h2>
                 <div style={{ display: 'flex', gap: 16, overflowX: 'auto', paddingBottom: 4 }}>
                   {vistos.map(v => (
-                    <a key={v.id} href={`/producto/${v.id}`} style={{
+                    <a key={v.id} href={`/producto/${v.slug || v.id}`} style={{
                       minWidth: 160, maxWidth: 200, textDecoration: 'none', color: C.text, background: C.surface,
                       border: '1px solid ' + C.border, borderRadius: 8, boxShadow: '0 2px 8px rgba(0,0,0,0.04)',
                       display: 'flex', flexDirection: 'column', flexShrink: 0

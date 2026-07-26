@@ -28,6 +28,11 @@ export default function ProductoDetallePage() {
   const [imgActiva, setImgActiva] = useState(0);
   const [pauseCarousel, setPauseCarousel] = useState(false);
   const imgCountRef = useRef(0);
+  const [tiendaConfig, setTiendaConfig] = useState({});
+
+  useEffect(() => {
+    api.get('/api/configuracion/public').then(({ data }) => setTiendaConfig(data)).catch(() => {});
+  }, []);
 
   useEffect(() => {
     if (imgCountRef.current <= 1 || pauseCarousel) return;
@@ -43,8 +48,8 @@ export default function ProductoDetallePage() {
         setComprado24h(data.ventasSimuladas > 10 ? Math.floor(data.ventasSimuladas * 0.15) : 1);
         try {
           const vistos = JSON.parse(localStorage.getItem('pizdo_vistos') || '[]');
-          const filtrado = vistos.filter(v => v.id !== id);
-          filtrado.unshift({ id, nombre: data.nombre || '', imagen: data.imagen || '' });
+          const filtrado = vistos.filter(v => v.id !== data.id);
+          filtrado.unshift({ id: data.id, slug: data.slug, nombre: data.nombre || '', imagen: data.imagen || '' });
           localStorage.setItem('pizdo_vistos', JSON.stringify(filtrado.slice(0, 4)));
         } catch {}
       })
@@ -164,16 +169,18 @@ export default function ProductoDetallePage() {
               <span style={{ fontSize: 18 }}>🚚</span>
               <div>
                 <div style={{ fontWeight: 700, fontSize: 13, color: C.text }}>
-                  {producto.precioVenta >= 100000 ? '✅ ¡Envío gratis!' : `Te faltan ${formatPrice(100000 - (tieneOferta ? producto.ofertaPrecio : producto.precioVenta))} para envío gratis`}
+                  {producto.precioVenta >= 100000
+                    ? (tiendaConfig.envio_texto || '✅ ¡Envío gratis!')
+                    : `Te faltan ${formatPrice(100000 - (tieneOferta ? producto.ofertaPrecio : producto.precioVenta))} para envío gratis`}
                 </div>
-                <div style={{ fontSize: 11, color: C.muted }}>Entrega estimada: 2-4 días hábiles</div>
+                <div style={{ fontSize: 11, color: C.muted }}>{tiendaConfig.envio_dias || 'Entrega estimada: 2-4 días hábiles'}</div>
               </div>
             </div>
             <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
               <span style={{ fontSize: 18 }}>🛡️</span>
               <div>
-                <div style={{ fontWeight: 700, fontSize: 13, color: C.text }}>5-Year Pro Warranty</div>
-                <div style={{ fontSize: 11, color: C.muted }}>Reparaciones o reemplazo sin costo</div>
+                <div style={{ fontWeight: 700, fontSize: 13, color: C.text }}>{tiendaConfig.garantia_titulo || '5-Year Pro Warranty'}</div>
+                <div style={{ fontSize: 11, color: C.muted }}>{tiendaConfig.garantia_texto || 'Reparaciones o reemplazo sin costo'}</div>
               </div>
             </div>
           </div>

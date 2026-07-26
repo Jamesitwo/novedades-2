@@ -52,7 +52,8 @@ export default function TiendaAdminPage() {
     hero_titulo: '', hero_subtitulo: '', hero_boton_texto: '', hero_imagen_url: '',
     seccion_bestsellers_titulo: '', seccion_catalogo_titulo: '',
     coupon_activo: false, coupon_codigo: '', coupon_texto: '', coupon_descuento: '',
-    whatsapp_numero: '', promo_bar_texto: ''
+    whatsapp_numero: '', promo_bar_texto: '',
+    envio_texto: '', envio_dias: '', garantia_titulo: '', garantia_texto: ''
   });
   const [homeCategorias, setHomeCategorias] = useState([]);
   const [savingHome, setSavingHome] = useState(false);
@@ -86,7 +87,11 @@ export default function TiendaAdminPage() {
         coupon_texto: data.coupon_texto || '',
         coupon_descuento: data.coupon_descuento || '',
         whatsapp_numero: data.whatsapp_numero || '',
-        promo_bar_texto: data.promo_bar_texto || ''
+        promo_bar_texto: data.promo_bar_texto || '',
+        envio_texto: data.envio_texto || '',
+        envio_dias: data.envio_dias || '',
+        garantia_titulo: data.garantia_titulo || '',
+        garantia_texto: data.garantia_texto || ''
       });
       setHomeCategorias(data.homepage_categorias || []);
     }).catch(() => {});
@@ -958,6 +963,34 @@ export default function TiendaAdminPage() {
           </div>
 
           <div style={{ background: '#f8f9ff', borderRadius: 10, padding: 16 }}>
+            <div style={{ fontSize: 13, fontWeight: 800, color: '#904d00', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 12 }}>🚚 Envío y Garantía (página de producto)</div>
+            <div className="form-2col" style={{ gap: 10 }}>
+              <label style={{ fontSize: 11, fontWeight: 700, color: '#564334', textTransform: 'uppercase' }}>
+                Texto envío gratis
+                <input className="admin-input" value={homeConfig.envio_texto} onChange={e => setHomeConfig(prev => ({ ...prev, envio_texto: e.target.value }))}
+                  placeholder="✅ ¡Envío gratis!" style={{ width: '100%', marginTop: 4 }} />
+              </label>
+              <label style={{ fontSize: 11, fontWeight: 700, color: '#564334', textTransform: 'uppercase' }}>
+                Días estimados
+                <input className="admin-input" value={homeConfig.envio_dias} onChange={e => setHomeConfig(prev => ({ ...prev, envio_dias: e.target.value }))}
+                  placeholder="2-4 días hábiles" style={{ width: '100%', marginTop: 4 }} />
+              </label>
+            </div>
+            <div className="form-2col" style={{ gap: 10, marginTop: 8 }}>
+              <label style={{ fontSize: 11, fontWeight: 700, color: '#564334', textTransform: 'uppercase' }}>
+                Título garantía
+                <input className="admin-input" value={homeConfig.garantia_titulo} onChange={e => setHomeConfig(prev => ({ ...prev, garantia_titulo: e.target.value }))}
+                  placeholder="5-Year Pro Warranty" style={{ width: '100%', marginTop: 4 }} />
+              </label>
+              <label style={{ fontSize: 11, fontWeight: 700, color: '#564334', textTransform: 'uppercase' }}>
+                Texto garantía
+                <input className="admin-input" value={homeConfig.garantia_texto} onChange={e => setHomeConfig(prev => ({ ...prev, garantia_texto: e.target.value }))}
+                  placeholder="Reparaciones o reemplazo sin costo" style={{ width: '100%', marginTop: 4 }} />
+              </label>
+            </div>
+          </div>
+
+          <div style={{ background: '#f8f9ff', borderRadius: 10, padding: 16 }}>
             <div style={{ fontSize: 13, fontWeight: 800, color: '#904d00', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 12 }}>📂 Categorías destacadas</div>
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginBottom: 10 }}>
               {homeCategorias.map((cat, i) => (
@@ -1035,7 +1068,11 @@ export default function TiendaAdminPage() {
                 coupon_descuento: homeConfig.coupon_descuento ? Number(homeConfig.coupon_descuento) : null,
                 whatsapp_numero: homeConfig.whatsapp_numero || null,
                 promo_bar_texto: homeConfig.promo_bar_texto || null,
-                homepage_categorias: homeCategorias
+                homepage_categorias: homeCategorias,
+                envio_texto: homeConfig.envio_texto || null,
+                envio_dias: homeConfig.envio_dias || null,
+                garantia_titulo: homeConfig.garantia_titulo || null,
+                garantia_texto: homeConfig.garantia_texto || null
               });
               showToast('Homepage guardada correctamente');
             } catch (e) { showToast('Error al guardar', 'error'); }

@@ -1,10 +1,10 @@
 export async function generateMetadata({ params }) {
-  const id = params.id;
+  const slug = params.id;
   try {
     const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), 5000);
-    const res = await fetch(`${baseUrl}/api/tienda/${id}`, {
+    const res = await fetch(`${baseUrl}/api/tienda/${slug}`, {
       signal: controller.signal,
       next: { revalidate: 3600 }
     });
@@ -24,7 +24,7 @@ export async function generateMetadata({ params }) {
         images: producto.imagen ? [{ url: producto.imagen, width: 800, height: 800 }] : [],
         type: 'product',
       },
-      alternates: { canonical: `https://pizdo.info/producto/${id}` }
+      alternates: { canonical: `https://pizdo.info/producto/${slug}` }
     };
   } catch {
     return { title: 'Producto | Pizdo' };
