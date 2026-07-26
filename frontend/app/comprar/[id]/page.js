@@ -2,6 +2,7 @@
 import { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import api from '@/lib/api';
+import { useCartStore } from '@/store/cartStore';
 
 export default function ComprarPage() {
   const params = useParams();
@@ -20,6 +21,9 @@ export default function ComprarPage() {
   });
   const [departamentos, setDepartamentos] = useState([]);
   const [ciudades, setCiudades] = useState([]);
+  const { addItem, init } = useCartStore();
+
+  useEffect(() => { init(); }, []);
 
   useEffect(() => {
     if (!id) return;
@@ -217,9 +221,9 @@ export default function ComprarPage() {
                     {producto.relacionados.map(rp => {
                       const rpPrecio = rp.ofertaActiva && rp.ofertaPrecio ? rp.ofertaPrecio : rp.precioVenta;
                       return (
-                        <a key={rp.id} href={`/comprar/${rp.id}`} style={{
+                        <div key={rp.id} style={{
                           display: 'flex', alignItems: 'center', gap: 10, padding: '10px 0',
-                          borderBottom: '1px solid ' + C.border, textDecoration: 'none', color: C.text, transition: 'background 0.1s'
+                          borderBottom: '1px solid ' + C.border, transition: 'background 0.1s'
                         }}
                         onMouseEnter={e => e.currentTarget.style.background = C.surface}
                         onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>
@@ -233,8 +237,8 @@ export default function ComprarPage() {
                             <div style={{ fontSize: 13, fontWeight: 600, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', marginBottom: 2 }}>{rp.nombre}</div>
                             <div style={{ fontSize: 14, fontWeight: 700, color: rp.ofertaActiva && rp.ofertaPrecio ? C.red : C.text }}>{formatPrice(rpPrecio)}</div>
                           </div>
-                          <span style={{ background: C.primary, color: '#fff', fontWeight: 700, fontSize: 11, padding: '5px 12px', borderRadius: 8, whiteSpace: 'nowrap', flexShrink: 0 }}>+ Agregar</span>
-                        </a>
+                          <button onClick={() => addItem(rp)} style={{ background: C.primary, color: '#fff', fontWeight: 700, fontSize: 11, padding: '5px 12px', borderRadius: 8, whiteSpace: 'nowrap', flexShrink: 0, border: 'none', cursor: 'pointer' }}>+ Agregar</button>
+                        </div>
                       );
                     })}
                   </div>
