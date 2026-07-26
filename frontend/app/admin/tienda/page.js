@@ -713,7 +713,7 @@ export default function TiendaAdminPage() {
                     const [show, setShow] = [false, () => {}];
                     return (
                       <div key={sec.key} style={{ marginBottom: 10, background: enabled ? '#fff' : '#f8f9ff', border: enabled ? '1px solid #ff8c00' : '1px solid #E2E8F0', borderRadius: 8, padding: 10, opacity: enabled ? 1 : 0.7 }}>
-                        <label style={{ display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer', fontWeight: 700, fontSize: 13, color: C.text }}>
+                        <label style={{ display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer', fontWeight: 700, fontSize: 13, color: '#0b1c30' }}>
                           <input type="checkbox" checked={enabled}
                             onChange={e => setForm(prev => ({ ...prev, landingConfig: { ...prev.landingConfig, [sec.key]: { ...val, enabled: e.target.checked } } }))}
                             style={{ width: 18, height: 18, accentColor: '#ff8c00', cursor: 'pointer' }} />
