@@ -814,25 +814,33 @@ export default function TiendaAdminPage() {
 
           <div>
             <div style={{ fontSize: 12, fontWeight: 800, color: '#564334', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 8 }}>
-              Productos del bundle (selecciona 2-4)
+              Productos del bundle ({bundleConfig.productos.length}/4 seleccionados)
             </div>
+            {bundleConfig.productos.length >= 4 && (
+              <div style={{ fontSize: 11, color: '#ba1a1a', fontWeight: 600, marginBottom: 6 }}>
+                ⚠️ Máximo 4 productos. Desmarca uno para seleccionar otro.
+              </div>
+            )}
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
               {allProducts.length === 0 ? (
                 <span style={{ fontSize: 12, color: '#897362' }}>Cargando productos...</span>
               ) : (
                 allProducts.map(ap => {
                 const selected = bundleConfig.productos.includes(ap.id);
+                const maxed = bundleConfig.productos.length >= 4 && !selected;
                 return (
                   <button key={ap.id} type="button" onClick={() => {
+                    if (maxed) return;
                     setBundleConfig(prev => ({
                       ...prev,
-                      productos: selected ? prev.productos.filter(id => id !== ap.id) : prev.productos.length < 4 ? [...prev.productos, ap.id] : prev.productos
+                      productos: selected ? prev.productos.filter(id => id !== ap.id) : [...prev.productos, ap.id]
                     }));
                   }} style={{
-                    padding: '4px 10px', fontSize: 12, fontWeight: 700,                     cursor: bundleConfig.productos.length >= 4 && !selected ? 'not-allowed' : 'pointer',
+                    padding: '4px 10px', fontSize: 12, fontWeight: 700,
+                    cursor: maxed ? 'not-allowed' : 'pointer',
                     border: '1px solid #E2E8F0', borderRadius: 8, background: selected ? '#ff8c00' : '#ffffff',
-                    color: selected ? '#fff' : '#564334',
-                    opacity: !selected && bundleConfig.productos.length >= 4 ? 0.4 : 1,
+                    color: selected ? '#fff' : maxed ? '#c0c0c0' : '#564334',
+                    opacity: maxed ? 0.4 : 1,
                     whiteSpace: 'nowrap'
                   }}>
                     {selected ? '✓ ' : ''}{ap.nombre}
