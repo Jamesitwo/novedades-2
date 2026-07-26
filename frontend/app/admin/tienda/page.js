@@ -829,7 +829,7 @@ export default function TiendaAdminPage() {
                       productos: selected ? prev.productos.filter(id => id !== ap.id) : prev.productos.length < 4 ? [...prev.productos, ap.id] : prev.productos
                     }));
                   }} style={{
-                    padding: '4px 10px', fontSize: 12, fontWeight: 700, cursor: prev.productos.length >= 4 && !selected ? 'not-allowed' : 'pointer',
+                    padding: '4px 10px', fontSize: 12, fontWeight: 700,                     cursor: bundleConfig.productos.length >= 4 && !selected ? 'not-allowed' : 'pointer',
                     border: '1px solid #E2E8F0', borderRadius: 8, background: selected ? '#ff8c00' : '#ffffff',
                     color: selected ? '#fff' : '#564334',
                     opacity: !selected && bundleConfig.productos.length >= 4 ? 0.4 : 1,
