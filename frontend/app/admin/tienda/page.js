@@ -89,6 +89,11 @@ export default function TiendaAdminPage() {
     }).catch(() => {});
   }, [isAuthenticated, usuario]);
 
+  const showToast = (msg, type = 'success') => {
+    setToast({ message: msg, type });
+    setTimeout(() => setToast(null), 3000);
+  };
+
   const handleSaveLucidbot = async () => {
     setSavingBot(true);
     try {
@@ -113,11 +118,6 @@ export default function TiendaAdminPage() {
     if (!isAuthenticated) { router.push('/admin/login'); return; }
     if (usuario?.rol !== 'admin') { router.push('/admin/dashboard'); return; }
   }, [initialized, isAuthenticated, usuario, router]);
-
-  const showToast = (msg, type = 'success') => {
-    setToast({ message: msg, type });
-    setTimeout(() => setToast(null), 3000);
-  };
 
   const fetchProductos = useCallback(async () => {
     setLoading(true);
