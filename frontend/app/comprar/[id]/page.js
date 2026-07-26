@@ -11,8 +11,8 @@ function AutocompleteInput({ value, onChange, options, placeholder, disabled }) 
 
   useEffect(() => {
     const handler = (e) => { if (wrapperRef.current && !wrapperRef.current.contains(e.target)) setOpen(false); };
-    document.addEventListener('mousedown', handler);
-    return () => document.removeEventListener('mousedown', handler);
+    document.addEventListener('click', handler);
+    return () => document.removeEventListener('click', handler);
   }, []);
 
   const handleBlur = () => {
