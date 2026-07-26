@@ -109,7 +109,7 @@ export default function TiendaLayout({ children }) {
             <a href="/?oferta=true" style={{ color: '#564334', textDecoration: 'none', fontSize: 13, fontWeight: 500 }}>Ofertas</a>
           </nav>
 
-          <a href="/" style={{
+          <a href="/#catalogo" title="Ver catálogo" style={{
             color: '#904d00', textDecoration: 'none', fontSize: 20, flexShrink: 0, padding: '4px 8px', borderRadius: 8,
             transition: 'transform 0.3s', transform: cartBounce ? 'scale(1.3) rotate(5deg)' : 'scale(1)'
           }}
