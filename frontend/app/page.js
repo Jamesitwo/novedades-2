@@ -131,6 +131,8 @@ export default function TiendaPage() {
   return (
     <ClientLayout><div>
       <style dangerouslySetInnerHTML={{__html: `
+        .ff-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 20px; }
+        .ff-grid > * { height: 100%; }
         @media (max-width: 768px) {
           .ff-hero { padding: 40px 16px !important; }
           .ff-hero h1 { font-size: 26px !important; }
@@ -226,7 +228,7 @@ export default function TiendaPage() {
               </h2>
               <a href="#catalogo" style={{ color: C.primary, fontSize: 14, fontWeight: 700, textDecoration: 'none' }}>Ver todos →</a>
             </div>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))', gap: 20 }}>
+            <div className="ff-grid">
               {destacados.slice(0, 4).map(p => <ProductCard key={p.id} producto={p} />)}
             </div>
           </div>
@@ -335,7 +337,7 @@ export default function TiendaPage() {
               🔥 Ofertas relámpago
             </h2>
             <p style={{ color: C.subtext, fontSize: 15, marginBottom: 24 }}>Por tiempo limitado — no dejes pasar estas oportunidades</p>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))', gap: 20 }}>
+            <div className="ff-grid">
               {ofertas.map(p => (
                 <div key={p.id} style={{
                   background: C.surface, border: '1px solid ' + C.border, borderRadius: 12,

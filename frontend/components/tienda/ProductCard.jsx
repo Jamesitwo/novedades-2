@@ -50,10 +50,10 @@ export default function ProductCard({ producto, onFavChange }) {
   return (
     <div ref={cardRef} style={{
       position: 'relative', opacity: visible ? 1 : 0, transform: visible ? 'translateY(0)' : 'translateY(20px)',
-      transition: 'opacity 0.5s ease, transform 0.5s ease'
+      transition: 'opacity 0.5s ease, transform 0.5s ease', height: '100%'
     }}>
       <a href={`/producto/${producto.id}`} style={{
-        textDecoration: 'none', color: '#0b1c30', display: 'flex', flexDirection: 'column',
+        textDecoration: 'none', color: '#0b1c30', display: 'flex', flexDirection: 'column', height: '100%',
         background: '#ffffff', border: '1px solid #E2E8F0', borderRadius: 8,
         boxShadow: '0 4px 12px rgba(0,0,0,0.05)', transition: 'box-shadow 0.2s, transform 0.2s',
         overflow: 'hidden'
@@ -98,7 +98,8 @@ export default function ProductCard({ producto, onFavChange }) {
           </div>
         )}
 
-        <div style={{ height: 200, overflow: 'hidden', background: '#F8F9FA', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}>
+        <div style={{ position: 'relative', width: '100%', paddingTop: '100%', overflow: 'hidden', background: '#F8F9FA' }}>
+          <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}>
           {producto.imagen ? (
             <img src={producto.imagen} alt={producto.nombre} style={{ width: '100%', height: '100%', objectFit: 'contain' }}
               onError={(e) => { e.target.outerHTML = '<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;color:#897362;font-size:13px;font-weight:500">Sin imagen</div>'; }} />
@@ -127,8 +128,9 @@ export default function ProductCard({ producto, onFavChange }) {
               </>
             ) : (
               <span style={{ fontSize: 20, fontWeight: 800, color: '#0b1c30' }}>{formatPrice(producto.precioVenta)}</span>
-            )}
-          </div>
+          )}
+        </div>
+        </div>
 
           {producto.stock > 0 && producto.stock <= 5 && (
             <div style={{ color: '#ba1a1a', fontSize: 12, fontWeight: 700, marginBottom: 8 }}>¡Solo quedan {producto.stock}!</div>
