@@ -133,17 +133,29 @@ export default function ComprarPage() {
                 </label>
 
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
-                  {[{ key: 'departamento', label: 'Departamento', type: 'select', options: departamentos }, { key: 'ciudad', label: 'Ciudad', type: 'select', options: ciudades, disabled: !form.departamento }].map(f => (
-                    <label key={f.key} style={{ fontSize: 12, fontWeight: 700, color: C.subtext, textTransform: 'uppercase', letterSpacing: 1 }}>
-                      {f.label} *
-                      <select value={form[f.key]} onChange={e => { handleChange(f.key, e.target.value); if (f.key === 'departamento') handleChange('ciudad', ''); }}
-                        disabled={f.disabled}
-                        style={{ marginTop: 6, width: '100%', padding: '14px 16px', background: f.disabled ? '#f8f9ff' : C.surface, border: '1px solid ' + C.border, borderRadius: 10, fontSize: 16, fontWeight: 500, color: f.disabled ? C.muted : C.text, outline: 'none', fontFamily: '"Inter", sans-serif', cursor: f.disabled ? 'not-allowed' : 'pointer', appearance: 'auto', boxSizing: 'border-box' }} required={!f.disabled}>
-                        <option value="">{f.disabled && f.key === 'ciudad' ? 'Elige departamento primero' : 'Seleccionar...'}</option>
-                        {f.options.map(o => <option key={o.id || o} value={o.name || o}>{o.name || o}</option>)}
-                      </select>
-                    </label>
-                  ))}
+                  <label style={{ fontSize: 12, fontWeight: 700, color: C.subtext, textTransform: 'uppercase', letterSpacing: 1 }}>
+                    Departamento *
+                    <input type="text" list="departamentos-list" value={form.departamento} onChange={e => { handleChange('departamento', e.target.value); handleChange('ciudad', ''); }}
+                      placeholder="Buscar o escribir..."
+                      style={{ marginTop: 6, width: '100%', padding: '14px 16px', background: C.surface, border: '1px solid ' + C.border, borderRadius: 10, fontSize: 16, fontWeight: 500, color: C.text, outline: 'none', fontFamily: '"Inter", sans-serif', transition: 'border-color 0.15s', boxSizing: 'border-box' }}
+                      onFocus={e => { e.target.style.borderColor = C.primary; e.target.style.boxShadow = '0 0 0 3px rgba(255,140,0,0.1)'; }}
+                      onBlur={e => { e.target.style.borderColor = C.border; e.target.style.boxShadow = 'none'; }} />
+                    <datalist id="departamentos-list">
+                      {departamentos.map(d => <option key={d.id} value={d.name} />)}
+                    </datalist>
+                  </label>
+                  <label style={{ fontSize: 12, fontWeight: 700, color: C.subtext, textTransform: 'uppercase', letterSpacing: 1 }}>
+                    Ciudad *
+                    <input type="text" list="ciudades-list" value={form.ciudad} onChange={e => handleChange('ciudad', e.target.value)}
+                      placeholder={!form.departamento ? 'Elige departamento primero' : 'Buscar o escribir...'}
+                      disabled={!form.departamento}
+                      style={{ marginTop: 6, width: '100%', padding: '14px 16px', background: !form.departamento ? '#f8f9ff' : C.surface, border: '1px solid ' + C.border, borderRadius: 10, fontSize: 16, fontWeight: 500, color: !form.departamento ? C.muted : C.text, outline: 'none', fontFamily: '"Inter", sans-serif', transition: 'border-color 0.15s', boxSizing: 'border-box' }}
+                      onFocus={e => { if (form.departamento) { e.target.style.borderColor = C.primary; e.target.style.boxShadow = '0 0 0 3px rgba(255,140,0,0.1)'; } }}
+                      onBlur={e => { if (form.departamento) { e.target.style.borderColor = C.border; e.target.style.boxShadow = 'none'; } }} />
+                    <datalist id="ciudades-list">
+                      {ciudades.map(c => <option key={c.id} value={c.name} />)}
+                    </datalist>
+                  </label>
                 </div>
 
                 <label style={{ fontSize: 12, fontWeight: 700, color: C.subtext, textTransform: 'uppercase', letterSpacing: 1 }}>
