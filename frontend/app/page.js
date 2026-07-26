@@ -429,7 +429,7 @@ export default function TiendaPage() {
               No hay productos en esta categoría.
             </div>
           ) : (
-            <div className="ff-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))', gap: 20 }}>
+            <div className="ff-grid">
               {productos.map(p => <ProductCard key={p.id} producto={p} />)}
             </div>
           )}
