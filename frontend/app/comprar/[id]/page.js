@@ -26,6 +26,7 @@ export default function ComprarPage() {
   useEffect(() => { init(); }, []);
 
   const cartTotal = getTotal();
+  const formatPrice = (n) => '$' + Number(n).toLocaleString('es-CO', { minimumFractionDigits: 0 });
   const tieneOferta = producto?.ofertaActiva && producto?.ofertaPrecio && new Date(producto.ofertaHasta) > new Date();
   const precioFinal = tieneOferta ? producto?.ofertaPrecio : producto?.precioVenta;
   const subtotalProducto = precioFinal * form.cantidad;
