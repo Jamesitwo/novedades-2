@@ -204,6 +204,21 @@ export default function ComprarPage() {
                 </div>
                 {tieneOferta && <div style={{ fontSize: 13, color: C.muted, marginTop: 12 }}>Precio normal: <span style={{ textDecoration: 'line-through', fontWeight: 600 }}>{formatPrice(producto.precioVenta)}</span></div>}
 
+                {cartItems.length > 0 && (
+                  <div style={{ marginTop: 16, padding: '12px 0', borderTop: '1px solid ' + C.border }}>
+                    <div style={{ fontSize: 12, fontWeight: 700, color: C.subtext, textTransform: 'uppercase', letterSpacing: 1, marginBottom: 10 }}>
+                      🛒 Productos del carrito
+                    </div>
+                    {cartItems.map(item => (
+                      <div key={item.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8, fontSize: 13 }}>
+                        <span style={{ fontWeight: 600, flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{item.nombre}</span>
+                        <span style={{ marginLeft: 8, whiteSpace: 'nowrap' }}>x{item.cantidad}</span>
+                        <span style={{ marginLeft: 12, fontWeight: 700, whiteSpace: 'nowrap' }}>{formatPrice(item.precio * item.cantidad)}</span>
+                      </div>
+                    ))}
+                  </div>
+                )}
+
                 <div style={{ marginTop: 16 }}>
                   {total >= 100000 ? (
                     <div style={{ background: 'rgba(34,197,94,0.08)', borderRadius: 8, padding: '10px 14px', fontSize: 13, fontWeight: 600, color: '#166534', border: '1px solid rgba(34,197,94,0.2)' }}>🚚 ¡Envío gratis! Tu pedido supera los $100,000</div>
