@@ -45,6 +45,29 @@ export default function ComprarPage() {
       .catch(() => setCiudades([]));
   }, [form.departamento, departamentos]);
 
+  const handleChange = (field, value) => { setForm(prev => ({ ...prev, [field]: value })); };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    if (!form.nombre.trim() || !form.apellido.trim() || !form.celular.trim() || !form.direccion.trim() || !form.departamento || !form.ciudad.trim()) {
+      setError('Completa todos los campos requeridos');
+      return;
+    }
+    setSaving(true); setError('');
+    try {
+      await api.post('/api/tienda/comprar', {
+        productoId: id, nombre: form.nombre.trim(), apellido: form.apellido.trim(),
+        celular: form.celular.trim(), direccion: form.direccion.trim(),
+        departamento: form.departamento, ciudad: form.ciudad.trim(),
+        email: form.email.trim() || null, notas: form.notas.trim() || null, cantidad: form.cantidad || 1
+      });
+      setEnviado(true);
+      const colors = ['#ff8c00', '#feb700', '#fff', '#22c55e', '#ba1a1a'];
+      setConfetti(Array.from({ length: 60 }, (_, i) => ({ id: i, left: Math.random() * 100 + '%', delay: Math.random() * 2 + 's', duration: (Math.random() * 2 + 2) + 's', color: colors[Math.floor(Math.random() * colors.length)], size: Math.floor(Math.random() * 10 + 6) + 'px' })));
+    } catch (e) { setError(e.response?.data?.error || 'Error al enviar el pedido. Intenta de nuevo.'); }
+    finally { setSaving(false); }
+  };
+
   const cartTotal = getTotal();
   const formatPrice = (n) => '$' + Number(n).toLocaleString('es-CO', { minimumFractionDigits: 0 });
   const tieneOferta = producto?.ofertaActiva && producto?.ofertaPrecio && new Date(producto.ofertaHasta) > new Date();
