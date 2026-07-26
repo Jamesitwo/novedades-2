@@ -324,7 +324,27 @@ export default function TiendaAdminPage() {
         .admin-table th { background: #eff4ff; border-bottom: 1px solid #E2E8F0; padding: 10px 14px; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; color: #564334; text-align: left; white-space: nowrap; }
         .admin-table td { padding: 10px 14px; border-bottom: 1px solid #E2E8F0; font-size: 14px; vertical-align: middle; }
         .admin-table tr:hover td { background: #eff4ff; }
-        @media (max-width: 768px) { .admin-table th, .admin-table td { padding: 6px 8px; font-size: 12px; } }
+        .modal-grid { display: grid; grid-template-columns: 1fr 1fr; }
+        .form-2col { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+        .form-3col { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 14px; }
+        @media (max-width: 768px) {
+          .admin-table th, .admin-table td { padding: 6px 8px; font-size: 12px; }
+          .admin-table th:nth-child(4), .admin-table td:nth-child(4),
+          .admin-table th:nth-child(5), .admin-table td:nth-child(5),
+          .admin-table th:nth-child(8), .admin-table td:nth-child(8) { display: none; }
+          .modal-grid { grid-template-columns: 1fr !important; }
+          .modal-grid > :last-child { border-left: none !important; border-top: 1px solid #E2E8F0; }
+          .form-2col { grid-template-columns: 1fr !important; }
+          .form-3col { grid-template-columns: 1fr !important; }
+          .toolbar-row { flex-direction: column; gap: 8px !important; }
+          .toolbar-row > * { width: 100% !important; box-sizing: border-box; }
+          .pagination-row { flex-wrap: wrap; gap: 4px !important; }
+        }
+        @media (max-width: 480px) {
+          .admin-table th, .admin-table td { padding: 4px 6px; font-size: 11px; }
+          .admin-table th:nth-child(6), .admin-table td:nth-child(6),
+          .admin-table th:nth-child(7), .admin-table td:nth-child(7) { display: none; }
+        }
       `}} />
 
       {toast && (
@@ -339,7 +359,7 @@ export default function TiendaAdminPage() {
         </div>
       )}
 
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 24, flexWrap: 'wrap', gap: 12 }}>
+      <div className="toolbar-row" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 24, flexWrap: 'wrap', gap: 12 }}>
         <div>
           <h2 style={{ fontSize: 24, fontWeight: 800, color: '#0b1c30', margin: '0 0 4px', borderLeft: '4px solid #ff8c00', paddingLeft: 12 }}>
             Administrar Pizdo
@@ -512,7 +532,7 @@ export default function TiendaAdminPage() {
       )}
 
       {totalPages > 1 && (
-        <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: 8, marginTop: 20 }}>
+        <div className="pagination-row" style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: 8, marginTop: 20 }}>
           <button disabled={page <= 1} onClick={() => setPage(p => p - 1)} style={{ ...S, background: page <= 1 ? '#eff4ff' : '#ffffff', color: '#0b1c30', opacity: page <= 1 ? 0.4 : 1, fontSize: 14, padding: '6px 16px', minHeight: 40, cursor: 'pointer' }}>
             ← Anterior
           </button>
@@ -549,7 +569,7 @@ export default function TiendaAdminPage() {
               <button onClick={() => setShowModal(false)} style={{ background: 'none', border: 'none', fontSize: 24, cursor: 'pointer', color: '#0b1c30' }}>✕</button>
             </div>
 
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 0 }}>
+            <div className="modal-grid" style={{ gap: 0 }}>
               <form onSubmit={handleSave} style={{ padding: '28px 28px', display: 'flex', flexDirection: 'column', gap: 16 }}>
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: 16 }}>
                   <label style={{ fontSize: 13, fontWeight: 900, color: '#564334', textTransform: 'uppercase', letterSpacing: 1 }}>
@@ -558,7 +578,7 @@ export default function TiendaAdminPage() {
                       style={{ width: '100%', marginTop: 6, padding: '10px 14px', fontSize: 16 }} />
                   </label>
                 </div>
-                <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: 14 }}>
+                <div className="form-2col">
                   <label style={{ fontSize: 13, fontWeight: 900, color: '#564334', textTransform: 'uppercase', letterSpacing: 1 }}>
                     Categoría *
                     <div style={{ display: 'flex', gap: 4, marginTop: 6 }}>
@@ -586,7 +606,7 @@ export default function TiendaAdminPage() {
                   <textarea className="admin-input" value={form.descripcion} onChange={e => setForm({...form, descripcion: e.target.value})} rows={3}
                     style={{ width: '100%', marginTop: 6, resize: 'vertical', fontFamily: 'Inter, sans-serif', padding: '10px 14px' }} />
                 </label>
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 14 }}>
+                <div className="form-3col">
                   <label style={{ fontSize: 13, fontWeight: 900, color: '#564334', textTransform: 'uppercase', letterSpacing: 1 }}>
                     Precio *
                     <input type="number" min="0" className="admin-input" value={form.precioVenta}
@@ -666,7 +686,7 @@ export default function TiendaAdminPage() {
                     </label>
                   </div>
                   {form.ofertaActiva && (
-                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
+                    <div className="form-2col">
                       <label style={{ fontSize: 13, fontWeight: 900, color: '#ba1a1a', textTransform: 'uppercase', letterSpacing: 1 }}>
                         Precio oferta
                         <input type="number" min="0" className="admin-input" value={form.ofertaPrecio}
@@ -767,7 +787,7 @@ export default function TiendaAdminPage() {
         </div>
 
         <div style={{ display: 'grid', gap: 14, maxWidth: 600 }}>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+          <div className="form-2col" style={{ gap: 12 }}>
             <label style={{ fontSize: 12, fontWeight: 800, color: '#564334', textTransform: 'uppercase', letterSpacing: 1 }}>
               Título del bundle
               <input className="admin-input" value={bundleConfig.titulo} onChange={e => setBundleConfig(prev => ({ ...prev, titulo: e.target.value }))}
@@ -779,7 +799,7 @@ export default function TiendaAdminPage() {
                 placeholder="Todo lo que necesitas..." style={{ width: '100%', marginTop: 4 }} />
             </label>
           </div>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+          <div className="form-2col" style={{ gap: 12 }}>
             <label style={{ fontSize: 12, fontWeight: 800, color: '#564334', textTransform: 'uppercase', letterSpacing: 1 }}>
               Precio normal
               <input className="admin-input" type="number" value={bundleConfig.precioNormal} onChange={e => setBundleConfig(prev => ({ ...prev, precioNormal: e.target.value }))}
@@ -860,7 +880,7 @@ export default function TiendaAdminPage() {
               <input className="admin-input" value={homeConfig.promo_bar_texto} onChange={e => setHomeConfig(prev => ({ ...prev, promo_bar_texto: e.target.value }))}
                 placeholder="Envío gratis en compras +$100.000" style={{ width: '100%', marginTop: 4 }} />
             </label>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+            <div className="form-2col" style={{ gap: 10 }}>
               <label style={{ fontSize: 11, fontWeight: 700, color: '#564334', textTransform: 'uppercase' }}>
                 Título
                 <textarea className="admin-input" value={homeConfig.hero_titulo} onChange={e => setHomeConfig(prev => ({ ...prev, hero_titulo: e.target.value }))}
@@ -890,7 +910,7 @@ export default function TiendaAdminPage() {
 
           <div style={{ background: '#f8f9ff', borderRadius: 10, padding: 16 }}>
             <div style={{ fontSize: 13, fontWeight: 800, color: '#904d00', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 12 }}>📦 Títulos de secciones</div>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+            <div className="form-2col" style={{ gap: 10 }}>
               <label style={{ fontSize: 11, fontWeight: 700, color: '#564334', textTransform: 'uppercase' }}>
                 Best Sellers
                 <input className="admin-input" value={homeConfig.seccion_bestsellers_titulo} onChange={e => setHomeConfig(prev => ({ ...prev, seccion_bestsellers_titulo: e.target.value }))}
@@ -921,7 +941,7 @@ export default function TiendaAdminPage() {
               <span style={{ fontSize: 14, fontWeight: 600 }}>Mostrar cupón en la homepage</span>
             </label>
             {homeConfig.coupon_activo && (
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 10 }}>
+              <div className="form-3col" style={{ gap: 10 }}>
                 <label style={{ fontSize: 11, fontWeight: 700, color: '#564334', textTransform: 'uppercase' }}>
                   Código
                   <input className="admin-input" value={homeConfig.coupon_codigo} onChange={e => setHomeConfig(prev => ({ ...prev, coupon_codigo: e.target.value }))}
@@ -994,7 +1014,7 @@ export default function TiendaAdminPage() {
             <span style={{ fontSize: 15, fontWeight: 700 }}>Activar LucidBot al comprar</span>
           </label>
 
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+          <div className="form-2col" style={{ gap: 12 }}>
             <label style={{ fontSize: 12, fontWeight: 800, color: '#564334', textTransform: 'uppercase', letterSpacing: 1 }}>
               API Key (X-ACCESS-TOKEN)
               <input className="admin-input" value={lucidbotConfig.api_key}
