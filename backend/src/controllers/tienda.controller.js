@@ -325,8 +325,10 @@ const procesarCompra = async (req, res) => {
           actions.push({ action: "send_flow", flow_id: config.lucidbot_flow_id });
         }
 
+        const phoneFormatted = celular.startsWith('57') || celular.startsWith('+57') ? celular : '57' + celular;
+
         const lucidbotBody = {
-          phone: celular,
+          phone: phoneFormatted,
           email: email || '',
           first_name: nombre,
           last_name: apellido,
