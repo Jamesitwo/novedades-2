@@ -15,15 +15,6 @@ function AutocompleteInput({ value, onChange, options, placeholder, disabled }) 
     return () => document.removeEventListener('click', handler);
   }, []);
 
-  const handleBlur = () => {
-    setTimeout(() => {
-      setOpen(false);
-      if (value && !options.some(o => (o.name || o).toLowerCase() === value.toLowerCase())) {
-        onChange('');
-      }
-    }, 150);
-  };
-
   const filtered = options.filter(o => {
     const name = (o.name || o).toLowerCase();
     return name.includes(filter.toLowerCase()) && name !== value.toLowerCase();
@@ -35,7 +26,6 @@ function AutocompleteInput({ value, onChange, options, placeholder, disabled }) 
         placeholder={placeholder}
         onChange={e => { onChange(e.target.value); setFilter(e.target.value); setOpen(true); }}
         onFocus={() => setOpen(true)}
-        onBlur={handleBlur}
         style={{
           marginTop: 6, width: '100%', padding: '14px 16px', background: disabled ? '#f8f9ff' : '#fff',
           border: '1px solid #E2E8F0', borderRadius: 10, fontSize: 16, fontWeight: 500,
