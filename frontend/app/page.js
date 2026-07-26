@@ -26,6 +26,7 @@ export default function TiendaPage() {
   const [bundleConfig, setBundleConfig] = useState(null);
   const [bundleProducts, setBundleProducts] = useState([]);
   const [homeConfig, setHomeConfig] = useState({});
+  const [homeCategorias, setHomeCategorias] = useState([]);
 
   useEffect(() => {
     const onScroll = () => setScrollY(window.scrollY);
@@ -47,6 +48,7 @@ export default function TiendaPage() {
         coupon_texto: data.coupon_texto || '',
         coupon_descuento: data.coupon_descuento || ''
       });
+      setHomeCategorias(data.homepage_categorias || []);
       const ids = data.bundle_productos || [];
       if (ids.length > 0) {
         setBundleConfig({
@@ -200,8 +202,16 @@ export default function TiendaPage() {
             Categorías destacadas
           </h2>
           <div className="ff-cats" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: 16 }}>
-            {['Herramientas', 'Electrónica', 'Hogar', 'Deportes', 'Oficina'].map(cat => (
-              <a key={cat} href="#" onClick={e => { e.preventDefault(); setCategoria(cat); }}
+            {homeCategorias.length === 0 && (
+              <div style={{ color: '#897362', fontSize: 14, fontWeight: 500, textAlign: 'center', padding: 20 }}>
+                Configura las categorías desde el panel de administración
+              </div>
+            )}
+            {(homeCategorias.length > 0 ? homeCategorias : ['Herramientas', 'Electrónica', 'Hogar', 'Deportes', 'Oficina']).map(cat => {
+              const emojiMap = { 'Herramientas': '🔧', 'Electrónica': '📱', 'Hogar': '🏠', 'Deportes': '⚽', 'Oficina': '💼', 'Belleza': '💄', 'Ropa': '👕', 'Calzado': '👟' };
+              const emoji = emojiMap[cat] || '📦';
+              return (
+                <a key={cat} href="#" onClick={e => { e.preventDefault(); setCategoria(cat); }}
                 style={{
                   textDecoration: 'none', color: C.text, display: 'flex', flexDirection: 'column', alignItems: 'center',
                   justifyContent: 'center', padding: 24, background: C.surface, border: '1px solid ' + C.border,
@@ -210,11 +220,12 @@ export default function TiendaPage() {
                 onMouseEnter={e => { e.currentTarget.style.borderColor = C.primary; e.currentTarget.style.boxShadow = '0 4px 16px rgba(0,0,0,0.08)'; }}
                 onMouseLeave={e => { e.currentTarget.style.borderColor = C.border; e.currentTarget.style.boxShadow = '0 2px 8px rgba(0,0,0,0.04)'; }}>
                 <div style={{ width: 56, height: 56, background: '#e5eeff', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 12, fontSize: 22 }}>
-                  {['🔧', '📱', '🏠', '⚽', '💼'][['Herramientas', 'Electrónica', 'Hogar', 'Deportes', 'Oficina'].indexOf(cat)]}
+                  {emoji}
                 </div>
                 <span style={{ fontSize: 13, fontWeight: 700, textAlign: 'center' }}>{cat}</span>
               </a>
-            ))}
+              );
+            })}
           </div>
         </div>
       </section>

@@ -40,7 +40,7 @@ const updateConfiguracion = async (req, res) => {
       seccion_bestsellers_titulo, seccion_catalogo_titulo,
       coupon_activo, coupon_codigo, coupon_texto, coupon_descuento,
       whatsapp_numero,
-      promo_bar_texto } = req.body;
+      promo_bar_texto, homepage_categorias } = req.body;
 
     let config = await prisma.configuracion.findFirst();
 
@@ -89,6 +89,7 @@ const updateConfiguracion = async (req, res) => {
     if (coupon_descuento !== undefined) extraData.coupon_descuento = coupon_descuento || null;
     if (whatsapp_numero !== undefined) extraData.whatsapp_numero = whatsapp_numero || null;
     if (promo_bar_texto !== undefined) extraData.promo_bar_texto = promo_bar_texto || null;
+    if (homepage_categorias !== undefined) extraData.homepage_categorias = homepage_categorias || [];
 
     if (req.body.lucidsales_reset === true) {
       extraData.lucidsales_token = null;
@@ -154,7 +155,8 @@ const getPublicConfig = async (req, res) => {
       bundle_precio_oferta: config.bundle_precio_oferta || null,
       bundle_badge_texto: config.bundle_badge_texto || null,
       whatsapp_numero: config.whatsapp_numero || null,
-      promo_bar_texto: config.promo_bar_texto || null
+      promo_bar_texto: config.promo_bar_texto || null,
+      homepage_categorias: config.homepage_categorias || []
     });
   } catch (error) {
     console.error('Get public config error:', error);

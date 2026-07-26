@@ -280,6 +280,7 @@ model Configuracion {
   bundle_precio_normal      Float?    @map("bundle_precio_normal")
   bundle_precio_oferta      Float?    @map("bundle_precio_oferta")
   bundle_badge_texto        String?   @map("bundle_badge_texto")
+  homepage_categorias       Json?     @default("[]") @map("homepage_categorias")
   hero_titulo               String?   @map("hero_titulo")
   hero_subtitulo            String?   @map("hero_subtitulo")
   hero_boton_texto          String?   @map("hero_boton_texto")

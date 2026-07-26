@@ -54,6 +54,8 @@ export default function TiendaAdminPage() {
     coupon_activo: false, coupon_codigo: '', coupon_texto: '', coupon_descuento: '',
     whatsapp_numero: '', promo_bar_texto: ''
   });
+  const [homeCategorias, setHomeCategorias] = useState([]);
+  const [homeCatInput, setHomeCatInput] = useState('');
   const [savingHome, setSavingHome] = useState(false);
 
   useEffect(() => {
@@ -87,6 +89,7 @@ export default function TiendaAdminPage() {
         whatsapp_numero: data.whatsapp_numero || '',
         promo_bar_texto: data.promo_bar_texto || ''
       });
+      setHomeCategorias(data.homepage_categorias || []);
     }).catch(() => {});
   }, [isAuthenticated, usuario]);
 
@@ -956,6 +959,41 @@ export default function TiendaAdminPage() {
           </div>
 
           <div style={{ background: '#f8f9ff', borderRadius: 10, padding: 16 }}>
+            <div style={{ fontSize: 13, fontWeight: 800, color: '#904d00', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 12 }}>📂 Categorías destacadas</div>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginBottom: 10 }}>
+              {homeCategorias.map((cat, i) => (
+                <span key={i} style={{
+                  background: '#ff8c00', color: '#fff', padding: '4px 10px', borderRadius: 20,
+                  fontSize: 12, fontWeight: 700, display: 'inline-flex', alignItems: 'center', gap: 6
+                }}>
+                  {cat}
+                  <button onClick={() => setHomeCategorias(prev => prev.filter((_, idx) => idx !== i))}
+                    style={{ background: 'none', border: 'none', color: '#fff', cursor: 'pointer', fontSize: 14, fontWeight: 700, padding: 0 }}>✕</button>
+                </span>
+              ))}
+            </div>
+            <div style={{ display: 'flex', gap: 8 }}>
+              <input className="admin-input" value={homeCatInput} onChange={e => setHomeCatInput(e.target.value)}
+                placeholder="Nombre de categoría" style={{ flex: 1, padding: '6px 10px', fontSize: 13 }}
+                onKeyDown={e => {
+                  if (e.key === 'Enter' && homeCatInput.trim()) {
+                    e.preventDefault();
+                    setHomeCategorias(prev => [...prev, homeCatInput.trim()]);
+                    setHomeCatInput('');
+                  }
+                }} />
+              <button onClick={() => {
+                if (homeCatInput.trim()) {
+                  setHomeCategorias(prev => [...prev, homeCatInput.trim()]);
+                  setHomeCatInput('');
+                }
+              }} style={{
+                ...S, background: '#ff8c00', color: '#fff', minHeight: 40, padding: '0 16px', cursor: 'pointer', fontSize: 13, fontWeight: 700, border: 'none'
+              }}>+ Agregar</button>
+            </div>
+          </div>
+
+          <div style={{ background: '#f8f9ff', borderRadius: 10, padding: 16 }}>
             <div style={{ fontSize: 13, fontWeight: 800, color: '#904d00', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 12 }}>🎫 Cupón de descuento</div>
             <label style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 10, cursor: 'pointer' }}>
               <div onClick={() => setHomeConfig(prev => ({ ...prev, coupon_activo: !prev.coupon_activo }))} style={{
@@ -1002,7 +1040,8 @@ export default function TiendaAdminPage() {
                 coupon_texto: homeConfig.coupon_texto || null,
                 coupon_descuento: homeConfig.coupon_descuento ? Number(homeConfig.coupon_descuento) : null,
                 whatsapp_numero: homeConfig.whatsapp_numero || null,
-                promo_bar_texto: homeConfig.promo_bar_texto || null
+                promo_bar_texto: homeConfig.promo_bar_texto || null,
+                homepage_categorias: homeCategorias
               });
               showToast('Homepage guardada correctamente');
             } catch (e) { showToast('Error al guardar', 'error'); }
