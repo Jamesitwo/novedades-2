@@ -131,7 +131,7 @@ export default function TiendaAdminPage() {
       if (filtroEstado === 'inactivo') items = items.filter(p => !p.activo);
       setProductos(items);
       setCategorias(data.categorias || []);
-      setTotalPages(data.pagination?.pages || 1);
+      setTotalPages(data.pagination?.totalPages || 1);
       setTotalRecords(data.pagination?.total || items.length);
       setSelected([]);
     } catch (e) {
