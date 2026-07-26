@@ -2,7 +2,9 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import api from '@/lib/api';
+import { useCartStore } from '@/store/cartStore';
 import WhatsAppButton from '../components/tienda/WhatsAppButton';
+import CartDrawer from '../components/tienda/CartDrawer';
 import './globals.css';
 
 export default function TiendaLayout({ children }) {
@@ -14,6 +16,17 @@ export default function TiendaLayout({ children }) {
   const [dismissedInstall, setDismissedInstall] = useState(false);
   const [whatsappPhone, setWhatsappPhone] = useState('');
   const [promoText, setPromoText] = useState('');
+  const { init, getCount, openDrawer } = useCartStore();
+  const [cartCount, setCartCount] = useState(0);
+
+  useEffect(() => { init(); }, []);
+
+  useEffect(() => {
+    const update = () => setCartCount(getCount());
+    update();
+    const interval = setInterval(update, 500);
+    return () => clearInterval(interval);
+  }, [getCount]);
 
   const handleSearch = (e) => {
     e.preventDefault();
@@ -109,14 +122,26 @@ export default function TiendaLayout({ children }) {
             <a href="/?oferta=true" style={{ color: '#564334', textDecoration: 'none', fontSize: 13, fontWeight: 500 }}>Ofertas</a>
           </nav>
 
-          <a href="/#catalogo" title="Ver catálogo" style={{
-            color: '#904d00', textDecoration: 'none', fontSize: 20, flexShrink: 0, padding: '4px 8px', borderRadius: 8,
+          <button onClick={openDrawer} title="Ver carrito" style={{
+            position: 'relative', color: '#904d00', background: 'none', border: 'none',
+            fontSize: 20, flexShrink: 0, padding: '4px 8px', borderRadius: 8, cursor: 'pointer',
             transition: 'transform 0.3s', transform: cartBounce ? 'scale(1.3) rotate(5deg)' : 'scale(1)'
           }}
           onMouseEnter={e => e.currentTarget.style.background = '#eff4ff'}
           onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>
             🛒
-          </a>
+            {cartCount > 0 && (
+              <span style={{
+                position: 'absolute', top: -2, right: -2,
+                background: '#ba1a1a', color: '#fff', fontSize: 10, fontWeight: 800,
+                minWidth: 18, height: 18, borderRadius: 9,
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                border: '2px solid #fff'
+              }}>
+                {cartCount > 99 ? '99+' : cartCount}
+              </span>
+            )}
+          </button>
         </div>
       </header>
 
@@ -163,6 +188,7 @@ export default function TiendaLayout({ children }) {
         <div style={{ borderTop: '1px solid rgba(255,255,255,0.1)', padding: '16px 24px', textAlign: 'center', fontSize: 13, color: '#cbdbf5', opacity: 0.6 }}>© 2026 Pizdo Industrial Tools.</div>
       </footer>
       <WhatsAppButton phone={whatsappPhone} />
+      <CartDrawer />
     </div>
   );
 }

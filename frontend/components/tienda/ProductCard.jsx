@@ -2,6 +2,7 @@
 import { useState, useEffect, useRef } from 'react';
 import UpsellPopup from './UpsellPopup';
 import QuickView from './QuickView';
+import { useCartStore } from '@/store/cartStore';
 
 export default function ProductCard({ producto, onFavChange }) {
   const formatPrice = (n) => '$' + Number(n).toLocaleString('es-CO', { minimumFractionDigits: 0 });
@@ -26,11 +27,14 @@ export default function ProductCard({ producto, onFavChange }) {
     return () => observer.disconnect();
   }, []);
 
+  const { addItem } = useCartStore();
+
   const handleBuy = (e) => {
     e.preventDefault(); e.stopPropagation();
     setClicked(true);
-    setTimeout(() => setClicked(false), 1500);
-    setTimeout(() => setShowUpsell(true), 300);
+    setTimeout(() => setClicked(false), 800);
+    addItem(producto);
+    window.dispatchEvent(new Event('pizdo-cart-add'));
   };
 
   const toggleFav = (e) => {
