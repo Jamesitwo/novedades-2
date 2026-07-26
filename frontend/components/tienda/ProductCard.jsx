@@ -98,8 +98,7 @@ export default function ProductCard({ producto, onFavChange }) {
           </div>
         )}
 
-        <div style={{ position: 'relative', width: '100%', paddingTop: '100%', overflow: 'hidden', background: '#F8F9FA' }}>
-          <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}>
+        <div style={{ height: 180, overflow: 'hidden', background: '#F8F9FA', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}>
           {producto.imagen ? (
             <img src={producto.imagen} alt={producto.nombre} style={{ width: '100%', height: '100%', objectFit: 'contain' }}
               onError={(e) => { e.target.outerHTML = '<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;color:#897362;font-size:13px;font-weight:500">Sin imagen</div>'; }} />
@@ -129,7 +128,6 @@ export default function ProductCard({ producto, onFavChange }) {
             ) : (
               <span style={{ fontSize: 20, fontWeight: 800, color: '#0b1c30' }}>{formatPrice(producto.precioVenta)}</span>
           )}
-        </div>
         </div>
 
           {producto.stock > 0 && producto.stock <= 5 && (
