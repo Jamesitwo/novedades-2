@@ -207,7 +207,12 @@ export default function TiendaPage() {
                 Configura las categorías desde el panel de administración
               </div>
             )}
-            {(homeCategorias.length > 0 ? homeCategorias : ['Herramientas', 'Electrónica', 'Hogar', 'Deportes', 'Oficina']).map(cat => {
+            {homeCategorias.length === 0 && (
+              <div style={{ color: '#897362', fontSize: 14, fontWeight: 500, textAlign: 'center', padding: 20 }}>
+                Configura las categorías desde el panel de administración
+              </div>
+            )}
+            {homeCategorias.length > 0 && homeCategorias.map(cat => {
               const emojiMap = { 'Herramientas': '🔧', 'Electrónica': '📱', 'Hogar': '🏠', 'Deportes': '⚽', 'Oficina': '💼', 'Belleza': '💄', 'Ropa': '👕', 'Calzado': '👟' };
               const emoji = emojiMap[cat] || '📦';
               return (
@@ -281,9 +286,9 @@ export default function TiendaPage() {
                     <a href={`/producto/${p.id}`} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', textDecoration: 'none', color: '#fff', gap: 10 }}>
                       {p.imagen ? (
                         <img src={p.imagen} alt={p.nombre} style={{ width: 200, height: 200, objectFit: 'contain', filter: 'drop-shadow(0 8px 20px rgba(0,0,0,0.4))', borderRadius: 12, background: '#F8F9FA', padding: 10 }} />
-                      ) : (
-                        <div style={{ width: 200, height: 200, borderRadius: 12, background: '#F8F9FA', padding: 10 }} />
-                      )}
+            ) : (
+              null
+            )}
                       <span style={{ fontSize: 13, fontWeight: 600, textAlign: 'center', maxWidth: 180, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                         {p.nombre}
                       </span>
