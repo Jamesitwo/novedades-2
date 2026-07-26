@@ -1,8 +1,71 @@
 'use client';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import api from '@/lib/api';
 import { useCartStore } from '@/store/cartStore';
+
+function AutocompleteInput({ value, onChange, options, placeholder, disabled }) {
+  const [open, setOpen] = useState(false);
+  const [filter, setFilter] = useState('');
+  const wrapperRef = useRef(null);
+
+  useEffect(() => {
+    const handler = (e) => { if (wrapperRef.current && !wrapperRef.current.contains(e.target)) setOpen(false); };
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
+  }, []);
+
+  const handleBlur = () => {
+    setTimeout(() => {
+      setOpen(false);
+      if (value && !options.some(o => (o.name || o).toLowerCase() === value.toLowerCase())) {
+        onChange('');
+      }
+    }, 150);
+  };
+
+  const filtered = options.filter(o => {
+    const name = (o.name || o).toLowerCase();
+    return name.includes(filter.toLowerCase()) && name !== value.toLowerCase();
+  });
+
+  return (
+    <div ref={wrapperRef} style={{ position: 'relative' }}>
+      <input type="text" value={value} disabled={disabled}
+        placeholder={placeholder}
+        onChange={e => { onChange(e.target.value); setFilter(e.target.value); setOpen(true); }}
+        onFocus={() => setOpen(true)}
+        onBlur={handleBlur}
+        style={{
+          marginTop: 6, width: '100%', padding: '14px 16px', background: disabled ? '#f8f9ff' : '#fff',
+          border: '1px solid #E2E8F0', borderRadius: 10, fontSize: 16, fontWeight: 500,
+          color: disabled ? '#897362' : '#0b1c30', outline: 'none', fontFamily: '"Inter", sans-serif',
+          transition: 'border-color 0.15s', boxSizing: 'border-box'
+        }}
+        onFocus2={e => { e.target.style.borderColor = '#ff8c00'; e.target.style.boxShadow = '0 0 0 3px rgba(255,140,0,0.1)'; }}
+        onBlur2={e => { e.target.style.borderColor = '#E2E8F0'; e.target.style.boxShadow = 'none'; }} />
+      {open && filtered.length > 0 && (
+        <div style={{
+          position: 'absolute', top: '100%', left: 0, right: 0, zIndex: 100,
+          background: '#fff', border: '1px solid #E2E8F0', borderRadius: 8,
+          boxShadow: '0 8px 24px rgba(0,0,0,0.1)', maxHeight: 180, overflow: 'auto'
+        }}>
+          {filtered.slice(0, 30).map((o, i) => (
+            <div key={o.id || o.name || o || i} onClick={() => { onChange(o.name || o); setFilter(''); setOpen(false); }}
+              style={{
+                padding: '10px 14px', cursor: 'pointer', fontSize: 14, fontWeight: 500, color: '#0b1c30',
+                borderBottom: i < filtered.length - 1 ? '1px solid #E2E8F0' : 'none'
+              }}
+              onMouseEnter={e => e.currentTarget.style.background = '#eff4ff'}
+              onMouseLeave={e => e.currentTarget.style.background = '#fff'}>
+              {o.name || o}
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
 
 export default function ComprarPage() {
   const params = useParams();
@@ -135,26 +198,14 @@ export default function ComprarPage() {
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
                   <label style={{ fontSize: 12, fontWeight: 700, color: C.subtext, textTransform: 'uppercase', letterSpacing: 1 }}>
                     Departamento *
-                    <input type="text" list="departamentos-list" value={form.departamento} onChange={e => { handleChange('departamento', e.target.value); handleChange('ciudad', ''); }}
-                      placeholder="Buscar o escribir..."
-                      style={{ marginTop: 6, width: '100%', padding: '14px 16px', background: C.surface, border: '1px solid ' + C.border, borderRadius: 10, fontSize: 16, fontWeight: 500, color: C.text, outline: 'none', fontFamily: '"Inter", sans-serif', transition: 'border-color 0.15s', boxSizing: 'border-box' }}
-                      onFocus={e => { e.target.style.borderColor = C.primary; e.target.style.boxShadow = '0 0 0 3px rgba(255,140,0,0.1)'; }}
-                      onBlur={e => { e.target.style.borderColor = C.border; e.target.style.boxShadow = 'none'; }} />
-                    <datalist id="departamentos-list">
-                      {departamentos.map(d => <option key={d.id} value={d.name} />)}
-                    </datalist>
+                    <AutocompleteInput value={form.departamento} onChange={v => { handleChange('departamento', v); handleChange('ciudad', ''); }}
+                      options={departamentos} placeholder="Buscar departamento..." />
                   </label>
                   <label style={{ fontSize: 12, fontWeight: 700, color: C.subtext, textTransform: 'uppercase', letterSpacing: 1 }}>
                     Ciudad *
-                    <input type="text" list="ciudades-list" value={form.ciudad} onChange={e => handleChange('ciudad', e.target.value)}
-                      placeholder={!form.departamento ? 'Elige departamento primero' : 'Buscar o escribir...'}
-                      disabled={!form.departamento}
-                      style={{ marginTop: 6, width: '100%', padding: '14px 16px', background: !form.departamento ? '#f8f9ff' : C.surface, border: '1px solid ' + C.border, borderRadius: 10, fontSize: 16, fontWeight: 500, color: !form.departamento ? C.muted : C.text, outline: 'none', fontFamily: '"Inter", sans-serif', transition: 'border-color 0.15s', boxSizing: 'border-box' }}
-                      onFocus={e => { if (form.departamento) { e.target.style.borderColor = C.primary; e.target.style.boxShadow = '0 0 0 3px rgba(255,140,0,0.1)'; } }}
-                      onBlur={e => { if (form.departamento) { e.target.style.borderColor = C.border; e.target.style.boxShadow = 'none'; } }} />
-                    <datalist id="ciudades-list">
-                      {ciudades.map(c => <option key={c.id} value={c.name} />)}
-                    </datalist>
+                    <AutocompleteInput value={form.ciudad} onChange={v => handleChange('ciudad', v)}
+                      options={ciudades} placeholder={!form.departamento ? 'Elige departamento primero' : 'Buscar ciudad...'}
+                      disabled={!form.departamento} />
                   </label>
                 </div>
 
