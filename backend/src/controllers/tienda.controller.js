@@ -351,7 +351,8 @@ const procesarCompra = async (req, res) => {
           nombre, apellido, celular, ciudad, direccion, departamento,
           email: email || '',
           notas: notas || '',
-          cantidad: String(qty)
+          cantidad: String(qty),
+          metodoPago: metodoPago || 'contraentrega'
         };
 
         fieldValues.forEach(fv => {

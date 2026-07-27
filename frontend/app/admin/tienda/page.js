@@ -1239,6 +1239,7 @@ export default function TiendaAdminPage() {
                     <option value="email">Email</option>
                     <option value="notas">Notas</option>
                     <option value="cantidad">Cantidad</option>
+                    <option value="metodoPago">Método de pago</option>
                   </select>
                   <button onClick={() => {
                     const next = (lucidbotConfig.field_values || []).filter((_, idx) => idx !== i);
