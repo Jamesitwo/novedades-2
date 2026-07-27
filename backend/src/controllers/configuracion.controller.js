@@ -165,7 +165,11 @@ const getPublicConfig = async (req, res) => {
       envio_texto: config.envio_texto || null,
       envio_dias: config.envio_dias || null,
       garantia_titulo: config.garantia_titulo || null,
-      garantia_texto: config.garantia_texto || null
+      garantia_texto: config.garantia_texto || null,
+      empresa_banco: config.empresa_banco || null,
+      empresa_tipo_cuenta: config.empresa_tipo_cuenta || null,
+      empresa_numero_cuenta: config.empresa_numero_cuenta || null,
+      empresa_titular_cuenta: config.empresa_titular_cuenta || null
     });
   } catch (error) {
     console.error('Get public config error:', error);

@@ -70,13 +70,18 @@ export default function ComprarPage() {
   const [form, setForm] = useState({
     nombre: '', apellido: '', celular: '', direccion: '',
     departamento: '', ciudad: '',
-    email: '', notas: '', cantidad: 1
+    email: '', notas: '', cantidad: 1, metodoPago: 'contraentrega'
   });
   const [departamentos, setDepartamentos] = useState([]);
   const [ciudades, setCiudades] = useState([]);
   const { addItem, init, items: cartItems, getTotal, removeItem } = useCartStore();
+  const [bankConfig, setBankConfig] = useState({});
 
   useEffect(() => { init(); }, []);
+
+  useEffect(() => {
+    api.get('/api/configuracion/public').then(({ data }) => setBankConfig(data)).catch(() => {});
+  }, []);
 
   useEffect(() => {
     if (!id) return;
@@ -112,7 +117,8 @@ export default function ComprarPage() {
         productoId: id, nombre: form.nombre.trim(), apellido: form.apellido.trim(),
         celular: form.celular.trim(), direccion: form.direccion.trim(),
         departamento: form.departamento, ciudad: form.ciudad.trim(),
-        email: form.email.trim() || null, notas: form.notas.trim() || null, cantidad: form.cantidad || 1
+        email: form.email.trim() || null, notas: form.notas.trim() || null, cantidad: form.cantidad || 1,
+        metodoPago: form.metodoPago
       });
       setEnviado(true);
       const colors = ['#ff8c00', '#feb700', '#fff', '#22c55e', '#ba1a1a'];
@@ -225,6 +231,27 @@ export default function ComprarPage() {
                   <textarea value={form.notas} onChange={e => handleChange('notas', e.target.value)} rows={2} placeholder="Color, talla, alguna indicación especial..."
                     style={{ marginTop: 6, width: '100%', padding: '14px 16px', background: C.surface, border: '1px solid ' + C.border, borderRadius: 10, fontSize: 16, fontWeight: 500, color: C.text, outline: 'none', fontFamily: '"Inter", sans-serif', resize: 'vertical', boxSizing: 'border-box' }} />
                 </label>
+
+                <label style={{ fontSize: 12, fontWeight: 700, color: C.subtext, textTransform: 'uppercase', letterSpacing: 1 }}>
+                  Método de pago
+                  <select value={form.metodoPago} onChange={e => handleChange('metodoPago', e.target.value)}
+                    style={{ marginTop: 6, width: '100%', padding: '14px 16px', background: C.surface, border: '1px solid ' + C.border, borderRadius: 10, fontSize: 16, fontWeight: 500, color: C.text, outline: 'none', fontFamily: '"Inter", sans-serif', cursor: 'pointer', appearance: 'auto', boxSizing: 'border-box' }}>
+                    <option value="contraentrega">💵 Contra entrega</option>
+                    <option value="transferencia">🏦 Transferencia bancaria</option>
+                  </select>
+                </label>
+
+                {form.metodoPago === 'transferencia' && bankConfig.empresa_banco && (
+                  <div style={{ background: '#e5eeff', borderRadius: 10, padding: 14, fontSize: 13 }}>
+                    <div style={{ fontWeight: 800, color: '#904d00', marginBottom: 8, fontSize: 14 }}>🏦 Datos para transferencia</div>
+                    <div style={{ color: '#0b1c30', lineHeight: 1.8 }}>
+                      <div><strong>Banco:</strong> {bankConfig.empresa_banco}</div>
+                      <div><strong>Tipo:</strong> {bankConfig.empresa_tipo_cuenta || '—'}</div>
+                      <div><strong>Cuenta:</strong> {bankConfig.empresa_numero_cuenta}</div>
+                      <div><strong>Titular:</strong> {bankConfig.empresa_titular_cuenta}</div>
+                    </div>
+                  </div>
+                )}
 
                 <button type="submit" disabled={saving} style={{
                   width: '100%', minHeight: 56, background: saving ? C.muted : C.primary, color: '#fff',

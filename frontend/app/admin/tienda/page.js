@@ -31,7 +31,9 @@ export default function TiendaAdminPage() {
     ofertaActiva: false, ofertaPrecio: 0, ofertaHasta: '',
     ventasSimuladas: 0, activo: true, destacado: false,
     upsellIds: [],
-    landingConfig: {}
+    landingConfig: {},
+    envioGratis: false,
+    envioCosto: ''
   });
   const [allProducts, setAllProducts] = useState([]);
   const [newCategory, setNewCategory] = useState('');
@@ -179,7 +181,9 @@ export default function TiendaAdminPage() {
         ofertaHasta: p.ofertaHasta ? new Date(p.ofertaHasta).toISOString().slice(0, 16) : '',
         ventasSimuladas: p.ventasSimuladas, activo: p.activo, destacado: p.destacado,
         upsellIds: Array.isArray(p.upsellIds) ? p.upsellIds : [],
-        landingConfig: typeof p.landingConfig === 'string' ? JSON.parse(p.landingConfig || '{}') : (p.landingConfig || {})
+        landingConfig: typeof p.landingConfig === 'string' ? JSON.parse(p.landingConfig || '{}') : (p.landingConfig || {}),
+        envioGratis: p.envioGratis || false,
+        envioCosto: p.envioCosto || ''
       });
     } else {
       setEditando(null);
@@ -189,7 +193,9 @@ export default function TiendaAdminPage() {
         ofertaActiva: false, ofertaPrecio: 0, ofertaHasta: '',
         ventasSimuladas: 0, activo: true, destacado: false,
         upsellIds: [],
-        landingConfig: {}
+        landingConfig: {},
+        envioGratis: false,
+        envioCosto: ''
       });
     }
     setNewCategory('');
@@ -227,7 +233,9 @@ export default function TiendaAdminPage() {
         categoria,
         imagenes: form.imagenes ? form.imagenes.split('\n').map(s => s.trim()).filter(Boolean) : [],
         ofertaHasta: form.ofertaHasta || null,
-        landingConfig: form.landingConfig
+        landingConfig: form.landingConfig,
+        envioGratis: form.envioGratis,
+        envioCosto: form.envioCosto || null
       };
       if (editando) {
         await api.put(`/api/tienda/${editando.id}`, payload);
@@ -749,7 +757,22 @@ export default function TiendaAdminPage() {
                         style={{ width: 22, height: 22, accentColor: '#ff8c00', cursor: 'pointer' }} />
                       ⭐ Destacado
                     </label>
+                    <label style={{ display: 'flex', alignItems: 'center', gap: 10, fontSize: 15, fontWeight: 700, color: '#0b1c30', cursor: 'pointer' }}>
+                      <input type="checkbox" checked={form.envioGratis} onChange={e => setForm({...form, envioGratis: e.target.checked})}
+                        style={{ width: 22, height: 22, accentColor: '#22c55e', cursor: 'pointer' }} />
+                      🚚 Envío gratis
+                    </label>
                   </div>
+                  {!form.envioGratis && (
+                    <div className="form-2col" style={{ marginTop: 10 }}>
+                      <label style={{ fontSize: 13, fontWeight: 900, color: '#564334', textTransform: 'uppercase', letterSpacing: 1 }}>
+                        Costo de envío
+                        <input type="number" min="0" className="admin-input" value={form.envioCosto}
+                          onChange={e => setForm({...form, envioCosto: e.target.value})} placeholder="15000"
+                          style={{ width: '100%', marginTop: 6 }} />
+                      </label>
+                    </div>
+                  )}
                   {form.ofertaActiva && (
                     <div className="form-2col">
                       <label style={{ fontSize: 13, fontWeight: 900, color: '#ba1a1a', textTransform: 'uppercase', letterSpacing: 1 }}>

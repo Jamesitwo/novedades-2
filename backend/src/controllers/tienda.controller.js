@@ -148,7 +148,7 @@ const create = async (req, res) => {
       return res.status(403).json({ error: 'Solo admins pueden crear productos' });
     }
 
-    const { nombre, descripcion, categoria, precioVenta, precioProveedor, imagen, imagenes, linkCompra, stock, ofertaActiva, ofertaPrecio, ofertaHasta, ventasSimuladas, activo, destacado, upsellIds, landingConfig } = req.body;
+    const { nombre, descripcion, categoria, precioVenta, precioProveedor, imagen, imagenes, linkCompra, stock, ofertaActiva, ofertaPrecio, ofertaHasta, ventasSimuladas, activo, destacado, upsellIds, landingConfig, envioGratis, envioCosto } = req.body;
 
     if (!nombre || !categoria || !precioVenta) {
       return res.status(400).json({ error: 'nombre, categoria y precioVenta son requeridos' });
@@ -174,6 +174,8 @@ const create = async (req, res) => {
         destacado: destacado || false,
         upsellIds: Array.isArray(upsellIds) ? upsellIds : [],
         landingConfig: landingConfig || null,
+        envioGratis: envioGratis || false,
+        envioCosto: envioCosto ? parseFloat(envioCosto) : null,
         createdById: req.usuario.id
       }
     });
@@ -192,7 +194,7 @@ const update = async (req, res) => {
     }
 
     const { id } = req.params;
-    const { nombre, descripcion, categoria, precioVenta, precioProveedor, imagen, imagenes, linkCompra, stock, ofertaActiva, ofertaPrecio, ofertaHasta, ventasSimuladas, activo, destacado, upsellIds, landingConfig } = req.body;
+    const { nombre, descripcion, categoria, precioVenta, precioProveedor, imagen, imagenes, linkCompra, stock, ofertaActiva, ofertaPrecio, ofertaHasta, ventasSimuladas, activo, destacado, upsellIds, landingConfig, envioGratis, envioCosto } = req.body;
 
     const data = {};
     if (nombre !== undefined) { data.nombre = nombre; data.slug = generateSlug(nombre); }
@@ -212,6 +214,8 @@ const update = async (req, res) => {
     if (destacado !== undefined) data.destacado = destacado;
     if (upsellIds !== undefined) data.upsellIds = Array.isArray(upsellIds) ? upsellIds : [];
     if (landingConfig !== undefined) data.landingConfig = landingConfig;
+    if (envioGratis !== undefined) data.envioGratis = envioGratis;
+    if (envioCosto !== undefined) data.envioCosto = envioCosto ? parseFloat(envioCosto) : null;
 
     const producto = await prisma.productoTienda.update({ where: { id }, data });
     res.json(producto);
@@ -293,7 +297,7 @@ const getCiudades = (req, res) => {
 
 const procesarCompra = async (req, res) => {
   try {
-    const { productoId, nombre, apellido, celular, direccion, departamento, ciudad, email, notas, cantidad } = req.body;
+    const { productoId, nombre, apellido, celular, direccion, departamento, ciudad, email, notas, cantidad, metodoPago } = req.body;
     if (!productoId || !nombre || !apellido || !celular || !direccion || !departamento || !ciudad) {
       return res.status(400).json({ error: 'Faltan datos requeridos' });
     }
@@ -308,11 +312,31 @@ const procesarCompra = async (req, res) => {
       celular, departamento, ciudad, cantidad: cantidad || 1
     });
 
+    const qty = parseInt(cantidad) || 1;
+    const precio = producto.ofertaActiva && producto.ofertaPrecio ? producto.ofertaPrecio : producto.precioVenta;
+
+    await prisma.pedidoTienda.create({
+      data: {
+        productoId,
+        productoNombre: producto.nombre,
+        nombre: nombre.trim(),
+        apellido: apellido.trim(),
+        celular: celular.trim(),
+        direccion: direccion.trim(),
+        departamento: departamento.trim(),
+        ciudad: ciudad.trim(),
+        email: email?.trim() || null,
+        notas: notas?.trim() || null,
+        cantidad: qty,
+        precioUnitario: precio,
+        total: precio * qty,
+        metodoPago: metodoPago || 'contraentrega'
+      }
+    });
+
     try {
       const config = await prisma.configuracion.findFirst();
       if (config?.lucidbot_activo && config?.lucidbot_api_key) {
-        const qty = parseInt(cantidad) || 1;
-        const precio = producto.ofertaActiva && producto.ofertaPrecio ? producto.ofertaPrecio : producto.precioVenta;
 
         const actions = [
           { action: "add_tag", tag_name: config.lucidbot_tag_name || "pizdo_compra" }

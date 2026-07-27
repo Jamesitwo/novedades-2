@@ -169,9 +169,13 @@ export default function ProductoDetallePage() {
               <span style={{ fontSize: 18 }}>🚚</span>
               <div>
                 <div style={{ fontWeight: 700, fontSize: 13, color: C.text }}>
-                  {producto.precioVenta >= 100000
+                  {producto.envioGratis
                     ? (tiendaConfig.envio_texto || '✅ ¡Envío gratis!')
-                    : `Te faltan ${formatPrice(100000 - (tieneOferta ? producto.ofertaPrecio : producto.precioVenta))} para envío gratis`}
+                    : producto.envioCosto
+                      ? `Envío: ${formatPrice(producto.envioCosto)}`
+                      : producto.precioVenta >= 100000
+                        ? (tiendaConfig.envio_texto || '✅ ¡Envío gratis!')
+                        : `Te faltan ${formatPrice(100000 - (tieneOferta ? producto.ofertaPrecio : producto.precioVenta))} para envío gratis`}
                 </div>
                 <div style={{ fontSize: 11, color: C.muted }}>{tiendaConfig.envio_dias || 'Entrega estimada: 2-4 días hábiles'}</div>
               </div>

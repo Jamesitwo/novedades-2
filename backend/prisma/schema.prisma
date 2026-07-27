@@ -348,6 +348,8 @@ model ProductoTienda {
   destacado       Boolean   @default(false)
   upsellIds       Json?     @default("[]") @map("upsell_ids")
   landingConfig   Json?     @default("{}") @map("landing_config")
+  envioGratis     Boolean   @default(false) @map("envio_gratis")
+  envioCosto      Float?    @map("envio_costo")
   createdById     String    @map("created_by")
   createdBy       Usuario   @relation(fields: [createdById], references: [id])
   resenas         Resena[]
@@ -359,6 +361,31 @@ model ProductoTienda {
   @@index([categoria])
   @@index([ofertaActiva])
   @@map("productos_tienda")
+}
+
+model PedidoTienda {
+  id             String   @id @default(uuid())
+  productoId     String   @map("producto_id")
+  productoNombre String
+  nombre         String
+  apellido       String
+  celular        String
+  direccion      String
+  departamento   String
+  ciudad         String
+  email          String?
+  notas          String?
+  cantidad       Int      @default(1)
+  precioUnitario Float
+  total          Float
+  estado         String   @default("pendiente")
+  metodoPago     String   @default("contraentrega") @map("metodo_pago")
+  pagado         Boolean  @default(false)
+  producto       ProductoTienda @relation(fields: [productoId], references: [id])
+  createdAt      DateTime @default(now()) @map("created_at")
+  updatedAt      DateTime @updatedAt @map("updated_at")
+
+  @@map("pedidos_tienda")
 }
 
 model Resena {
