@@ -1,12 +1,8 @@
 'use client';
 import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
 import api from '@/lib/api';
-import { useAuthStore } from '@/store/authStore';
 
 export default function PedidosAdminPage() {
-  const router = useRouter();
-  const { isAuthenticated, initialized, initialize, usuario } = useAuthStore();
   const [pedidos, setPedidos] = useState([]);
   const [loading, setLoading] = useState(true);
   const [page, setPage] = useState(1);
@@ -18,13 +14,6 @@ export default function PedidosAdminPage() {
   const [detail, setDetail] = useState(null);
   const [toast, setToast] = useState(null);
   const LIMIT = 15;
-
-  useEffect(() => { initialize(); }, []);
-  useEffect(() => {
-    if (!initialized) return;
-    if (!isAuthenticated) { router.push('/admin/login'); return; }
-    if (usuario?.rol !== 'admin') { router.push('/admin/dashboard'); return; }
-  }, [initialized, isAuthenticated, usuario, router]);
 
   const showToast = (msg, type = 'success') => {
     setToast({ message: msg, type });
@@ -49,20 +38,20 @@ export default function PedidosAdminPage() {
     }
   };
 
-  useEffect(() => { if (isAuthenticated && usuario?.rol === 'admin') fetchPedidos(); }, [page, estadoFilter, pagoFilter, search, isAuthenticated, usuario]);
+  useEffect(() => { fetchPedidos(); }, [page, estadoFilter, pagoFilter, search]);
 
   const handleEstado = async (id, estado) => {
     await api.put(`/api/pedidos/${id}`, { estado });
     showToast('Estado actualizado');
     fetchPedidos();
-    if (detail?.id === id) setDetail({ ...detail, estado });
+    if (detail?.id === id) setDetail(prev => ({ ...prev, estado }));
   };
 
   const handlePagado = async (id, pagado) => {
     await api.put(`/api/pedidos/${id}`, { pagado });
-    showToast(pagado ? 'Marcado como pagado' : 'Desmarcado como pagado');
+    showToast(pagado ? 'Marcado como pagado' : 'Desmarcado');
     fetchPedidos();
-    if (detail?.id === id) setDetail({ ...detail, pagado });
+    if (detail?.id === id) setDetail(prev => ({ ...prev, pagado }));
   };
 
   const openDetail = async (id) => {
@@ -75,39 +64,42 @@ export default function PedidosAdminPage() {
   const formatPrice = (n) => '$' + Number(n).toLocaleString('es-CO', { minimumFractionDigits: 0 });
   const formatDate = (d) => new Date(d).toLocaleString('es-CO', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' });
 
-  const estadoColors = {
-    pendiente: '#feb700', confirmado: '#2196F3', enviado: '#ff8c00', entregado: '#22c55e', cancelado: '#ba1a1a'
-  };
-
-  if (!initialized || !isAuthenticated || usuario?.rol !== 'admin') return null;
+  const estadoColors = { pendiente: '#feb700', confirmado: '#2196F3', enviado: '#ff8c00', entregado: '#22c55e', cancelado: '#ba1a1a' };
+  const S = { border: '1px solid #E2E8F0', boxShadow: '0 2px 4px rgba(0,0,0,0.06)', borderRadius: '8px' };
 
   return (
-    <div style={{ maxWidth: 1200, padding: '24px', minHeight: '100%', fontFamily: '"Inter", sans-serif', color: '#0b1c30' }}>
+    <div style={{ fontFamily: '"Inter", -apple-system, sans-serif', color: '#0b1c30' }}>
       <style dangerouslySetInnerHTML={{__html: `
+        .admin-input { background: #ffffff; border: 1px solid #E2E8F0; padding: 10px 14px; font-size: 15px; font-weight: 600; color: #0b1c30; outline: none; border-radius: 8px; font-family: 'Inter', sans-serif; }
+        .admin-input:focus { border-color: #ff8c00; box-shadow: 0 0 0 3px rgba(255,140,0,0.15); }
         .pedido-table { width: 100%; border-collapse: separate; border-spacing: 0; }
-        .pedido-table th { background: #eff4ff; border-bottom: 1px solid #E2E8F0; padding: 10px 12px; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; color: #564334; text-align: left; white-space: nowrap; }
-        .pedido-table td { padding: 10px 12px; border-bottom: 1px solid #E2E8F0; font-size: 13px; }
+        .pedido-table th { background: #eff4ff; border-bottom: 1px solid #E2E8F0; padding: 10px 14px; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; color: #564334; text-align: left; white-space: nowrap; }
+        .pedido-table td { padding: 10px 14px; border-bottom: 1px solid #E2E8F0; font-size: 14px; vertical-align: middle; }
         .pedido-table tr:hover td { background: #eff4ff; cursor: pointer; }
-        @media (max-width: 768px) { .pedido-table th, .pedido-table td { padding: 6px 8px; font-size: 11px; } }
+        @media (max-width: 768px) { .pedido-table th, .pedido-table td { padding: 6px 8px; font-size: 12px; } }
       `}} />
 
       {toast && (
-        <div style={{ position: 'fixed', top: 20, right: 20, zIndex: 9999, background: toast.type === 'error' ? '#ba1a1a' : '#22c55e', color: '#fff', padding: '12px 20px', fontSize: 14, fontWeight: 600, borderRadius: 12, boxShadow: '0 8px 24px rgba(0,0,0,0.12)' }}>
+        <div style={{ position: 'fixed', top: 20, right: 20, zIndex: 9999, background: toast.type === 'error' ? '#ba1a1a' : '#22c55e', color: '#fff', padding: '12px 20px', fontSize: 14, fontWeight: 600, borderRadius: 12, boxShadow: '0 8px 24px rgba(0,0,0,0.12)', fontFamily: '"Inter", sans-serif' }}>
           {toast.message}
         </div>
       )}
 
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
-        <h2 style={{ fontSize: 24, fontWeight: 800, borderLeft: '4px solid #ff8c00', paddingLeft: 12, margin: 0 }}>
-          📦 Pedidos ({total})
-        </h2>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 24, flexWrap: 'wrap', gap: 12 }}>
+        <div>
+          <h2 style={{ fontSize: 24, fontWeight: 800, color: '#0b1c30', margin: '0 0 4px', borderLeft: '4px solid #ff8c00', paddingLeft: 12 }}>
+            📦 Pedidos
+          </h2>
+          <div style={{ fontSize: 13, color: '#897362', marginTop: 4, fontWeight: 500 }}>{total} pedidos</div>
+        </div>
       </div>
 
-      <div style={{ display: 'flex', gap: 8, marginBottom: 16, flexWrap: 'wrap' }}>
-        <input type="text" placeholder="🔍 Buscar..." value={search} onChange={e => { setSearch(e.target.value); setPage(1); }}
-          style={{ padding: '8px 14px', border: '1px solid #E2E8F0', borderRadius: 8, fontSize: 14, outline: 'none', minWidth: 200 }} />
-        <select value={estadoFilter} onChange={e => { setEstadoFilter(e.target.value); setPage(1); }}
-          style={{ padding: '8px 14px', border: '1px solid #E2E8F0', borderRadius: 8, fontSize: 14, outline: 'none', cursor: 'pointer', appearance: 'auto' }}>
+      <div style={{ display: 'flex', gap: 8, marginBottom: 16, flexWrap: 'wrap', alignItems: 'center' }}>
+        <input className="admin-input" type="text" placeholder="🔍 Buscar cliente o producto..."
+          value={search} onChange={e => { setSearch(e.target.value); setPage(1); }}
+          style={{ width: 260, minHeight: 44 }} />
+        <select className="admin-input" value={estadoFilter} onChange={e => { setEstadoFilter(e.target.value); setPage(1); }}
+          style={{ minHeight: 44, cursor: 'pointer', appearance: 'auto' }}>
           <option value="">Todos los estados</option>
           <option value="pendiente">Pendiente</option>
           <option value="confirmado">Confirmado</option>
@@ -115,18 +107,21 @@ export default function PedidosAdminPage() {
           <option value="entregado">Entregado</option>
           <option value="cancelado">Cancelado</option>
         </select>
-        <select value={pagoFilter} onChange={e => { setPagoFilter(e.target.value); setPage(1); }}
-          style={{ padding: '8px 14px', border: '1px solid #E2E8F0', borderRadius: 8, fontSize: 14, outline: 'none', cursor: 'pointer', appearance: 'auto' }}>
+        <select className="admin-input" value={pagoFilter} onChange={e => { setPagoFilter(e.target.value); setPage(1); }}
+          style={{ minHeight: 44, cursor: 'pointer', appearance: 'auto' }}>
           <option value="">Todos los pagos</option>
           <option value="contraentrega">Contra entrega</option>
           <option value="transferencia">Transferencia</option>
         </select>
+        <div style={{ marginLeft: 'auto', fontSize: 13, color: '#897362', fontWeight: 700 }}>
+          Página {page} de {totalPages}
+        </div>
       </div>
 
       {loading ? (
         <div style={{ textAlign: 'center', padding: 48, fontSize: 16, fontWeight: 700, color: '#897362' }}>Cargando...</div>
       ) : (
-        <div style={{ background: '#fff', border: '1px solid #E2E8F0', boxShadow: '0 4px 12px rgba(0,0,0,0.06)', borderRadius: 10, overflow: 'auto' }}>
+        <div style={{ background: '#ffffff', border: '1px solid #E2E8F0', boxShadow: '0 8px 24px rgba(0,0,0,0.10)', borderRadius: 10, overflow: 'auto' }}>
           <table className="pedido-table">
             <thead>
               <tr>
@@ -140,23 +135,30 @@ export default function PedidosAdminPage() {
             </thead>
             <tbody>
               {pedidos.length === 0 ? (
-                <tr><td colSpan={6} style={{ textAlign: 'center', padding: 40, color: '#897362' }}>No se encontraron pedidos</td></tr>
+                <tr><td colSpan={6} style={{ textAlign: 'center', padding: 40, color: '#897362', fontSize: 15, fontWeight: 700 }}>No se encontraron pedidos</td></tr>
               ) : (
                 pedidos.map(p => (
                   <tr key={p.id} onClick={() => openDetail(p.id)}>
-                    <td style={{ whiteSpace: 'nowrap' }}>{formatDate(p.createdAt)}</td>
+                    <td style={{ whiteSpace: 'nowrap', fontSize: 13 }}>{formatDate(p.createdAt)}</td>
                     <td style={{ fontWeight: 600 }}>{p.nombre} {p.apellido}</td>
-                    <td style={{ maxWidth: 200, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{p.productoNombre}</td>
+                    <td style={{ maxWidth: 220, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{p.productoNombre}</td>
                     <td style={{ fontWeight: 700, fontFamily: 'monospace' }}>{formatPrice(p.total)}</td>
                     <td>
-                      <span style={{ fontSize: 11, fontWeight: 700, padding: '3px 8px', borderRadius: 20, background: p.metodoPago === 'transferencia' ? '#e5eeff' : '#f0fdf4', color: p.metodoPago === 'transferencia' ? '#904d00' : '#166534' }}>
+                      <span style={{
+                        fontSize: 11, fontWeight: 700, padding: '3px 8px', borderRadius: 20,
+                        background: p.metodoPago === 'transferencia' ? '#e5eeff' : '#f0fdf4',
+                        color: p.metodoPago === 'transferencia' ? '#904d00' : '#166534'
+                      }}>
                         {p.metodoPago === 'transferencia' ? '🏦 Transf.' : '💵 Contra entrega'}
                       </span>
-                      {p.pagado && <span style={{ marginLeft: 4, fontSize: 11, color: '#22c55e', fontWeight: 700 }}>✓</span>}
+                      {p.pagado && <span style={{ marginLeft: 4, fontSize: 12, color: '#22c55e', fontWeight: 700 }}>✓</span>}
                     </td>
                     <td>
-                      <span style={{ fontSize: 11, fontWeight: 700, padding: '3px 8px', borderRadius: 20, background: estadoColors[p.estado] || '#E2E8F0', color: '#fff' }}>
-                        {p.estado.toUpperCase()}
+                      <span style={{
+                        fontSize: 11, fontWeight: 700, padding: '3px 10px', borderRadius: 20,
+                        background: estadoColors[p.estado] || '#E2E8F0', color: '#fff'
+                      }}>
+                        {p.estado.charAt(0).toUpperCase() + p.estado.slice(1)}
                       </span>
                     </td>
                   </tr>
@@ -168,57 +170,115 @@ export default function PedidosAdminPage() {
       )}
 
       {totalPages > 1 && (
-        <div style={{ display: 'flex', justifyContent: 'center', gap: 6, marginTop: 16 }}>
-          <button disabled={page <= 1} onClick={() => setPage(p => p - 1)}
-            style={{ padding: '6px 14px', border: '1px solid #E2E8F0', borderRadius: 8, cursor: 'pointer', background: '#fff', opacity: page <= 1 ? 0.4 : 1 }}>← Anterior</button>
-          <span style={{ alignSelf: 'center', fontSize: 13, fontWeight: 600 }}>Pág {page} de {totalPages}</span>
-          <button disabled={page >= totalPages} onClick={() => setPage(p => p + 1)}
-            style={{ padding: '6px 14px', border: '1px solid #E2E8F0', borderRadius: 8, cursor: 'pointer', background: '#fff', opacity: page >= totalPages ? 0.4 : 1 }}>Siguiente →</button>
+        <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: 8, marginTop: 20 }}>
+          <button disabled={page <= 1} onClick={() => setPage(p => p - 1)} style={{
+            ...S, background: page <= 1 ? '#eff4ff' : '#ffffff', color: '#0b1c30', opacity: page <= 1 ? 0.4 : 1,
+            fontSize: 14, padding: '6px 16px', minHeight: 40, cursor: 'pointer'
+          }}>← Anterior</button>
+          {Array.from({ length: totalPages }, (_, i) => i + 1).filter(p => p === 1 || p === totalPages || Math.abs(p - page) <= 1).map((p, idx, arr) => (
+            <span key={p}>
+              {idx > 0 && arr[idx - 1] !== p - 1 && <span style={{ color: '#897362', margin: '0 4px' }}>…</span>}
+              <button onClick={() => setPage(p)} style={{
+                minWidth: 40, height: 40, fontWeight: 800, fontSize: 14, cursor: 'pointer',
+                border: '1px solid #E2E8F0', background: p === page ? '#ff8c00' : '#ffffff',
+                color: p === page ? '#fff' : '#564334',
+                boxShadow: p === page ? '0 2px 4px rgba(0,0,0,0.06)' : 'none',
+                borderRadius: 4
+              }}>{p}</button>
+            </span>
+          ))}
+          <button disabled={page >= totalPages} onClick={() => setPage(p => p + 1)} style={{
+            ...S, background: page >= totalPages ? '#eff4ff' : '#ffffff', color: '#0b1c30', opacity: page >= totalPages ? 0.4 : 1,
+            fontSize: 14, padding: '6px 16px', minHeight: 40, cursor: 'pointer'
+          }}>Siguiente →</button>
         </div>
       )}
 
       {detail && (
-        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.6)', zIndex: 9998, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.7)', zIndex: 10000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}
           onClick={() => setDetail(null)}>
-          <div style={{ background: '#fff', borderRadius: 12, width: 'min(500px, 95vw)', maxHeight: '90vh', overflow: 'auto', padding: 24, boxShadow: '0 16px 40px rgba(0,0,0,0.15)' }}
-            onClick={e => e.stopPropagation()}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
-              <h3 style={{ fontSize: 18, fontWeight: 800, margin: 0 }}>Detalle del pedido</h3>
-              <button onClick={() => setDetail(null)} style={{ background: 'none', border: 'none', fontSize: 20, cursor: 'pointer' }}>✕</button>
+          <div style={{
+            background: '#ffffff', border: '1px solid #E2E8F0', borderRadius: 12, boxShadow: '0 16px 40px rgba(0,0,0,0.15)',
+            width: 'min(520px, 96vw)', maxHeight: '90vh', overflow: 'auto', padding: 28, fontFamily: '"Inter", sans-serif'
+          }} onClick={e => e.stopPropagation()}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20, borderBottom: '1px solid #E2E8F0', paddingBottom: 12 }}>
+              <h3 style={{ fontSize: 20, fontWeight: 800, margin: 0, color: '#0b1c30' }}>Detalle del pedido</h3>
+              <button onClick={() => setDetail(null)} style={{ background: 'none', border: 'none', fontSize: 22, cursor: 'pointer', color: '#897362' }}>✕</button>
             </div>
 
             <div style={{ display: 'grid', gap: 10, fontSize: 14 }}>
-              <div><strong>Producto:</strong> {detail.productoNombre}</div>
-              <div><strong>Cliente:</strong> {detail.nombre} {detail.apellido}</div>
-              <div><strong>Celular:</strong> {detail.celular}</div>
-              <div><strong>Dirección:</strong> {detail.direccion}</div>
-              <div><strong>{detail.departamento}, {detail.ciudad}</strong></div>
-              {detail.email && <div><strong>Email:</strong> {detail.email}</div>}
-              {detail.notas && <div><strong>Notas:</strong> {detail.notas}</div>}
-              <div><strong>Cantidad:</strong> {detail.cantidad}</div>
-              <div><strong>Precio unitario:</strong> {formatPrice(detail.precioUnitario)}</div>
-              <div style={{ fontSize: 16, fontWeight: 800 }}><strong>Total:</strong> {formatPrice(detail.total)}</div>
-              <div><strong>Método de pago:</strong> {detail.metodoPago === 'transferencia' ? '🏦 Transferencia' : '💵 Contra entrega'}</div>
-              <div><strong>Pagado:</strong> {detail.pagado ? '✅ Sí' : '❌ No'}</div>
-              <div><strong>Fecha:</strong> {formatDate(detail.createdAt)}</div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', padding: '6px 0', borderBottom: '1px solid #E2E8F0' }}>
+                <span style={{ color: '#897362', fontWeight: 600, textTransform: 'uppercase', fontSize: 11, letterSpacing: 1 }}>Producto</span>
+                <span style={{ fontWeight: 700 }}>{detail.productoNombre}</span>
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', padding: '6px 0', borderBottom: '1px solid #E2E8F0' }}>
+                <span style={{ color: '#897362', fontWeight: 600, textTransform: 'uppercase', fontSize: 11, letterSpacing: 1 }}>Cliente</span>
+                <span style={{ fontWeight: 600 }}>{detail.nombre} {detail.apellido}</span>
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', padding: '6px 0', borderBottom: '1px solid #E2E8F0' }}>
+                <span style={{ color: '#897362', fontWeight: 600, textTransform: 'uppercase', fontSize: 11, letterSpacing: 1 }}>Celular</span>
+                <span style={{ fontWeight: 600 }}>{detail.celular}</span>
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', padding: '6px 0', borderBottom: '1px solid #E2E8F0' }}>
+                <span style={{ color: '#897362', fontWeight: 600, textTransform: 'uppercase', fontSize: 11, letterSpacing: 1 }}>Dirección</span>
+                <span style={{ fontWeight: 600, textAlign: 'right' }}>{detail.direccion}, {detail.ciudad}, {detail.departamento}</span>
+              </div>
+              {detail.email && (
+                <div style={{ display: 'flex', justifyContent: 'space-between', padding: '6px 0', borderBottom: '1px solid #E2E8F0' }}>
+                  <span style={{ color: '#897362', fontWeight: 600, textTransform: 'uppercase', fontSize: 11, letterSpacing: 1 }}>Email</span>
+                  <span style={{ fontWeight: 600 }}>{detail.email}</span>
+                </div>
+              )}
+              {detail.notas && (
+                <div style={{ display: 'flex', justifyContent: 'space-between', padding: '6px 0', borderBottom: '1px solid #E2E8F0' }}>
+                  <span style={{ color: '#897362', fontWeight: 600, textTransform: 'uppercase', fontSize: 11, letterSpacing: 1 }}>Notas</span>
+                  <span style={{ fontWeight: 600, textAlign: 'right' }}>{detail.notas}</span>
+                </div>
+              )}
+              <div style={{ display: 'flex', justifyContent: 'space-between', padding: '6px 0', borderBottom: '1px solid #E2E8F0' }}>
+                <span style={{ color: '#897362', fontWeight: 600, textTransform: 'uppercase', fontSize: 11, letterSpacing: 1 }}>Cantidad</span>
+                <span style={{ fontWeight: 600 }}>{detail.cantidad}</span>
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', padding: '6px 0', borderBottom: '1px solid #E2E8F0' }}>
+                <span style={{ color: '#897362', fontWeight: 600, textTransform: 'uppercase', fontSize: 11, letterSpacing: 1 }}>Precio unitario</span>
+                <span style={{ fontWeight: 600 }}>{formatPrice(detail.precioUnitario)}</span>
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', padding: '8px 0', background: '#eff4ff', margin: '0 -12px', paddingLeft: 12, paddingRight: 12, borderRadius: 8 }}>
+                <span style={{ fontWeight: 800, fontSize: 16 }}>Total</span>
+                <span style={{ fontWeight: 800, fontSize: 16, color: '#0b1c30' }}>{formatPrice(detail.total)}</span>
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', padding: '6px 0', borderBottom: '1px solid #E2E8F0' }}>
+                <span style={{ color: '#897362', fontWeight: 600, textTransform: 'uppercase', fontSize: 11, letterSpacing: 1 }}>Método de pago</span>
+                <span style={{ fontWeight: 600 }}>{detail.metodoPago === 'transferencia' ? '🏦 Transferencia' : '💵 Contra entrega'}</span>
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', padding: '6px 0', borderBottom: '1px solid #E2E8F0' }}>
+                <span style={{ color: '#897362', fontWeight: 600, textTransform: 'uppercase', fontSize: 11, letterSpacing: 1 }}>Pagado</span>
+                <span style={{ fontWeight: 700, color: detail.pagado ? '#22c55e' : '#ba1a1a' }}>{detail.pagado ? '✅ Sí' : '❌ No'}</span>
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', padding: '6px 0' }}>
+                <span style={{ color: '#897362', fontWeight: 600, textTransform: 'uppercase', fontSize: 11, letterSpacing: 1 }}>Fecha</span>
+                <span style={{ fontWeight: 600 }}>{formatDate(detail.createdAt)}</span>
+              </div>
             </div>
 
-            <div style={{ marginTop: 16, display: 'flex', flexWrap: 'wrap', gap: 6 }}>
-              <label style={{ fontSize: 12, fontWeight: 700, color: '#564334', textTransform: 'uppercase' }}>Estado</label>
-              <select value={detail.estado} onChange={e => handleEstado(detail.id, e.target.value)}
-                style={{ width: '100%', padding: '8px 12px', border: '1px solid #E2E8F0', borderRadius: 8, fontSize: 14, cursor: 'pointer', appearance: 'auto' }}>
-                <option value="pendiente">Pendiente</option>
-                <option value="confirmado">Confirmado</option>
-                <option value="enviado">Enviado</option>
-                <option value="entregado">Entregado</option>
-                <option value="cancelado">Cancelado</option>
-              </select>
-            </div>
+            <div style={{ marginTop: 20, display: 'grid', gap: 12 }}>
+              <div>
+                <div style={{ fontSize: 12, fontWeight: 700, color: '#564334', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 6 }}>Cambiar estado</div>
+                <select value={detail.estado} onChange={e => handleEstado(detail.id, e.target.value)}
+                  className="admin-input" style={{ width: '100%', cursor: 'pointer', appearance: 'auto' }}>
+                  <option value="pendiente">Pendiente</option>
+                  <option value="confirmado">Confirmado</option>
+                  <option value="enviado">Enviado</option>
+                  <option value="entregado">Entregado</option>
+                  <option value="cancelado">Cancelado</option>
+                </select>
+              </div>
 
-            <div style={{ marginTop: 12, display: 'flex', gap: 8 }}>
               <button onClick={() => handlePagado(detail.id, !detail.pagado)} style={{
-                padding: '8px 16px', border: 'none', borderRadius: 8, cursor: 'pointer', fontWeight: 700, fontSize: 13,
-                background: detail.pagado ? '#ff8c00' : '#22c55e', color: '#fff'
+                width: '100%', minHeight: 44, border: 'none', borderRadius: 10, cursor: 'pointer', fontWeight: 700, fontSize: 14,
+                background: detail.pagado ? '#ff8c00' : '#22c55e', color: '#fff',
+                boxShadow: detail.pagado ? '0 4px 12px rgba(255,140,0,0.2)' : '0 4px 12px rgba(34,197,94,0.2)',
+                fontFamily: '"Inter", sans-serif'
               }}>
                 {detail.pagado ? 'Desmarcar pago' : '✓ Marcar como pagado'}
               </button>
