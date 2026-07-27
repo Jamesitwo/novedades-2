@@ -72,6 +72,7 @@ export default function Sidebar() {
   const pizdoItems = [
     ...(showLucidsales || isAdmin ? [{ href: '/', label: 'Tienda', icon: '🛒' }] : []),
     ...(isAdmin ? [{ href: '/admin/tienda', label: 'Admin Tienda', icon: '⚙' }] : []),
+    ...(isAdmin ? [{ href: '/admin/pedidos', label: 'Pedidos', icon: '📦' }] : []),
   ];
 
   const adminItems = isAdmin ? [
