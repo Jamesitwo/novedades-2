@@ -353,6 +353,7 @@ model ProductoTienda {
   createdById     String    @map("created_by")
   createdBy       Usuario   @relation(fields: [createdById], references: [id])
   resenas         Resena[]
+  pedidos         PedidoTienda[]
   createdAt       DateTime  @default(now())
   updatedAt       DateTime  @updatedAt
 
