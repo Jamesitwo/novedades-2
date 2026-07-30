@@ -441,6 +441,7 @@ export default function LucidSalesPage() {
                   <th>Producto</th>
                   <th style={{ width: 50, textAlign: 'center' }}>⚠</th>
                   <th>Asignado</th>
+                  <th>Subido por</th>
                   <th>Referencias</th>
                   <th>Etiquetas</th>
                   <th style={{ width: 80 }}>Acciones</th>
@@ -478,6 +479,15 @@ export default function LucidSalesPage() {
                           </span>
                         ) : null;
                       })()}
+                    </td>
+                    <td style={{ fontSize: 12 }}>
+                      {p.subidoPor ? (
+                        <span style={{ color: 'var(--accent)', fontWeight: 500 }}>{p.subidoPor.nombre}</span>
+                      ) : p.creador ? (
+                        <span style={{ color: 'var(--text3)', fontStyle: 'italic' }}>{p.creador.nombre} (legacy)</span>
+                      ) : (
+                        <span style={{ color: 'var(--text3)' }}>—</span>
+                      )}
                     </td>
                     <td style={{ fontSize: 12 }}>
                       {p.asignado ? (
