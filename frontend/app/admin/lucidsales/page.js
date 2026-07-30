@@ -493,7 +493,7 @@ export default function LucidSalesPage() {
                       ) : p.creador ? (
                         <span style={{ color: 'var(--text3)', fontSize: 11 }}>{p.creador.nombre}</span>
                       ) : (
-                        <span style={{ color: 'var(--text3)' }}>—</span>
+                        <span style={{ color: '#feb700', fontSize: 11, fontWeight: 600 }}>Pendiente</span>
                       )}
                     </td>
                     <td style={{ maxWidth: 150, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
