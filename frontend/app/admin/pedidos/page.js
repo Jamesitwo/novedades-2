@@ -261,7 +261,7 @@ export default function PedidosAdminPage() {
               </div>
             </div>
 
-            {detail.historial?.length > 0 && (
+            {detail.historial?.length > 0 ? (
               <div style={{ marginTop: 20, borderTop: '1px solid #E2E8F0', paddingTop: 16 }}>
                 <div style={{ fontSize: 12, fontWeight: 700, color: '#564334', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 10 }}>
                   📋 Historial de cambios
@@ -282,6 +282,15 @@ export default function PedidosAdminPage() {
                       </span>
                     </div>
                   ))}
+                </div>
+              </div>
+            ) : (
+              <div style={{ marginTop: 20, borderTop: '1px solid #E2E8F0', paddingTop: 16 }}>
+                <div style={{ fontSize: 12, fontWeight: 700, color: '#564334', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 6 }}>
+                  📋 Historial de cambios
+                </div>
+                <div style={{ fontSize: 13, color: '#897362', padding: '10px 0' }}>
+                  Sin cambios registrados. El historial se generará al cambiar el estado o marcar como pagado.
                 </div>
               </div>
             )}
