@@ -45,6 +45,7 @@ model Usuario {
   pedidosVinculadosAsig PedidoVinculado[] @relation("VinculadoAsignado")
   pedidosSubidos        PedidoVinculado[] @relation("SubidoPor")
   alertasProducto      AlertaProducto[]
+  historialPedidosTienda HistorialPedidoTienda[]
 }
 
 model PedidoNovedad {
