@@ -484,7 +484,7 @@ export default function LucidSalesPage() {
                       {p.subidoPor ? (
                         <span style={{ color: 'var(--accent)', fontWeight: 500 }}>{p.subidoPor.nombre}</span>
                       ) : p.creador ? (
-                        <span style={{ color: 'var(--text3)', fontStyle: 'italic' }}>{p.creador.nombre} (legacy)</span>
+                        <span style={{ color: 'var(--text3)', fontSize: 11 }}>{p.creador.nombre}</span>
                       ) : (
                         <span style={{ color: 'var(--text3)' }}>—</span>
                       )}
