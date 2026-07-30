@@ -481,17 +481,17 @@ export default function LucidSalesPage() {
                       })()}
                     </td>
                     <td style={{ fontSize: 12 }}>
-                      {p.subidoPor ? (
-                        <span style={{ color: 'var(--accent)', fontWeight: 500 }}>{p.subidoPor.nombre}</span>
-                      ) : p.creador ? (
-                        <span style={{ color: 'var(--text3)', fontSize: 11 }}>{p.creador.nombre}</span>
+                      {p.asignado ? (
+                        <span style={{ color: 'var(--accent)', fontWeight: 500 }}>{p.asignado.nombre}</span>
                       ) : (
                         <span style={{ color: 'var(--text3)' }}>—</span>
                       )}
                     </td>
                     <td style={{ fontSize: 12 }}>
-                      {p.asignado ? (
-                        <span style={{ color: 'var(--accent)', fontWeight: 500 }}>{p.asignado.nombre}</span>
+                      {p.subidoPor ? (
+                        <span style={{ color: 'var(--accent)', fontWeight: 500 }}>{p.subidoPor.nombre}</span>
+                      ) : p.creador ? (
+                        <span style={{ color: 'var(--text3)', fontSize: 11 }}>{p.creador.nombre}</span>
                       ) : (
                         <span style={{ color: 'var(--text3)' }}>—</span>
                       )}
