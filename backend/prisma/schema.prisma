@@ -383,10 +383,23 @@ model PedidoTienda {
   metodoPago     String   @default("contraentrega") @map("metodo_pago")
   pagado         Boolean  @default(false)
   producto       ProductoTienda @relation(fields: [productoId], references: [id])
+  historial      HistorialPedidoTienda[]
   createdAt      DateTime @default(now()) @map("created_at")
   updatedAt      DateTime @updatedAt @map("updated_at")
 
   @@map("pedidos_tienda")
+}
+
+model HistorialPedidoTienda {
+  id          String        @id @default(uuid())
+  pedidoId    String        @map("pedido_id")
+  campo       String
+  valorAnt    String?
+  valorNuevo  String
+  usuarioId   String        @map("usuario_id")
+  usuario     Usuario       @relation(fields: [usuarioId], references: [id])
+  createdAt   DateTime      @default(now()) @map("created_at")
+  pedido      PedidoTienda  @relation(fields: [pedidoId], references: [id])
 }
 
 model Resena {

@@ -28,7 +28,10 @@ const getAll = async (req, res) => {
 
 const getById = async (req, res) => {
   try {
-    const pedido = await prisma.pedidoTienda.findUnique({ where: { id: req.params.id } });
+    const pedido = await prisma.pedidoTienda.findUnique({
+      where: { id: req.params.id },
+      include: { historial: { include: { usuario: { select: { id: true, nombre: true } } }, orderBy: { createdAt: 'desc' } } }
+    });
     if (!pedido) return res.status(404).json({ error: 'Pedido no encontrado' });
     res.json(pedido);
   } catch (error) {
@@ -40,9 +43,24 @@ const getById = async (req, res) => {
 const updateEstado = async (req, res) => {
   try {
     const { estado, pagado } = req.body;
+    const actual = await prisma.pedidoTienda.findUnique({ where: { id: req.params.id } });
+    if (!actual) return res.status(404).json({ error: 'Pedido no encontrado' });
+
     const data = {};
-    if (estado) data.estado = estado;
-    if (pagado !== undefined) data.pagado = pagado;
+    if (estado && estado !== actual.estado) {
+      data.estado = estado;
+      await prisma.historialPedidoTienda.create({
+        data: { pedidoId: req.params.id, campo: 'estado', valorAnt: actual.estado, valorNuevo: estado, usuarioId: req.usuario.id }
+      });
+    }
+    if (pagado !== undefined && pagado !== actual.pagado) {
+      data.pagado = pagado;
+      await prisma.historialPedidoTienda.create({
+        data: { pedidoId: req.params.id, campo: 'pagado', valorAnt: String(actual.pagado), valorNuevo: String(pagado), usuarioId: req.usuario.id }
+      });
+    }
+    if (Object.keys(data).length === 0) return res.json(actual);
+
     const pedido = await prisma.pedidoTienda.update({ where: { id: req.params.id }, data });
     res.json(pedido);
   } catch (error) {
