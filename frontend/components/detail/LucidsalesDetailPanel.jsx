@@ -357,9 +357,15 @@ export default function LucidsalesDetailPanel({ id, ids, currentIndex, onClose, 
     if (pedido.TipoPago === 2) {
       if (!window.confirm('Este pedido es por TRANSFERENCIA.\n\nYa verificaste que el cliente realizo la transferencia?\n\nPresiona Aceptar solo si el pago ya fue recibido.')) return;
     }
-      setUploading(true);
+    const q = quotes.quotes[selectedQuoteIdx];
+    const direccion = (pedido.Direccion || '').toLowerCase();
+    const esInterrapidisimo = direccion.includes('interrapidisimos') || direccion.includes('oficina interrapidisimos');
+    const transportadoraNoEsIR = !q.transportadora.toLowerCase().includes('interrapidisimo');
+    if (esInterrapidisimo && transportadoraNoEsIR) {
+      if (!window.confirm(`⚠ ATENCION\n\nLa direccion contiene "Interrapidisimos" pero estas intentando subir con "${q.transportadora}".\n\n¿Estas seguro de que quieres enviar con esta transportadora?\n\nPresiona Cancelar para elegir Interrapidisimo.`)) return;
+    }
+    setUploading(true);
     try {
-      const q = quotes.quotes[selectedQuoteIdx];
       await api.post(`/api/lucidsales/pedidos/${currentId}`, pedido);
       setCamposModificados(new Set());
       const { data } = await api.post('/api/lucidsales/pedidos/confirmar-envio', { pedidoId: Number(currentId), transportadora_id: q.transportadora_id });
