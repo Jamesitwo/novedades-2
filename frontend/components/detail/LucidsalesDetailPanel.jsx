@@ -360,8 +360,8 @@ export default function LucidsalesDetailPanel({ id, ids, currentIndex, onClose, 
     }
     if (selectedQuoteIdx == null || !quotes?.quotes?.[selectedQuoteIdx]) return;
     const q = quotes.quotes[selectedQuoteIdx];
-    const direccion = (pedido.Direccion || '').toLowerCase();
-    const esInter = direccion.includes('interrapidisimos') || direccion.includes('oficina interrapidisimos');
+    const direccion = (pedido.Direccion || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+    const esInter = direccion.includes('interrapidisimo');
     if (esInter && !q.transportadora?.toLowerCase().includes('interrapidisimo')) {
       setIrConfirm({ transportadora: q.transportadora, onProceed: () => {
         setIrConfirm(null);
