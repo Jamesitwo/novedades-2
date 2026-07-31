@@ -55,6 +55,7 @@ export default function LucidsalesDetailPanel({ id, ids, currentIndex, onClose, 
 
   const [toast, setToast] = useState(null);
   const [editProdPrice, setEditProdPrice] = useState(null);
+  const [irConfirm, setIrConfirm] = useState(null);
   const [editProdMode, setEditProdMode] = useState(null);
   const [stockErrors, setStockErrors] = useState({});
   const [refreshingStock, setRefreshingStock] = useState({});
@@ -362,8 +363,16 @@ export default function LucidsalesDetailPanel({ id, ids, currentIndex, onClose, 
     const direccion = (pedido.Direccion || '').toLowerCase();
     const esInter = direccion.includes('interrapidisimos') || direccion.includes('oficina interrapidisimos');
     if (esInter && !q.transportadora?.toLowerCase().includes('interrapidisimo')) {
-      if (!window.confirm(`⚠ ATENCION\n\nLa direccion contiene "Interrapidisimos" pero estas intentando subir con "${q.transportadora}".\n\nSeguro que quieres enviar con esta transportadora?\n\nPresiona Cancelar para elegir Interrapidisimo.`)) return;
+      setIrConfirm({ transportadora: q.transportadora, onProceed: () => {
+        setIrConfirm(null);
+        doUpload(q);
+      }, onCancel: () => setIrConfirm(null) });
+      return;
     }
+    doUpload(q);
+  };
+
+  const doUpload = async (q) => {
     setUploading(true);
     try {
       await api.post(`/api/lucidsales/pedidos/${currentId}`, pedido);
@@ -1114,6 +1123,42 @@ export default function LucidsalesDetailPanel({ id, ids, currentIndex, onClose, 
                 )}
                 {splitResults && <button onClick={() => { setShowSplitModal(false); setSplitResults(null); }} className="btn btn-primary">Cerrar</button>}
               </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {irConfirm && (
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.6)', zIndex: 99999, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}
+          onClick={irConfirm.onCancel}>
+          <div style={{
+            background: '#fff', borderRadius: 14, padding: 32, maxWidth: 440, width: '100%',
+            boxShadow: '0 20px 60px rgba(0,0,0,0.2)', textAlign: 'center', fontFamily: '"Inter", sans-serif'
+          }} onClick={e => e.stopPropagation()}>
+            <div style={{ fontSize: 40, marginBottom: 12 }}>⚠️</div>
+            <h3 style={{ fontSize: 18, fontWeight: 800, color: '#0b1c30', margin: '0 0 8px' }}>
+              ¿Estás seguro?
+            </h3>
+            <p style={{ fontSize: 14, color: '#564334', lineHeight: 1.6, margin: '0 0 6px' }}>
+              La dirección contiene <strong style={{ color: '#904d00' }}>Interrapidisimos</strong> pero estás por subir con
+            </p>
+            <p style={{ fontSize: 15, fontWeight: 700, color: '#ba1a1a', margin: '0 0 20px', background: '#ffdad6', padding: '8px 16px', borderRadius: 8, display: 'inline-block' }}>
+              {irConfirm.transportadora}
+            </p>
+            <div style={{ display: 'flex', gap: 10, justifyContent: 'center' }}>
+              <button onClick={irConfirm.onCancel} style={{
+                padding: '12px 24px', borderRadius: 10, border: '1px solid #E2E8F0', background: '#fff',
+                color: '#564334', fontSize: 14, fontWeight: 700, cursor: 'pointer', fontFamily: '"Inter", sans-serif'
+              }}>
+                Cancelar
+              </button>
+              <button onClick={irConfirm.onProceed} style={{
+                padding: '12px 24px', borderRadius: 10, border: 'none', background: '#ff8c00',
+                color: '#fff', fontSize: 14, fontWeight: 700, cursor: 'pointer', fontFamily: '"Inter", sans-serif',
+                boxShadow: '0 4px 12px rgba(255,140,0,0.3)'
+              }}>
+                Subir de todos modos
+              </button>
             </div>
           </div>
         </div>
