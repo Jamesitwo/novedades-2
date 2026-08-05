@@ -27,6 +27,7 @@ export default function TiendaPage() {
   const [bundleProducts, setBundleProducts] = useState([]);
   const [homeConfig, setHomeConfig] = useState({});
   const [homeCategorias, setHomeCategorias] = useState([]);
+  const [redesSociales, setRedesSociales] = useState([]);
 
   useEffect(() => {
     const onScroll = () => setScrollY(window.scrollY);
@@ -49,6 +50,7 @@ export default function TiendaPage() {
         coupon_descuento: data.coupon_descuento || ''
       });
       setHomeCategorias(data.homepage_categorias || []);
+      setRedesSociales(data.redes_sociales || []);
       const ids = data.bundle_productos || [];
       if (ids.length > 0) {
         setBundleConfig({
@@ -480,6 +482,34 @@ export default function TiendaPage() {
           );
         } catch { return null; }
       })()}
+
+      {redesSociales.length > 0 && (
+        <section className="ff-section" style={{ padding: '48px 24px', background: '#213145', color: '#ffb77d' }}>
+          <div style={{ maxWidth: 1280, margin: '0 auto', textAlign: 'center' }}>
+            <h2 style={{ fontSize: 'clamp(20px, 4vw, 24px)', fontWeight: 700, marginBottom: 8, color: '#ffb77d' }}>
+              🌐 Síguenos
+            </h2>
+            <p style={{ color: '#cbdbf5', fontSize: 15, marginBottom: 28, opacity: 0.8 }}>
+              Entérate de ofertas, nuevos productos y más
+            </p>
+            <div style={{ display: 'flex', justifyContent: 'center', gap: 20, flexWrap: 'wrap' }}>
+              {redesSociales.map((r, i) => (
+                <a key={i} href={r.url} target="_blank" rel="noopener noreferrer" style={{
+                  textDecoration: 'none', color: '#ffb77d', display: 'flex', flexDirection: 'column',
+                  alignItems: 'center', gap: 10, padding: '20px 28px', background: 'rgba(255,255,255,0.06)',
+                  borderRadius: 14, border: '1px solid rgba(255,255,255,0.1)', transition: 'all 0.2s',
+                  minWidth: 100
+                }}
+                onMouseEnter={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.12)'; e.currentTarget.style.transform = 'translateY(-3px)'; e.currentTarget.style.boxShadow = '0 8px 24px rgba(0,0,0,0.2)'; }}
+                onMouseLeave={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.06)'; e.currentTarget.style.transform = 'none'; e.currentTarget.style.boxShadow = 'none'; }}>
+                  <span style={{ fontSize: 32 }}>{r.icono}</span>
+                  <span style={{ fontSize: 14, fontWeight: 700 }}>{r.plataforma}</span>
+                </a>
+              ))}
+            </div>
+          </div>
+        </section>
+      )}
 
       {upsellProductId && <UpsellPopup productoId={upsellProductId} onClose={() => setUpsellProductId(null)} />}
       {proofEvents.map(evt => (

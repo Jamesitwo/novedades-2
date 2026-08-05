@@ -286,6 +286,7 @@ model Configuracion {
   envio_dias                String?   @map("envio_dias")
   garantia_titulo           String?   @map("garantia_titulo")
   garantia_texto            String?   @map("garantia_texto")
+  redesSociales             Json?     @default("[]") @map("redes_sociales")
   hero_titulo               String?   @map("hero_titulo")
   hero_subtitulo            String?   @map("hero_subtitulo")
   hero_boton_texto          String?   @map("hero_boton_texto")

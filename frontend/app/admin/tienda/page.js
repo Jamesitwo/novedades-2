@@ -59,6 +59,8 @@ export default function TiendaAdminPage() {
     envio_texto: '', envio_dias: '', garantia_titulo: '', garantia_texto: ''
   });
   const [homeCategorias, setHomeCategorias] = useState([]);
+  const [redesSociales, setRedesSociales] = useState([]);
+  const [redForm, setRedForm] = useState({ plataforma: '', url: '', icono: '' });
   const [savingHome, setSavingHome] = useState(false);
 
   useEffect(() => {
@@ -97,6 +99,7 @@ export default function TiendaAdminPage() {
         garantia_texto: data.garantia_texto || ''
       });
       setHomeCategorias(data.homepage_categorias || []);
+      setRedesSociales(data.redes_sociales || []);
     }).catch(() => {});
   }, [isAuthenticated, usuario]);
 
@@ -1124,6 +1127,45 @@ export default function TiendaAdminPage() {
             )}
           </div>
 
+          <div style={{ background: '#f8f9ff', borderRadius: 10, padding: 16 }}>
+            <div style={{ fontSize: 13, fontWeight: 800, color: '#904d00', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 12 }}>🌐 Redes Sociales</div>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginBottom: 10 }}>
+              {redesSociales.map((r, i) => (
+                <span key={i} style={{
+                  background: '#213145', color: '#ffb77d', padding: '6px 12px', borderRadius: 20,
+                  fontSize: 12, fontWeight: 700, display: 'inline-flex', alignItems: 'center', gap: 6
+                }}>
+                  {r.icono} {r.plataforma}
+                  <button onClick={() => setRedesSociales(prev => prev.filter((_, idx) => idx !== i))}
+                    style={{ background: 'none', border: 'none', color: '#ba1a1a', cursor: 'pointer', fontSize: 14, fontWeight: 700, padding: 0 }}>✕</button>
+                </span>
+              ))}
+            </div>
+            <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+              <select className="admin-input" value={redForm.plataforma} onChange={e => setRedForm(prev => ({ ...prev, plataforma: e.target.value }))}
+                style={{ minHeight: 40, fontSize: 13, cursor: 'pointer', appearance: 'auto' }}>
+                <option value="">Plataforma</option>
+                <option value="Instagram">Instagram</option>
+                <option value="Facebook">Facebook</option>
+                <option value="TikTok">TikTok</option>
+                <option value="YouTube">YouTube</option>
+                <option value="WhatsApp">WhatsApp</option>
+                <option value="Twitter">Twitter / X</option>
+              </select>
+              <input className="admin-input" value={redForm.url} onChange={e => setRedForm(prev => ({ ...prev, url: e.target.value }))}
+                placeholder="https://..." style={{ flex: 1, minHeight: 40, fontSize: 13 }} />
+              <button onClick={() => {
+                if (redForm.plataforma && redForm.url) {
+                  const iconos = { Instagram: '📷', Facebook: '📘', TikTok: '🎵', YouTube: '▶️', WhatsApp: '💬', Twitter: '🐦' };
+                  setRedesSociales(prev => [...prev, { ...redForm, icono: iconos[redForm.plataforma] || '🔗' }]);
+                  setRedForm({ plataforma: '', url: '', icono: '' });
+                }
+              }} style={{
+                ...S, background: '#213145', color: '#ffb77d', minHeight: 40, padding: '0 16px', cursor: 'pointer', fontSize: 13, fontWeight: 700, border: 'none'
+              }}>+ Agregar</button>
+            </div>
+          </div>
+
           <button onClick={async () => {
             setSavingHome(true);
             try {
@@ -1144,7 +1186,8 @@ export default function TiendaAdminPage() {
                 envio_texto: homeConfig.envio_texto || null,
                 envio_dias: homeConfig.envio_dias || null,
                 garantia_titulo: homeConfig.garantia_titulo || null,
-                garantia_texto: homeConfig.garantia_texto || null
+                garantia_texto: homeConfig.garantia_texto || null,
+                redesSociales: redesSociales
               });
               showToast('Homepage guardada correctamente');
             } catch (e) { showToast('Error al guardar', 'error'); }

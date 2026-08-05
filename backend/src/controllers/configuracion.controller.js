@@ -41,7 +41,7 @@ const updateConfiguracion = async (req, res) => {
       coupon_activo, coupon_codigo, coupon_texto, coupon_descuento,
       whatsapp_numero,
       promo_bar_texto, homepage_categorias,
-      envio_texto, envio_dias, garantia_titulo, garantia_texto } = req.body;
+      envio_texto, envio_dias, garantia_titulo, garantia_texto, redesSociales } = req.body;
 
     let config = await prisma.configuracion.findFirst();
 
@@ -95,6 +95,7 @@ const updateConfiguracion = async (req, res) => {
     if (envio_dias !== undefined) extraData.envio_dias = envio_dias || null;
     if (garantia_titulo !== undefined) extraData.garantia_titulo = garantia_titulo || null;
     if (garantia_texto !== undefined) extraData.garantia_texto = garantia_texto || null;
+    if (redesSociales !== undefined) extraData.redesSociales = redesSociales || [];
 
     if (req.body.lucidsales_reset === true) {
       extraData.lucidsales_token = null;
@@ -169,7 +170,8 @@ const getPublicConfig = async (req, res) => {
       empresa_banco: config.empresa_banco || null,
       empresa_tipo_cuenta: config.empresa_tipo_cuenta || null,
       empresa_numero_cuenta: config.empresa_numero_cuenta || null,
-      empresa_titular_cuenta: config.empresa_titular_cuenta || null
+      empresa_titular_cuenta: config.empresa_titular_cuenta || null,
+      redes_sociales: config.redesSociales || []
     });
   } catch (error) {
     console.error('Get public config error:', error);
