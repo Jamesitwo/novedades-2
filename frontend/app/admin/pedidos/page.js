@@ -261,40 +261,6 @@ export default function PedidosAdminPage() {
               </div>
             </div>
 
-            {detail.historial?.length > 0 ? (
-              <div style={{ marginTop: 20, borderTop: '1px solid #E2E8F0', paddingTop: 16 }}>
-                <div style={{ fontSize: 12, fontWeight: 700, color: '#564334', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 10 }}>
-                  📋 Historial de cambios
-                </div>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-                  {detail.historial.map((h, i) => (
-                    <div key={h.id || i} style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 12, padding: '6px 8px', background: i % 2 === 0 ? '#f8f9ff' : '#fff', borderRadius: 6 }}>
-                      <span style={{ color: '#897362', fontSize: 11, whiteSpace: 'nowrap', minWidth: 110 }}>
-                        {new Date(h.createdAt).toLocaleString('es-CO', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' })}
-                      </span>
-                      <span style={{ fontWeight: 600, color: '#ff8c00', minWidth: 90 }}>{h.usuario?.nombre || 'Sistema'}</span>
-                      <span style={{ color: '#0b1c30' }}>
-                        {h.campo === 'estado' ? (
-                          <>{h.valorAnt} → <strong>{h.valorNuevo}</strong></>
-                        ) : (
-                          <>{h.valorNuevo === 'true' ? '💵 Marcado como pagado' : '❌ Desmarcado pago'}</>
-                        )}
-                      </span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            ) : (
-              <div style={{ marginTop: 20, borderTop: '1px solid #E2E8F0', paddingTop: 16 }}>
-                <div style={{ fontSize: 12, fontWeight: 700, color: '#564334', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 6 }}>
-                  📋 Historial de cambios
-                </div>
-                <div style={{ fontSize: 13, color: '#897362', padding: '10px 0' }}>
-                  Sin cambios registrados. El historial se generará al cambiar el estado o marcar como pagado.
-                </div>
-              </div>
-            )}
-
             <div style={{ marginTop: 20, display: 'grid', gap: 12 }}>
               <div>
                 <div style={{ fontSize: 12, fontWeight: 700, color: '#564334', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 6 }}>Cambiar estado</div>

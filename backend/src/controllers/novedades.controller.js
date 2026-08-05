@@ -285,14 +285,9 @@ const cambiarEstado = async (req, res) => {
 
     await registrarCambio(id, 'pedidos_novedad', 'estado', actual.estado, estado, req.usuario.id, `${actual.nombre} ${actual.apellido}`);
 
-    const updateData = { estado };
-    if (estado === 'solucionado') {
-      updateData.asignadoId = req.usuario.id;
-    }
-
     const novedad = await prisma.pedidoNovedad.update({
       where: { id },
-      data: updateData,
+      data: { estado },
       include: {
         createdBy: { select: { id: true, nombre: true } }
       }

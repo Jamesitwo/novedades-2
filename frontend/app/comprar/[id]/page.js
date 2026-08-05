@@ -300,18 +300,11 @@ export default function ComprarPage() {
                   </div>
                 )}
 
-                <div style={{ marginTop: 16 }}>
-                  {total >= 100000 ? (
-                    <div style={{ background: 'rgba(34,197,94,0.08)', borderRadius: 8, padding: '10px 14px', fontSize: 13, fontWeight: 600, color: '#166534', border: '1px solid rgba(34,197,94,0.2)' }}>🚚 ¡Envío gratis! Tu pedido supera los $100,000</div>
-                  ) : (
-                    <div>
-                      <div style={{ fontSize: 12, fontWeight: 600, color: C.subtext, marginBottom: 6 }}>🚚 Agrega <strong>{formatPrice(100000 - total)}</strong> más para envío gratis</div>
-                      <div style={{ height: 8, background: '#eff4ff', borderRadius: 4, overflow: 'hidden' }}>
-                        <div style={{ height: '100%', background: C.primary, borderRadius: 4, width: `${Math.min(100, (total / 100000) * 100)}%`, transition: 'width 0.4s ease' }} />
-                      </div>
-                    </div>
-                  )}
-                </div>
+                {producto.envioGratis ? (
+                  <div style={{ marginTop: 16, background: 'rgba(34,197,94,0.08)', borderRadius: 8, padding: '10px 14px', fontSize: 13, fontWeight: 600, color: '#166534', border: '1px solid rgba(34,197,94,0.2)' }}>🚚 ¡Envío gratis!</div>
+                ) : producto.envioCosto ? (
+                  <div style={{ marginTop: 16, background: '#eff4ff', borderRadius: 8, padding: '10px 14px', fontSize: 13, fontWeight: 600, color: '#0b1c30', border: '1px solid ' + C.border }}>🚚 Envío: {formatPrice(producto.envioCosto)}</div>
+                ) : null}
 
                 {producto?.relacionados?.length > 0 && (
                   <div style={{ marginTop: 24, padding: 16, background: '#f8f9ff', borderRadius: 12, border: '1px solid ' + C.border }}>
