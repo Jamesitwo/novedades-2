@@ -40,6 +40,8 @@ export const useCartStore = create((set, get) => ({
         precioOriginal: producto.precioVenta,
         imagen: producto.imagen || '',
         categoria: producto.categoria || '',
+        envioGratis: producto.envioGratis || false,
+        envioCosto: producto.envioCosto || null,
         cantidad
       }];
     }

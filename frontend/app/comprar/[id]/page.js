@@ -132,8 +132,9 @@ export default function ComprarPage() {
   const tieneOferta = producto?.ofertaActiva && producto?.ofertaPrecio && new Date(producto.ofertaHasta) > new Date();
   const precioFinal = tieneOferta ? producto?.ofertaPrecio : producto?.precioVenta;
   const subtotalProducto = precioFinal * form.cantidad;
-  const envioCosto = producto?.envioGratis ? 0 : (producto?.envioCosto || 0);
-  const total = subtotalProducto + (cartItems.length > 0 ? cartTotal : 0) + envioCosto;
+  const envioPrincipal = producto?.envioGratis ? 0 : (producto?.envioCosto || 0);
+  const envioCarrito = cartItems.reduce((sum, item) => sum + (item.envioGratis ? 0 : (item.envioCosto || 0)), 0);
+  const total = subtotalProducto + (cartItems.length > 0 ? cartTotal : 0) + envioPrincipal + envioCarrito;
   const C = { primary: '#ff8c00', primaryDark: '#904d00', text: '#0b1c30', subtext: '#564334', muted: '#897362', bg: '#f8f9ff', surface: '#fff', border: '#E2E8F0', red: '#ba1a1a', amber: '#feb700', green: '#22c55e', navy: '#213145' };
 
   if (loading) return <div style={{ minHeight: '100vh', background: C.bg, display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: '"Inter", sans-serif', fontSize: 18, fontWeight: 600, color: C.muted }}>Cargando...</div>;
@@ -281,8 +282,11 @@ export default function ComprarPage() {
                 <div style={{ padding: '16px 0', borderTop: '1px solid ' + C.border, borderBottom: '1px solid ' + C.border, marginTop: 8 }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 14, marginBottom: 8, color: C.subtext }}><span>Precio unitario</span><span style={{ fontWeight: 600 }}>{formatPrice(precioFinal)}</span></div>
                   <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 14, marginBottom: 8, color: C.subtext }}><span>Cantidad</span><span style={{ fontWeight: 600 }}>x{form.cantidad}</span></div>
-                  {envioCosto > 0 && (
-                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 14, marginBottom: 8, color: C.subtext }}><span>Envío</span><span style={{ fontWeight: 600 }}>{formatPrice(envioCosto)}</span></div>
+                  {envioPrincipal > 0 && (
+                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 14, marginBottom: 8, color: C.subtext }}><span>Envío</span><span style={{ fontWeight: 600 }}>{formatPrice(envioPrincipal)}</span></div>
+                  )}
+                  {producto.envioGratis && (
+                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 14, marginBottom: 8, color: '#22c55e' }}><span>Envío</span><span style={{ fontWeight: 600 }}>Gratis</span></div>
                   )}
                   <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 18, fontWeight: 700, marginTop: 12, paddingTop: 12, borderTop: '1px solid ' + C.border }}><span>Total</span><span style={{ color: tieneOferta ? C.red : C.text }}>{formatPrice(total)}</span></div>
                 </div>
@@ -294,11 +298,23 @@ export default function ComprarPage() {
                       🛒 Productos del carrito
                     </div>
                     {cartItems.map(item => (
-                      <div key={item.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8, fontSize: 13 }}>
-                        <button onClick={() => removeItem(item.id)} style={{ background: 'none', border: 'none', color: '#ba1a1a', cursor: 'pointer', fontSize: 14, fontWeight: 700, padding: '0 6px 0 0', flexShrink: 0 }}>✕</button>
-                        <span style={{ fontWeight: 600, flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{item.nombre}</span>
-                        <span style={{ marginLeft: 8, whiteSpace: 'nowrap' }}>x{item.cantidad}</span>
-                        <span style={{ marginLeft: 12, fontWeight: 700, whiteSpace: 'nowrap' }}>{formatPrice(item.precio * item.cantidad)}</span>
+                      <div key={item.id}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4, fontSize: 13 }}>
+                          <button onClick={() => removeItem(item.id)} style={{ background: 'none', border: 'none', color: '#ba1a1a', cursor: 'pointer', fontSize: 14, fontWeight: 700, padding: '0 6px 0 0', flexShrink: 0 }}>✕</button>
+                          <span style={{ fontWeight: 600, flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{item.nombre}</span>
+                          <span style={{ marginLeft: 8, whiteSpace: 'nowrap' }}>x{item.cantidad}</span>
+                          <span style={{ marginLeft: 12, fontWeight: 700, whiteSpace: 'nowrap' }}>{formatPrice(item.precio * item.cantidad)}</span>
+                        </div>
+                        {!item.envioGratis && item.envioCosto > 0 && (
+                          <div style={{ fontSize: 11, color: C.muted, paddingLeft: 26, marginBottom: 6 }}>
+                            + Envío: {formatPrice(item.envioCosto)}
+                          </div>
+                        )}
+                        {item.envioGratis && (
+                          <div style={{ fontSize: 11, color: '#22c55e', paddingLeft: 26, marginBottom: 6 }}>
+                            + Envío gratis
+                          </div>
+                        )}
                       </div>
                     ))}
                   </div>
