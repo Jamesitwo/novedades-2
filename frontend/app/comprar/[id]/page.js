@@ -132,7 +132,8 @@ export default function ComprarPage() {
   const tieneOferta = producto?.ofertaActiva && producto?.ofertaPrecio && new Date(producto.ofertaHasta) > new Date();
   const precioFinal = tieneOferta ? producto?.ofertaPrecio : producto?.precioVenta;
   const subtotalProducto = precioFinal * form.cantidad;
-  const total = subtotalProducto + (cartItems.length > 0 ? cartTotal : 0);
+  const envioCosto = producto?.envioGratis ? 0 : (producto?.envioCosto || 0);
+  const total = subtotalProducto + (cartItems.length > 0 ? cartTotal : 0) + envioCosto;
   const C = { primary: '#ff8c00', primaryDark: '#904d00', text: '#0b1c30', subtext: '#564334', muted: '#897362', bg: '#f8f9ff', surface: '#fff', border: '#E2E8F0', red: '#ba1a1a', amber: '#feb700', green: '#22c55e', navy: '#213145' };
 
   if (loading) return <div style={{ minHeight: '100vh', background: C.bg, display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: '"Inter", sans-serif', fontSize: 18, fontWeight: 600, color: C.muted }}>Cargando...</div>;
@@ -280,6 +281,9 @@ export default function ComprarPage() {
                 <div style={{ padding: '16px 0', borderTop: '1px solid ' + C.border, borderBottom: '1px solid ' + C.border, marginTop: 8 }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 14, marginBottom: 8, color: C.subtext }}><span>Precio unitario</span><span style={{ fontWeight: 600 }}>{formatPrice(precioFinal)}</span></div>
                   <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 14, marginBottom: 8, color: C.subtext }}><span>Cantidad</span><span style={{ fontWeight: 600 }}>x{form.cantidad}</span></div>
+                  {envioCosto > 0 && (
+                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 14, marginBottom: 8, color: C.subtext }}><span>Envío</span><span style={{ fontWeight: 600 }}>{formatPrice(envioCosto)}</span></div>
+                  )}
                   <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 18, fontWeight: 700, marginTop: 12, paddingTop: 12, borderTop: '1px solid ' + C.border }}><span>Total</span><span style={{ color: tieneOferta ? C.red : C.text }}>{formatPrice(total)}</span></div>
                 </div>
                 {tieneOferta && <div style={{ fontSize: 13, color: C.muted, marginTop: 12 }}>Precio normal: <span style={{ textDecoration: 'line-through', fontWeight: 600 }}>{formatPrice(producto.precioVenta)}</span></div>}
