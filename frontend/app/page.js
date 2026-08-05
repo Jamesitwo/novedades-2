@@ -502,7 +502,14 @@ export default function TiendaPage() {
                 }}
                 onMouseEnter={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.12)'; e.currentTarget.style.transform = 'translateY(-3px)'; e.currentTarget.style.boxShadow = '0 8px 24px rgba(0,0,0,0.2)'; }}
                 onMouseLeave={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.06)'; e.currentTarget.style.transform = 'none'; e.currentTarget.style.boxShadow = 'none'; }}>
-                  <span style={{ fontSize: 32 }}>{r.icono}</span>
+                  <span style={{ fontSize: 32 }}>
+                    {r.plataforma === 'Facebook' ? (
+                      <svg width="32" height="32" viewBox="0 0 32 32" fill="none">
+                        <circle cx="16" cy="16" r="16" fill="#1877F2"/>
+                        <text x="16" y="22" textAnchor="middle" fontSize="20" fontWeight="bold" fill="white" fontFamily="Arial">f</text>
+                      </svg>
+                    ) : r.icono}
+                  </span>
                   <span style={{ fontSize: 14, fontWeight: 700 }}>{r.plataforma}</span>
                 </a>
               ))}
