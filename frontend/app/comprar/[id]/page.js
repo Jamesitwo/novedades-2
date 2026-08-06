@@ -370,9 +370,17 @@ export default function ComprarPage() {
               <div style={{ marginTop: 12, paddingTop: 12, borderTop: '1px solid ' + C.border }}>
                 <div style={{ fontSize: 12, fontWeight: 700, color: C.subtext, textTransform: 'uppercase', marginBottom: 8 }}>Otros items en el carrito:</div>
                 {cartItems.map(item => (
-                  <div key={item.id} style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13, marginBottom: 6 }}>
-                    <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', flex: 1, paddingRight: 8 }}>{item.nombre} (x{item.cantidad})</span>
-                    <span style={{ fontWeight: 700 }}>{formatPrice(item.precio * item.cantidad)}</span>
+                  <div key={item.id} style={{ marginBottom: 8 }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13, marginBottom: 2 }}>
+                      <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', flex: 1, paddingRight: 8 }}>{item.nombre} (x{item.cantidad})</span>
+                      <span style={{ fontWeight: 700 }}>{formatPrice(item.precio * item.cantidad)}</span>
+                    </div>
+                    {item.envioCosto > 0 && !item.envioGratis && (
+                      <div style={{ fontSize: 10, color: C.muted, paddingLeft: 6 }}>+ Envío: {formatPrice(item.envioCosto)}</div>
+                    )}
+                    {item.envioGratis && (
+                      <div style={{ fontSize: 10, color: C.green, paddingLeft: 6 }}>+ Envío gratis</div>
+                    )}
                   </div>
                 ))}
               </div>
@@ -756,6 +764,12 @@ export default function ComprarPage() {
                           <span style={{ marginLeft: 8, whiteSpace: 'nowrap' }}>x{item.cantidad}</span>
                           <span style={{ marginLeft: 12, fontWeight: 700, whiteSpace: 'nowrap' }}>{formatPrice(item.precio * item.cantidad)}</span>
                         </div>
+                        {item.envioCosto > 0 && !item.envioGratis && (
+                          <div style={{ fontSize: 10, color: C.subtext, paddingLeft: 24, marginTop: 1 }}>+ Envío: {formatPrice(item.envioCosto)}</div>
+                        )}
+                        {item.envioGratis && (
+                          <div style={{ fontSize: 10, color: C.green, paddingLeft: 24, marginTop: 1 }}>+ Envío gratis</div>
+                        )}
                       </div>
                     ))}
                   </div>
