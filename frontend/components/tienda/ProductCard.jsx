@@ -49,112 +49,101 @@ export default function ProductCard({ producto, onFavChange }) {
   const esNuevo = producto.createdAt ? (new Date() - new Date(producto.createdAt)) < 7 * 86400000 : false;
   const esTop = producto.ventasSimuladas > 100;
 
-  const precioFinal = tieneOferta ? producto.ofertaPrecio : producto.precioVenta;
-
   return (
     <div ref={cardRef} style={{
       position: 'relative', opacity: visible ? 1 : 0, transform: visible ? 'translateY(0)' : 'translateY(20px)',
       transition: 'opacity 0.5s ease, transform 0.5s ease', height: '100%', width: '100%', minWidth: 0
     }}>
       <a href={`/producto/${producto.slug || producto.id}`} style={{
-        textDecoration: 'none', color: '#0b1c30', display: 'flex', flexDirection: 'column', height: '100%', width: '100%',
-        background: '#ffffff', border: '1px solid #E2E8F0', borderRadius: 8,
-        boxShadow: '0 4px 12px rgba(0,0,0,0.05)', transition: 'box-shadow 0.2s, transform 0.2s',
+        textDecoration: 'none', color: '#0f172a', display: 'flex', flexDirection: 'column', height: '100%', width: '100%',
+        background: '#ffffff', border: '1px solid #e2e8f0', borderRadius: 16,
+        boxShadow: '0 4px 16px rgba(0,0,0,0.04)', transition: 'all 0.25s cubic-bezier(0.4, 0, 0.2, 1)',
         overflow: 'hidden', minWidth: 0
       }}
-      onMouseEnter={e => { e.currentTarget.style.boxShadow = '0 8px 24px rgba(0,0,0,0.10)'; e.currentTarget.style.transform = 'translateY(-2px)'; }}
-      onMouseLeave={e => { e.currentTarget.style.boxShadow = '0 4px 12px rgba(0,0,0,0.05)'; e.currentTarget.style.transform = 'none'; }}>
+      onMouseEnter={e => { e.currentTarget.style.boxShadow = '0 12px 32px rgba(0,0,0,0.08)'; e.currentTarget.style.transform = 'translateY(-4px)'; e.currentTarget.style.borderColor = '#cbd5e1'; }}
+      onMouseLeave={e => { e.currentTarget.style.boxShadow = '0 4px 16px rgba(0,0,0,0.04)'; e.currentTarget.style.transform = 'none'; e.currentTarget.style.borderColor = '#e2e8f0'; }}>
         
-        <div style={{ position: 'absolute', top: 8, left: 8, zIndex: 2, display: 'flex', flexDirection: 'column', gap: 4 }}>
+        <div style={{ position: 'absolute', top: 10, left: 10, zIndex: 2, display: 'flex', flexDirection: 'column', gap: 4 }}>
           {tieneOferta && (
-            <span className="shimmer-badge" style={{ background: '#ba1a1a', color: '#fff', fontSize: 11, fontWeight: 700, padding: '3px 10px', borderRadius: 20, position: 'relative', overflow: 'hidden' }}>
-              -{Math.round((1 - producto.ofertaPrecio / producto.precioVenta) * 100)}%
+            <span className="shimmer-badge" style={{ background: '#dc2626', color: '#fff', fontSize: 11, fontWeight: 800, padding: '3px 10px', borderRadius: 20, position: 'relative', overflow: 'hidden', boxShadow: '0 2px 6px rgba(220,38,38,0.3)' }}>
+              -{Math.round((1 - producto.ofertaPrecio / producto.precioVenta) * 100)}% OFF
             </span>
           )}
           {esTop && (
-            <span className="shimmer-badge" style={{ background: '#feb700', color: '#271900', fontSize: 11, fontWeight: 700, padding: '3px 10px', borderRadius: 20, position: 'relative', overflow: 'hidden' }}>
-              MÁS VENDIDO
+            <span className="shimmer-badge" style={{ background: '#f59e0b', color: '#000', fontSize: 11, fontWeight: 800, padding: '3px 10px', borderRadius: 20, position: 'relative', overflow: 'hidden' }}>
+              ★ TOP VENDIDO
             </span>
           )}
           {esNuevo && (
-            <span className="shimmer-badge" style={{ background: '#ff8c00', color: '#fff', fontSize: 11, fontWeight: 700, padding: '3px 10px', borderRadius: 20, position: 'relative', overflow: 'hidden' }}>
+            <span className="shimmer-badge" style={{ background: '#ea580c', color: '#fff', fontSize: 11, fontWeight: 800, padding: '3px 10px', borderRadius: 20, position: 'relative', overflow: 'hidden' }}>
               NUEVO
             </span>
           )}
         </div>
 
         <button onClick={toggleFav} style={{
-          position: 'absolute', top: 8, right: 8, zIndex: 2, width: 32, height: 32,
-          background: faved ? '#ffdad6' : '#fff', border: '1px solid #E2E8F0', borderRadius: 8,
-          cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 14,
-          boxShadow: '0 2px 4px rgba(0,0,0,0.05)'
+          position: 'absolute', top: 10, right: 10, zIndex: 2, width: 34, height: 34,
+          background: faved ? '#fef2f2' : 'rgba(255,255,255,0.9)', border: '1px solid #e2e8f0', borderRadius: 10,
+          cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 15,
+          boxShadow: '0 2px 6px rgba(0,0,0,0.06)', backdropFilter: 'blur(4px)'
         }}>
           {faved ? '❤️' : '🤍'}
         </button>
 
-        {producto.stock > 0 && producto.stock <= 5 && (
-          <div style={{
-            position: 'absolute', top: 8, right: 48, zIndex: 2,
-            background: '#ffdad6', color: '#93000a', fontSize: 10, fontWeight: 700,
-            padding: '3px 8px', borderRadius: 20
-          }}>
-            Solo {producto.stock}
-          </div>
-        )}
-
-        <div style={{ height: 180, overflow: 'hidden', background: '#F8F9FA', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}>
+        <div style={{ height: 190, overflow: 'hidden', background: '#f8fafc', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16, borderBottom: '1px solid #f1f5f9' }}>
           {producto.imagen ? (
-            <img src={producto.imagen} alt={producto.nombre} style={{ width: '100%', height: '100%', objectFit: 'contain' }}
-              onError={(e) => { e.target.outerHTML = '<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;color:#897362;font-size:13px;font-weight:500">Sin imagen</div>'; }} />
+            <img src={producto.imagen} alt={producto.nombre} style={{ width: '100%', height: '100%', objectFit: 'contain', transition: 'transform 0.3s ease' }}
+              onError={(e) => { e.target.outerHTML = '<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;color:#94a3b8;font-size:13px;font-weight:500">Sin imagen</div>'; }} />
           ) : (
-            <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#897362', fontSize: 13, fontWeight: 500 }}>Sin imagen</div>
+            <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#94a3b8', fontSize: 13, fontWeight: 500 }}>Sin imagen</div>
           )}
         </div>
 
         <div style={{ padding: 16, flex: 1, display: 'flex', flexDirection: 'column' }}>
-          <span style={{ fontSize: 11, fontWeight: 700, color: '#ff8c00', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 6 }}>
-            {producto.categoria}
+          <span style={{ fontSize: 11, fontWeight: 800, color: '#ea580c', textTransform: 'uppercase', letterSpacing: 0.8, marginBottom: 4 }}>
+            {producto.categoria || 'Herramientas'}
           </span>
-          <div style={{ fontSize: 15, fontWeight: 700, marginBottom: 8, lineHeight: 1.3, flex: 1, display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden', height: 40 }}>
+          <div style={{ fontSize: 15, fontWeight: 700, marginBottom: 8, lineHeight: 1.3, flex: 1, display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden', height: 40, color: '#0f172a' }}>
             {producto.nombre}
           </div>
 
-          <div style={{ display: 'flex', alignItems: 'center', gap: 4, marginBottom: 8, color: '#feb700', fontSize: 13 }}>
-            {'★'.repeat(5)} {producto.ventasSimuladas > 0 && <span style={{ color: '#897362', fontSize: 11, fontWeight: 500, marginLeft: 4 }}>({producto.ventasSimuladas} ventas)</span>}
+          <div style={{ display: 'flex', alignItems: 'center', gap: 4, marginBottom: 10, color: '#f59e0b', fontSize: 13 }}>
+            {'★'.repeat(5)} {producto.ventasSimuladas > 0 && <span style={{ color: '#64748b', fontSize: 11, fontWeight: 600, marginLeft: 4 }}>({producto.ventasSimuladas} ventas)</span>}
           </div>
 
-          <div style={{ display: 'flex', alignItems: 'baseline', gap: 8, marginBottom: 4 }}>
+          <div style={{ display: 'flex', alignItems: 'baseline', gap: 8, marginBottom: 12 }}>
             {tieneOferta ? (
               <>
-                <span style={{ fontSize: 20, fontWeight: 800, color: '#0b1c30' }}>{formatPrice(producto.ofertaPrecio)}</span>
-                <span style={{ fontSize: 13, color: '#897362', textDecoration: 'line-through', fontWeight: 500 }}>{formatPrice(producto.precioVenta)}</span>
+                <span style={{ fontSize: 20, fontWeight: 900, color: '#dc2626' }}>{formatPrice(producto.ofertaPrecio)}</span>
+                <span style={{ fontSize: 13, color: '#94a3b8', textDecoration: 'line-through', fontWeight: 500 }}>{formatPrice(producto.precioVenta)}</span>
               </>
             ) : (
-              <span style={{ fontSize: 20, fontWeight: 800, color: '#0b1c30' }}>{formatPrice(producto.precioVenta)}</span>
-          )}
-        </div>
+              <span style={{ fontSize: 20, fontWeight: 900, color: '#0f172a' }}>{formatPrice(producto.precioVenta)}</span>
+            )}
+          </div>
 
           {producto.stock > 0 && producto.stock <= 5 && (
-            <div style={{ color: '#ba1a1a', fontSize: 12, fontWeight: 700, marginBottom: 8 }}>¡Solo quedan {producto.stock}!</div>
+            <div style={{ color: '#dc2626', fontSize: 12, fontWeight: 700, marginBottom: 10, display: 'flex', alignItems: 'center', gap: 4 }}>⚡ ¡Solo quedan {producto.stock} unidades!</div>
           )}
 
-          <div style={{ display: 'flex', gap: 6, marginTop: 'auto' }}>
+          <div style={{ display: 'flex', gap: 8, marginTop: 'auto' }}>
             <button onClick={handleBuy} style={{
-              flex: 1, minHeight: 40, background: clicked ? '#22c55e' : '#fff', color: clicked ? '#fff' : '#2D2D2D',
-              border: clicked ? '2px solid #22c55e' : '2px solid #2D2D2D',
-              borderRadius: 8, fontSize: 13, fontWeight: 700, cursor: 'pointer', fontFamily: '"Inter", sans-serif',
-              transition: 'all 0.2s', transform: clicked ? 'scale(1.05)' : 'scale(1)'
+              flex: 1, minHeight: 42, background: clicked ? '#16a34a' : '#ea580c', color: '#ffffff',
+              border: 'none', borderRadius: 10, fontSize: 13, fontWeight: 800, cursor: 'pointer', fontFamily: '"Inter", sans-serif',
+              transition: 'all 0.2s', boxShadow: clicked ? 'none' : '0 4px 12px rgba(234,88,12,0.25)',
+              display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6
             }}
-            onMouseEnter={e => { if (!clicked) { e.currentTarget.style.background = '#2D2D2D'; e.currentTarget.style.color = '#fff'; } }}
-            onMouseLeave={e => { if (!clicked) { e.currentTarget.style.background = '#fff'; e.currentTarget.style.color = '#2D2D2D'; } }}>
-              {clicked ? '✓ Agregado!' : '🛒 Agregar'}
+            onMouseEnter={e => { if (!clicked) { e.currentTarget.style.background = '#c2410c'; } }}
+            onMouseLeave={e => { if (!clicked) { e.currentTarget.style.background = '#ea580c'; } }}>
+              {clicked ? '✓ Agregado' : '🛒 Agregar al carrito'}
             </button>
             <button onClick={(e) => { e.preventDefault(); e.stopPropagation(); setShowQuickView(true); }} style={{
-              minHeight: 40, padding: '0 10px', background: '#fff', color: '#2D2D2D', border: '2px solid #2D2D2D',
-              borderRadius: 8, fontSize: 14, cursor: 'pointer', fontFamily: '"Inter", sans-serif', transition: 'all 0.15s'
+              minHeight: 42, width: 42, background: '#f8fafc', color: '#0f172a', border: '1.5px solid #e2e8f0',
+              borderRadius: 10, fontSize: 15, cursor: 'pointer', fontFamily: '"Inter", sans-serif', transition: 'all 0.15s',
+              display: 'flex', alignItems: 'center', justifyContent: 'center'
             }}
-            onMouseEnter={e => { e.currentTarget.style.background = '#2D2D2D'; e.currentTarget.style.color = '#fff'; }}
-            onMouseLeave={e => { e.currentTarget.style.background = '#fff'; e.currentTarget.style.color = '#2D2D2D'; }} title="Vista rápida">
+            onMouseEnter={e => { e.currentTarget.style.background = '#e2e8f0'; }}
+            onMouseLeave={e => { e.currentTarget.style.background = '#f8fafc'; }} title="Vista rápida">
               👁
             </button>
           </div>
