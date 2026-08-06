@@ -60,19 +60,19 @@ export default function ProductoDetallePage() {
   }, [id]);
 
   useEffect(() => {
-    if (!id) return;
-    api.get(`/api/resenas/${id}`)
+    if (!id || !producto?.id) return;
+    api.get(`/api/resenas/${producto.id}`)
       .then(({ data }) => { setResenas(data.resenas); setPromedioResenas(data.promedio); setResenasTotal(data.total); setDistribucion(data.distribucion); })
       .catch(() => {});
   }, [id]);
 
   const handleResenaSubmit = async (e) => { e.preventDefault(); if (!resenaForm.nombre.trim()) return; setResenaSaving(true);
-    try { await api.post(`/api/resenas/${id}`, resenaForm); setResenaSuccess(true); setShowResenaForm(false); setResenaForm({ nombre: '', calificacion: 5, comentario: '' });
-      const { data } = await api.get(`/api/resenas/${id}`); setResenas(data.resenas); setPromedioResenas(data.promedio); setResenasTotal(data.total); setDistribucion(data.distribucion);
+    try { await api.post(`/api/resenas/${producto.id}`, resenaForm); setResenaSuccess(true); setShowResenaForm(false); setResenaForm({ nombre: '', calificacion: 5, comentario: '' });
+      const { data } = await api.get(`/api/resenas/${producto.id}`); setResenas(data.resenas); setPromedioResenas(data.promedio); setResenasTotal(data.total); setDistribucion(data.distribucion);
       setTimeout(() => setResenaSuccess(false), 3000); } catch {} finally { setResenaSaving(false); } };
   const handleGenerarResenas = async () => { setResenaSaving(true);
-    try { await api.post(`/api/resenas/${id}/generar`, { cantidad: reviewConfig.cantidad, distribucion: reviewConfig.distribucion, diasMax: reviewConfig.diasMax, conComentario: reviewConfig.conComentario });
-      setResenaSuccess(true); const { data } = await api.get(`/api/resenas/${id}`); setResenas(data.resenas); setPromedioResenas(data.promedio); setResenasTotal(data.total); setDistribucion(data.distribucion);
+    try { await api.post(`/api/resenas/${producto.id}/generar`, { cantidad: reviewConfig.cantidad, distribucion: reviewConfig.distribucion, diasMax: reviewConfig.diasMax, conComentario: reviewConfig.conComentario });
+      setResenaSuccess(true); const { data } = await api.get(`/api/resenas/${producto.id}`); setResenas(data.resenas); setPromedioResenas(data.promedio); setResenasTotal(data.total); setDistribucion(data.distribucion);
       setTimeout(() => setResenaSuccess(false), 3000); } catch {} finally { setResenaSaving(false); } };
 
   const formatPrice = (n) => '$' + Number(n).toLocaleString('es-CO', { minimumFractionDigits: 0 });
