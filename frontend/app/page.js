@@ -94,7 +94,7 @@ export default function TiendaPage() {
     } catch (e) {
       console.error(e);
       setError('Error al cargar productos');
-    } fontally: () => {
+    } finally {
       setLoading(false);
     }
   };
