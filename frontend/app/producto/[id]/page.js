@@ -25,6 +25,8 @@ export default function ProductoDetallePage() {
   const [reviewConfig, setReviewConfig] = useState({ cantidad: 10, distribucion: { 5: 45, 4: 25, 3: 12, 2: 10, 1: 8 }, diasMax: 90, conComentario: 75 });
   const { usuario } = useAuthStore();
   const isAdmin = usuario?.rol === 'admin';
+
+  useEffect(() => { useAuthStore.getState().initialize(); }, []);
   const [imgActiva, setImgActiva] = useState(0);
   const [pauseCarousel, setPauseCarousel] = useState(false);
   const imgCountRef = useRef(0);
