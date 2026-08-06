@@ -1,6 +1,6 @@
 'use client';
 import { useState, useEffect, useRef } from 'react';
-import { useParams, useRouter } from 'next/navigation';
+import { useParams } from 'next/navigation';
 import api from '@/lib/api';
 import { useCartStore } from '@/store/cartStore';
 
@@ -22,18 +22,12 @@ function AutocompleteInput({ value, onChange, options, placeholder, disabled }) 
 
   return (
     <div ref={wrapperRef} style={{ position: 'relative' }}>
-      <input type="text" className="compra-input" value={value} disabled={disabled}
+      <input type="text" className="cko-field" value={value} disabled={disabled}
         placeholder={placeholder}
         onChange={e => { onChange(e.target.value); setFilter(e.target.value); setOpen(true); }}
         onFocus={() => setOpen(true)}
-        style={{
-          marginTop: 6, width: '100%', padding: '14px 16px', background: disabled ? '#f8f9ff' : '#fff',
-          border: '1px solid #E2E8F0', borderRadius: 10, fontSize: 16, fontWeight: 500,
-          color: disabled ? '#897362' : '#0b1c30', outline: 'none', fontFamily: '"Inter", sans-serif',
-          transition: 'border-color 0.15s', boxSizing: 'border-box'
-        }}
-        onFocus2={e => { e.target.style.borderColor = '#ff8c00'; e.target.style.boxShadow = '0 0 0 3px rgba(255,140,0,0.1)'; }}
-        onBlur2={e => { e.target.style.borderColor = '#E2E8F0'; e.target.style.boxShadow = 'none'; }} />
+        style={{ marginTop: 4 }}
+        />
       {open && filtered.length > 0 && (
         <div style={{
           position: 'absolute', top: '100%', left: 0, right: 0, zIndex: 100,
@@ -59,7 +53,6 @@ function AutocompleteInput({ value, onChange, options, placeholder, disabled }) 
 
 export default function ComprarPage() {
   const params = useParams();
-  const router = useRouter();
   const id = params.id;
   const [producto, setProducto] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -145,250 +138,189 @@ export default function ComprarPage() {
       <style dangerouslySetInnerHTML={{__html: `
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
         @keyframes confetti-fall { 0% { transform: translateY(-100vh) rotate(0deg); opacity: 1; } 100% { transform: translateY(100vh) rotate(720deg); opacity: 0; } }
-        .compra-grid { display: grid; grid-template-columns: 1.2fr 0.8fr; gap: 48px; align-items: start; }
-        .compra-grid input, .compra-grid select, .compra-grid textarea { box-sizing: border-box; }
+        .cko-wrap { padding-bottom: 0; }
+        .cko-grid { display: grid; grid-template-columns: 1.2fr 0.8fr; gap: 48px; align-items: start; padding-bottom: 0; }
+        .cko-mobile-bar { display: none; }
+        .cko-field { width: 100%; padding: 14px 16px; background: #fff; border: 1px solid #E2E8F0; border-radius: 12px; font-size: 16px; font-weight: 500; color: #0b1c30; outline: none; font-family: 'Inter', sans-serif; box-sizing: border-box; transition: border-color 0.15s; margin-top: 4px; }
+        .cko-field:focus { border-color: #ff8c00; box-shadow: 0 0 0 3px rgba(255,140,0,0.12); }
+        .cko-label { font-size: 11px; font-weight: 800; color: #564334; text-transform: uppercase; letter-spacing: 0.5px; }
+        .cko-btn { width: 100%; min-height: 54px; background: #ff8c00; color: #fff; border: none; border-radius: 14px; font-size: 17px; font-weight: 700; cursor: pointer; font-family: 'Inter', sans-serif; box-shadow: 0 4px 16px rgba(255,140,0,0.3); transition: all 0.15s; }
+        .cko-btn:active { transform: scale(0.98); }
+        .cko-scroll { display: flex; gap: 10px; overflow-x: auto; padding-bottom: 4px; -webkit-overflow-scrolling: touch; scroll-snap-type: x mandatory; }
+        .cko-scroll > * { min-width: 200px; scroll-snap-align: start; flex-shrink: 0; }
         @media (max-width: 768px) {
-          .compra-grid { grid-template-columns: 1fr !important; gap: 16px !important; }
-          .compra-grid > :last-child { order: -1; }
-          .compra-summary { position: static !important; top: auto !important; padding: 16px !important; }
-          .compra-summary img { height: 140px !important; margin-bottom: 12px !important; }
-          .compra-form-grid { grid-template-columns: 1fr !important; gap: 10px !important; }
-          .compra-title { font-size: 22px !important; margin-bottom: 4px !important; }
-          .compra-section { padding: 12px !important; }
-          .compra-nav { padding: 0 10px !important; height: 44px !important; }
-          .compra-nav span { font-size: 15px !important; }
-          .compra-grid input, .compra-grid select, .compra-grid textarea { padding: 10px 12px !important; font-size: 15px !important; margin-top: 4px !important; }
-          .compra-grid label { font-size: 10px !important; }
-          .compra-grid button[type="submit"] { min-height: 48px !important; font-size: 16px !important; }
-          .compra-related-item { padding: 8px 0 !important; gap: 8px !important; }
-          .compra-section-header { margin-bottom: 24px !important; }
-          .compra-section-header p { font-size: 14px !important; }
+          .cko-grid { grid-template-columns: 1fr !important; gap: 0 !important; }
+          .cko-grid > form { order: 2; padding: 0 12px 100px 12px !important; }
+          .cko-grid > div { order: 1; }
+          .cko-desktop-only { display: none !important; }
+          .cko-mobile-bar { display: flex !important; position: fixed; bottom: 0; left: 0; right: 0; z-index: 200; background: #fff; border-top: 1px solid #E2E8F0; padding: 12px 16px; box-shadow: 0 -4px 20px rgba(0,0,0,0.08); align-items: center; gap: 12px; }
+          .cko-mobile-bar .cko-total-label { font-size: 11px; color: #897362; font-weight: 600; }
+          .cko-mobile-bar .cko-total-amount { font-size: 18px; font-weight: 800; color: #0b1c30; }
+          .cko-mobile-bar .cko-btn { min-height: 48px; font-size: 15px; border-radius: 12px; flex: 1; }
+          .cko-summary-card { border-radius: 0 0 16px 16px !important; margin: 0 0 16px 0 !important; }
+          .cko-summary-card img { height: 160px !important; object-fit: contain !important; padding: 12px !important; }
+          .cko-nav-title { font-size: 15px !important; }
+          .cko-section-title { font-size: 20px !important; padding: 0 12px !important; margin-bottom: 12px !important; }
+          .cko-field { padding: 12px 14px !important; font-size: 15px !important; border-radius: 10px !important; }
+          .cko-row { grid-template-columns: 1fr !important; gap: 10px !important; }
+          .cko-related { padding: 12px !important; margin: 0 12px 16px 12px !important; }
         }
         @media (max-width: 480px) {
-          .compra-section { padding: 8px 6px !important; }
-          .compra-title { font-size: 19px !important; }
-          .compra-grid { gap: 12px !important; }
-          .compra-grid input, .compra-grid select, .compra-grid textarea { padding: 10px !important; font-size: 14px !important; border-radius: 8px !important; }
-          .compra-summary { padding: 12px !important; border-radius: 10px !important; }
-          .compra-summary img { height: 100px !important; }
-          .compra-summary .compra-item-name { font-size: 15px !important; }
-          .compra-nav { height: 40px !important; }
-          .compra-grid form { gap: 12px !important; }
-          .compra-grid button[type="submit"] { min-height: 46px !important; font-size: 15px !important; border-radius: 10px !important; }
+          .cko-summary-card img { height: 130px !important; }
+          .cko-section-title { font-size: 18px !important; }
+          .cko-field { padding: 10px 12px !important; font-size: 14px !important; border-radius: 8px !important; }
+          .cko-mobile-bar { padding: 8px 12px !important; }
+          .cko-mobile-bar .cko-total-amount { font-size: 16px !important; }
+          .cko-mobile-bar .cko-btn { min-height: 44px !important; font-size: 14px !important; }
         }
       `}} />
 
-      <div className="compra-nav" style={{ background: C.navy, borderBottom: '1px solid rgba(255,255,255,0.1)', padding: '0 24px', display: 'flex', alignItems: 'center', height: 52 }}>
-        <a href={`/producto/${id}`} style={{ color: '#ffb77d', textDecoration: 'none', fontSize: 14, fontWeight: 600 }}>← Volver al producto</a>
-        <span style={{ marginLeft: 'auto', fontSize: 18, fontWeight: 800, color: '#ffb77d', textTransform: 'uppercase', letterSpacing: 1 }}>Pizdo</span>
+      <div style={{ background: C.navy, borderBottom: '1px solid rgba(255,255,255,0.1)', padding: '0 16px', display: 'flex', alignItems: 'center', height: 48 }}>
+        <a href={`/producto/${id}`} style={{ color: '#ffb77d', textDecoration: 'none', fontSize: 14, fontWeight: 600 }}>← Volver</a>
+        <span className="cko-nav-title" style={{ marginLeft: 'auto', fontSize: 17, fontWeight: 800, color: '#ffb77d', textTransform: 'uppercase', letterSpacing: 1 }}>Pizdo</span>
       </div>
 
-      <div className="compra-section compra-section" style={{ maxWidth: 960, margin: '0 auto', padding: 'clamp(32px, 6vw, 56px) 24px' }}>
+      <div className="cko-wrap" style={{ maxWidth: 1000, margin: '0 auto', padding: 0 }}>
         {enviado ? (
-          <div style={{ textAlign: 'center', padding: 'clamp(32px, 8vw, 80px) 24px', position: 'relative', overflow: 'hidden' }}>
+          <div style={{ textAlign: 'center', padding: 'clamp(32px, 8vw, 80px) 24px', position: 'relative', overflow: 'hidden', minHeight: '70vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
             {confetti.map(p => <div key={p.id} style={{ position: 'absolute', top: -20, left: p.left, width: p.size, height: p.size, background: p.color, borderRadius: '50%', animation: `confetti-fall ${p.duration} ${p.delay} linear`, pointerEvents: 'none' }} />)}
-            <div style={{ width: 88, height: 88, background: C.green, color: '#fff', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', marginBottom: 32, borderRadius: 16, boxShadow: '0 8px 32px rgba(34,197,94,0.25)', fontSize: 36, fontWeight: 700 }}>✓</div>
-            <h1 style={{ fontSize: 'clamp(24px, 5vw, 36px)', fontWeight: 800, marginBottom: 16, color: C.text }}>¡Pedido registrado!</h1>
-            <p style={{ fontSize: 'clamp(16px, 2.5vw, 18px)', color: C.subtext, marginBottom: 32, lineHeight: 1.6 }}>Gracias {form.nombre}. Te contactaremos al <strong>{form.celular}</strong> para coordinar la entrega en <strong>{form.ciudad}</strong>.</p>
-            <a href="/" style={{ display: 'inline-flex', alignItems: 'center', gap: 8, background: C.primary, color: '#fff', padding: '14px 32px', borderRadius: 10, fontWeight: 700, fontSize: 16, textDecoration: 'none', boxShadow: '0 4px 16px rgba(255,140,0,0.3)' }}>🛒 Seguir comprando</a>
+            <div style={{ width: 80, height: 80, background: C.green, color: '#fff', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', marginBottom: 24, borderRadius: 20, boxShadow: '0 8px 32px rgba(34,197,94,0.25)', fontSize: 32, fontWeight: 700 }}>✓</div>
+            <h1 style={{ fontSize: 'clamp(22px, 5vw, 32px)', fontWeight: 800, marginBottom: 12, color: C.text }}>¡Pedido registrado!</h1>
+            <p style={{ fontSize: 'clamp(14px, 2.5vw, 16px)', color: C.subtext, marginBottom: 24, lineHeight: 1.6, maxWidth: 360 }}>Gracias {form.nombre}. Te contactaremos al <strong>{form.celular}</strong> para coordinar la entrega en <strong>{form.ciudad}</strong>.</p>
+            {form.metodoPago === 'transferencia' && bankConfig.empresa_banco && (
+              <div style={{ background: '#e5eeff', borderRadius: 12, padding: 16, marginBottom: 24, maxWidth: 340, width: '100%', textAlign: 'left' }}>
+                <div style={{ fontWeight: 800, color: '#904d00', marginBottom: 8, fontSize: 13 }}>🏦 Realiza tu transferencia a:</div>
+                <div style={{ fontSize: 13, lineHeight: 1.8, color: '#0b1c30' }}>
+                  <div><strong>Banco:</strong> {bankConfig.empresa_banco}</div>
+                  <div><strong>Cuenta:</strong> {bankConfig.empresa_numero_cuenta}</div>
+                  <div><strong>Titular:</strong> {bankConfig.empresa_titular_cuenta}</div>
+                </div>
+              </div>
+            )}
+            <a href="/" style={{ display: 'inline-flex', alignItems: 'center', gap: 8, background: C.primary, color: '#fff', padding: '14px 32px', borderRadius: 14, fontWeight: 700, fontSize: 16, textDecoration: 'none', boxShadow: '0 4px 16px rgba(255,140,0,0.3)' }}>🛒 Seguir comprando</a>
           </div>
         ) : (
-          <div>
-            <div className="compra-section-header" style={{ marginBottom: 48 }}>
-              <h1 className="compra-title" style={{ fontSize: 'clamp(26px, 5vw, 36px)', fontWeight: 800, marginBottom: 8, color: C.text }}>Finalizar compra</h1>
-              <p style={{ fontSize: 16, color: C.subtext, lineHeight: 1.5 }}>Completa tus datos y te contactaremos para coordinar el envío.</p>
-            </div>
+          <>
+            <h1 className="cko-section-title" style={{ fontSize: 'clamp(22px, 4vw, 30px)', fontWeight: 800, padding: 'clamp(16px, 4vw, 32px) 24px 0', margin: 0, color: C.text }}>Finalizar compra</h1>
 
-              <div className="compra-grid">
-              <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
-                {error && <div style={{ background: '#ffdad6', color: C.red, padding: '12px 16px', borderRadius: 8, fontSize: 14, fontWeight: 600, border: '1px solid rgba(186,26,26,0.2)' }}>{error}</div>}
+            <div className="cko-grid" style={{ padding: 'clamp(12px, 3vw, 24px) 24px 40px' }}>
+              <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+                {error && <div style={{ background: '#ffdad6', color: C.red, padding: '12px 16px', borderRadius: 10, fontSize: 14, fontWeight: 600 }}>{error}</div>}
 
-                <div className="compra-form-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
-                  {[{ key: 'nombre', label: 'Nombre', ph: 'Tu nombre' }, { key: 'apellido', label: 'Apellido', ph: 'Tu apellido' }].map(f => (
-                    <label key={f.key} style={{ fontSize: 12, fontWeight: 700, color: C.subtext, textTransform: 'uppercase', letterSpacing: 1 }}>
-                      {f.label} *
-                      <input value={form[f.key]} onChange={e => handleChange(f.key, e.target.value)} placeholder={f.ph} required
-                        style={{ marginTop: 6, width: '100%', padding: '14px 16px', background: C.surface, border: '1px solid ' + C.border, borderRadius: 10, fontSize: 16, fontWeight: 500, color: C.text, outline: 'none', fontFamily: '"Inter", sans-serif', transition: 'border-color 0.15s', boxSizing: 'border-box' }}
-                        onFocus={e => { e.target.style.borderColor = C.primary; e.target.style.boxShadow = '0 0 0 3px rgba(255,140,0,0.1)'; }}
-                        onBlur={e => { e.target.style.borderColor = C.border; e.target.style.boxShadow = 'none'; }} />
-                    </label>
-                  ))}
+                <div className="cko-row" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+                  <label className="cko-label">Nombre *<input className="cko-field" value={form.nombre} onChange={e => handleChange('nombre', e.target.value)} placeholder="Tu nombre" required /></label>
+                  <label className="cko-label">Apellido *<input className="cko-field" value={form.apellido} onChange={e => handleChange('apellido', e.target.value)} placeholder="Tu apellido" required /></label>
                 </div>
 
-                <label style={{ fontSize: 12, fontWeight: 700, color: C.subtext, textTransform: 'uppercase', letterSpacing: 1 }}>
-                  Celular / WhatsApp *
-                  <input type="tel" value={form.celular} onChange={e => handleChange('celular', e.target.value)} placeholder="3001234567" required
-                    style={{ marginTop: 6, width: '100%', padding: '14px 16px', background: C.surface, border: '1px solid ' + C.border, borderRadius: 10, fontSize: 16, fontWeight: 500, color: C.text, outline: 'none', fontFamily: '"Inter", sans-serif', transition: 'border-color 0.15s', boxSizing: 'border-box' }}
-                    onFocus={e => { e.target.style.borderColor = C.primary; e.target.style.boxShadow = '0 0 0 3px rgba(255,140,0,0.1)'; }}
-                    onBlur={e => { e.target.style.borderColor = C.border; e.target.style.boxShadow = 'none'; }} />
-                </label>
+                <label className="cko-label">Celular / WhatsApp *<input className="cko-field" type="tel" value={form.celular} onChange={e => handleChange('celular', e.target.value)} placeholder="3001234567" required /></label>
 
-                <div className="compra-form-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
-                  <label style={{ fontSize: 12, fontWeight: 700, color: C.subtext, textTransform: 'uppercase', letterSpacing: 1 }}>
-                    Departamento *
-                    <AutocompleteInput value={form.departamento} onChange={v => { handleChange('departamento', v); handleChange('ciudad', ''); }}
-                      options={departamentos} placeholder="Buscar departamento..." />
-                  </label>
-                  <label style={{ fontSize: 12, fontWeight: 700, color: C.subtext, textTransform: 'uppercase', letterSpacing: 1 }}>
-                    Ciudad *
-                    <AutocompleteInput value={form.ciudad} onChange={v => handleChange('ciudad', v)}
-                      options={ciudades} placeholder={!form.departamento ? 'Elige departamento primero' : 'Buscar ciudad...'}
-                      disabled={!form.departamento} />
-                  </label>
+                <div className="cko-row" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+                  <label className="cko-label">Departamento *<AutocompleteInput value={form.departamento} onChange={v => { handleChange('departamento', v); handleChange('ciudad', ''); }} options={departamentos} placeholder="Buscar departamento..." /></label>
+                  <label className="cko-label">Ciudad *<AutocompleteInput value={form.ciudad} onChange={v => handleChange('ciudad', v)} options={ciudades} placeholder={!form.departamento ? 'Elige departamento primero' : 'Buscar ciudad...'} disabled={!form.departamento} /></label>
                 </div>
 
-                <label style={{ fontSize: 12, fontWeight: 700, color: C.subtext, textTransform: 'uppercase', letterSpacing: 1 }}>
-                  Dirección *
-                  <input value={form.direccion} onChange={e => handleChange('direccion', e.target.value)} placeholder="Calle 123 #45-67, Barrio" required
-                    style={{ marginTop: 6, width: '100%', padding: '14px 16px', background: C.surface, border: '1px solid ' + C.border, borderRadius: 10, fontSize: 16, fontWeight: 500, color: C.text, outline: 'none', fontFamily: '"Inter", sans-serif', transition: 'border-color 0.15s', boxSizing: 'border-box' }}
-                    onFocus={e => { e.target.style.borderColor = C.primary; e.target.style.boxShadow = '0 0 0 3px rgba(255,140,0,0.1)'; }}
-                    onBlur={e => { e.target.style.borderColor = C.border; e.target.style.boxShadow = 'none'; }} />
-                </label>
+                <label className="cko-label">Dirección *<input className="cko-field" value={form.direccion} onChange={e => handleChange('direccion', e.target.value)} placeholder="Calle 123 #45-67, Barrio" required /></label>
 
-                <div className="compra-form-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
-                  <label style={{ fontSize: 12, fontWeight: 700, color: C.subtext, textTransform: 'uppercase', letterSpacing: 1 }}>
-                    Cantidad
-                    <input type="number" min="1" value={form.cantidad} onChange={e => handleChange('cantidad', parseInt(e.target.value) || 1)}
-                      style={{ marginTop: 6, width: '100%', padding: '14px 16px', background: C.surface, border: '1px solid ' + C.border, borderRadius: 10, fontSize: 16, fontWeight: 500, color: C.text, outline: 'none', fontFamily: '"Inter", sans-serif', boxSizing: 'border-box' }} />
-                  </label>
-                  <label style={{ fontSize: 12, fontWeight: 700, color: C.subtext, textTransform: 'uppercase', letterSpacing: 1 }}>
-                    Email <span style={{ color: C.muted, fontWeight: 500 }}>(opcional)</span>
-                    <input type="email" value={form.email} onChange={e => handleChange('email', e.target.value)} placeholder="tu@email.com"
-                      style={{ marginTop: 6, width: '100%', padding: '14px 16px', background: C.surface, border: '1px solid ' + C.border, borderRadius: 10, fontSize: 16, fontWeight: 500, color: C.text, outline: 'none', fontFamily: '"Inter", sans-serif', boxSizing: 'border-box' }} />
-                  </label>
+                <div className="cko-row" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+                  <label className="cko-label">Cantidad<input className="cko-field" type="number" min="1" value={form.cantidad} onChange={e => handleChange('cantidad', parseInt(e.target.value) || 1)} /></label>
+                  <label className="cko-label">Email <span style={{ color: C.muted, fontWeight: 500, textTransform: 'none', letterSpacing: 0 }}>(opcional)</span><input className="cko-field" type="email" value={form.email} onChange={e => handleChange('email', e.target.value)} placeholder="tu@email.com" /></label>
                 </div>
 
-                <label style={{ fontSize: 12, fontWeight: 700, color: C.subtext, textTransform: 'uppercase', letterSpacing: 1 }}>
-                  Notas <span style={{ color: C.muted, fontWeight: 500 }}>(opcional)</span>
-                  <textarea value={form.notas} onChange={e => handleChange('notas', e.target.value)} rows={2} placeholder="Color, talla, alguna indicación especial..."
-                    style={{ marginTop: 6, width: '100%', padding: '14px 16px', background: C.surface, border: '1px solid ' + C.border, borderRadius: 10, fontSize: 16, fontWeight: 500, color: C.text, outline: 'none', fontFamily: '"Inter", sans-serif', resize: 'vertical', boxSizing: 'border-box' }} />
-                </label>
+                <label className="cko-label">Notas <span style={{ color: C.muted, fontWeight: 500, textTransform: 'none', letterSpacing: 0 }}>(opcional)</span><textarea className="cko-field" value={form.notas} onChange={e => handleChange('notas', e.target.value)} rows={2} placeholder="Color, talla, alguna indicación especial..." style={{ resize: 'vertical' }} /></label>
 
-                <label style={{ fontSize: 12, fontWeight: 700, color: C.subtext, textTransform: 'uppercase', letterSpacing: 1 }}>
-                  Método de pago
-                  <select value={form.metodoPago} onChange={e => handleChange('metodoPago', e.target.value)}
-                    style={{ marginTop: 6, width: '100%', padding: '14px 16px', background: C.surface, border: '1px solid ' + C.border, borderRadius: 10, fontSize: 16, fontWeight: 500, color: C.text, outline: 'none', fontFamily: '"Inter", sans-serif', cursor: 'pointer', appearance: 'auto', boxSizing: 'border-box' }}>
+                <label className="cko-label">Método de pago
+                  <select className="cko-field" value={form.metodoPago} onChange={e => handleChange('metodoPago', e.target.value)} style={{ cursor: 'pointer', appearance: 'auto' }}>
                     <option value="contraentrega">💵 Contra entrega</option>
                     <option value="transferencia">🏦 Transferencia bancaria</option>
                   </select>
                 </label>
 
                 {form.metodoPago === 'transferencia' && bankConfig.empresa_banco && (
-                  <div style={{ background: '#e5eeff', borderRadius: 10, padding: 14, fontSize: 13 }}>
-                    <div style={{ fontWeight: 800, color: '#904d00', marginBottom: 8, fontSize: 14 }}>🏦 Datos para transferencia</div>
+                  <div style={{ background: '#e5eeff', borderRadius: 12, padding: 14, fontSize: 13 }}>
+                    <div style={{ fontWeight: 800, color: '#904d00', marginBottom: 8 }}>🏦 Datos para transferencia</div>
                     <div style={{ color: '#0b1c30', lineHeight: 1.8 }}>
                       <div><strong>Banco:</strong> {bankConfig.empresa_banco}</div>
-                      <div><strong>Tipo:</strong> {bankConfig.empresa_tipo_cuenta || '—'}</div>
                       <div><strong>Cuenta:</strong> {bankConfig.empresa_numero_cuenta}</div>
                       <div><strong>Titular:</strong> {bankConfig.empresa_titular_cuenta}</div>
                     </div>
                   </div>
                 )}
 
-                <button type="submit" disabled={saving} style={{
-                  width: '100%', minHeight: 56, background: saving ? C.muted : C.primary, color: '#fff',
-                  border: 'none', borderRadius: 10, fontSize: 18, fontWeight: 700, cursor: 'pointer',
-                  fontFamily: '"Inter", sans-serif', opacity: saving ? 0.7 : 1,
-                  boxShadow: saving ? 'none' : '0 4px 16px rgba(255,140,0,0.3)', transition: 'all 0.15s', marginTop: 4
-                }}
-                onMouseEnter={e => { if (!saving) e.currentTarget.style.transform = 'translateY(-1px)'; }}
-                onMouseLeave={e => { if (!saving) e.currentTarget.style.transform = 'none'; }}>
-                  {saving ? '🔄 Enviando pedido...' : '🛒 Confirmar pedido'}
+                <button type="submit" disabled={saving} className="cko-desktop-only cko-btn" style={{ marginTop: 8 }}>
+                  {saving ? 'Enviando...' : '🛒 Confirmar pedido'}
                 </button>
               </form>
 
-              <div className="compra-summary" style={{ background: C.surface, border: '1px solid ' + C.border, borderRadius: 16, padding: 28, position: 'sticky', top: 80, boxShadow: '0 4px 16px rgba(0,0,0,0.04)' }}>
-                <div style={{ fontSize: 14, fontWeight: 700, color: C.subtext, textTransform: 'uppercase', letterSpacing: 1, marginBottom: 20 }}>Resumen del pedido</div>
+              <div className="cko-summary-card" style={{ background: C.surface, border: '1px solid ' + C.border, borderRadius: 16, padding: 24, position: 'sticky', top: 16, boxShadow: '0 2px 12px rgba(0,0,0,0.04)' }}>
+                <div style={{ fontSize: 13, fontWeight: 800, color: C.subtext, textTransform: 'uppercase', letterSpacing: 1, marginBottom: 16 }}>📋 Resumen</div>
                 {producto.imagen && (
-                  <img src={producto.imagen} alt={producto.nombre} style={{ width: '100%', height: 180, objectFit: 'cover', borderRadius: 10, marginBottom: 16, background: '#F8F9FA', border: '1px solid ' + C.border }}
+                  <img src={producto.imagen} alt={producto.nombre} style={{ width: '100%', height: 160, objectFit: 'contain', borderRadius: 10, marginBottom: 14, background: '#F8F9FA', border: '1px solid ' + C.border }}
                     onError={e => { e.target.style.display = 'none'; }} />
                 )}
-                <div className="compra-item-name" style={{ fontSize: 18, fontWeight: 700, marginBottom: 4, color: C.text }}>{producto.nombre}</div>
-                {tieneOferta && (
-                  <span style={{ display: 'inline-block', background: '#ffdad6', color: C.red, fontSize: 12, fontWeight: 700, padding: '3px 10px', borderRadius: 20, marginBottom: 16 }}>
-                    -{Math.round((1 - producto.ofertaPrecio / producto.precioVenta) * 100)}% OFF
-                  </span>
-                )}
-                <div style={{ padding: '16px 0', borderTop: '1px solid ' + C.border, borderBottom: '1px solid ' + C.border, marginTop: 8 }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 14, marginBottom: 8, color: C.subtext }}><span>Precio unitario</span><span style={{ fontWeight: 600 }}>{formatPrice(precioFinal)}</span></div>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 14, marginBottom: 8, color: C.subtext }}><span>Cantidad</span><span style={{ fontWeight: 600 }}>x{form.cantidad}</span></div>
-                  {envioPrincipal > 0 && (
-                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 14, marginBottom: 8, color: C.subtext }}><span>Envío</span><span style={{ fontWeight: 600 }}>{formatPrice(envioPrincipal)}</span></div>
-                  )}
-                  {producto.envioGratis && (
-                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 14, marginBottom: 8, color: '#22c55e' }}><span>Envío</span><span style={{ fontWeight: 600 }}>Gratis</span></div>
-                  )}
-                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 18, fontWeight: 700, marginTop: 12, paddingTop: 12, borderTop: '1px solid ' + C.border }}><span>Total</span><span style={{ color: tieneOferta ? C.red : C.text }}>{formatPrice(total)}</span></div>
+                <div style={{ fontSize: 16, fontWeight: 700, marginBottom: 4, color: C.text }}>{producto.nombre}</div>
+                {tieneOferta && <span style={{ display: 'inline-block', background: '#ffdad6', color: C.red, fontSize: 11, fontWeight: 700, padding: '3px 8px', borderRadius: 20, marginBottom: 12 }}>-{Math.round((1 - producto.ofertaPrecio / producto.precioVenta) * 100)}%</span>}
+                
+                <div style={{ padding: '12px 0', borderTop: '1px solid ' + C.border, borderBottom: '1px solid ' + C.border, marginTop: 4 }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13, marginBottom: 6, color: C.subtext }}><span>Precio unitario</span><span>{formatPrice(precioFinal)}</span></div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13, marginBottom: 6, color: C.subtext }}><span>Cantidad</span><span>x{form.cantidad}</span></div>
+                  {envioPrincipal > 0 && <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13, marginBottom: 6, color: C.subtext }}><span>Envío</span><span>{formatPrice(envioPrincipal)}</span></div>}
+                  {producto.envioGratis && <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13, marginBottom: 6, color: '#22c55e' }}><span>Envío</span><span>Gratis</span></div>}
+                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 18, fontWeight: 800, marginTop: 10, paddingTop: 10, borderTop: '1px solid ' + C.border }}><span>Total</span><span style={{ color: tieneOferta ? C.red : C.text }}>{formatPrice(total)}</span></div>
                 </div>
-                {tieneOferta && <div style={{ fontSize: 13, color: C.muted, marginTop: 12 }}>Precio normal: <span style={{ textDecoration: 'line-through', fontWeight: 600 }}>{formatPrice(producto.precioVenta)}</span></div>}
 
                 {cartItems.length > 0 && (
-                  <div style={{ marginTop: 16, padding: '12px 0', borderTop: '1px solid ' + C.border }}>
-                    <div style={{ fontSize: 12, fontWeight: 700, color: C.subtext, textTransform: 'uppercase', letterSpacing: 1, marginBottom: 10 }}>
-                      🛒 Productos del carrito
-                    </div>
+                  <div style={{ marginTop: 14, padding: '10px 0', borderTop: '1px solid ' + C.border }}>
+                    <div style={{ fontSize: 11, fontWeight: 800, color: C.subtext, textTransform: 'uppercase', letterSpacing: 1, marginBottom: 8 }}>🛒 Carrito</div>
                     {cartItems.map(item => (
-                      <div key={item.id}>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4, fontSize: 13 }}>
-                          <button onClick={() => removeItem(item.id)} style={{ background: 'none', border: 'none', color: '#ba1a1a', cursor: 'pointer', fontSize: 14, fontWeight: 700, padding: '0 6px 0 0', flexShrink: 0 }}>✕</button>
+                      <div key={item.id} style={{ marginBottom: 6 }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: 12 }}>
+                          <button onClick={() => removeItem(item.id)} style={{ background: 'none', border: 'none', color: '#ba1a1a', cursor: 'pointer', fontSize: 12, padding: 0, marginRight: 6, flexShrink: 0 }}>✕</button>
                           <span style={{ fontWeight: 600, flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{item.nombre}</span>
-                          <span style={{ marginLeft: 8, whiteSpace: 'nowrap' }}>x{item.cantidad}</span>
-                          <span style={{ marginLeft: 12, fontWeight: 700, whiteSpace: 'nowrap' }}>{formatPrice(item.precio * item.cantidad)}</span>
+                          <span style={{ marginLeft: 6 }}>x{item.cantidad}</span>
+                          <span style={{ marginLeft: 8, fontWeight: 700 }}>{formatPrice(item.precio * item.cantidad)}</span>
                         </div>
-                        {!item.envioGratis && item.envioCosto > 0 && (
-                          <div style={{ fontSize: 11, color: C.muted, paddingLeft: 26, marginBottom: 6 }}>
-                            + Envío: {formatPrice(item.envioCosto)}
-                          </div>
-                        )}
-                        {item.envioGratis && (
-                          <div style={{ fontSize: 11, color: '#22c55e', paddingLeft: 26, marginBottom: 6 }}>
-                            + Envío gratis
-                          </div>
-                        )}
+                        {!item.envioGratis && item.envioCosto > 0 && <div style={{ fontSize: 10, color: C.muted, paddingLeft: 22 }}>+ Envío: {formatPrice(item.envioCosto)}</div>}
+                        {item.envioGratis && <div style={{ fontSize: 10, color: '#22c55e', paddingLeft: 22 }}>+ Envío gratis</div>}
                       </div>
                     ))}
                   </div>
                 )}
 
-                {producto.envioGratis ? (
-                  <div style={{ marginTop: 16, background: 'rgba(34,197,94,0.08)', borderRadius: 8, padding: '10px 14px', fontSize: 13, fontWeight: 600, color: '#166534', border: '1px solid rgba(34,197,94,0.2)' }}>🚚 ¡Envío gratis!</div>
-                ) : producto.envioCosto ? (
-                  <div style={{ marginTop: 16, background: '#eff4ff', borderRadius: 8, padding: '10px 14px', fontSize: 13, fontWeight: 600, color: '#0b1c30', border: '1px solid ' + C.border }}>🚚 Envío: {formatPrice(producto.envioCosto)}</div>
-                ) : null}
-
                 {producto?.relacionados?.length > 0 && (
-                  <div className="compra-related" style={{ marginTop: 24, padding: 16, background: '#f8f9ff', borderRadius: 12, border: '1px solid ' + C.border }}>
-                    <div style={{ fontSize: 13, fontWeight: 700, color: C.primary, textTransform: 'uppercase', letterSpacing: 1, marginBottom: 12 }}>+ Agregar a tu pedido</div>
-                    {producto.relacionados.map(rp => {
-                      const rpPrecio = rp.ofertaActiva && rp.ofertaPrecio ? rp.ofertaPrecio : rp.precioVenta;
-                      return (
-                        <div className="compra-related-item" key={rp.id} style={{
-                          display: 'flex', alignItems: 'center', gap: 10, padding: '10px 0',
-                          borderBottom: '1px solid ' + C.border, transition: 'background 0.1s'
-                        }}
-                        onMouseEnter={e => e.currentTarget.style.background = C.surface}
-                        onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>
-                          {rp.imagen ? (
-                            <img src={rp.imagen} alt={rp.nombre} style={{ width: 44, height: 44, objectFit: 'cover', borderRadius: 8, flexShrink: 0, background: '#F8F9FA', border: '1px solid ' + C.border }}
-                              onError={e => { e.target.style.display = 'none'; }} />
-                          ) : (
-                            <div style={{ width: 44, height: 44, borderRadius: 8, flexShrink: 0, background: '#F8F9FA', border: '1px solid ' + C.border }} />
-                          )}
-                          <div style={{ flex: 1, minWidth: 0 }}>
-                            <div style={{ fontSize: 13, fontWeight: 600, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', marginBottom: 2 }}>{rp.nombre}</div>
-                            <div style={{ fontSize: 14, fontWeight: 700, color: rp.ofertaActiva && rp.ofertaPrecio ? C.red : C.text }}>{formatPrice(rpPrecio)}</div>
+                  <div className="cko-related" style={{ marginTop: 16, padding: 14, background: '#f8f9ff', borderRadius: 12, border: '1px solid ' + C.border }}>
+                    <div style={{ fontSize: 11, fontWeight: 800, color: '#904d00', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 10 }}>+ Agregar a tu pedido</div>
+                    <div className="cko-scroll">
+                      {producto.relacionados.map(rp => {
+                        const rpPrecio = rp.ofertaActiva && rp.ofertaPrecio ? rp.ofertaPrecio : rp.precioVenta;
+                        return (
+                          <div key={rp.id} style={{ background: '#fff', borderRadius: 10, border: '1px solid ' + C.border, padding: 10, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6, cursor: 'pointer' }}>
+                            {rp.imagen ? <img src={rp.imagen} alt={rp.nombre} style={{ width: 56, height: 56, objectFit: 'contain', borderRadius: 8, background: '#F8F9FA' }} onError={e => { e.target.style.display = 'none'; }} /> : <div style={{ width: 56, height: 56, borderRadius: 8, background: '#F8F9FA' }} />}
+                            <div style={{ fontSize: 11, fontWeight: 600, textAlign: 'center', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: 100 }}>{rp.nombre}</div>
+                            <div style={{ fontSize: 13, fontWeight: 700, color: rp.ofertaActiva && rp.ofertaPrecio ? C.red : C.text }}>{formatPrice(rpPrecio)}</div>
+                            <button type="button" onClick={() => addItem(rp)} style={{ background: C.primary, color: '#fff', fontWeight: 700, fontSize: 11, padding: '5px 14px', borderRadius: 8, whiteSpace: 'nowrap', border: 'none', cursor: 'pointer', width: '100%' }}>+ Agregar</button>
                           </div>
-                          <button type="button" onClick={() => addItem(rp)} style={{ background: C.primary, color: '#fff', fontWeight: 700, fontSize: 11, padding: '5px 12px', borderRadius: 8, whiteSpace: 'nowrap', flexShrink: 0, border: 'none', cursor: 'pointer' }}>+ Agregar</button>
-                        </div>
-                      );
-                    })}
+                        );
+                      })}
+                    </div>
                   </div>
                 )}
               </div>
             </div>
-          </div>
+          </>
         )}
       </div>
+
+      {!enviado && (
+        <div className="cko-mobile-bar">
+          <div style={{ flex: 1 }}>
+            <div className="cko-total-label">Total</div>
+            <div className="cko-total-amount">{formatPrice(total)}</div>
+          </div>
+          <button type="button" onClick={() => handleSubmit({ preventDefault: () => {} })} disabled={saving} className="cko-btn">
+            {saving ? 'Enviando...' : '🛒 Confirmar pedido'}
+          </button>
+        </div>
+      )}
     </div>
   );
 }
