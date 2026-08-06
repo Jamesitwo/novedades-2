@@ -145,7 +145,18 @@ export default function ComprarPage() {
       <style dangerouslySetInnerHTML={{__html: `
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
         @keyframes confetti-fall { 0% { transform: translateY(-100vh) rotate(0deg); opacity: 1; } 100% { transform: translateY(100vh) rotate(720deg); opacity: 0; } }
-        @media (max-width: 768px) { .compra-grid { grid-template-columns: 1fr !important; gap: 12px !important; } .compra-grid > :last-child { order: -1; } .compra-summary { position: static !important; } .compra-summary img:first-of-type { height: 100px !important; object-fit: contain !important; } .compra-form-grid { grid-template-columns: 1fr !important; } .compra-section { padding: 12px !important; } .compra-skip-link { display: block !important; } }
+        .compra-mobile-header { display: none; }
+        @media (max-width: 768px) {
+          .compra-mobile-header { display: flex !important; align-items: center; gap: 12px; padding: 12px; background: #fff; border-bottom: 1px solid #E2E8F0; margin-bottom: 8px; }
+          .compra-mobile-header img { width: 56px; height: 56px; border-radius: 8px; object-fit: contain; background: #F8F9FA; border: 1px solid #E2E8F0; }
+          .compra-grid { grid-template-columns: 1fr !important; gap: 12px !important; }
+          .compra-grid > form { order: 1 !important; }
+          .compra-grid > :last-child { order: 2 !important; }
+          .compra-summary { position: static !important; padding: 14px !important; }
+          .compra-form-grid { grid-template-columns: 1fr !important; }
+          .compra-section { padding: 12px !important; }
+          .compra-desktop-only { display: none !important; }
+        }
       `}} />
 
       <div style={{ background: C.navy, borderBottom: '1px solid rgba(255,255,255,0.1)', padding: '0 24px', display: 'flex', alignItems: 'center', height: 52 }}>
@@ -164,6 +175,13 @@ export default function ComprarPage() {
           </div>
         ) : (
           <div>
+            <div className="compra-mobile-header">
+              {producto.imagen && <img src={producto.imagen} alt={producto.nombre} onError={e => { e.target.style.display = 'none'; }} />}
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <div style={{ fontSize: 13, fontWeight: 700, color: C.text, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{producto.nombre}</div>
+                <div style={{ fontSize: 18, fontWeight: 800, color: tieneOferta ? C.red : C.text, marginTop: 2 }}>{formatPrice(total)}</div>
+              </div>
+            </div>
             <div style={{ marginBottom: 48 }}>
               <h1 style={{ fontSize: 'clamp(26px, 5vw, 36px)', fontWeight: 800, marginBottom: 8, color: C.text }}>Finalizar compra</h1>
               <p style={{ fontSize: 16, color: C.subtext, lineHeight: 1.5 }}>Completa tus datos y te contactaremos para coordinar el envío.</p>
