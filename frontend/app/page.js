@@ -1,6 +1,6 @@
 'use client';
-import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import { useState, useEffect, Suspense } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import api from '@/lib/api';
 import ClientLayout from './ClientLayout';
 import ProductCard from '../components/tienda/ProductCard';
@@ -9,15 +9,16 @@ import SocialProofToast from '../components/tienda/SocialProofToast';
 import UpsellPopup from '../components/tienda/UpsellPopup';
 import { on } from '@/lib/websocket';
 
-export default function TiendaPage() {
+function TiendaPageContent() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [productos, setProductos] = useState([]);
   const [destacados, setDestacados] = useState([]);
   const [ofertas, setOfertas] = useState([]);
   const [categorias, setCategorias] = useState([]);
   const [categoria, setCategoria] = useState('');
   const [orden, setOrden] = useState('reciente');
-  const [search, setSearch] = useState('');
+  const [search, setSearch] = useState(searchParams.get('search') || '');
   const [loading, setLoading] = useState(true);
   const [proofEvents, setProofEvents] = useState([]);
   const [error, setError] = useState('');
@@ -70,11 +71,10 @@ export default function TiendaPage() {
   }, []);
 
   useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
-    const s = params.get('search') || '';
+    const s = searchParams.get('search') || '';
     setSearch(s);
     if (s) setCategoria('');
-  }, []);
+  }, [searchParams]);
 
   const fetchData = async () => {
     try {
@@ -576,5 +576,13 @@ export default function TiendaPage() {
         ))}
       </div>
     </ClientLayout>
+  );
+}
+
+export default function TiendaPage() {
+  return (
+    <Suspense fallback={<div style={{ minHeight: '100vh', background: '#f8f9ff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: '"Inter", sans-serif', fontSize: 16, fontWeight: 600, color: '#897362' }}>Cargando...</div>}>
+      <TiendaPageContent />
+    </Suspense>
   );
 }
