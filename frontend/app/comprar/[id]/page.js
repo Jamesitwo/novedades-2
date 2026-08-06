@@ -146,23 +146,31 @@ export default function ComprarPage() {
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
         @keyframes confetti-fall { 0% { transform: translateY(-100vh) rotate(0deg); opacity: 1; } 100% { transform: translateY(100vh) rotate(720deg); opacity: 0; } }
         .compra-grid { display: grid; grid-template-columns: 1.2fr 0.8fr; gap: 48px; align-items: start; }
+        .compra-grid input, .compra-grid select, .compra-grid textarea { box-sizing: border-box; }
         @media (max-width: 768px) {
-          .compra-grid { grid-template-columns: 1fr !important; gap: 24px !important; }
+          .compra-grid { grid-template-columns: 1fr !important; gap: 20px !important; }
           .compra-grid > :last-child { order: -1; }
-          .compra-summary { position: static !important; top: auto !important; }
+          .compra-summary { position: static !important; top: auto !important; padding: 20px 16px !important; }
           .compra-form-grid { grid-template-columns: 1fr !important; }
           .compra-title { font-size: 24px !important; }
-          .compra-section { padding: 24px 16px !important; }
+          .compra-section { padding: 16px !important; }
+          .compra-nav { padding: 0 12px !important; }
+          .compra-grid input, .compra-grid select, .compra-grid textarea { padding: 12px 14px !important; font-size: 15px !important; }
+          .compra-grid label { font-size: 11px !important; }
+          .compra-grid button[type="submit"] { min-height: 50px !important; font-size: 16px !important; }
         }
         @media (max-width: 480px) {
-          .compra-section { padding: 16px 12px !important; }
-          .compra-title { font-size: 20px !important; }
-          .compra-grid input, .compra-grid select, .compra-grid textarea { padding: 12px 14px !important; font-size: 14px !important; }
-          .compra-grid .compra-summary { padding: 20px 16px !important; border-radius: 12px !important; }
+          .compra-section { padding: 12px 8px !important; }
+          .compra-title { font-size: 20px !important; margin-bottom: 4px !important; }
+          .compra-grid { gap: 14px !important; }
+          .compra-grid input, .compra-grid select, .compra-grid textarea { padding: 10px 12px !important; font-size: 14px !important; }
+          .compra-summary { padding: 14px 12px !important; border-radius: 10px !important; }
+          .compra-summary img { height: 120px !important; }
+          .compra-related { flex-direction: column !important; }
         }
       `}} />
 
-      <div style={{ background: C.navy, borderBottom: '1px solid rgba(255,255,255,0.1)', padding: '0 24px', display: 'flex', alignItems: 'center', height: 52 }}>
+      <div className="compra-nav" style={{ background: C.navy, borderBottom: '1px solid rgba(255,255,255,0.1)', padding: '0 24px', display: 'flex', alignItems: 'center', height: 52 }}>
         <a href={`/producto/${id}`} style={{ color: '#ffb77d', textDecoration: 'none', fontSize: 14, fontWeight: 600 }}>← Volver al producto</a>
         <span style={{ marginLeft: 'auto', fontSize: 18, fontWeight: 800, color: '#ffb77d', textTransform: 'uppercase', letterSpacing: 1 }}>Pizdo</span>
       </div>
@@ -341,7 +349,7 @@ export default function ComprarPage() {
                 ) : null}
 
                 {producto?.relacionados?.length > 0 && (
-                  <div style={{ marginTop: 24, padding: 16, background: '#f8f9ff', borderRadius: 12, border: '1px solid ' + C.border }}>
+                  <div className="compra-related" style={{ marginTop: 24, padding: 16, background: '#f8f9ff', borderRadius: 12, border: '1px solid ' + C.border }}>
                     <div style={{ fontSize: 13, fontWeight: 700, color: C.primary, textTransform: 'uppercase', letterSpacing: 1, marginBottom: 12 }}>+ Agregar a tu pedido</div>
                     {producto.relacionados.map(rp => {
                       const rpPrecio = rp.ofertaActiva && rp.ofertaPrecio ? rp.ofertaPrecio : rp.precioVenta;
