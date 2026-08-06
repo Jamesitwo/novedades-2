@@ -148,25 +148,33 @@ export default function ComprarPage() {
         .compra-grid { display: grid; grid-template-columns: 1.2fr 0.8fr; gap: 48px; align-items: start; }
         .compra-grid input, .compra-grid select, .compra-grid textarea { box-sizing: border-box; }
         @media (max-width: 768px) {
-          .compra-grid { grid-template-columns: 1fr !important; gap: 20px !important; }
+          .compra-grid { grid-template-columns: 1fr !important; gap: 16px !important; }
           .compra-grid > :last-child { order: -1; }
-          .compra-summary { position: static !important; top: auto !important; padding: 20px 16px !important; }
-          .compra-form-grid { grid-template-columns: 1fr !important; }
-          .compra-title { font-size: 24px !important; }
-          .compra-section { padding: 16px !important; }
-          .compra-nav { padding: 0 12px !important; }
-          .compra-grid input, .compra-grid select, .compra-grid textarea { padding: 12px 14px !important; font-size: 15px !important; }
-          .compra-grid label { font-size: 11px !important; }
-          .compra-grid button[type="submit"] { min-height: 50px !important; font-size: 16px !important; }
+          .compra-summary { position: static !important; top: auto !important; padding: 16px !important; }
+          .compra-summary img { height: 140px !important; margin-bottom: 12px !important; }
+          .compra-form-grid { grid-template-columns: 1fr !important; gap: 10px !important; }
+          .compra-title { font-size: 22px !important; margin-bottom: 4px !important; }
+          .compra-section { padding: 12px !important; }
+          .compra-nav { padding: 0 10px !important; height: 44px !important; }
+          .compra-nav span { font-size: 15px !important; }
+          .compra-grid input, .compra-grid select, .compra-grid textarea { padding: 10px 12px !important; font-size: 15px !important; margin-top: 4px !important; }
+          .compra-grid label { font-size: 10px !important; }
+          .compra-grid button[type="submit"] { min-height: 48px !important; font-size: 16px !important; }
+          .compra-related-item { padding: 8px 0 !important; gap: 8px !important; }
+          .compra-section-header { margin-bottom: 24px !important; }
+          .compra-section-header p { font-size: 14px !important; }
         }
         @media (max-width: 480px) {
-          .compra-section { padding: 12px 8px !important; }
-          .compra-title { font-size: 20px !important; margin-bottom: 4px !important; }
-          .compra-grid { gap: 14px !important; }
-          .compra-grid input, .compra-grid select, .compra-grid textarea { padding: 10px 12px !important; font-size: 14px !important; }
-          .compra-summary { padding: 14px 12px !important; border-radius: 10px !important; }
-          .compra-summary img { height: 120px !important; }
-          .compra-related { flex-direction: column !important; }
+          .compra-section { padding: 8px 6px !important; }
+          .compra-title { font-size: 19px !important; }
+          .compra-grid { gap: 12px !important; }
+          .compra-grid input, .compra-grid select, .compra-grid textarea { padding: 10px !important; font-size: 14px !important; border-radius: 8px !important; }
+          .compra-summary { padding: 12px !important; border-radius: 10px !important; }
+          .compra-summary img { height: 100px !important; }
+          .compra-summary .compra-item-name { font-size: 15px !important; }
+          .compra-nav { height: 40px !important; }
+          .compra-grid form { gap: 12px !important; }
+          .compra-grid button[type="submit"] { min-height: 46px !important; font-size: 15px !important; border-radius: 10px !important; }
         }
       `}} />
 
@@ -186,7 +194,7 @@ export default function ComprarPage() {
           </div>
         ) : (
           <div>
-            <div style={{ marginBottom: 48 }}>
+            <div className="compra-section-header" style={{ marginBottom: 48 }}>
               <h1 className="compra-title" style={{ fontSize: 'clamp(26px, 5vw, 36px)', fontWeight: 800, marginBottom: 8, color: C.text }}>Finalizar compra</h1>
               <p style={{ fontSize: 16, color: C.subtext, lineHeight: 1.5 }}>Completa tus datos y te contactaremos para coordinar el envío.</p>
             </div>
@@ -295,7 +303,7 @@ export default function ComprarPage() {
                   <img src={producto.imagen} alt={producto.nombre} style={{ width: '100%', height: 180, objectFit: 'cover', borderRadius: 10, marginBottom: 16, background: '#F8F9FA', border: '1px solid ' + C.border }}
                     onError={e => { e.target.style.display = 'none'; }} />
                 )}
-                <div style={{ fontSize: 18, fontWeight: 700, marginBottom: 4, color: C.text }}>{producto.nombre}</div>
+                <div className="compra-item-name" style={{ fontSize: 18, fontWeight: 700, marginBottom: 4, color: C.text }}>{producto.nombre}</div>
                 {tieneOferta && (
                   <span style={{ display: 'inline-block', background: '#ffdad6', color: C.red, fontSize: 12, fontWeight: 700, padding: '3px 10px', borderRadius: 20, marginBottom: 16 }}>
                     -{Math.round((1 - producto.ofertaPrecio / producto.precioVenta) * 100)}% OFF
@@ -354,7 +362,7 @@ export default function ComprarPage() {
                     {producto.relacionados.map(rp => {
                       const rpPrecio = rp.ofertaActiva && rp.ofertaPrecio ? rp.ofertaPrecio : rp.precioVenta;
                       return (
-                        <div key={rp.id} style={{
+                        <div className="compra-related-item" key={rp.id} style={{
                           display: 'flex', alignItems: 'center', gap: 10, padding: '10px 0',
                           borderBottom: '1px solid ' + C.border, transition: 'background 0.1s'
                         }}
