@@ -22,7 +22,7 @@ function AutocompleteInput({ value, onChange, options, placeholder, disabled }) 
 
   return (
     <div ref={wrapperRef} style={{ position: 'relative' }}>
-      <input type="text" value={value} disabled={disabled}
+      <input type="text" className="compra-input" value={value} disabled={disabled}
         placeholder={placeholder}
         onChange={e => { onChange(e.target.value); setFilter(e.target.value); setOpen(true); }}
         onFocus={() => setOpen(true)}
@@ -145,7 +145,21 @@ export default function ComprarPage() {
       <style dangerouslySetInnerHTML={{__html: `
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
         @keyframes confetti-fall { 0% { transform: translateY(-100vh) rotate(0deg); opacity: 1; } 100% { transform: translateY(100vh) rotate(720deg); opacity: 0; } }
-        @media (max-width: 768px) { .compra-grid { grid-template-columns: 1fr !important; } }
+        .compra-grid { display: grid; grid-template-columns: 1.2fr 0.8fr; gap: 48px; align-items: start; }
+        @media (max-width: 768px) {
+          .compra-grid { grid-template-columns: 1fr !important; gap: 24px !important; }
+          .compra-grid > :last-child { order: -1; }
+          .compra-summary { position: static !important; top: auto !important; }
+          .compra-form-grid { grid-template-columns: 1fr !important; }
+          .compra-title { font-size: 24px !important; }
+          .compra-section { padding: 24px 16px !important; }
+        }
+        @media (max-width: 480px) {
+          .compra-section { padding: 16px 12px !important; }
+          .compra-title { font-size: 20px !important; }
+          .compra-grid input, .compra-grid select, .compra-grid textarea { padding: 12px 14px !important; font-size: 14px !important; }
+          .compra-grid .compra-summary { padding: 20px 16px !important; border-radius: 12px !important; }
+        }
       `}} />
 
       <div style={{ background: C.navy, borderBottom: '1px solid rgba(255,255,255,0.1)', padding: '0 24px', display: 'flex', alignItems: 'center', height: 52 }}>
@@ -153,7 +167,7 @@ export default function ComprarPage() {
         <span style={{ marginLeft: 'auto', fontSize: 18, fontWeight: 800, color: '#ffb77d', textTransform: 'uppercase', letterSpacing: 1 }}>Pizdo</span>
       </div>
 
-      <div style={{ maxWidth: 960, margin: '0 auto', padding: 'clamp(32px, 6vw, 56px) 24px' }}>
+      <div className="compra-section compra-section" style={{ maxWidth: 960, margin: '0 auto', padding: 'clamp(32px, 6vw, 56px) 24px' }}>
         {enviado ? (
           <div style={{ textAlign: 'center', padding: 'clamp(32px, 8vw, 80px) 24px', position: 'relative', overflow: 'hidden' }}>
             {confetti.map(p => <div key={p.id} style={{ position: 'absolute', top: -20, left: p.left, width: p.size, height: p.size, background: p.color, borderRadius: '50%', animation: `confetti-fall ${p.duration} ${p.delay} linear`, pointerEvents: 'none' }} />)}
@@ -165,15 +179,15 @@ export default function ComprarPage() {
         ) : (
           <div>
             <div style={{ marginBottom: 48 }}>
-              <h1 style={{ fontSize: 'clamp(26px, 5vw, 36px)', fontWeight: 800, marginBottom: 8, color: C.text }}>Finalizar compra</h1>
+              <h1 className="compra-title" style={{ fontSize: 'clamp(26px, 5vw, 36px)', fontWeight: 800, marginBottom: 8, color: C.text }}>Finalizar compra</h1>
               <p style={{ fontSize: 16, color: C.subtext, lineHeight: 1.5 }}>Completa tus datos y te contactaremos para coordinar el envío.</p>
             </div>
 
-            <div className="compra-grid" style={{ display: 'grid', gridTemplateColumns: '1.2fr 0.8fr', gap: 48, alignItems: 'start' }}>
+              <div className="compra-grid">
               <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
                 {error && <div style={{ background: '#ffdad6', color: C.red, padding: '12px 16px', borderRadius: 8, fontSize: 14, fontWeight: 600, border: '1px solid rgba(186,26,26,0.2)' }}>{error}</div>}
 
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
+                <div className="compra-form-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
                   {[{ key: 'nombre', label: 'Nombre', ph: 'Tu nombre' }, { key: 'apellido', label: 'Apellido', ph: 'Tu apellido' }].map(f => (
                     <label key={f.key} style={{ fontSize: 12, fontWeight: 700, color: C.subtext, textTransform: 'uppercase', letterSpacing: 1 }}>
                       {f.label} *
@@ -193,7 +207,7 @@ export default function ComprarPage() {
                     onBlur={e => { e.target.style.borderColor = C.border; e.target.style.boxShadow = 'none'; }} />
                 </label>
 
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
+                <div className="compra-form-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
                   <label style={{ fontSize: 12, fontWeight: 700, color: C.subtext, textTransform: 'uppercase', letterSpacing: 1 }}>
                     Departamento *
                     <AutocompleteInput value={form.departamento} onChange={v => { handleChange('departamento', v); handleChange('ciudad', ''); }}
@@ -215,7 +229,7 @@ export default function ComprarPage() {
                     onBlur={e => { e.target.style.borderColor = C.border; e.target.style.boxShadow = 'none'; }} />
                 </label>
 
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
+                <div className="compra-form-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
                   <label style={{ fontSize: 12, fontWeight: 700, color: C.subtext, textTransform: 'uppercase', letterSpacing: 1 }}>
                     Cantidad
                     <input type="number" min="1" value={form.cantidad} onChange={e => handleChange('cantidad', parseInt(e.target.value) || 1)}
@@ -267,7 +281,7 @@ export default function ComprarPage() {
                 </button>
               </form>
 
-              <div style={{ background: C.surface, border: '1px solid ' + C.border, borderRadius: 16, padding: 28, position: 'sticky', top: 80, boxShadow: '0 4px 16px rgba(0,0,0,0.04)' }}>
+              <div className="compra-summary" style={{ background: C.surface, border: '1px solid ' + C.border, borderRadius: 16, padding: 28, position: 'sticky', top: 80, boxShadow: '0 4px 16px rgba(0,0,0,0.04)' }}>
                 <div style={{ fontSize: 14, fontWeight: 700, color: C.subtext, textTransform: 'uppercase', letterSpacing: 1, marginBottom: 20 }}>Resumen del pedido</div>
                 {producto.imagen && (
                   <img src={producto.imagen} alt={producto.nombre} style={{ width: '100%', height: 180, objectFit: 'cover', borderRadius: 10, marginBottom: 16, background: '#F8F9FA', border: '1px solid ' + C.border }}
