@@ -104,7 +104,7 @@ export default function ProductoDetallePage() {
   return (
     <ClientLayout><div style={{ maxWidth: 1280, margin: '0 auto', padding: '0 24px 64px' }}>
       <style dangerouslySetInnerHTML={{__html: `
-        @media (max-width: 768px) { .detalle-grid-v2 { grid-template-columns: 1fr !important; } .detalle-titulo { font-size: 22px !important; } .landing-section-img { max-height: none !important; width: 100vw !important; margin-left: -24px !important; border-radius: 0 !important; border: none !important; border-bottom: 1px solid #E2E8F0 !important; object-fit: contain !important; height: auto !important; } .landing-section { padding-left: 0 !important; padding-right: 0 !important; } .landing-section h2 { padding: 0 24px !important; } .landing-section-content { padding: 0 16px !important; } }
+        @media (max-width: 768px) { .detalle-grid-v2 { grid-template-columns: 1fr !important; } .detalle-titulo { font-size: 22px !important; } .landing-section-img { max-height: 220px !important; border-radius: 10px !important; } }
       `}} />
 
       <a href="/" style={{ color: C.primary, textDecoration: 'none', fontSize: 14, fontWeight: 600, display: 'inline-block', margin: '24px 0' }}>← Volver a la tienda</a>
@@ -206,6 +206,37 @@ export default function ProductoDetallePage() {
         </div>
       </div>
 
+      {producto.landingConfig && (() => {
+        const lc = typeof producto.landingConfig === 'string' ? JSON.parse(producto.landingConfig) : producto.landingConfig;
+        const sections = [
+          { key: 'beneficios', icon: '✨', defaultTitle: 'Beneficios' },
+          { key: 'autoridad', icon: '🏆', defaultTitle: 'Certificaciones' },
+          { key: 'testimonios', icon: '💬', defaultTitle: 'Testimonios' },
+          { key: 'modoUso', icon: '📋', defaultTitle: 'Modo de Uso' },
+          { key: 'logistica', icon: '🚚', defaultTitle: 'Envío y Entrega' },
+          { key: 'faq', icon: '❓', defaultTitle: 'Preguntas Frecuentes' },
+          { key: 'oferta', icon: '🔥', defaultTitle: 'Oferta Especial' }
+        ];
+        return sections.filter(s => lc[s.key]?.enabled).map(s => (
+          <section key={s.key} style={{ marginTop: 48, borderTop: '1px solid ' + C.border, paddingTop: 32 }}>
+            <h2 style={{ fontSize: 22, fontWeight: 700, marginBottom: 16, borderLeft: '4px solid #ff8c00', paddingLeft: 12, color: C.text }}>
+              {s.icon} {lc[s.key].titulo || s.defaultTitle}
+            </h2>
+            {lc[s.key].imagen && (
+              <img src={lc[s.key].imagen} alt={lc[s.key].titulo}
+                className="landing-section-img"
+                style={{ width: '100%', maxHeight: 400, objectFit: 'cover', borderRadius: 14, border: '1px solid ' + C.border, marginBottom: 20 }}
+                onError={e => { e.target.style.display = 'none'; }} />
+            )}
+            <div>
+              {lc[s.key].contenido?.split('\n').map((p, i) => (
+                <p key={i} style={{ color: C.subtext, fontSize: 15, lineHeight: 1.7, marginBottom: 12 }}>{p}</p>
+              ))}
+            </div>
+          </section>
+        ));
+      })()}
+
       <section id="reviews" style={{ marginTop: 48, borderTop: '1px solid ' + C.border, paddingTop: 32 }}>
         <h2 style={{ fontSize: 22, fontWeight: 700, marginBottom: 20, borderLeft: '4px solid #ff8c00', paddingLeft: 12, color: C.text }}>
           ⭐ Reseñas ({resenasTotal})
@@ -294,37 +325,6 @@ export default function ProductoDetallePage() {
           <div style={{ textAlign: 'center', color: C.muted, padding: 30, border: '1px dashed ' + C.border, borderRadius: 10, fontSize: 14, fontWeight: 500 }}>Sé el primero en dejar una reseña</div>
         )}
       </section>
-
-      {producto.landingConfig && (() => {
-        const lc = typeof producto.landingConfig === 'string' ? JSON.parse(producto.landingConfig) : producto.landingConfig;
-        const sections = [
-          { key: 'beneficios', icon: '✨', defaultTitle: 'Beneficios' },
-          { key: 'autoridad', icon: '🏆', defaultTitle: 'Certificaciones' },
-          { key: 'testimonios', icon: '💬', defaultTitle: 'Testimonios' },
-          { key: 'modoUso', icon: '📋', defaultTitle: 'Modo de Uso' },
-          { key: 'logistica', icon: '🚚', defaultTitle: 'Envío y Entrega' },
-          { key: 'faq', icon: '❓', defaultTitle: 'Preguntas Frecuentes' },
-          { key: 'oferta', icon: '🔥', defaultTitle: 'Oferta Especial' }
-        ];
-        return sections.filter(s => lc[s.key]?.enabled).map(s => (
-           <section key={s.key} className="landing-section" style={{ marginTop: 48, borderTop: '1px solid ' + C.border, paddingTop: 32 }}>
-            <h2 style={{ fontSize: 22, fontWeight: 700, marginBottom: 16, borderLeft: '4px solid #ff8c00', paddingLeft: 12, color: C.text }}>
-              {s.icon} {lc[s.key].titulo || s.defaultTitle}
-            </h2>
-            {lc[s.key].imagen && (
-              <img src={lc[s.key].imagen} alt={lc[s.key].titulo}
-                className="landing-section-img"
-                style={{ width: '100%', maxHeight: 400, objectFit: 'cover', borderRadius: 14, border: '1px solid ' + C.border, marginBottom: 20 }}
-                onError={e => { e.target.style.display = 'none'; }} />
-            )}
-            <div className="landing-section-content" style={{ padding: '0 24px' }}>
-              {lc[s.key].contenido?.split('\n').map((p, i) => (
-                <p key={i} style={{ color: C.subtext, fontSize: 15, lineHeight: 1.7, marginBottom: 12 }}>{p}</p>
-              ))}
-            </div>
-          </section>
-        ));
-      })()}
 
       {producto.relacionados?.length > 0 && (
         <section style={{ marginTop: 48, borderTop: '1px solid ' + C.border, paddingTop: 32 }}>
