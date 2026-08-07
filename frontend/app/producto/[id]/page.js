@@ -104,7 +104,7 @@ export default function ProductoDetallePage() {
   return (
     <ClientLayout><div style={{ maxWidth: 1280, margin: '0 auto', padding: '0 24px 64px' }}>
       <style dangerouslySetInnerHTML={{__html: `
-        @media (max-width: 768px) { .detalle-grid-v2 { grid-template-columns: 1fr !important; } .detalle-titulo { font-size: 22px !important; } .landing-section-grid { grid-template-columns: 1fr !important; } .landing-section-img { maxHeight: 180px !important; } }
+        @media (max-width: 768px) { .detalle-grid-v2 { grid-template-columns: 1fr !important; } .detalle-titulo { font-size: 22px !important; } .landing-section-img { max-height: 220px !important; border-radius: 10px !important; } }
       `}} />
 
       <a href="/" style={{ color: C.primary, textDecoration: 'none', fontSize: 14, fontWeight: 600, display: 'inline-block', margin: '24px 0' }}>← Volver a la tienda</a>
@@ -311,17 +311,16 @@ export default function ProductoDetallePage() {
             <h2 style={{ fontSize: 22, fontWeight: 700, marginBottom: 16, borderLeft: '4px solid #ff8c00', paddingLeft: 12, color: C.text }}>
               {s.icon} {lc[s.key].titulo || s.defaultTitle}
             </h2>
-             <div className="landing-section-grid" style={{ display: 'grid', gridTemplateColumns: lc[s.key].imagen ? '1fr 1fr' : '1fr', gap: 32, alignItems: 'center' }}>
-              <div>
-                {lc[s.key].contenido?.split('\n').map((p, i) => (
-                  <p key={i} style={{ color: C.subtext, fontSize: 15, lineHeight: 1.7, marginBottom: 12 }}>{p}</p>
-                ))}
-              </div>
-              {lc[s.key].imagen && (
-                <img src={lc[s.key].imagen} alt={lc[s.key].titulo}
-                  style={{ width: '100%', maxHeight: 250, objectFit: 'contain', borderRadius: 12, border: '1px solid ' + C.border, background: '#F8F9FA' }}
-                  onError={e => { e.target.style.display = 'none'; }} />
-              )}
+            {lc[s.key].imagen && (
+              <img src={lc[s.key].imagen} alt={lc[s.key].titulo}
+                className="landing-section-img"
+                style={{ width: '100%', maxHeight: 400, objectFit: 'cover', borderRadius: 14, border: '1px solid ' + C.border, marginBottom: 20 }}
+                onError={e => { e.target.style.display = 'none'; }} />
+            )}
+            <div>
+              {lc[s.key].contenido?.split('\n').map((p, i) => (
+                <p key={i} style={{ color: C.subtext, fontSize: 15, lineHeight: 1.7, marginBottom: 12 }}>{p}</p>
+              ))}
             </div>
           </section>
         ));
