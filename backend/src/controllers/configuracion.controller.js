@@ -41,7 +41,8 @@ const updateConfiguracion = async (req, res) => {
       coupon_activo, coupon_codigo, coupon_texto, coupon_descuento,
       whatsapp_numero,
       promo_bar_texto, homepage_categorias,
-      envio_texto, envio_dias, garantia_titulo, garantia_texto, redesSociales } = req.body;
+      envio_texto, envio_dias, garantia_titulo, garantia_texto, redesSociales,
+      metaPixelId, metaAccessToken, metaTestCode } = req.body;
 
     let config = await prisma.configuracion.findFirst();
 
@@ -96,6 +97,9 @@ const updateConfiguracion = async (req, res) => {
     if (garantia_titulo !== undefined) extraData.garantia_titulo = garantia_titulo || null;
     if (garantia_texto !== undefined) extraData.garantia_texto = garantia_texto || null;
     if (redesSociales !== undefined) extraData.redesSociales = redesSociales || [];
+    if (metaPixelId !== undefined) extraData.metaPixelId = metaPixelId || null;
+    if (metaAccessToken !== undefined) extraData.metaAccessToken = metaAccessToken || null;
+    if (metaTestCode !== undefined) extraData.metaTestCode = metaTestCode || null;
 
     if (req.body.lucidsales_reset === true) {
       extraData.lucidsales_token = null;
@@ -171,7 +175,8 @@ const getPublicConfig = async (req, res) => {
       empresa_tipo_cuenta: config.empresa_tipo_cuenta || null,
       empresa_numero_cuenta: config.empresa_numero_cuenta || null,
       empresa_titular_cuenta: config.empresa_titular_cuenta || null,
-      redes_sociales: config.redesSociales || []
+      redes_sociales: config.redesSociales || [],
+      meta_pixel_id: config.metaPixelId || null
     });
   } catch (error) {
     console.error('Get public config error:', error);

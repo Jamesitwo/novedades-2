@@ -76,6 +76,13 @@ function TiendaPageContent() {
     if (s) setCategoria('');
   }, [searchParams]);
 
+  useEffect(() => {
+    if (search && typeof window !== 'undefined' && window.fbq) {
+      window.fbq('track', 'Search', { search_string: search });
+      window.fbq('track', 'PageView');
+    }
+  }, [search]);
+
   const fetchData = async () => {
     try {
       setError('');

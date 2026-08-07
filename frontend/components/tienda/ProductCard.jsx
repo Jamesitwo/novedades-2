@@ -35,6 +35,16 @@ export default function ProductCard({ producto, onFavChange }) {
     setTimeout(() => setClicked(false), 800);
     addItem(producto);
     window.dispatchEvent(new Event('pizdo-cart-add'));
+    if (typeof window !== 'undefined' && window.fbq) {
+      const precioProd = producto.ofertaActiva && producto.ofertaPrecio ? producto.ofertaPrecio : producto.precioVenta;
+      window.fbq('track', 'AddToCart', {
+        content_name: producto.nombre,
+        content_ids: [producto.id],
+        content_type: 'product',
+        value: precioProd,
+        currency: 'COP'
+      });
+    }
   };
 
   const toggleFav = (e) => {

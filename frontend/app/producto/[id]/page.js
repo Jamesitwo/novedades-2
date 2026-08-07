@@ -48,6 +48,16 @@ export default function ProductoDetallePage() {
       .then(({ data }) => {
         setProducto(data);
         setComprado24h(data.ventasSimuladas > 10 ? Math.floor(data.ventasSimuladas * 0.15) : 1);
+        if (typeof window !== 'undefined' && window.fbq) {
+          const precioProd = data.ofertaActiva && data.ofertaPrecio ? data.ofertaPrecio : data.precioVenta;
+          window.fbq('track', 'ViewContent', {
+            content_name: data.nombre,
+            content_ids: [data.id],
+            content_type: 'product',
+            value: precioProd,
+            currency: 'COP'
+          });
+        }
         try {
           const vistos = JSON.parse(localStorage.getItem('pizdo_vistos') || '[]');
           const filtrado = vistos.filter(v => v.id !== data.id);

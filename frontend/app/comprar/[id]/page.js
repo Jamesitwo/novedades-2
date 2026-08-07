@@ -99,6 +99,19 @@ export default function ComprarPage() {
   useEffect(() => { init(); }, []);
 
   useEffect(() => {
+    if (typeof window !== 'undefined' && window.fbq && producto) {
+      window.fbq('track', 'InitiateCheckout', {
+        content_name: producto.nombre,
+        content_ids: [producto.id],
+        content_type: 'product',
+        num_items: form.cantidad,
+        value: total,
+        currency: 'COP'
+      });
+    }
+  }, [producto]);
+
+  useEffect(() => {
     api.get('/api/configuracion/public').then(({ data }) => setBankConfig(data)).catch(() => {});
   }, []);
 
@@ -156,6 +169,16 @@ export default function ComprarPage() {
         color: colors[Math.floor(Math.random() * colors.length)],
         size: Math.floor(Math.random() * 8 + 6) + 'px'
       })));
+      if (typeof window !== 'undefined' && window.fbq) {
+        window.fbq('track', 'Purchase', {
+          content_name: producto?.nombre || '',
+          content_ids: [id],
+          content_type: 'product',
+          value: subtotalProducto + cartTotal + envioPrincipal + envioCarrito,
+          currency: 'COP',
+          num_items: form.cantidad + cartItems.reduce((s, i) => s + i.cantidad, 0)
+        });
+      }
     } catch (e) { setError(e.response?.data?.error || 'Error al enviar el pedido. Intenta de nuevo.'); }
     finally { setSaving(false); }
   };
