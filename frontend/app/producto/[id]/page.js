@@ -218,21 +218,25 @@ export default function ProductoDetallePage() {
           { key: 'oferta', icon: '🔥', defaultTitle: 'Oferta Especial' }
         ];
         return sections.filter(s => lc[s.key]?.enabled).map(s => (
-          <section key={s.key} style={{ marginTop: 48, borderTop: '1px solid ' + C.border, paddingTop: 32 }}>
-            <h2 style={{ fontSize: 22, fontWeight: 700, marginBottom: 16, borderLeft: '4px solid #ff8c00', paddingLeft: 12, color: C.text }}>
-              {s.icon} {lc[s.key].titulo || s.defaultTitle}
-            </h2>
+           <section key={s.key} style={{ marginTop: lc[s.key].imagen ? 0 : 48, borderTop: lc[s.key].imagen ? 'none' : '1px solid ' + C.border, paddingTop: lc[s.key].imagen ? 0 : 32 }}>
+            {!lc[s.key].imagen && (
+              <h2 style={{ fontSize: 22, fontWeight: 700, marginBottom: 16, borderLeft: '4px solid #ff8c00', paddingLeft: 12, color: C.text }}>
+                {s.icon} {lc[s.key].titulo || s.defaultTitle}
+              </h2>
+            )}
             {lc[s.key].imagen && (
               <img src={lc[s.key].imagen} alt={lc[s.key].titulo}
                 className="landing-section-img"
-                style={{ width: '100%', maxHeight: 400, objectFit: 'cover', borderRadius: 14, border: '1px solid ' + C.border, marginBottom: 20 }}
+                style={{ width: '100%', maxHeight: 400, objectFit: 'cover', borderRadius: 14, border: '1px solid ' + C.border, marginBottom: lc[s.key].contenido ? 20 : 0 }}
                 onError={e => { e.target.style.display = 'none'; }} />
             )}
-            <div>
-              {lc[s.key].contenido?.split('\n').map((p, i) => (
-                <p key={i} style={{ color: C.subtext, fontSize: 15, lineHeight: 1.7, marginBottom: 12 }}>{p}</p>
-              ))}
-            </div>
+            {lc[s.key].contenido && !lc[s.key].imagen ? (
+              <div>
+                {lc[s.key].contenido.split('\n').map((p, i) => (
+                  <p key={i} style={{ color: C.subtext, fontSize: 15, lineHeight: 1.7, marginBottom: 12 }}>{p}</p>
+                ))}
+              </div>
+            ) : null}
           </section>
         ));
       })()}
