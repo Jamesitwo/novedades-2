@@ -58,6 +58,9 @@ export default function ProductoDetallePage() {
             currency: 'COP'
           });
         }
+        window.dispatchEvent(new CustomEvent('pizdo-whatsapp-message', {
+          detail: { mensaje: `Hola, quiero más información sobre "${data.nombre}"` }
+        }));
         try {
           const vistos = JSON.parse(localStorage.getItem('pizdo_vistos') || '[]');
           const filtrado = vistos.filter(v => v.id !== data.id);

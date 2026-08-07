@@ -109,6 +109,10 @@ function TiendaPageContent() {
   useEffect(() => { fetchData(); }, [categoria, orden, search]);
 
   useEffect(() => {
+    window.dispatchEvent(new CustomEvent('pizdo-whatsapp-message', { detail: { mensaje: '' } }));
+  }, []);
+
+  useEffect(() => {
     const unsub = on('tienda:compra-simulada', (data) => {
       setProofEvents(prev => [...prev.slice(-4), { ...data, id: Date.now() + Math.random() }]);
     });
