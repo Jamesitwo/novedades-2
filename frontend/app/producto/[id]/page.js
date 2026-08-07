@@ -104,8 +104,8 @@ export default function ProductoDetallePage() {
   return (
     <ClientLayout><div style={{ maxWidth: 1280, margin: '0 auto', padding: '0 24px 64px' }}>
       <style dangerouslySetInnerHTML={{__html: `
-        @media (min-width: 769px) { .landing-section-img { display: none; } }
-        @media (max-width: 768px) { .detalle-grid-v2 { grid-template-columns: 1fr !important; } .detalle-titulo { font-size: 22px !important; } .landing-section-img { display: block !important; max-height: none !important; width: 100vw !important; margin-left: -24px !important; border-radius: 0 !important; border: none !important; border-bottom: 1px solid #E2E8F0 !important; object-fit: contain !important; height: auto !important; background: #F8F9FA !important; } }
+        @media (min-width: 769px) { .landing-section-img { display: none; } .landing-img-only { display: none !important; } }
+        @media (max-width: 768px) { .detalle-grid-v2 { grid-template-columns: 1fr !important; } .detalle-titulo { font-size: 22px !important; } .landing-section-img { display: block !important; max-height: none !important; width: 100vw !important; margin-left: -24px !important; border-radius: 0 !important; border: none !important; border-bottom: 1px solid #E2E8F0 !important; object-fit: contain !important; height: auto !important; background: #F8F9FA !important; } .landing-img-only { display: block !important; } }
       `}} />
 
       <a href="/" style={{ color: C.primary, textDecoration: 'none', fontSize: 14, fontWeight: 600, display: 'inline-block', margin: '24px 0' }}>← Volver a la tienda</a>
@@ -219,7 +219,7 @@ export default function ProductoDetallePage() {
           { key: 'oferta', icon: '🔥', defaultTitle: 'Oferta Especial' }
         ];
         return sections.filter(s => lc[s.key]?.enabled).map(s => (
-           <section key={s.key} style={{ marginTop: lc[s.key].imagen ? 0 : 48, borderTop: lc[s.key].imagen ? 'none' : '1px solid ' + C.border, paddingTop: lc[s.key].imagen ? 0 : 32 }}>
+           <section key={s.key} className={lc[s.key].imagen && !lc[s.key].contenido ? 'landing-img-only' : ''} style={{ marginTop: lc[s.key].imagen ? 0 : 48, borderTop: lc[s.key].imagen ? 'none' : '1px solid ' + C.border, paddingTop: lc[s.key].imagen ? 0 : 32 }}>
             <h2 style={{ fontSize: 22, fontWeight: 700, marginBottom: 16, borderLeft: '4px solid #ff8c00', paddingLeft: 12, color: C.text }}>
               {s.icon} {lc[s.key].titulo || s.defaultTitle}
             </h2>
