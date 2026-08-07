@@ -220,9 +220,11 @@ export default function ProductoDetallePage() {
         ];
         return sections.filter(s => lc[s.key]?.enabled).map(s => (
            <section key={s.key} className={lc[s.key].imagen && !lc[s.key].contenido ? 'landing-img-only' : ''} style={{ marginTop: lc[s.key].imagen ? 0 : 48, borderTop: lc[s.key].imagen ? 'none' : '1px solid ' + C.border, paddingTop: lc[s.key].imagen ? 0 : 32 }}>
-            <h2 style={{ fontSize: 22, fontWeight: 700, marginBottom: 16, borderLeft: '4px solid #ff8c00', paddingLeft: 12, color: C.text }}>
-              {s.icon} {lc[s.key].titulo || s.defaultTitle}
-            </h2>
+            {!lc[s.key].imagen && (
+              <h2 style={{ fontSize: 22, fontWeight: 700, marginBottom: 16, borderLeft: '4px solid #ff8c00', paddingLeft: 12, color: C.text }}>
+                {s.icon} {lc[s.key].titulo || s.defaultTitle}
+              </h2>
+            )}
             {lc[s.key].imagen && (
               <img src={lc[s.key].imagen} alt={lc[s.key].titulo}
                 className="landing-section-img"
