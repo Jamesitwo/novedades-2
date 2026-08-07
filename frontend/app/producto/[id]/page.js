@@ -227,7 +227,7 @@ export default function ProductoDetallePage() {
             {lc[s.key].imagen && (
               <img src={lc[s.key].imagen} alt={lc[s.key].titulo}
                 className="landing-section-img"
-                style={{ width: '100%', maxHeight: 400, objectFit: 'cover', borderRadius: 14, border: '1px solid ' + C.border, marginBottom: lc[s.key].contenido ? 20 : 0 }}
+                style={{ width: '100%', maxHeight: 500, objectFit: 'contain', borderRadius: 14, border: '1px solid ' + C.border, marginBottom: lc[s.key].contenido ? 20 : 0, background: '#F8F9FA' }}
                 onError={e => { e.target.style.display = 'none'; }} />
             )}
             {lc[s.key].contenido && !lc[s.key].imagen ? (
