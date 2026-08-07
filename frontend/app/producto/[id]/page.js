@@ -104,7 +104,7 @@ export default function ProductoDetallePage() {
   return (
     <ClientLayout><div style={{ maxWidth: 1280, margin: '0 auto', padding: '0 24px 64px' }}>
       <style dangerouslySetInnerHTML={{__html: `
-        @media (max-width: 768px) { .detalle-grid-v2 { grid-template-columns: 1fr !important; } .detalle-titulo { font-size: 22px !important; } .landing-section-img { max-height: 220px !important; border-radius: 10px !important; } }
+        @media (max-width: 768px) { .detalle-grid-v2 { grid-template-columns: 1fr !important; } .detalle-titulo { font-size: 22px !important; } .landing-section-img { max-height: none !important; width: 100vw !important; margin-left: -24px !important; border-radius: 0 !important; border: none !important; border-bottom: 1px solid #E2E8F0 !important; object-fit: contain !important; height: auto !important; background: #F8F9FA !important; } }
       `}} />
 
       <a href="/" style={{ color: C.primary, textDecoration: 'none', fontSize: 14, fontWeight: 600, display: 'inline-block', margin: '24px 0' }}>← Volver a la tienda</a>
