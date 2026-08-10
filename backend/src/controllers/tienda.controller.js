@@ -334,6 +334,43 @@ const procesarCompra = async (req, res) => {
       }
     });
 
+    // Meta CAPI - Purchase
+    try {
+      const config = await prisma.configuracion.findFirst();
+      if (config?.metaPixelId && config?.metaAccessToken) {
+        const metaService = require('../services/meta-conversions.service');
+        metaService.sendEvent(
+          config.metaPixelId,
+          config.metaAccessToken,
+          'Purchase',
+          {
+            content_name: producto.nombre,
+            content_ids: [productoId],
+            content_type: 'product',
+            value: precio * qty,
+            currency: 'COP',
+            num_items: qty
+          },
+          {
+            email: email || '',
+            phone: celular,
+            firstName: nombre,
+            lastName: apellido,
+            city: ciudad,
+            state: departamento
+          },
+          {
+            sourceUrl: `https://pizdo.info/producto/${producto.slug || productoId}`,
+            testEventCode: config.metaTestCode || undefined,
+            clientIp: req.ip,
+            userAgent: req.headers['user-agent']
+          }
+        );
+      }
+    } catch (e) {
+      console.error('[MetaCAPI] Error enviando Purchase:', e.message);
+    }
+
     try {
       const config = await prisma.configuracion.findFirst();
       if (config?.lucidbot_activo && config?.lucidbot_api_key) {

@@ -1,4 +1,5 @@
 import './globals.css';
+import MetaPixel from '../components/MetaPixel';
 
 export const metadata = {
   metadataBase: new URL('https://pizdo.info'),
@@ -35,6 +36,7 @@ export default function RootLayout({ children }) {
         <script dangerouslySetInnerHTML={{ __html: `(function(){try{var t=localStorage.getItem('theme')||'dark';document.documentElement.setAttribute('data-theme',t);}catch(e){}})()` }} />
       </head>
       <body>
+        <MetaPixel />
         <div className="sidebar-overlay" />
         {children}
       </body>
