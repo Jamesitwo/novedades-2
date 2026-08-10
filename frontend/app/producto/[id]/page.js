@@ -25,8 +25,6 @@ export default function ProductoDetallePage() {
   const [reviewConfig, setReviewConfig] = useState({ cantidad: 10, distribucion: { 5: 45, 4: 25, 3: 12, 2: 10, 1: 8 }, diasMax: 90, conComentario: 75 });
   const { usuario } = useAuthStore();
   const isAdmin = usuario?.rol === 'admin';
-
-  useEffect(() => { useAuthStore.getState().initialize(); }, []);
   const [imgActiva, setImgActiva] = useState(0);
   const [pauseCarousel, setPauseCarousel] = useState(false);
   const imgCountRef = useRef(0);
@@ -48,19 +46,6 @@ export default function ProductoDetallePage() {
       .then(({ data }) => {
         setProducto(data);
         setComprado24h(data.ventasSimuladas > 10 ? Math.floor(data.ventasSimuladas * 0.15) : 1);
-        if (typeof window !== 'undefined' && window.fbq) {
-          const precioProd = data.ofertaActiva && data.ofertaPrecio ? data.ofertaPrecio : data.precioVenta;
-          window.fbq('track', 'ViewContent', {
-            content_name: data.nombre,
-            content_ids: [data.id],
-            content_type: 'product',
-            value: precioProd,
-            currency: 'COP'
-          });
-        }
-        window.dispatchEvent(new CustomEvent('pizdo-whatsapp-message', {
-          detail: { mensaje: `Hola, quiero más información sobre "${data.nombre}"` }
-        }));
         try {
           const vistos = JSON.parse(localStorage.getItem('pizdo_vistos') || '[]');
           const filtrado = vistos.filter(v => v.id !== data.id);
@@ -73,19 +58,19 @@ export default function ProductoDetallePage() {
   }, [id]);
 
   useEffect(() => {
-    if (!id || !producto?.id) return;
-    api.get(`/api/resenas/${producto.id}`)
+    if (!id) return;
+    api.get(`/api/resenas/${id}`)
       .then(({ data }) => { setResenas(data.resenas); setPromedioResenas(data.promedio); setResenasTotal(data.total); setDistribucion(data.distribucion); })
       .catch(() => {});
   }, [id]);
 
   const handleResenaSubmit = async (e) => { e.preventDefault(); if (!resenaForm.nombre.trim()) return; setResenaSaving(true);
-    try { await api.post(`/api/resenas/${producto.id}`, resenaForm); setResenaSuccess(true); setShowResenaForm(false); setResenaForm({ nombre: '', calificacion: 5, comentario: '' });
-      const { data } = await api.get(`/api/resenas/${producto.id}`); setResenas(data.resenas); setPromedioResenas(data.promedio); setResenasTotal(data.total); setDistribucion(data.distribucion);
+    try { await api.post(`/api/resenas/${id}`, resenaForm); setResenaSuccess(true); setShowResenaForm(false); setResenaForm({ nombre: '', calificacion: 5, comentario: '' });
+      const { data } = await api.get(`/api/resenas/${id}`); setResenas(data.resenas); setPromedioResenas(data.promedio); setResenasTotal(data.total); setDistribucion(data.distribucion);
       setTimeout(() => setResenaSuccess(false), 3000); } catch {} finally { setResenaSaving(false); } };
   const handleGenerarResenas = async () => { setResenaSaving(true);
-    try { await api.post(`/api/resenas/${producto.id}/generar`, { cantidad: reviewConfig.cantidad, distribucion: reviewConfig.distribucion, diasMax: reviewConfig.diasMax, conComentario: reviewConfig.conComentario });
-      setResenaSuccess(true); const { data } = await api.get(`/api/resenas/${producto.id}`); setResenas(data.resenas); setPromedioResenas(data.promedio); setResenasTotal(data.total); setDistribucion(data.distribucion);
+    try { await api.post(`/api/resenas/${id}/generar`, { cantidad: reviewConfig.cantidad, distribucion: reviewConfig.distribucion, diasMax: reviewConfig.diasMax, conComentario: reviewConfig.conComentario });
+      setResenaSuccess(true); const { data } = await api.get(`/api/resenas/${id}`); setResenas(data.resenas); setPromedioResenas(data.promedio); setResenasTotal(data.total); setDistribucion(data.distribucion);
       setTimeout(() => setResenaSuccess(false), 3000); } catch {} finally { setResenaSaving(false); } };
 
   const formatPrice = (n) => '$' + Number(n).toLocaleString('es-CO', { minimumFractionDigits: 0 });
@@ -104,8 +89,7 @@ export default function ProductoDetallePage() {
   return (
     <ClientLayout><div style={{ maxWidth: 1280, margin: '0 auto', padding: '0 24px 64px' }}>
       <style dangerouslySetInnerHTML={{__html: `
-        @media (min-width: 769px) { .landing-section-img { display: none; } .landing-img-only { display: none !important; } }
-        @media (max-width: 768px) { .detalle-grid-v2 { grid-template-columns: 1fr !important; } .detalle-titulo { font-size: 22px !important; } .landing-section-img { display: block !important; max-height: none !important; width: 100vw !important; margin-left: -24px !important; border-radius: 0 !important; border: none !important; border-bottom: 1px solid #E2E8F0 !important; object-fit: contain !important; height: auto !important; background: #F8F9FA !important; } .landing-img-only { display: block !important; } }
+        @media (max-width: 768px) { .detalle-grid-v2 { grid-template-columns: 1fr !important; } .detalle-titulo { font-size: 22px !important; } }
       `}} />
 
       <a href="/" style={{ color: C.primary, textDecoration: 'none', fontSize: 14, fontWeight: 600, display: 'inline-block', margin: '24px 0' }}>← Volver a la tienda</a>
@@ -207,40 +191,14 @@ export default function ProductoDetallePage() {
         </div>
       </div>
 
-      {producto.landingConfig && (() => {
-        const lc = typeof producto.landingConfig === 'string' ? JSON.parse(producto.landingConfig) : producto.landingConfig;
-        const sections = [
-          { key: 'beneficios', icon: '✨', defaultTitle: 'Beneficios' },
-          { key: 'autoridad', icon: '🏆', defaultTitle: 'Certificaciones' },
-          { key: 'testimonios', icon: '💬', defaultTitle: 'Testimonios' },
-          { key: 'modoUso', icon: '📋', defaultTitle: 'Modo de Uso' },
-          { key: 'logistica', icon: '🚚', defaultTitle: 'Envío y Entrega' },
-          { key: 'faq', icon: '❓', defaultTitle: 'Preguntas Frecuentes' },
-          { key: 'oferta', icon: '🔥', defaultTitle: 'Oferta Especial' }
-        ];
-        return sections.filter(s => lc[s.key]?.enabled).map(s => (
-           <section key={s.key} className={lc[s.key].imagen && !lc[s.key].contenido ? 'landing-img-only' : ''} style={{ marginTop: lc[s.key].imagen ? 0 : 48, borderTop: lc[s.key].imagen ? 'none' : '1px solid ' + C.border, paddingTop: lc[s.key].imagen ? 0 : 32 }}>
-            {!lc[s.key].imagen && (
-              <h2 style={{ fontSize: 22, fontWeight: 700, marginBottom: 16, borderLeft: '4px solid #ff8c00', paddingLeft: 12, color: C.text }}>
-                {s.icon} {lc[s.key].titulo || s.defaultTitle}
-              </h2>
-            )}
-            {lc[s.key].imagen && (
-              <img src={lc[s.key].imagen} alt={lc[s.key].titulo}
-                className="landing-section-img"
-                style={{ width: '100%', maxHeight: 500, objectFit: 'contain', borderRadius: 14, border: '1px solid ' + C.border, marginBottom: lc[s.key].contenido ? 20 : 0, background: '#F8F9FA' }}
-                onError={e => { e.target.style.display = 'none'; }} />
-            )}
-            {lc[s.key].contenido && (
-              <div>
-                {lc[s.key].contenido.split('\n').map((p, i) => (
-                  <p key={i} style={{ color: C.subtext, fontSize: 15, lineHeight: 1.7, marginBottom: 12 }}>{p}</p>
-                ))}
-              </div>
-            )}
-          </section>
-        ));
-      })()}
+      {producto.relacionados?.length > 0 && (
+        <section style={{ marginTop: 48, borderTop: '1px solid ' + C.border, paddingTop: 32 }}>
+          <h2 style={{ fontSize: 22, fontWeight: 700, marginBottom: 20, borderLeft: '4px solid #ff8c00', paddingLeft: 12, color: C.text }}>Productos relacionados</h2>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))', gap: 20 }}>
+            {producto.relacionados.map(p => <ProductCard key={p.id} producto={p} />)}
+          </div>
+        </section>
+      )}
 
       <section id="reviews" style={{ marginTop: 48, borderTop: '1px solid ' + C.border, paddingTop: 32 }}>
         <h2 style={{ fontSize: 22, fontWeight: 700, marginBottom: 20, borderLeft: '4px solid #ff8c00', paddingLeft: 12, color: C.text }}>
@@ -331,14 +289,36 @@ export default function ProductoDetallePage() {
         )}
       </section>
 
-      {producto.relacionados?.length > 0 && (
-        <section style={{ marginTop: 48, borderTop: '1px solid ' + C.border, paddingTop: 32 }}>
-          <h2 style={{ fontSize: 22, fontWeight: 700, marginBottom: 20, borderLeft: '4px solid #ff8c00', paddingLeft: 12, color: C.text }}>Productos relacionados</h2>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))', gap: 20 }}>
-            {producto.relacionados.map(p => <ProductCard key={p.id} producto={p} />)}
-          </div>
-        </section>
-      )}
+      {producto.landingConfig && (() => {
+        const lc = typeof producto.landingConfig === 'string' ? JSON.parse(producto.landingConfig) : producto.landingConfig;
+        const sections = [
+          { key: 'beneficios', icon: '✨', defaultTitle: 'Beneficios' },
+          { key: 'autoridad', icon: '🏆', defaultTitle: 'Certificaciones' },
+          { key: 'testimonios', icon: '💬', defaultTitle: 'Testimonios' },
+          { key: 'modoUso', icon: '📋', defaultTitle: 'Modo de Uso' },
+          { key: 'logistica', icon: '🚚', defaultTitle: 'Envío y Entrega' },
+          { key: 'faq', icon: '❓', defaultTitle: 'Preguntas Frecuentes' },
+          { key: 'oferta', icon: '🔥', defaultTitle: 'Oferta Especial' }
+        ];
+        return sections.filter(s => lc[s.key]?.enabled).map(s => (
+          <section key={s.key} style={{ marginTop: 48, borderTop: '1px solid ' + C.border, paddingTop: 32 }}>
+            <h2 style={{ fontSize: 22, fontWeight: 700, marginBottom: 16, borderLeft: '4px solid #ff8c00', paddingLeft: 12, color: C.text }}>
+              {s.icon} {lc[s.key].titulo || s.defaultTitle}
+            </h2>
+            <div style={{ display: 'grid', gridTemplateColumns: lc[s.key].imagen ? '1fr 1fr' : '1fr', gap: 32, alignItems: 'center' }}>
+              <div>
+                {lc[s.key].contenido?.split('\n').map((p, i) => (
+                  <p key={i} style={{ color: C.subtext, fontSize: 15, lineHeight: 1.7, marginBottom: 12 }}>{p}</p>
+                ))}
+              </div>
+              {lc[s.key].imagen && (
+                <img src={lc[s.key].imagen} alt={lc[s.key].titulo} style={{ width: '100%', borderRadius: 12, objectFit: 'cover', maxHeight: 300, border: '1px solid ' + C.border }}
+                  onError={e => { e.target.style.display = 'none'; }} />
+              )}
+            </div>
+          </section>
+        ));
+      })()}
 
     </div></ClientLayout>
   );

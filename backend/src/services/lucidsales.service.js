@@ -486,8 +486,7 @@ async function listVinculaciones({ page = 1, itemsPerPage = 50, search = '', est
       take: itemsPerPage,
       include: {
         asignado: { select: { id: true, nombre: true } },
-        createdBy: { select: { id: true, nombre: true } },
-        subidoPor: { select: { id: true, nombre: true } }
+        createdBy: { select: { id: true, nombre: true } }
       },
       orderBy: { createdAt: 'desc' }
     })
@@ -521,7 +520,6 @@ async function listVinculaciones({ page = 1, itemsPerPage = 50, search = '', est
       Json: p.jsonProductos || '[]',
       asignado: p.asignado || null,
       creador: p.createdBy || null,
-      subidoPor: p.subidoPor || null,
       createdAt: p.createdAt,
       _etiquetas: tagsPorId[String(p.lucidsalesPedidoId)] || []
     })),
