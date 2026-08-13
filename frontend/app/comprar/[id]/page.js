@@ -119,7 +119,11 @@ export default function ComprarPage() {
         departamento: form.departamento, ciudad: form.ciudad.trim(),
         email: form.email.trim() || null, notas: form.notas.trim() || null, cantidad: form.cantidad || 1,
         metodoPago: form.metodoPago,
-        envioTotal: envioPrincipal + envioCarrito
+        envioTotal: envioPrincipal + envioCarrito,
+        items: [
+          { productoId: id, cantidad: form.cantidad || 1 },
+          ...cartItems.map(i => ({ productoId: i.id, cantidad: i.cantidad }))
+        ]
       });
       setEnviado(true);
       const colors = ['#ff8c00', '#feb700', '#fff', '#22c55e', '#ba1a1a'];

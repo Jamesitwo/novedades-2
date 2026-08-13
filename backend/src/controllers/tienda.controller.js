@@ -148,7 +148,7 @@ const create = async (req, res) => {
       return res.status(403).json({ error: 'Solo admins pueden crear productos' });
     }
 
-    const { nombre, descripcion, categoria, precioVenta, precioProveedor, imagen, imagenes, linkCompra, stock, ofertaActiva, ofertaPrecio, ofertaHasta, ventasSimuladas, activo, destacado, upsellIds, landingConfig, envioGratis, envioCosto } = req.body;
+    const { nombre, descripcion, categoria, precioVenta, precioProveedor, imagen, imagenes, linkCompra, stock, ofertaActiva, ofertaPrecio, ofertaHasta, ventasSimuladas, activo, destacado, upsellIds, landingConfig, envioGratis, envioCosto, dropiId } = req.body;
 
     if (!nombre || !categoria || !precioVenta) {
       return res.status(400).json({ error: 'nombre, categoria y precioVenta son requeridos' });
@@ -176,6 +176,7 @@ const create = async (req, res) => {
         landingConfig: landingConfig || null,
         envioGratis: envioGratis || false,
         envioCosto: envioCosto ? parseFloat(envioCosto) : null,
+        dropiId: dropiId || null,
         createdById: req.usuario.id
       }
     });
@@ -194,7 +195,7 @@ const update = async (req, res) => {
     }
 
     const { id } = req.params;
-    const { nombre, descripcion, categoria, precioVenta, precioProveedor, imagen, imagenes, linkCompra, stock, ofertaActiva, ofertaPrecio, ofertaHasta, ventasSimuladas, activo, destacado, upsellIds, landingConfig, envioGratis, envioCosto } = req.body;
+    const { nombre, descripcion, categoria, precioVenta, precioProveedor, imagen, imagenes, linkCompra, stock, ofertaActiva, ofertaPrecio, ofertaHasta, ventasSimuladas, activo, destacado, upsellIds, landingConfig, envioGratis, envioCosto, dropiId } = req.body;
 
     const data = {};
     if (nombre !== undefined) { data.nombre = nombre; data.slug = generateSlug(nombre); }
@@ -216,6 +217,7 @@ const update = async (req, res) => {
     if (landingConfig !== undefined) data.landingConfig = landingConfig;
     if (envioGratis !== undefined) data.envioGratis = envioGratis;
     if (envioCosto !== undefined) data.envioCosto = envioCosto ? parseFloat(envioCosto) : null;
+    if (dropiId !== undefined) data.dropiId = dropiId || null;
 
     const producto = await prisma.productoTienda.update({ where: { id }, data });
     res.json(producto);
@@ -297,25 +299,51 @@ const getCiudades = (req, res) => {
 
 const procesarCompra = async (req, res) => {
   try {
-    const { productoId, nombre, apellido, celular, direccion, departamento, ciudad, email, notas, cantidad, metodoPago, envioTotal } = req.body;
+    const { productoId, nombre, apellido, celular, direccion, departamento, ciudad, email, notas, cantidad, metodoPago, envioTotal, items } = req.body;
     if (!productoId || !nombre || !apellido || !celular || !direccion || !departamento || !ciudad) {
       return res.status(400).json({ error: 'Faltan datos requeridos' });
     }
 
+    const itemsRaw = Array.isArray(items) && items.length > 0
+      ? items
+      : [{ productoId, cantidad: parseInt(cantidad) || 1 }];
+
+    const itemsProcesados = [];
+    let totalFinal = 0;
+    let envioTotalCalc = 0;
+
+    for (const it of itemsRaw) {
+      const prod = await prisma.productoTienda.findUnique({ where: { id: it.productoId } });
+      if (!prod) continue;
+      const qtyItem = parseInt(it.cantidad) || 1;
+      const precioItem = prod.ofertaActiva && prod.ofertaPrecio ? prod.ofertaPrecio : prod.precioVenta;
+      const envioItem = prod.envioGratis ? 0 : (prod.envioCosto || 0);
+      itemsProcesados.push({
+        productoId: prod.id,
+        productoNombre: prod.nombre,
+        dropiId: prod.dropiId || null,
+        cantidad: qtyItem,
+        precioUnitario: precioItem,
+        envio: envioItem
+      });
+      totalFinal += (precioItem * qtyItem) + envioItem;
+      envioTotalCalc += envioItem;
+    }
+
+    if (itemsProcesados.length === 0) {
+      return res.status(404).json({ error: 'Productos no encontrados' });
+    }
+
     const producto = await prisma.productoTienda.findUnique({ where: { id: productoId } });
-    if (!producto) return res.status(404).json({ error: 'Producto no encontrado' });
+    const qty = parseInt(cantidad) || 1;
+    const precio = producto.ofertaActiva && producto.ofertaPrecio ? producto.ofertaPrecio : producto.precioVenta;
 
     console.log('[TIENDA] Nueva compra:', {
       producto: producto.nombre,
-      precio: producto.ofertaActiva && producto.ofertaPrecio ? producto.ofertaPrecio : producto.precioVenta,
+      totalItems: itemsProcesados.length,
       cliente: `${nombre} ${apellido}`,
-      celular, departamento, ciudad, cantidad: cantidad || 1
+      celular, departamento, ciudad
     });
-
-    const qty = parseInt(cantidad) || 1;
-    const precio = producto.ofertaActiva && producto.ofertaPrecio ? producto.ofertaPrecio : producto.precioVenta;
-    const envio = Number(envioTotal) || (producto.envioGratis ? 0 : (producto.envioCosto || 0));
-    const totalFinal = (precio * qty) + envio;
 
     await prisma.pedidoTienda.create({
       data: {
@@ -332,7 +360,8 @@ const procesarCompra = async (req, res) => {
         cantidad: qty,
         precioUnitario: precio,
         total: totalFinal,
-        envio,
+        envio: envioTotalCalc || Number(envioTotal) || 0,
+        items: itemsProcesados,
         metodoPago: metodoPago || 'contraentrega'
       }
     });
@@ -385,10 +414,12 @@ const procesarCompra = async (req, res) => {
         const fieldValues = typeof config.lucidbot_field_values === 'string'
           ? JSON.parse(config.lucidbot_field_values) : (config.lucidbot_field_values || []);
         const valueMap = {
-          producto: producto.nombre,
+          producto: itemsProcesados.length > 1
+            ? itemsProcesados.map(i => `${i.productoNombre} x${i.cantidad}`).join(' + ')
+            : producto.nombre,
           precio: String(precio),
           total: String(totalFinal),
-          envio: String(envio),
+          envio: String(envioTotalCalc || Number(envioTotal) || 0),
           nombre, apellido, celular, ciudad, direccion, departamento,
           email: email || '',
           notas: notas || '',
@@ -524,6 +555,7 @@ const importarDesdeLucidSales = async (req, res) => {
             imagenes,
             linkCompra: ls.link || ls.Link || null,
             stock: parseInt(ls.stock || ls.Stock || 0) || 0,
+            dropiId: ls.idProductoDropi && String(ls.idProductoDropi) !== '0' && String(ls.idProductoDropi) !== 'undefined' ? String(ls.idProductoDropi) : null,
             createdById: req.usuario.id
           }
         });

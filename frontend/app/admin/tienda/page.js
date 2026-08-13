@@ -33,7 +33,8 @@ export default function TiendaAdminPage() {
     upsellIds: [],
     landingConfig: {},
     envioGratis: false,
-    envioCosto: ''
+    envioCosto: '',
+    dropiId: ''
   });
   const [allProducts, setAllProducts] = useState([]);
   const [newCategory, setNewCategory] = useState('');
@@ -190,7 +191,8 @@ export default function TiendaAdminPage() {
         upsellIds: Array.isArray(p.upsellIds) ? p.upsellIds : [],
         landingConfig: typeof p.landingConfig === 'string' ? JSON.parse(p.landingConfig || '{}') : (p.landingConfig || {}),
         envioGratis: p.envioGratis || false,
-        envioCosto: p.envioCosto || ''
+        envioCosto: p.envioCosto || '',
+        dropiId: p.dropiId || ''
       });
     } else {
       setEditando(null);
@@ -202,7 +204,8 @@ export default function TiendaAdminPage() {
         upsellIds: [],
         landingConfig: {},
         envioGratis: false,
-        envioCosto: ''
+        envioCosto: '',
+        dropiId: ''
       });
     }
     setNewCategory('');
@@ -242,7 +245,8 @@ export default function TiendaAdminPage() {
         ofertaHasta: form.ofertaHasta || null,
         landingConfig: form.landingConfig,
         envioGratis: form.envioGratis,
-        envioCosto: form.envioCosto || null
+        envioCosto: form.envioCosto || null,
+        dropiId: form.dropiId || null
       };
       if (editando) {
         await api.put(`/api/tienda/${editando.id}`, payload);
@@ -776,6 +780,22 @@ export default function TiendaAdminPage() {
                         Costo de envío
                         <input type="number" min="0" className="admin-input" value={form.envioCosto}
                           onChange={e => setForm({...form, envioCosto: e.target.value})} placeholder="15000"
+                          style={{ width: '100%', marginTop: 6 }} />
+                      </label>
+                      <label style={{ fontSize: 13, fontWeight: 900, color: '#564334', textTransform: 'uppercase', letterSpacing: 1 }}>
+                        ID Dropi
+                        <input className="admin-input" value={form.dropiId}
+                          onChange={e => setForm({...form, dropiId: e.target.value})} placeholder="ID del producto en Dropi"
+                          style={{ width: '100%', marginTop: 6 }} />
+                      </label>
+                    </div>
+                  )}
+                  {form.envioGratis && (
+                    <div className="form-2col" style={{ marginTop: 10 }}>
+                      <label style={{ fontSize: 13, fontWeight: 900, color: '#564334', textTransform: 'uppercase', letterSpacing: 1 }}>
+                        ID Dropi
+                        <input className="admin-input" value={form.dropiId}
+                          onChange={e => setForm({...form, dropiId: e.target.value})} placeholder="ID del producto en Dropi"
                           style={{ width: '100%', marginTop: 6 }} />
                       </label>
                     </div>

@@ -1,4 +1,22 @@
 const { prisma } = require('../prisma/client');
+const lucidsalesService = require('../services/lucidsales.service');
+
+const normalizar = (s) => (s || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').trim();
+
+const mapearCiudadDepto = (nombreCiudad, nombreDepto) => {
+  try {
+    const deptos = require('../data/lucidsales_departamentos.json');
+    const ciudades = require('../data/lucidsales_ciudades.json');
+    const depto = deptos.find(d => normalizar(d.name) === normalizar(nombreDepto));
+    const ciudad = ciudades.find(c => normalizar(c.name) === normalizar(nombreCiudad));
+    return {
+      departamentoId: depto?.id || 0,
+      ciudadId: ciudad?.id || 0
+    };
+  } catch {
+    return { departamentoId: 0, ciudadId: 0 };
+  }
+};
 
 const getAll = async (req, res) => {
   try {
@@ -28,7 +46,13 @@ const getAll = async (req, res) => {
 
 const getById = async (req, res) => {
   try {
-    const pedido = await prisma.pedidoTienda.findUnique({ where: { id: req.params.id } });
+    const pedido = await prisma.pedidoTienda.findUnique({
+      where: { id: req.params.id },
+      include: {
+        historial: { include: { usuario: { select: { id: true, nombre: true } } }, orderBy: { createdAt: 'desc' } },
+        subidoPor: { select: { id: true, nombre: true } }
+      }
+    });
     if (!pedido) return res.status(404).json({ error: 'Pedido no encontrado' });
     res.json(pedido);
   } catch (error) {
@@ -61,4 +85,103 @@ const remove = async (req, res) => {
   }
 };
 
-module.exports = { getAll, getById, updateEstado, remove };
+const cotizarDropi = async (req, res) => {
+  try {
+    const pedido = await prisma.pedidoTienda.findUnique({ where: { id: req.params.id } });
+    if (!pedido) return res.status(404).json({ error: 'Pedido no encontrado' });
+
+    const items = Array.isArray(pedido.items) && pedido.items.length > 0 ? pedido.items : [];
+    if (items.length === 0) {
+      return res.status(400).json({ error: 'Este pedido no tiene items registrados' });
+    }
+
+    const sinDropi = items.filter(i => !i.dropiId);
+    if (sinDropi.length > 0) {
+      return res.status(400).json({
+        error: `El producto "${sinDropi[0].productoNombre}" no tiene ID Dropi. Re-importa el producto desde LucidSales o configura su ID.`
+      });
+    }
+
+    const { departamentoId, ciudadId } = mapearCiudadDepto(pedido.ciudad, pedido.departamento);
+
+    let lucidsalesPedidoId = pedido.lucidsalesPedidoId;
+    if (!lucidsalesPedidoId) {
+      const jsonProductos = items.map(i => ({
+        product_id: i.dropiId,
+        price: i.precioUnitario,
+        quantity: i.cantidad,
+        variations: []
+      }));
+      const subTotal = items.reduce((s, i) => s + (i.precioUnitario * i.cantidad), 0);
+
+      const creado = await lucidsalesService.createPedido({
+        nombreCliente: pedido.nombre,
+        apellidoCliente: pedido.apellido,
+        emailCliente: pedido.email || '',
+        telefonoCliente: pedido.celular,
+        direccionCliente: pedido.direccion,
+        ciudadCliente: ciudadId,
+        departamentoCliente: departamentoId,
+        paisCliente: 47,
+        json: jsonProductos,
+        subTotal,
+        costoEnvio: pedido.envio || 0,
+        total: pedido.total,
+        Referencias: pedido.notas || ''
+      });
+
+      lucidsalesPedidoId = creado?.id || creado?.Id || creado?.data?.id;
+      if (!lucidsalesPedidoId) {
+        console.error('[Dropi] No se pudo obtener ID del pedido creado:', JSON.stringify(creado).slice(0, 300));
+        return res.status(500).json({ error: 'Error al crear el pedido en LucidSales' });
+      }
+
+      await prisma.pedidoTienda.update({
+        where: { id: pedido.id },
+        data: { lucidsalesPedidoId: String(lucidsalesPedidoId) }
+      });
+    }
+
+    const cotizacion = await lucidsalesService.cotizarEnvio(lucidsalesPedidoId, 'dropi');
+    res.json({ ok: true, lucidsalesPedidoId: String(lucidsalesPedidoId), quotes: cotizacion?.quotes || cotizacion || [] });
+  } catch (error) {
+    console.error('Cotizar Dropi error:', error);
+    res.status(500).json({ error: error.message || 'Error al cotizar envío Dropi' });
+  }
+};
+
+const confirmarDropi = async (req, res) => {
+  try {
+    const pedido = await prisma.pedidoTienda.findUnique({ where: { id: req.params.id } });
+    if (!pedido) return res.status(404).json({ error: 'Pedido no encontrado' });
+    if (!pedido.lucidsalesPedidoId) {
+      return res.status(400).json({ error: 'Primero cotiza el envío para crear el pedido en LucidSales' });
+    }
+
+    const { transportadora_id, transportadora } = req.body;
+    if (!transportadora_id) {
+      return res.status(400).json({ error: 'Selecciona una transportadora' });
+    }
+
+    const resultado = await lucidsalesService.confirmarIntegracion(pedido.lucidsalesPedidoId, transportadora_id);
+    if (resultado && resultado.ok === false) {
+      return res.status(400).json({ error: resultado.msg || resultado.error || 'Error al subir a Dropi' });
+    }
+
+    const actualizado = await prisma.pedidoTienda.update({
+      where: { id: pedido.id },
+      data: {
+        transportadora: transportadora || null,
+        estado: 'enviado',
+        subidoPorId: req.usuario.id
+      }
+    });
+
+    res.json({ ok: true, pedido: actualizado });
+  } catch (error) {
+    console.error('Confirmar Dropi error:', error);
+    res.status(500).json({ error: error.message || 'Error al confirmar envío Dropi' });
+  }
+};
+
+module.exports = { getAll, getById, updateEstado, remove, cotizarDropi, confirmarDropi };

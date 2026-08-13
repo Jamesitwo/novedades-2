@@ -13,6 +13,9 @@ export default function PedidosAdminPage() {
   const [search, setSearch] = useState('');
   const [detail, setDetail] = useState(null);
   const [toast, setToast] = useState(null);
+  const [dropiQuotes, setDropiQuotes] = useState(null);
+  const [dropiCargando, setDropiCargando] = useState(false);
+  const [dropiIdx, setDropiIdx] = useState(null);
   const LIMIT = 15;
 
   const showToast = (msg, type = 'success') => {
@@ -52,6 +55,43 @@ export default function PedidosAdminPage() {
     showToast(pagado ? 'Marcado como pagado' : 'Desmarcado');
     fetchPedidos();
     if (detail?.id === id) setDetail(prev => ({ ...prev, pagado }));
+  };
+
+  const handleCotizarDropi = async () => {
+    if (!detail) return;
+    setDropiCargando(true);
+    setDropiQuotes(null);
+    setDropiIdx(null);
+    try {
+      const { data } = await api.post(`/api/pedidos/${detail.id}/cotizar-dropi`);
+      setDropiQuotes(data.quotes || []);
+      showToast('Cotización obtenida');
+    } catch (e) {
+      showToast(e.response?.data?.error || 'Error al cotizar Dropi', 'error');
+    } finally {
+      setDropiCargando(false);
+    }
+  };
+
+  const handleConfirmarDropi = async () => {
+    if (!detail || dropiIdx == null || !dropiQuotes?.[dropiIdx]) return;
+    setDropiCargando(true);
+    try {
+      const q = dropiQuotes[dropiIdx];
+      const { data } = await api.post(`/api/pedidos/${detail.id}/confirmar-dropi`, {
+        transportadora_id: q.transportadora_id,
+        transportadora: q.transportadora
+      });
+      showToast(`Pedido subido a ${q.transportadora}`);
+      setDetail(prev => ({ ...prev, ...data.pedido }));
+      setDropiQuotes(null);
+      setDropiIdx(null);
+      fetchPedidos();
+    } catch (e) {
+      showToast(e.response?.data?.error || 'Error al confirmar Dropi', 'error');
+    } finally {
+      setDropiCargando(false);
+    }
   };
 
   const openDetail = async (id) => {
@@ -265,6 +305,21 @@ export default function PedidosAdminPage() {
               </div>
             </div>
 
+            {Array.isArray(detail.items) && detail.items.length > 0 && (
+              <div style={{ marginTop: 16, borderTop: '1px solid #E2E8F0', paddingTop: 12 }}>
+                <div style={{ fontSize: 12, fontWeight: 700, color: '#564334', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 8 }}>
+                  📦 Items del pedido
+                </div>
+                {detail.items.map((item, i) => (
+                  <div key={i} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '6px 0', borderBottom: i < detail.items.length - 1 ? '1px solid #E2E8F0' : 'none', fontSize: 13 }}>
+                    <span style={{ fontWeight: 600, flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', paddingRight: 8 }}>{item.productoNombre}</span>
+                    <span style={{ marginLeft: 6, whiteSpace: 'nowrap' }}>x{item.cantidad}</span>
+                    <span style={{ marginLeft: 10, fontWeight: 700, whiteSpace: 'nowrap' }}>{formatPrice(item.precioUnitario * item.cantidad)}</span>
+                  </div>
+                ))}
+              </div>
+            )}
+
             <div style={{ marginTop: 20, display: 'grid', gap: 12 }}>
               <div>
                 <div style={{ fontSize: 12, fontWeight: 700, color: '#564334', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 6 }}>Cambiar estado</div>
@@ -286,6 +341,51 @@ export default function PedidosAdminPage() {
               }}>
                 {detail.pagado ? 'Desmarcar pago' : '✓ Marcar como pagado'}
               </button>
+            </div>
+
+            <div style={{ marginTop: 20, borderTop: '1px solid #E2E8F0', paddingTop: 16 }}>
+              <div style={{ fontSize: 12, fontWeight: 700, color: '#564334', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 10 }}>
+                🚚 Envío Dropi
+              </div>
+
+              {detail.transportadora ? (
+                <div style={{ background: 'rgba(34,197,94,0.08)', borderRadius: 10, padding: '12px 14px', fontSize: 13, fontWeight: 600, color: '#166534', border: '1px solid rgba(34,197,94,0.2)' }}>
+                  ✓ Subido a {detail.transportadora} · Estado: {detail.estado}
+                  {detail.subidoPor && <div style={{ fontSize: 11, color: '#897362', marginTop: 4 }}>Subido por: {detail.subidoPor.nombre}</div>}
+                </div>
+              ) : (
+                <>
+                  {dropiQuotes && dropiQuotes.length > 0 ? (
+                    <div style={{ display: 'grid', gap: 6 }}>
+                      {dropiQuotes.map((q, i) => (
+                        <div key={i} onClick={() => setDropiIdx(i)} style={{
+                          padding: '10px 14px', borderRadius: 10, cursor: 'pointer', fontSize: 13,
+                          border: dropiIdx === i ? '2px solid #ff8c00' : '1px solid #E2E8F0',
+                          background: dropiIdx === i ? '#fff7ed' : '#fff',
+                          display: 'flex', justifyContent: 'space-between', alignItems: 'center'
+                        }}>
+                          <span style={{ fontWeight: 700 }}>{q.transportadora}</span>
+                          <span style={{ fontWeight: 700, color: '#904d00' }}>{q.objects?.precioEnvio ? formatPrice(Number(q.objects.precioEnvio)) : '—'}</span>
+                        </div>
+                      ))}
+                      <button onClick={handleConfirmarDropi} disabled={dropiCargando || dropiIdx == null} style={{
+                        width: '100%', minHeight: 44, border: 'none', borderRadius: 10, cursor: 'pointer', fontWeight: 700, fontSize: 14,
+                        background: dropiIdx == null ? '#E2E8F0' : '#213145', color: dropiIdx == null ? '#897362' : '#ffb77d',
+                        fontFamily: '"Inter", sans-serif', opacity: dropiCargando ? 0.6 : 1
+                      }}>
+                        {dropiCargando ? 'Subiendo...' : dropiIdx != null ? `⬆️ Subir con ${dropiQuotes[dropiIdx].transportadora}` : 'Selecciona transportadora'}
+                      </button>
+                    </div>
+                  ) : (
+                    <button onClick={handleCotizarDropi} disabled={dropiCargando} style={{
+                      width: '100%', minHeight: 44, border: 'none', borderRadius: 10, cursor: 'pointer', fontWeight: 700, fontSize: 14,
+                      background: '#213145', color: '#ffb77d', fontFamily: '"Inter", sans-serif', opacity: dropiCargando ? 0.6 : 1
+                    }}>
+                      {dropiCargando ? 'Cotizando...' : '🔄 Cotizar envío Dropi'}
+                    </button>
+                  )}
+                </>
+              )}
             </div>
           </div>
         </div>

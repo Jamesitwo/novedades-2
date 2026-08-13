@@ -46,6 +46,7 @@ model Usuario {
   pedidosSubidos        PedidoVinculado[] @relation("SubidoPor")
   alertasProducto      AlertaProducto[]
   historialPedidosTienda HistorialPedidoTienda[]
+  pedidosTiendaSubidos  PedidoTienda[]
 }
 
 model PedidoNovedad {
@@ -355,6 +356,7 @@ model ProductoTienda {
   landingConfig   Json?     @default("{}") @map("landing_config")
   envioGratis     Boolean   @default(false) @map("envio_gratis")
   envioCosto      Float?    @map("envio_costo")
+  dropiId         String?   @map("dropi_id")
   createdById     String    @map("created_by")
   createdBy       Usuario   @relation(fields: [createdById], references: [id])
   resenas         Resena[]
@@ -385,6 +387,12 @@ model PedidoTienda {
   precioUnitario Float
   total          Float
   envio          Float     @default(0) @map("envio")
+  items          Json?     @default("[]") @map("items")
+  lucidsalesPedidoId String? @map("lucidsales_pedido_id")
+  transportadora String?
+  guia           String?
+  subidoPorId    String?   @map("subido_por_id")
+  subidoPor      Usuario?  @relation(fields: [subidoPorId], references: [id])
   estado         String   @default("pendiente")
   metodoPago     String   @default("contraentrega") @map("metodo_pago")
   pagado         Boolean  @default(false)
