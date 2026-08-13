@@ -122,6 +122,7 @@ const cotizarDropi = async (req, res) => {
         variations: []
       }));
       const subTotal = items.reduce((s, i) => s + (i.precioUnitario * i.cantidad), 0);
+      const refUnica = 'PIZDO-' + pedido.id.slice(0, 8);
 
       const creado = await lucidsalesService.createPedido({
         nombreCliente: pedido.nombre,
@@ -136,12 +137,30 @@ const cotizarDropi = async (req, res) => {
         subTotal,
         costoEnvio: pedido.envio || 0,
         total: pedido.total,
-        Referencias: pedido.notas || ''
+        Referencias: refUnica + (pedido.notas ? ' - ' + pedido.notas : '')
       });
 
-      lucidsalesPedidoId = creado?.id || creado?.Id || creado?.data?.id;
+      if (creado && creado.ok === false) {
+        return res.status(400).json({ error: creado.msg || creado.error || 'LucidSales rechazó la creación del pedido' });
+      }
+
+      lucidsalesPedidoId = creado?.pedido?.id || creado?.id || creado?.Id || creado?.pedidoId || creado?.data?.id;
+      if (!lucidsalesPedidoId && creado?.pedido && typeof creado.pedido === 'string') {
+        lucidsalesPedidoId = parseInt(creado.pedido, 10) || null;
+      }
+
       if (!lucidsalesPedidoId) {
-        console.error('[Dropi] No se pudo obtener ID del pedido creado:', JSON.stringify(creado).slice(0, 300));
+        try {
+          const pedidosLS = await lucidsalesService.getPedidos({ search: refUnica, itemsPerPage: 3 });
+          const match = pedidosLS?.pedidos?.[0];
+          if (match?.id) lucidsalesPedidoId = match.id;
+        } catch (e) {
+          console.error('[Dropi] Fallback busqueda por referencia fallo:', e.message);
+        }
+      }
+
+      if (!lucidsalesPedidoId) {
+        console.error('[Dropi] Respuesta createPedido:', JSON.stringify(creado).slice(0, 800));
         return res.status(500).json({ error: 'Error al crear el pedido en LucidSales' });
       }
 
