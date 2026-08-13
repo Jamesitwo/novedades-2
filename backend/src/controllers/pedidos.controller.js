@@ -90,9 +90,18 @@ const cotizarDropi = async (req, res) => {
     const pedido = await prisma.pedidoTienda.findUnique({ where: { id: req.params.id } });
     if (!pedido) return res.status(404).json({ error: 'Pedido no encontrado' });
 
-    const items = Array.isArray(pedido.items) && pedido.items.length > 0 ? pedido.items : [];
-    if (items.length === 0) {
-      return res.status(400).json({ error: 'Este pedido no tiene items registrados' });
+    let items = Array.isArray(pedido.items) && pedido.items.length > 0 ? pedido.items : null;
+
+    if (!items) {
+      const prod = await prisma.productoTienda.findUnique({ where: { id: pedido.productoId } });
+      items = [{
+        productoId: pedido.productoId,
+        productoNombre: pedido.productoNombre,
+        dropiId: prod?.dropiId || null,
+        cantidad: pedido.cantidad,
+        precioUnitario: pedido.precioUnitario,
+        envio: pedido.envio || 0
+      }];
     }
 
     const sinDropi = items.filter(i => !i.dropiId);
