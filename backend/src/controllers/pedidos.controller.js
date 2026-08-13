@@ -98,16 +98,17 @@ const cotizarDropi = async (req, res) => {
         productoId: pedido.productoId,
         productoNombre: pedido.productoNombre,
         dropiId: prod?.dropiId || null,
+        lucidsalesId: prod?.lucidsalesId || null,
         cantidad: pedido.cantidad,
         precioUnitario: pedido.precioUnitario,
         envio: pedido.envio || 0
       }];
     }
 
-    const sinDropi = items.filter(i => !i.dropiId);
+    const sinDropi = items.filter(i => !i.lucidsalesId);
     if (sinDropi.length > 0) {
       return res.status(400).json({
-        error: `El producto "${sinDropi[0].productoNombre}" no tiene ID Dropi. Re-importa el producto desde LucidSales o configura su ID.`
+        error: `El producto "${sinDropi[0].productoNombre}" no tiene ID de catálogo LucidSales. Re-importa el producto desde LucidSales o configura su ID.`
       });
     }
 
@@ -116,7 +117,7 @@ const cotizarDropi = async (req, res) => {
     let lucidsalesPedidoId = pedido.lucidsalesPedidoId;
     if (!lucidsalesPedidoId) {
       const jsonProductos = items.map(i => ({
-        product_id: i.dropiId,
+        product_id: i.lucidsalesId,
         price: i.precioUnitario,
         quantity: i.cantidad,
         variations: []
@@ -128,7 +129,7 @@ const cotizarDropi = async (req, res) => {
         nombreCliente: pedido.nombre,
         apellidoCliente: pedido.apellido,
         emailCliente: pedido.email || '',
-        telefonoCliente: pedido.celular,
+        telefonoCliente: '+57' + pedido.celular,
         direccionCliente: pedido.direccion,
         ciudadCliente: ciudadId,
         departamentoCliente: departamentoId,

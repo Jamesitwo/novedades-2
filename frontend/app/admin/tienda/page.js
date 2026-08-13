@@ -34,7 +34,8 @@ export default function TiendaAdminPage() {
     landingConfig: {},
     envioGratis: false,
     envioCosto: '',
-    dropiId: ''
+    dropiId: '',
+    lucidsalesId: ''
   });
   const [allProducts, setAllProducts] = useState([]);
   const [newCategory, setNewCategory] = useState('');
@@ -192,7 +193,8 @@ export default function TiendaAdminPage() {
         landingConfig: typeof p.landingConfig === 'string' ? JSON.parse(p.landingConfig || '{}') : (p.landingConfig || {}),
         envioGratis: p.envioGratis || false,
         envioCosto: p.envioCosto || '',
-        dropiId: p.dropiId || ''
+        dropiId: p.dropiId || '',
+        lucidsalesId: p.lucidsalesId || ''
       });
     } else {
       setEditando(null);
@@ -205,7 +207,8 @@ export default function TiendaAdminPage() {
         landingConfig: {},
         envioGratis: false,
         envioCosto: '',
-        dropiId: ''
+        dropiId: '',
+        lucidsalesId: ''
       });
     }
     setNewCategory('');
@@ -246,7 +249,8 @@ export default function TiendaAdminPage() {
         landingConfig: form.landingConfig,
         envioGratis: form.envioGratis,
         envioCosto: form.envioCosto || null,
-        dropiId: form.dropiId || null
+        dropiId: form.dropiId || null,
+        lucidsalesId: form.lucidsalesId || null
       };
       if (editando) {
         await api.put(`/api/tienda/${editando.id}`, payload);
@@ -783,6 +787,12 @@ export default function TiendaAdminPage() {
                           style={{ width: '100%', marginTop: 6 }} />
                       </label>
                       <label style={{ fontSize: 13, fontWeight: 900, color: '#564334', textTransform: 'uppercase', letterSpacing: 1 }}>
+                        ID LucidSales (catálogo)
+                        <input className="admin-input" value={form.lucidsalesId}
+                          onChange={e => setForm({...form, lucidsalesId: e.target.value})} placeholder="ID del producto en LucidSales"
+                          style={{ width: '100%', marginTop: 6 }} />
+                      </label>
+                      <label style={{ fontSize: 13, fontWeight: 900, color: '#564334', textTransform: 'uppercase', letterSpacing: 1 }}>
                         ID Dropi
                         <input className="admin-input" value={form.dropiId}
                           onChange={e => setForm({...form, dropiId: e.target.value})} placeholder="ID del producto en Dropi"
@@ -792,6 +802,12 @@ export default function TiendaAdminPage() {
                   )}
                   {form.envioGratis && (
                     <div className="form-2col" style={{ marginTop: 10 }}>
+                      <label style={{ fontSize: 13, fontWeight: 900, color: '#564334', textTransform: 'uppercase', letterSpacing: 1 }}>
+                        ID LucidSales (catálogo)
+                        <input className="admin-input" value={form.lucidsalesId}
+                          onChange={e => setForm({...form, lucidsalesId: e.target.value})} placeholder="ID del producto en LucidSales"
+                          style={{ width: '100%', marginTop: 6 }} />
+                      </label>
                       <label style={{ fontSize: 13, fontWeight: 900, color: '#564334', textTransform: 'uppercase', letterSpacing: 1 }}>
                         ID Dropi
                         <input className="admin-input" value={form.dropiId}

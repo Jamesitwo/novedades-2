@@ -148,7 +148,7 @@ const create = async (req, res) => {
       return res.status(403).json({ error: 'Solo admins pueden crear productos' });
     }
 
-    const { nombre, descripcion, categoria, precioVenta, precioProveedor, imagen, imagenes, linkCompra, stock, ofertaActiva, ofertaPrecio, ofertaHasta, ventasSimuladas, activo, destacado, upsellIds, landingConfig, envioGratis, envioCosto, dropiId } = req.body;
+    const { nombre, descripcion, categoria, precioVenta, precioProveedor, imagen, imagenes, linkCompra, stock, ofertaActiva, ofertaPrecio, ofertaHasta, ventasSimuladas, activo, destacado, upsellIds, landingConfig, envioGratis, envioCosto, dropiId, lucidsalesId } = req.body;
 
     if (!nombre || !categoria || !precioVenta) {
       return res.status(400).json({ error: 'nombre, categoria y precioVenta son requeridos' });
@@ -177,6 +177,7 @@ const create = async (req, res) => {
         envioGratis: envioGratis || false,
         envioCosto: envioCosto ? parseFloat(envioCosto) : null,
         dropiId: dropiId || null,
+        lucidsalesId: lucidsalesId || null,
         createdById: req.usuario.id
       }
     });
@@ -195,7 +196,7 @@ const update = async (req, res) => {
     }
 
     const { id } = req.params;
-    const { nombre, descripcion, categoria, precioVenta, precioProveedor, imagen, imagenes, linkCompra, stock, ofertaActiva, ofertaPrecio, ofertaHasta, ventasSimuladas, activo, destacado, upsellIds, landingConfig, envioGratis, envioCosto, dropiId } = req.body;
+    const { nombre, descripcion, categoria, precioVenta, precioProveedor, imagen, imagenes, linkCompra, stock, ofertaActiva, ofertaPrecio, ofertaHasta, ventasSimuladas, activo, destacado, upsellIds, landingConfig, envioGratis, envioCosto, dropiId, lucidsalesId } = req.body;
 
     const data = {};
     if (nombre !== undefined) { data.nombre = nombre; data.slug = generateSlug(nombre); }
@@ -218,6 +219,7 @@ const update = async (req, res) => {
     if (envioGratis !== undefined) data.envioGratis = envioGratis;
     if (envioCosto !== undefined) data.envioCosto = envioCosto ? parseFloat(envioCosto) : null;
     if (dropiId !== undefined) data.dropiId = dropiId || null;
+    if (lucidsalesId !== undefined) data.lucidsalesId = lucidsalesId || null;
 
     const producto = await prisma.productoTienda.update({ where: { id }, data });
     res.json(producto);
@@ -322,6 +324,7 @@ const procesarCompra = async (req, res) => {
         productoId: prod.id,
         productoNombre: prod.nombre,
         dropiId: prod.dropiId || null,
+        lucidsalesId: prod.lucidsalesId || null,
         cantidad: qtyItem,
         precioUnitario: precioItem,
         envio: envioItem
@@ -556,6 +559,7 @@ const importarDesdeLucidSales = async (req, res) => {
             linkCompra: ls.link || ls.Link || null,
             stock: parseInt(ls.stock || ls.Stock || 0) || 0,
             dropiId: ls.idProductoDropi && String(ls.idProductoDropi) !== '0' && String(ls.idProductoDropi) !== 'undefined' ? String(ls.idProductoDropi) : null,
+            lucidsalesId: ls.id || ls.Id ? String(ls.id ?? ls.Id) : null,
             createdById: req.usuario.id
           }
         });

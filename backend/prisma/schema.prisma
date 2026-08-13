@@ -357,6 +357,7 @@ model ProductoTienda {
   envioGratis     Boolean   @default(false) @map("envio_gratis")
   envioCosto      Float?    @map("envio_costo")
   dropiId         String?   @map("dropi_id")
+  lucidsalesId    String?   @map("lucidsales_id")
   createdById     String    @map("created_by")
   createdBy       Usuario   @relation(fields: [createdById], references: [id])
   resenas         Resena[]
