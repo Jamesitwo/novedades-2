@@ -243,6 +243,10 @@ export default function PedidosAdminPage() {
                 <span style={{ color: '#897362', fontWeight: 600, textTransform: 'uppercase', fontSize: 11, letterSpacing: 1 }}>Precio unitario</span>
                 <span style={{ fontWeight: 600 }}>{formatPrice(detail.precioUnitario)}</span>
               </div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', padding: '6px 0', borderBottom: '1px solid #E2E8F0' }}>
+                <span style={{ color: '#897362', fontWeight: 600, textTransform: 'uppercase', fontSize: 11, letterSpacing: 1 }}>Envío</span>
+                <span style={{ fontWeight: 600, color: detail.envio > 0 ? '#0b1c30' : '#22c55e' }}>{detail.envio > 0 ? formatPrice(detail.envio) : 'Gratis'}</span>
+              </div>
               <div style={{ display: 'flex', justifyContent: 'space-between', padding: '8px 0', background: '#eff4ff', margin: '0 -12px', paddingLeft: 12, paddingRight: 12, borderRadius: 8 }}>
                 <span style={{ fontWeight: 800, fontSize: 16 }}>Total</span>
                 <span style={{ fontWeight: 800, fontSize: 16, color: '#0b1c30' }}>{formatPrice(detail.total)}</span>

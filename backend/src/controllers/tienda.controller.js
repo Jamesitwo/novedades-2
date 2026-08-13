@@ -297,7 +297,7 @@ const getCiudades = (req, res) => {
 
 const procesarCompra = async (req, res) => {
   try {
-    const { productoId, nombre, apellido, celular, direccion, departamento, ciudad, email, notas, cantidad, metodoPago } = req.body;
+    const { productoId, nombre, apellido, celular, direccion, departamento, ciudad, email, notas, cantidad, metodoPago, envioTotal } = req.body;
     if (!productoId || !nombre || !apellido || !celular || !direccion || !departamento || !ciudad) {
       return res.status(400).json({ error: 'Faltan datos requeridos' });
     }
@@ -314,6 +314,8 @@ const procesarCompra = async (req, res) => {
 
     const qty = parseInt(cantidad) || 1;
     const precio = producto.ofertaActiva && producto.ofertaPrecio ? producto.ofertaPrecio : producto.precioVenta;
+    const envio = Number(envioTotal) || (producto.envioGratis ? 0 : (producto.envioCosto || 0));
+    const totalFinal = (precio * qty) + envio;
 
     await prisma.pedidoTienda.create({
       data: {
@@ -329,7 +331,8 @@ const procesarCompra = async (req, res) => {
         notas: notas?.trim() || null,
         cantidad: qty,
         precioUnitario: precio,
-        total: precio * qty,
+        total: totalFinal,
+        envio,
         metodoPago: metodoPago || 'contraentrega'
       }
     });
@@ -347,7 +350,7 @@ const procesarCompra = async (req, res) => {
             content_name: producto.nombre,
             content_ids: [productoId],
             content_type: 'product',
-            value: precio * qty,
+            value: totalFinal,
             currency: 'COP',
             num_items: qty
           },
@@ -384,7 +387,8 @@ const procesarCompra = async (req, res) => {
         const valueMap = {
           producto: producto.nombre,
           precio: String(precio),
-          total: String(precio * qty),
+          total: String(totalFinal),
+          envio: String(envio),
           nombre, apellido, celular, ciudad, direccion, departamento,
           email: email || '',
           notas: notas || '',

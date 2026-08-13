@@ -118,7 +118,8 @@ export default function ComprarPage() {
         celular: form.celular.trim(), direccion: form.direccion.trim(),
         departamento: form.departamento, ciudad: form.ciudad.trim(),
         email: form.email.trim() || null, notas: form.notas.trim() || null, cantidad: form.cantidad || 1,
-        metodoPago: form.metodoPago
+        metodoPago: form.metodoPago,
+        envioTotal: envioPrincipal + envioCarrito
       });
       setEnviado(true);
       const colors = ['#ff8c00', '#feb700', '#fff', '#22c55e', '#ba1a1a'];

@@ -384,6 +384,7 @@ model PedidoTienda {
   cantidad       Int      @default(1)
   precioUnitario Float
   total          Float
+  envio          Float     @default(0) @map("envio")
   estado         String   @default("pendiente")
   metodoPago     String   @default("contraentrega") @map("metodo_pago")
   pagado         Boolean  @default(false)
