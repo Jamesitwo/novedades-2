@@ -499,9 +499,20 @@ const duplicarPedido = async (req, res) => {
 
     console.log('[LucidSales] duplicarPedido: vinculando nuevoId=', nuevoId);
 
+    const vinculacionOriginal = await prisma.pedidoVinculado.findUnique({
+      where: { lucidsalesPedidoId: Number(id) },
+      select: { conversacionLink: true }
+    });
+
     try {
       const asignadoId = await getNextOperador('lucidsales');
       await lucidsalesService.crearVinculacionDirecta(nuevoId, original, `Duplicado del pedido #${original.idPedido || id}`, req.usuario.id, asignadoId);
+      if (vinculacionOriginal?.conversacionLink) {
+        await prisma.pedidoVinculado.update({
+          where: { lucidsalesPedidoId: Number(nuevoId) },
+          data: { conversacionLink: vinculacionOriginal.conversacionLink }
+        });
+      }
       console.log('[LucidSales] duplicarPedido: vinculacion exitosa');
     } catch (vinError) {
       console.error('[LucidSales] duplicarPedido: error al vincular:', vinError.message);
