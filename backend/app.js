@@ -165,7 +165,7 @@ app.get('/api/health', (req, res) => {
   });
 });
 
-app.use((req, res, next) => {
+app.use('/api', (req, res) => {
   res.status(404).json({ error: `Ruta no encontrada: ${req.method} ${req.originalUrl}` });
 });
 
