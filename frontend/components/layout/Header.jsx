@@ -71,7 +71,7 @@ export default function Header() {
         ☰
       </button>
       <h1 className="topbar-title">{getTitle()}</h1>
-      <div style={{ marginLeft: 'auto', color: 'var(--text3)', fontSize: '11px', fontFamily: 'var(--mono)' }} suppressHydrationWarning>
+      <div className="topbar-date" style={{ marginLeft: 'auto', color: 'var(--text3)', fontSize: '11px', fontFamily: 'var(--mono)', whiteSpace: 'nowrap' }} suppressHydrationWarning>
         {new Date().toLocaleDateString('es-CO', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
       </div>
     </header>

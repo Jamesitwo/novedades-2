@@ -123,22 +123,20 @@ export default function PlantillasPage() {
       )}
 
       {loading ? (
-        <div className="table-container">
-          <div className="loading-state">Cargando plantillas...</div>
+        <div className="table-card" style={{ padding: 24, textAlign: 'center', color: 'var(--text3)' }}>
+          Cargando plantillas...
         </div>
       ) : templates.length === 0 ? (
-        <div className="table-container">
-          <div className="empty-state">
-            <div className="empty-icon">📋</div>
-            <div className="empty-title">No hay plantillas</div>
-            <div className="empty-text">
+        <div className="table-card" style={{ padding: 24, textAlign: 'center', color: 'var(--text3)' }}>
+          <div className="empty-icon">📋</div>
+          <div className="empty-title">No hay plantillas</div>
+          <div className="empty-text">
               Haz clic en &quot;Sincronizar con Meta&quot; para importar las plantillas aprobadas desde WhatsApp Business Manager.
             </div>
-          </div>
         </div>
       ) : (
-        <div className="table-container">
-          <table className="data-table">
+        <div className="table-card" style={{ overflowX: 'auto' }}>
+          <table>
             <thead>
               <tr>
                 <th>Nombre</th>

@@ -158,15 +158,20 @@ function TiendaPageContent() {
       <style dangerouslySetInnerHTML={{__html: `
         .ff-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 20px; }
         .ff-grid > * { height: 100%; min-width: 0; width: 100%; }
+        .ff-hero-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 48px; align-items: center; }
+        .ff-bundle-img { width: 200px; height: 200px; }
         @media (max-width: 768px) {
           .ff-hero { padding: 40px 16px !important; }
           .ff-hero h1 { font-size: 26px !important; }
           .ff-hero p { font-size: 15px !important; }
+          .ff-hero-grid { grid-template-columns: 1fr !important; gap: 24px !important; }
+          .ff-hero-badge { left: 4px !important; bottom: 4px !important; }
           .ff-grid { grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)) !important; gap: 12px !important; }
           .ff-section { padding: 40px 16px !important; }
           .ff-section h2 { font-size: 22px !important; }
           .ff-cats { grid-template-columns: repeat(3, 1fr) !important; }
           .ff-bundle { flex-direction: column !important; }
+          .ff-bundle-img { width: min(200px, 55vw) !important; height: auto !important; max-height: 220px !important; }
         }
         @media (max-width: 480px) {
           .ff-hero { padding: 28px 12px !important; }
@@ -178,7 +183,7 @@ function TiendaPageContent() {
 
       {/* HERO */}
       <section className="ff-hero" style={{ background: C.heroBg, color: C.heroText, padding: '80px 24px', position: 'relative', overflow: 'hidden' }}>
-        <div style={{ maxWidth: 1280, margin: '0 auto', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 48, alignItems: 'center' }}>
+        <div className="ff-hero-grid" style={{ maxWidth: 1280, margin: '0 auto' }}>
           <div style={{ position: 'relative', zIndex: 1 }}>
             <h1 style={{ fontSize: 'clamp(22px, 5vw, 44px)', fontWeight: 800, lineHeight: 1.15, marginBottom: 16, letterSpacing: -1 }}>
               {homeConfig.hero_titulo || 'Pizdo — Las herramientas que necesitas, cuando las necesitas'}
@@ -199,11 +204,11 @@ function TiendaPageContent() {
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', position: 'relative' }}>
             <img src="https://lh3.googleusercontent.com/aida-public/AB6AXuBcSsgYjIuTXU8W2IljOR6Ud-dcffWygOFaJpx_hWqJQxygTfsfQxGOqwtDK2U06gihO1Syx6_F67RAbS9DhatpSeTfDye1sJoQVnf1QFSHHm7LUuGtYUvZnG19WXiL26GWK8I5h9wCRr_GqzIDxkxbDzYzOss2ASMyAo4U6f95CTqp6v7w8frnovUHonUEYKyjF7TNy-Ey9nAtOeDLcgIPOyKN-q6fuPYRohnuHbnIt0R1sDToRAEOY59W2yE4ZZpBGpki8I5bmxQ"
               alt="Pizdo Power Tools" style={{ width: '100%', maxWidth: 400, height: 'auto', objectFit: 'contain', filter: 'drop-shadow(0 20px 40px rgba(0,0,0,0.4))', transform: `translateY(${scrollY * 0.05}px)`, transition: 'transform 0.1s ease-out' }} />
-            <div style={{
+            <div className="ff-hero-badge" style={{
               position: 'absolute', bottom: 20, left: -10, background: '#fff', color: '#0b1c30',
               padding: '10px 16px', borderRadius: 12, boxShadow: '0 8px 24px rgba(0,0,0,0.12)',
               borderLeft: '4px solid #feb700', fontSize: 13, fontWeight: 700,
-              animation: 'float 3s ease-in-out infinite'
+              animation: 'float 3s ease-in-out infinite', zIndex: 2
             }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                 <span style={{ fontSize: 16 }}>⭐</span>
@@ -302,7 +307,7 @@ function TiendaPageContent() {
                     {i > 0 && <span style={{ color: '#fff', fontSize: 32, fontWeight: 700, flexShrink: 0 }}>+</span>}
                     <a href={`/producto/${p.slug || p.id}`} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', textDecoration: 'none', color: '#fff', gap: 10 }}>
                       {p.imagen ? (
-                        <img src={p.imagen} alt={p.nombre} style={{ width: 200, height: 200, objectFit: 'contain', filter: 'drop-shadow(0 8px 20px rgba(0,0,0,0.4))', borderRadius: 12, background: '#F8F9FA', padding: 10 }} />
+                        <img src={p.imagen} alt={p.nombre} className="ff-bundle-img" style={{ objectFit: 'contain', filter: 'drop-shadow(0 8px 20px rgba(0,0,0,0.4))', borderRadius: 12, background: '#F8F9FA', padding: 10 }} />
             ) : (
               null
             )}
@@ -428,20 +433,20 @@ function TiendaPageContent() {
 
           <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginBottom: 24, alignItems: 'center' }}>
             <button onClick={() => setCategoria('')} style={{
-              padding: '6px 16px', borderRadius: 20, border: '1px solid ' + C.border,
+              padding: '9px 16px', borderRadius: 20, border: '1px solid ' + C.border,
               background: !categoria ? C.primary : C.surface, color: !categoria ? '#fff' : C.text,
-              fontSize: 13, fontWeight: 600, cursor: 'pointer', transition: 'all 0.15s'
+              fontSize: 13, fontWeight: 600, cursor: 'pointer', transition: 'all 0.15s', minHeight: 38
             }}>Todos</button>
             {categorias.map(c => (
               <button key={c} onClick={() => setCategoria(c)} style={{
-                padding: '6px 16px', borderRadius: 20, border: '1px solid ' + C.border,
+                padding: '9px 16px', borderRadius: 20, border: '1px solid ' + C.border,
                 background: categoria === c ? C.primary : C.surface, color: categoria === c ? '#fff' : C.text,
-                fontSize: 13, fontWeight: 600, cursor: 'pointer', transition: 'all 0.15s'
+                fontSize: 13, fontWeight: 600, cursor: 'pointer', transition: 'all 0.15s', minHeight: 38
               }}>{c}</button>
             ))}
             <select value={orden} onChange={e => setOrden(e.target.value)} style={{
-              marginLeft: 'auto', padding: '6px 14px', borderRadius: 20, border: '1px solid ' + C.border,
-              background: C.surface, color: C.text, fontSize: 13, fontWeight: 600, cursor: 'pointer'
+              marginLeft: 'auto', padding: '9px 14px', borderRadius: 20, border: '1px solid ' + C.border,
+              background: C.surface, color: C.text, fontSize: 13, fontWeight: 600, cursor: 'pointer', minHeight: 38
             }}>
               <option value="reciente">Más recientes</option>
               <option value="precio-asc">Precio: menor a mayor</option>

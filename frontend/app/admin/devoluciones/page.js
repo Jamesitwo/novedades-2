@@ -93,7 +93,7 @@ export default function DevolucionesPage() {
         </p>
       </div>
 
-      <div className="stats-grid" style={{ marginBottom: 24, gridTemplateColumns: 'repeat(3, 1fr)' }}>
+      <div className="stats-grid" style={{ marginBottom: 24 }}>
         <div className="stat-card c-purple">
           <div className="stat-label">Total Devoluciones</div>
           <div className="stat-value purple">{totalDevoluciones}</div>

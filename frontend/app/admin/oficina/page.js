@@ -352,11 +352,11 @@ export default function OficinaPage() {
 
       {confirmModal && (
         <div style={{
-          position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.7)',
+          position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.7)', padding: 16,
           display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 10000
         }}>
           <div style={{
-            background: 'var(--bg2)', borderRadius: 16, padding: 24, maxWidth: 360,
+            background: 'var(--bg2)', borderRadius: 16, padding: 24, width: 'min(360px, 100%)',
             boxShadow: '0 20px 60px rgba(0,0,0,0.5)', border: '1px solid var(--border)'
           }}>
             <h3 style={{ marginBottom: 12, fontSize: 16, fontWeight: 600 }}>{confirmModal.title}</h3>
@@ -500,8 +500,8 @@ export default function OficinaPage() {
           </button>
         )}
 
-        <div className="filters-right">
-          <div className="topbar-search" style={{ width: 220 }}>
+        <div className="filters-right" style={{ flexWrap: 'wrap' }}>
+          <div className="topbar-search" style={{ width: 220, maxWidth: '100%' }}>
             <span style={{ color: 'var(--text3)' }}>⌕</span>
             <input
               type="text"
@@ -597,7 +597,7 @@ export default function OficinaPage() {
           {selected.length > 0 && (
             <div style={{
               background: 'var(--bg2)', border: '1px solid var(--accent)', borderRadius: 10,
-              padding: '12px 16px', marginBottom: 16, display: 'flex', alignItems: 'center', gap: 12
+              padding: '12px 16px', marginBottom: 16, display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap'
             }}>
               <span style={{ fontSize: 13, fontWeight: 500 }}>{selected.length} seleccionado{selected.length !== 1 ? 's' : ''}</span>
 

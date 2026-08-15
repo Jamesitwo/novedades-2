@@ -1,6 +1,12 @@
 import './globals.css';
 import MetaPixel from '../components/MetaPixel';
 
+export const viewport = {
+  width: 'device-width',
+  initialScale: 1,
+  themeColor: '#0f1117'
+};
+
 export const metadata = {
   metadataBase: new URL('https://pizdo.info'),
   title: {

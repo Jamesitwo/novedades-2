@@ -104,14 +104,24 @@ export default function ProductoDetallePage() {
     <ClientLayout><div style={{ maxWidth: 1280, margin: '0 auto', padding: '0 24px 64px' }}>
       <style dangerouslySetInnerHTML={{__html: `
         @media (min-width: 769px) { .landing-section-img { display: none; } .landing-img-only { display: none !important; } }
-        @media (max-width: 768px) { .detalle-grid-v2 { grid-template-columns: 1fr !important; } .detalle-titulo { font-size: 22px !important; } .landing-section-img { display: block !important; max-height: none !important; width: 100vw !important; margin-left: -24px !important; border-radius: 0 !important; border: none !important; border-bottom: 1px solid #E2E8F0 !important; object-fit: contain !important; height: auto !important; background: #F8F9FA !important; } .landing-img-only { display: block !important; } }
+        @media (max-width: 768px) {
+          .detalle-grid-v2 { grid-template-columns: 1fr !important; gap: 24px !important; }
+          .detalle-titulo { font-size: 22px !important; }
+          .detalle-img-wrap { min-height: 240px !important; padding: 16px !important; }
+          .landing-section-img { display: block !important; max-height: none !important; width: calc(100% + 48px) !important; margin-left: -24px !important; border-radius: 0 !important; border: none !important; border-bottom: 1px solid #E2E8F0 !important; object-fit: contain !important; height: auto !important; background: #F8F9FA !important; }
+          .landing-img-only { display: block !important; }
+          .relacionados-grid { grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)) !important; gap: 12px !important; }
+        }
+        @media (max-width: 480px) {
+          .resenas-resumen { grid-template-columns: 1fr !important; gap: 16px !important; }
+        }
       `}} />
 
       <a href="/" style={{ color: C.primary, textDecoration: 'none', fontSize: 14, fontWeight: 600, display: 'inline-block', margin: '24px 0' }}>← Volver a la tienda</a>
 
       <div className="detalle-grid-v2" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 48 }}>
         <div onMouseEnter={() => setPauseCarousel(true)} onMouseLeave={() => setPauseCarousel(false)}>
-          <div style={{ background: '#F8F9FA', borderRadius: 12, overflow: 'hidden', border: '1px solid ' + C.border, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 32, position: 'relative', minHeight: 380 }}>
+          <div className="detalle-img-wrap" style={{ background: '#F8F9FA', borderRadius: 12, overflow: 'hidden', border: '1px solid ' + C.border, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 32, position: 'relative', minHeight: 380 }}>
             {tieneOferta && <span style={{ position: 'absolute', top: 12, left: 12, background: '#feb700', color: '#271900', fontSize: 12, fontWeight: 700, padding: '4px 12px', borderRadius: 20, textTransform: 'uppercase' }}>Best Seller</span>}
             {imagenPrincipal ? (
               <img src={imagenPrincipal} alt={producto.nombre} style={{ width: '100%', maxHeight: 400, objectFit: 'contain', transition: 'transform 0.4s ease' }}
@@ -251,7 +261,7 @@ export default function ProductoDetallePage() {
           ⭐ Reseñas ({resenasTotal})
         </h2>
         {resenasTotal > 0 && (
-          <div style={{ display: 'grid', gridTemplateColumns: 'auto 1fr', gap: 32, marginBottom: 28, background: '#eff4ff', borderRadius: 12, padding: 24 }}>
+          <div className="resenas-resumen" style={{ display: 'grid', gridTemplateColumns: 'auto 1fr', gap: 32, marginBottom: 28, background: '#eff4ff', borderRadius: 12, padding: 24 }}>
             <div style={{ textAlign: 'center' }}>
               <div style={{ fontSize: 48, fontWeight: 800, color: C.primaryDark, lineHeight: 1 }}>{promedioResenas}</div>
               <div style={{ fontSize: 20, color: C.amber, marginTop: 4 }}>{'★'.repeat(Math.round(promedioResenas))}{'☆'.repeat(5 - Math.round(promedioResenas))}</div>
@@ -338,7 +348,7 @@ export default function ProductoDetallePage() {
       {producto.relacionados?.length > 0 && (
         <section style={{ marginTop: 48, borderTop: '1px solid ' + C.border, paddingTop: 32 }}>
           <h2 style={{ fontSize: 22, fontWeight: 700, marginBottom: 20, borderLeft: '4px solid #ff8c00', paddingLeft: 12, color: C.text }}>Productos relacionados</h2>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))', gap: 20 }}>
+          <div className="relacionados-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))', gap: 20 }}>
             {producto.relacionados.map(p => <ProductCard key={p.id} producto={p} />)}
           </div>
         </section>

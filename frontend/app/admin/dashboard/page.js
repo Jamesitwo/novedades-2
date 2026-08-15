@@ -146,9 +146,9 @@ export default function DashboardPage() {
 
   return (
     <div className="content">
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20, flexWrap: 'wrap', gap: 12 }}>
         <h2 style={{ fontSize: 20, fontWeight: 600 }}>Dashboard</h2>
-        <div style={{ display: 'flex', gap: 8 }}>
+        <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
           {['hoy', 'semana', 'mes', 'todos'].map(p => (
             <button key={p} onClick={() => { setPeriodo(p); setChartDays(p === 'hoy' ? 1 : p === 'semana' ? 7 : p === 'mes' ? 30 : 90); }}
               style={{ padding: '6px 14px', borderRadius: 20, fontSize: 12, fontWeight: 500, cursor: 'pointer', border: '1px solid var(--border)', background: periodo === p ? 'var(--accent)' : 'var(--bg3)', color: periodo === p ? '#fff' : 'var(--text2)', transition: 'all 0.15s' }}>
@@ -200,7 +200,7 @@ export default function DashboardPage() {
       )}
 
       {/* Two-column layout: Novedades | Oficina */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 24, marginBottom: 24 }}>
+      <div className="grid-2" style={{ gap: 24, marginBottom: 24 }}>
         
         {/* ========== NOVEDADES ========== */}
         <div>
@@ -210,7 +210,7 @@ export default function DashboardPage() {
             <div className="table-header"><span className="table-header-title">Estados</span></div>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)' }}>
               {['novedad', 'contactado', 'solucionado', 'cancelado', 'devolucion'].map((est, i) => (
-                <div key={est} style={{ padding: '14px 10px', textAlign: 'center', borderRight: i < 4 ? '1px solid var(--border)' : 'none' }}>
+                <div key={est} style={{ padding: '14px 4px', textAlign: 'center', borderRight: i < 4 ? '1px solid var(--border)' : 'none', minWidth: 0 }}>
                   <div style={{ fontSize: 26, fontWeight: 600, fontFamily: 'var(--mono)', color: ESTADO_COLORS[est] }}>{novedades?.[est] || 0}</div>
                   <div style={{ fontSize: 10, color: 'var(--text3)', marginTop: 4, fontWeight: 500 }}>{ESTADO_LABELS[est]}</div>
                 </div>

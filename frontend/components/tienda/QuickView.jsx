@@ -24,7 +24,7 @@ export default function QuickView({ producto, onClose }) {
           ) : (
             <div style={{ height: 200, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#897362', fontSize: 15, fontWeight: 500 }}>Sin imagen</div>
           )}
-          <button onClick={onClose} style={{ position: 'absolute', top: 12, right: 12, width: 32, height: 32, background: '#fff', border: '1px solid #E2E8F0', borderRadius: 8, fontSize: 16, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 2px 8px rgba(0,0,0,0.08)' }}>✕</button>
+          <button onClick={onClose} aria-label="Cerrar vista rápida" style={{ position: 'absolute', top: 12, right: 12, width: 40, height: 40, background: '#fff', border: '1px solid #E2E8F0', borderRadius: 8, fontSize: 16, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 2px 8px rgba(0,0,0,0.08)', padding: 0 }}>✕</button>
           {tieneOferta && (
             <div style={{ position: 'absolute', top: 12, left: 12, background: '#ba1a1a', color: '#fff', fontSize: 13, fontWeight: 700, padding: '4px 12px', borderRadius: 20 }}>-{Math.round((1 - producto.ofertaPrecio / producto.precioVenta) * 100)}%</div>
           )}

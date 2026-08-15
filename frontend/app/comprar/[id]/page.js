@@ -152,7 +152,11 @@ export default function ComprarPage() {
       <style dangerouslySetInnerHTML={{__html: `
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
         @keyframes confetti-fall { 0% { transform: translateY(-100vh) rotate(0deg); opacity: 1; } 100% { transform: translateY(100vh) rotate(720deg); opacity: 0; } }
-        @media (max-width: 768px) { .compra-grid { grid-template-columns: 1fr !important; } }
+        @media (max-width: 768px) {
+          .compra-grid { grid-template-columns: 1fr !important; }
+          .compra-form-row { grid-template-columns: 1fr !important; gap: 12px !important; }
+          .compra-summary { position: static !important; }
+        }
       `}} />
 
       <div style={{ background: C.navy, borderBottom: '1px solid rgba(255,255,255,0.1)', padding: '0 24px', display: 'flex', alignItems: 'center', height: 52 }}>
@@ -180,7 +184,7 @@ export default function ComprarPage() {
               <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
                 {error && <div style={{ background: '#ffdad6', color: C.red, padding: '12px 16px', borderRadius: 8, fontSize: 14, fontWeight: 600, border: '1px solid rgba(186,26,26,0.2)' }}>{error}</div>}
 
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
+                <div className="compra-form-row" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
                   {[{ key: 'nombre', label: 'Nombre', ph: 'Tu nombre' }, { key: 'apellido', label: 'Apellido', ph: 'Tu apellido' }].map(f => (
                     <label key={f.key} style={{ fontSize: 12, fontWeight: 700, color: C.subtext, textTransform: 'uppercase', letterSpacing: 1 }}>
                       {f.label} *
@@ -200,7 +204,7 @@ export default function ComprarPage() {
                     onBlur={e => { e.target.style.borderColor = C.border; e.target.style.boxShadow = 'none'; }} />
                 </label>
 
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
+                <div className="compra-form-row" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
                   <label style={{ fontSize: 12, fontWeight: 700, color: C.subtext, textTransform: 'uppercase', letterSpacing: 1 }}>
                     Departamento *
                     <AutocompleteInput value={form.departamento} onChange={v => { handleChange('departamento', v); handleChange('ciudad', ''); }}
@@ -222,7 +226,7 @@ export default function ComprarPage() {
                     onBlur={e => { e.target.style.borderColor = C.border; e.target.style.boxShadow = 'none'; }} />
                 </label>
 
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
+                <div className="compra-form-row" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
                   <label style={{ fontSize: 12, fontWeight: 700, color: C.subtext, textTransform: 'uppercase', letterSpacing: 1 }}>
                     Cantidad
                     <input type="number" min="1" value={form.cantidad} onChange={e => handleChange('cantidad', parseInt(e.target.value) || 1)}
@@ -274,7 +278,7 @@ export default function ComprarPage() {
                 </button>
               </form>
 
-              <div style={{ background: C.surface, border: '1px solid ' + C.border, borderRadius: 16, padding: 28, position: 'sticky', top: 80, boxShadow: '0 4px 16px rgba(0,0,0,0.04)' }}>
+              <div className="compra-summary" style={{ background: C.surface, border: '1px solid ' + C.border, borderRadius: 16, padding: 28, position: 'sticky', top: 80, boxShadow: '0 4px 16px rgba(0,0,0,0.04)' }}>
                 <div style={{ fontSize: 14, fontWeight: 700, color: C.subtext, textTransform: 'uppercase', letterSpacing: 1, marginBottom: 20 }}>Resumen del pedido</div>
                 {producto.imagen && (
                   <img src={producto.imagen} alt={producto.nombre} style={{ width: '100%', height: 180, objectFit: 'cover', borderRadius: 10, marginBottom: 16, background: '#F8F9FA', border: '1px solid ' + C.border }}
@@ -345,7 +349,7 @@ export default function ComprarPage() {
                             <div style={{ fontSize: 13, fontWeight: 600, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', marginBottom: 2 }}>{rp.nombre}</div>
                             <div style={{ fontSize: 14, fontWeight: 700, color: rp.ofertaActiva && rp.ofertaPrecio ? C.red : C.text }}>{formatPrice(rpPrecio)}</div>
                           </div>
-                          <button type="button" onClick={() => addItem(rp)} style={{ background: C.primary, color: '#fff', fontWeight: 700, fontSize: 11, padding: '5px 12px', borderRadius: 8, whiteSpace: 'nowrap', flexShrink: 0, border: 'none', cursor: 'pointer' }}>+ Agregar</button>
+                          <button type="button" onClick={() => addItem(rp)} style={{ background: C.primary, color: '#fff', fontWeight: 700, fontSize: 13, padding: '10px 16px', borderRadius: 8, whiteSpace: 'nowrap', flexShrink: 0, border: 'none', cursor: 'pointer', minHeight: 40 }}>+ Agregar</button>
                         </div>
                       );
                     })}

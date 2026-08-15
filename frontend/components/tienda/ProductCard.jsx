@@ -97,11 +97,11 @@ export default function ProductCard({ producto, onFavChange }) {
           )}
         </div>
 
-        <button onClick={toggleFav} style={{
-          position: 'absolute', top: 10, right: 10, zIndex: 2, width: 34, height: 34,
+        <button onClick={toggleFav} aria-label={faved ? 'Quitar de favoritos' : 'Agregar a favoritos'} style={{
+          position: 'absolute', top: 10, right: 10, zIndex: 2, width: 40, height: 40,
           background: faved ? '#fef2f2' : 'rgba(255,255,255,0.9)', border: '1px solid #e2e8f0', borderRadius: 10,
           cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 15,
-          boxShadow: '0 2px 6px rgba(0,0,0,0.06)', backdropFilter: 'blur(4px)'
+          boxShadow: '0 2px 6px rgba(0,0,0,0.06)', backdropFilter: 'blur(4px)', padding: 0
         }}>
           {faved ? '❤️' : '🤍'}
         </button>
@@ -151,7 +151,7 @@ export default function ProductCard({ producto, onFavChange }) {
             }}
             onMouseEnter={e => { if (!clicked) { e.currentTarget.style.background = '#c2410c'; } }}
             onMouseLeave={e => { if (!clicked) { e.currentTarget.style.background = '#ea580c'; } }}>
-              {clicked ? '✓ Agregado' : '🛒 Agregar al carrito'}
+              {clicked ? '✓ Agregado' : (<><span className="pc-btn-label-full">🛒 Agregar al carrito</span><span className="pc-btn-label-short">🛒 Agregar</span></>)}
             </button>
             <button onClick={(e) => { e.preventDefault(); e.stopPropagation(); setShowQuickView(true); }} style={{
               minHeight: 42, width: 42, background: '#f8fafc', color: '#0f172a', border: '1.5px solid #e2e8f0',

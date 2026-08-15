@@ -559,8 +559,8 @@ export default function LucidsalesDetailPanel({ id, ids, currentIndex, onClose, 
       <div className="detail-panel" ref={panelRef} style={{ overflowY: 'auto' }}>
 
         {/* HEADER */}
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '12px 16px', borderBottom: '1px solid var(--border)', background: 'var(--bg2)' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+        <div className="lsd-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 8, padding: '12px 16px', borderBottom: '1px solid var(--border)', background: 'var(--bg2)' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap', minWidth: 0 }}>
             <button onClick={() => hasPrev && onNavigate(ids[idIndex - 1])} disabled={!hasPrev}
               style={{ background: 'none', border: '1px solid var(--border)', borderRadius: 6, width: 28, height: 28, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: hasPrev ? 'pointer' : 'default', color: 'var(--text)', opacity: hasPrev ? 1 : 0.3, fontSize: 14 }}
               title="Pedido anterior">←</button>
@@ -579,7 +579,7 @@ export default function LucidsalesDetailPanel({ id, ids, currentIndex, onClose, 
               style={{ background: 'none', border: '1px solid var(--border)', borderRadius: 6, width: 28, height: 28, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: hasNext ? 'pointer' : 'default', color: 'var(--text)', opacity: hasNext ? 1 : 0.3, fontSize: 14 }}
               title="Pedido siguiente">→</button>
           </div>
-          <div style={{ display: 'flex', gap: 6 }}>
+          <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
             {uploaded && (
               <button onClick={handleDuplicate} disabled={uploading} className="btn btn-ghost" style={{ fontSize: 11 }}>🔄 Duplicar</button>
             )}
@@ -696,7 +696,7 @@ export default function LucidsalesDetailPanel({ id, ids, currentIndex, onClose, 
             </div>
             {openSections.direccion && (
               <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
+                <div className="lsd-grid-2" style={{ gap: 8 }}>
                   <div>
                     <label style={{ fontSize: 10, color: 'var(--text3)', marginBottom: 2, display: 'block' }}>Nombre</label>
                     <input type="text" value={pedido.Nombre || ''} onChange={e => handleChange('Nombre', e.target.value)} style={fieldStyle('Nombre')} />
@@ -845,7 +845,7 @@ export default function LucidsalesDetailPanel({ id, ids, currentIndex, onClose, 
                   )}
                 </div>
 
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
+                <div className="lsd-grid-2" style={{ gap: 8 }}>
                   <div>
                     <label style={{ fontSize: 10, color: 'var(--text3)', marginBottom: 2, display: 'block' }}>Departamento</label>
                     <select value={pedido.Departamento ?? ''} onChange={e => handleDepartamentoChange(e.target.value)} style={{ ...fieldStyle('Departamento'), appearance: 'auto', cursor: 'pointer' }}>
@@ -881,7 +881,7 @@ export default function LucidsalesDetailPanel({ id, ids, currentIndex, onClose, 
                     ⚠ Transferencia: verifica el pago antes de subir el envio
                   </div>
                 )}
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
+                <div className="lsd-grid-2" style={{ gap: 8 }}>
                   <div>
                     <label style={{ fontSize: 10, color: 'var(--text3)', marginBottom: 2, display: 'block' }}>Estado</label>
                     <select value={pedido.EstadoPedido ?? 0} onChange={e => handleChange('EstadoPedido', Number(e.target.value))} style={{ ...fieldStyle('EstadoPedido'), appearance: 'auto', cursor: 'pointer' }}>

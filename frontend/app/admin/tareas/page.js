@@ -113,7 +113,7 @@ export default function TareasKanbanPage() {
       </div>
 
       <DragDropContext onDragEnd={onDragEnd}>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: 12, overflow: 'hidden' }}>
+        <div className="kanban-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: 12, overflow: 'hidden' }}>
           {columns.map(col => (
             <div key={col.id} style={{
               background: 'var(--bg2)', border: '1px solid var(--border)', borderRadius: 10,

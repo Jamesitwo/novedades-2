@@ -208,7 +208,7 @@ export default function DetailPanel({ id, tipo, onClose, onUpdate }) {
     <>
       {toast && (
         <div style={{
-          position: 'fixed', top: 20, right: 500, zIndex: 9999,
+          position: 'fixed', top: 20, right: 20, zIndex: 9999, maxWidth: 'min(90vw, 400px)',
           background: toast.type === 'error' ? 'var(--red)' : 'var(--green)',
           color: '#fff', padding: '12px 20px', borderRadius: 10,
           boxShadow: '0 4px 20px rgba(0,0,0,0.3)', fontSize: 14, fontWeight: 500,
@@ -220,11 +220,11 @@ export default function DetailPanel({ id, tipo, onClose, onUpdate }) {
 
       {confirmModal && (
         <div style={{
-          position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.7)',
+          position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.7)', padding: 16,
           display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 10000
         }}>
           <div style={{
-            background: 'var(--bg2)', borderRadius: 16, padding: 24, maxWidth: 360,
+            background: 'var(--bg2)', borderRadius: 16, padding: 24, width: 'min(360px, 100%)',
             boxShadow: '0 20px 60px rgba(0,0,0,0.5)', border: '1px solid var(--border)'
           }}>
             <h3 style={{ marginBottom: 12, fontSize: 16, fontWeight: 600 }}>{confirmModal.title}</h3>

@@ -159,7 +159,7 @@ export default function MetricasPage() {
               {p === 'hoy' ? 'Hoy' : p === 'semana' ? 'Esta semana' : p === 'mes' ? 'Este mes' : 'Todo'}
             </button>
           ))}
-          <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
+          <div style={{ display: 'flex', gap: 6, alignItems: 'center', flexWrap: 'wrap' }}>
             <input
               type="date"
               value={fechaDesde}
@@ -196,7 +196,7 @@ export default function MetricasPage() {
         </div>
       </div>
 
-      <div style={{ display: 'flex', gap: 4, marginBottom: 16, background: 'var(--bg3)', borderRadius: 8, padding: 3, width: 'fit-content' }}>
+      <div style={{ display: 'flex', gap: 4, marginBottom: 16, background: 'var(--bg3)', borderRadius: 8, padding: 3, width: 'fit-content', maxWidth: '100%', flexWrap: 'wrap' }}>
         <button
           onClick={() => setTab('rendimiento')}
           style={{

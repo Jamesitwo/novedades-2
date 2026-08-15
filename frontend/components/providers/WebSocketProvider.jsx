@@ -21,7 +21,7 @@ export default function WebSocketProvider({ children }) {
     <>
       {children}
       {notifications.length > 0 && (
-        <div style={{ position: 'fixed', top: 16, right: 16, zIndex: 99999, display: 'flex', flexDirection: 'column', gap: 8, maxWidth: 380 }}>
+        <div style={{ position: 'fixed', top: 16, right: 16, zIndex: 99999, display: 'flex', flexDirection: 'column', gap: 8, maxWidth: 'min(380px, calc(100vw - 32px))' }}>
           {notifications.map(n => (
             <div key={n.id} style={{
               background: 'var(--bg2)',

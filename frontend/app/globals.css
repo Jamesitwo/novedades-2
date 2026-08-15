@@ -39,6 +39,8 @@
   to { transform: translateX(0); opacity: 1; }
 }
 
+html, body { overflow-x: clip; }
+
 body {
   font-family: var(--font);
   background: var(--bg);
@@ -920,6 +922,7 @@ tr:hover td { background: var(--bg3); }
   border: 1px solid var(--border);
   border-radius: 14px;
   width: 560px;
+  max-width: 94vw;
   max-height: 90vh;
   overflow-y: auto;
   padding: 28px;
@@ -1012,8 +1015,33 @@ tr:hover td { background: var(--bg3); }
     font-size: 12px;
   }
 
+  /* Row action buttons easier to tap */
+  .action-btn {
+    min-height: 36px;
+  }
+
+  /* Topbar date hidden on mobile */
+  .topbar-date {
+    display: none;
+  }
+
+  /* Kanban tareas: horizontal scroll de columnas */
+  .kanban-grid {
+    grid-auto-flow: column;
+    grid-auto-columns: minmax(260px, 85vw);
+    grid-template-columns: none !important;
+    overflow-x: auto !important;
+    overflow-y: visible;
+    padding-bottom: 8px;
+  }
+
+  /* Grids internos del panel LucidSales colapsan */
+  .lsd-grid-2 {
+    grid-template-columns: 1fr !important;
+  }
+
   /* Modals */
-  dialog, [style*="position: fixed"] > div[style*="border-radius"] {
+  .layout dialog, .layout [style*="position: fixed"] > div[style*="border-radius"] {
     width: 94vw !important;
     padding: 16px !important;
   }
@@ -1050,9 +1078,23 @@ tr:hover td { background: var(--bg3); }
     flex-wrap: wrap;
   }
 
-  /* Pizdo grid */
-  [style*="grid-template-columns: repeat(auto-fill"] {
+  /* Pizdo grid (solo dentro del panel admin) */
+  .layout [style*="grid-template-columns: repeat(auto-fill"] {
     grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)) !important;
+  }
+}
+
+/* Boton carrito en cards de tienda: etiqueta corta en movil */
+.pc-btn-label-short {
+  display: none;
+}
+
+@media (max-width: 480px) {
+  .pc-btn-label-full {
+    display: none;
+  }
+  .pc-btn-label-short {
+    display: inline;
   }
 }
 

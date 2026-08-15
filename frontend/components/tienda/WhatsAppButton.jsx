@@ -32,7 +32,7 @@ export default function WhatsAppButton({ phone, mensaje }) {
     <div style={{ position: 'fixed', bottom: 24, right: 24, zIndex: 9990 }}>
       {showTooltip && (
         <div style={{
-          position: 'absolute', bottom: 60, right: 0, whiteSpace: 'nowrap',
+          position: 'absolute', bottom: 60, right: 0, whiteSpace: 'normal', maxWidth: 'min(280px, calc(100vw - 48px))',
           background: '#fff', color: '#0b1c30', padding: '8px 14px', borderRadius: 8,
           fontSize: 13, fontWeight: 600, boxShadow: '0 4px 16px rgba(0,0,0,0.12)',
           animation: 'slide-up 0.3s ease', border: '1px solid #E2E8F0'

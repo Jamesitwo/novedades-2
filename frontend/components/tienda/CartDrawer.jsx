@@ -27,7 +27,7 @@ export default function CartDrawer() {
           padding: '16px 20px', borderBottom: '1px solid #E2E8F0', fontWeight: 800, fontSize: 18, color: '#0b1c30'
         }}>
           🛒 Carrito ({items.reduce((s, i) => s + i.cantidad, 0)})
-          <button onClick={closeDrawer} style={{ background: 'none', border: 'none', fontSize: 22, cursor: 'pointer', color: '#897362' }}>✕</button>
+          <button onClick={closeDrawer} aria-label="Cerrar carrito" style={{ background: 'none', border: 'none', fontSize: 22, cursor: 'pointer', color: '#897362', minWidth: 40, minHeight: 40, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 0 }}>✕</button>
         </div>
 
         <div style={{ flex: 1, overflow: 'auto', padding: '12px 20px' }}>
@@ -62,16 +62,16 @@ export default function CartDrawer() {
                       {formatPrice(item.precio)}
                     </div>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 6 }}>
-                      <button onClick={() => updateQuantity(item.id, item.cantidad - 1)}
-                        style={{ width: 28, height: 28, borderRadius: 6, border: '1px solid #E2E8F0', background: '#fff', cursor: 'pointer', fontSize: 16, fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#0b1c30' }}>
+                      <button onClick={() => updateQuantity(item.id, item.cantidad - 1)} aria-label="Disminuir cantidad"
+                        style={{ width: 40, height: 40, borderRadius: 8, border: '1px solid #E2E8F0', background: '#fff', cursor: 'pointer', fontSize: 16, fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#0b1c30', padding: 0 }}>
                         −
                       </button>
                       <span style={{ fontSize: 13, fontWeight: 700, minWidth: 20, textAlign: 'center' }}>{item.cantidad}</span>
-                      <button onClick={() => updateQuantity(item.id, item.cantidad + 1)}
-                        style={{ width: 28, height: 28, borderRadius: 6, border: '1px solid #E2E8F0', background: '#fff', cursor: 'pointer', fontSize: 16, fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#0b1c30' }}>
+                      <button onClick={() => updateQuantity(item.id, item.cantidad + 1)} aria-label="Aumentar cantidad"
+                        style={{ width: 40, height: 40, borderRadius: 8, border: '1px solid #E2E8F0', background: '#fff', cursor: 'pointer', fontSize: 16, fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#0b1c30', padding: 0 }}>
                         +
                       </button>
-                      <button onClick={() => removeItem(item.id)} style={{ marginLeft: 'auto', background: 'none', border: 'none', color: '#ba1a1a', cursor: 'pointer', fontSize: 16, fontWeight: 700 }}>
+                      <button onClick={() => removeItem(item.id)} aria-label="Quitar del carrito" style={{ marginLeft: 'auto', background: 'none', border: 'none', color: '#ba1a1a', cursor: 'pointer', fontSize: 16, fontWeight: 700, minWidth: 40, minHeight: 40, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 0 }}>
                         ✕
                       </button>
                     </div>

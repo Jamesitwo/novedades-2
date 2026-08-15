@@ -397,15 +397,15 @@ export default function LucidSalesPage() {
             onChange={e => { setFiltroProducto(e.target.value); setPage(1); }}
             style={{ width: 180, fontSize: 11, marginLeft: 8 }} />
         </div>
-        <div className="filters-right">
-          <form onSubmit={handleSearchSubmit} style={{ display: 'flex', gap: 6 }}>
+        <div className="filters-right" style={{ flexWrap: 'wrap' }}>
+          <form onSubmit={handleSearchSubmit} style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
             <input
               type="text"
               className="topbar-search"
               placeholder="Buscar pedido..."
               value={search}
               onChange={e => setSearch(e.target.value)}
-              style={{ width: 250 }}
+              style={{ width: 250, maxWidth: '100%' }}
             />
             <button type="submit" className="btn btn-ghost">Buscar</button>
           </form>

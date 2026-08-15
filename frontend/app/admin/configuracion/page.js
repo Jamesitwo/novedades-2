@@ -286,7 +286,7 @@ export default function ConfiguracionPage() {
               style={{ width: '100%' }}
             />
           </div>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
+          <div className="form-grid" style={{ gap: 14 }}>
             <div className="form-group">
               <label>NIT</label>
               <input
@@ -351,7 +351,7 @@ export default function ConfiguracionPage() {
               placeholder="FAC" style={{ width: 120 }} />
             <p style={{ color: 'var(--text3)', fontSize: 11, marginTop: 4 }}>Ej: FAC-0001, NV-0001</p>
           </div>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 14 }}>
+          <div className="grid-3" style={{ gap: 14 }}>
             <div className="form-group"><label>Resolución DIAN</label>
               <input type="text" value={config.factura_resolucion} onChange={e => setConfig(prev => ({ ...prev, factura_resolucion: e.target.value }))}
                 placeholder="N° 18764000012345" style={{ width: '100%' }} />
@@ -386,7 +386,7 @@ export default function ConfiguracionPage() {
           <span style={{ fontSize: 11, color: 'var(--text3)' }}>Solo se muestran en facturas con método Transferencia</span>
         </div>
         <div style={{ padding: 20, display: 'grid', gap: 14 }}>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
+          <div className="form-grid" style={{ gap: 14 }}>
             <div className="form-group"><label>Banco</label>
               <input type="text" value={config.empresa_banco} onChange={e => setConfig(prev => ({ ...prev, empresa_banco: e.target.value }))}
                 placeholder="Bancolombia" style={{ width: '100%' }} />
@@ -396,7 +396,7 @@ export default function ConfiguracionPage() {
                 placeholder="Ahorros / Corriente" style={{ width: '100%' }} />
             </div>
           </div>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
+          <div className="form-grid" style={{ gap: 14 }}>
             <div className="form-group"><label>Número de cuenta</label>
               <input type="text" value={config.empresa_numero_cuenta} onChange={e => setConfig(prev => ({ ...prev, empresa_numero_cuenta: e.target.value }))}
                 placeholder="123-456789-00" style={{ width: '100%' }} />
@@ -443,7 +443,7 @@ export default function ConfiguracionPage() {
               placeholder="tu@email.com (el mismo del login de panel.lucidsales.co)"
               style={{ width: '100%' }} />
           </div>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
+          <div className="form-grid" style={{ gap: 14 }}>
             <div className="form-group">
               <label>Contraseña</label>
               <input type="password" value={config.lucidsales_password}

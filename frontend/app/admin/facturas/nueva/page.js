@@ -70,7 +70,7 @@ export default function NuevaFacturaPage() {
       <form onSubmit={handleSubmit}>
         <div className="table-card" style={{ marginBottom: 16 }}>
           <div className="table-header"><span className="table-header-title">Datos del cliente</span></div>
-          <div style={{ padding: 16, display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+          <div className="form-grid" style={{ padding: 16, gap: 12 }}>
             <div className="form-group span2">
               <label>Nombre / Razón social</label>
               <input value={cliente.nombre} onChange={e => setCliente({ ...cliente, nombre: e.target.value })} required placeholder="Nombre del cliente" style={{ width: '100%' }} />
@@ -155,7 +155,7 @@ export default function NuevaFacturaPage() {
           </table>
         </div>
 
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16, marginBottom: 16 }}>
+        <div className="form-grid" style={{ gap: 16, marginBottom: 16 }}>
           <div className="table-card">
             <div className="table-header"><span className="table-header-title">Totales</span></div>
             <div style={{ padding: '12px 16px' }}>
