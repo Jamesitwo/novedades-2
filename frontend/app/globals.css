@@ -39,8 +39,6 @@
   to { transform: translateX(0); opacity: 1; }
 }
 
-html, body { overflow-x: clip; }
-
 body {
   font-family: var(--font);
   background: var(--bg);
@@ -437,7 +435,8 @@ input, select, textarea { font-family: var(--font); }
   background: var(--bg2);
   border: 1px solid var(--border);
   border-radius: var(--radius);
-  overflow: hidden;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
 }
 
 .table-header {
@@ -1106,6 +1105,46 @@ tr:hover td { background: var(--bg3); }
 
   table {
     min-width: auto;
+  }
+
+  /* Sidebar como drawer en tablets y celulares en landscape */
+  .sidebar {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    z-index: 200;
+    width: 260px;
+    height: 100vh;
+    box-shadow: 4px 0 30px rgba(0,0,0,0.5);
+  }
+
+  body.sidebar-open .sidebar {
+    display: flex;
+  }
+
+  body.sidebar-open .sidebar-overlay {
+    display: block;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.6);
+    z-index: 199;
+  }
+
+  .main {
+    margin-left: 0;
+  }
+
+  .hamburger-btn {
+    display: block !important;
+  }
+
+  .topbar-date {
+    display: none;
+  }
+
+  .content {
+    padding: 16px;
   }
 }
 
