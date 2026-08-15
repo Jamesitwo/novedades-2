@@ -34,11 +34,14 @@ const getPedidoById = async (req, res) => {
     try {
       const local = await prisma.pedidoVinculado.findUnique({
         where: { lucidsalesPedidoId: Number(id) },
-        select: { subidoPorId: true, asignadoId: true }
+        select: { subidoPorId: true, asignadoId: true, conversacionLink: true }
       });
       if (local) {
         result._subidoPorId = local.subidoPorId;
         result._asignadoId = local.asignadoId;
+        if (local.conversacionLink && !result.botInbox && !result.conversacionLink) {
+          result.conversacionLink = local.conversacionLink;
+        }
       }
     } catch {
       // sin vinculación local: se responde solo con datos de LucidSales
