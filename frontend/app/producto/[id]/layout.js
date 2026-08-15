@@ -1,7 +1,7 @@
 export async function generateMetadata({ params }) {
   const slug = params.id;
   try {
-    const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
+    const baseUrl = process.env.NEXT_PUBLIC_API_URL || process.env.NEXT_PUBLIC_SITE_URL || 'https://pizdo.info';
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), 5000);
     const res = await fetch(`${baseUrl}/api/tienda/${slug}`, {

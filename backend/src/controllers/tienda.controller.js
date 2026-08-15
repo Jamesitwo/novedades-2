@@ -338,11 +338,14 @@ const procesarCompra = async (req, res) => {
     }
 
     const producto = await prisma.productoTienda.findUnique({ where: { id: productoId } });
+    const principal = itemsProcesados.find(i => i.productoId === productoId) || itemsProcesados[0];
     const qty = parseInt(cantidad) || 1;
-    const precio = producto.ofertaActiva && producto.ofertaPrecio ? producto.ofertaPrecio : producto.precioVenta;
+    const precio = principal.precioUnitario;
+    const productoNombre = producto?.nombre || principal.productoNombre;
+    const productoIdFinal = producto?.id || principal.productoId;
 
     console.log('[TIENDA] Nueva compra:', {
-      producto: producto.nombre,
+      producto: productoNombre,
       totalItems: itemsProcesados.length,
       cliente: `${nombre} ${apellido}`,
       celular, departamento, ciudad
@@ -350,8 +353,8 @@ const procesarCompra = async (req, res) => {
 
     await prisma.pedidoTienda.create({
       data: {
-        productoId,
-        productoNombre: producto.nombre,
+        productoId: productoIdFinal,
+        productoNombre,
         nombre: nombre.trim(),
         apellido: apellido.trim(),
         celular: celular.trim(),
@@ -379,8 +382,8 @@ const procesarCompra = async (req, res) => {
           config.metaAccessToken,
           'Purchase',
           {
-            content_name: producto.nombre,
-            content_ids: [productoId],
+            content_name: productoNombre,
+            content_ids: [productoIdFinal],
             content_type: 'product',
             value: totalFinal,
             currency: 'COP',
@@ -395,7 +398,7 @@ const procesarCompra = async (req, res) => {
             state: departamento
           },
           {
-            sourceUrl: `https://pizdo.info/producto/${producto.slug || productoId}`,
+            sourceUrl: `https://pizdo.info/producto/${producto?.slug || productoIdFinal}`,
             testEventCode: config.metaTestCode || undefined,
             clientIp: req.ip,
             userAgent: req.headers['user-agent']
@@ -419,7 +422,7 @@ const procesarCompra = async (req, res) => {
         const valueMap = {
           producto: itemsProcesados.length > 1
             ? itemsProcesados.map(i => `${i.productoNombre} x${i.cantidad}`).join(' + ')
-            : producto.nombre,
+            : productoNombre,
           precio: String(precio),
           total: String(totalFinal),
           envio: String(envioTotalCalc || Number(envioTotal) || 0),
@@ -508,7 +511,7 @@ const importarDesdeLucidSales = async (req, res) => {
       }
 
       let imagen = null;
-      let imagenes = [];
+      const imagenes = [];
       const imgKeys = Object.keys(ls).filter(k => /imagen|image|img|foto|picture/i.test(k));
       for (const k of imgKeys) {
         let val = ls[k];
@@ -521,7 +524,7 @@ const importarDesdeLucidSales = async (req, res) => {
         }
 
         if (typeof val === 'string') {
-          try { val = JSON.parse(val); } catch {}
+          try { val = JSON.parse(val); } catch { /* no es JSON, se usa el string tal cual */ }
         }
 
         if (Array.isArray(val)) {

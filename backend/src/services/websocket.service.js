@@ -33,9 +33,14 @@ function init(server) {
       const decoded = jwt.verify(token, process.env.JWT_SECRET);
       const sesion = await prisma.sesion.findFirst({ where: { token, activa: true } });
       if (!sesion) return next(new Error('Sesion invalida o expirada'));
-      socket.userId = decoded.id;
-      socket.userRol = decoded.rol;
-      socket.userNombre = decoded.nombre;
+      const usuario = await prisma.usuario.findUnique({
+        where: { id: decoded.id },
+        select: { id: true, nombre: true, rol: true, activo: true }
+      });
+      if (!usuario || !usuario.activo) return next(new Error('Usuario no encontrado o inactivo'));
+      socket.userId = usuario.id;
+      socket.userRol = usuario.rol;
+      socket.userNombre = usuario.nombre;
       next();
     } catch (error) {
       next(new Error('Token invalido o expirado'));
@@ -170,7 +175,7 @@ function createEntityEvents(noun, plural) {
     emitToRoom(`record:${id}`, `${noun}:etiqueta-changed`, { id });
   }
 
-  function transferida(id, deUsuario, aUsuarioId, aUsuarioNombre, registro) {
+  function transferida(id, deUsuario, aUsuarioId, aUsuarioNombre, _registro) {
     if (!io) return;
     emitToRoom(entityRoom, `${noun}:transferred`, {
       id, deUsuario: deUsuario.nombre, aUsuarioId, aUsuarioNombre

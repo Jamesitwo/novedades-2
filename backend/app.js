@@ -54,7 +54,9 @@ app.use(cors({
       console.warn('[CORS] FRONTEND_URL not set in production, allowing all origins');
       return callback(null, true);
     }
-    callback(new Error('Not allowed by CORS'));
+    const corsError = new Error('Origen no permitido por CORS');
+    corsError.status = 403;
+    callback(corsError);
   },
   credentials: true
 }));
@@ -161,6 +163,10 @@ app.get('/api/health', (req, res) => {
       usuariosConectados: wsService.getConnectedCount()
     }
   });
+});
+
+app.use((req, res, next) => {
+  res.status(404).json({ error: `Ruta no encontrada: ${req.method} ${req.originalUrl}` });
 });
 
 app.use((err, req, res, next) => {

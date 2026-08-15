@@ -40,7 +40,9 @@ const getPedidoById = async (req, res) => {
         result._subidoPorId = local.subidoPorId;
         result._asignadoId = local.asignadoId;
       }
-    } catch {}
+    } catch {
+      // sin vinculación local: se responde solo con datos de LucidSales
+    }
     res.json(result);
   } catch (error) {
     console.error('LucidSales getPedidoById error:', error);
@@ -419,7 +421,9 @@ const vincularYActualizar = async (req, res) => {
     try {
       pedidoVerificado = await lucidsalesService.getPedidoById(lucidsalesPedidoId);
       totalVerificado = pedidoVerificado?.Total;
-    } catch {}
+    } catch {
+      // si la verificación falla, se responde sin total verificado
+    }
 
     if (camposFiltrados.Total !== undefined && totalVerificado !== undefined) {
       const esperado = String(Number(camposFiltrados.Total));
@@ -477,8 +481,6 @@ const duplicarPedido = async (req, res) => {
     if (result && result.ok === false) {
       return res.status(400).json({ error: result.msg || result.error || 'Error al crear pedido duplicado en LucidSales' });
     }
-
-    console.log('[LucidSales] duplicarPedido create result:', JSON.stringify(result).slice(0, 300));
 
     let nuevoId = result?.pedido?.id || result?.id || result?.pedidoId || result?.data?.id;
     if (!nuevoId && result?.pedido && typeof result.pedido === 'string') {

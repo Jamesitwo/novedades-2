@@ -1,4 +1,3 @@
-const { prisma } = require('../prisma/client');
 const fs = require('fs').promises;
 const fsSync = require('fs');
 const path = require('path');

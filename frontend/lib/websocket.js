@@ -7,7 +7,9 @@ let connectAttempts = 0;
 const MAX_RECONNECT = 10;
 
 function getApiUrl() {
-  if (typeof window === 'undefined') return 'http://localhost:3001';
+  if (typeof window === 'undefined') {
+    return process.env.NEXT_PUBLIC_API_URL || process.env.NEXT_PUBLIC_SITE_URL || 'https://pizdo.info';
+  }
   const apiUrl = process.env.NEXT_PUBLIC_API_URL;
   if (apiUrl) return apiUrl;
   return window.location.origin;
@@ -34,13 +36,11 @@ export function connect(token) {
   });
 
   socket.on('connect', () => {
-    console.log('[WS] Conectado:', socket.id);
     connectAttempts = 0;
     notifyListeners('__connect__', { id: socket.id });
   });
 
   socket.on('disconnect', (reason) => {
-    console.log('[WS] Desconectado:', reason);
     notifyListeners('__disconnect__', { reason });
   });
 

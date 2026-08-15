@@ -9,13 +9,19 @@ export default function ProductCard({ producto, onFavChange }) {
   const tieneOferta = producto.ofertaActiva && producto.ofertaPrecio && new Date(producto.ofertaHasta) > new Date();
   const [showUpsell, setShowUpsell] = useState(false);
   const [showQuickView, setShowQuickView] = useState(false);
-  const [faved, setFaved] = useState(() => {
-    try { return JSON.parse(localStorage.getItem('pizdo_favs') || '[]').includes(producto.id); }
-    catch { return false; }
-  });
+  const [faved, setFaved] = useState(false);
   const [clicked, setClicked] = useState(false);
   const [visible, setVisible] = useState(false);
   const cardRef = useRef(null);
+
+  useEffect(() => {
+    try {
+      const favs = JSON.parse(localStorage.getItem('pizdo_favs') || '[]');
+      setFaved(Array.isArray(favs) && favs.includes(producto.id));
+    } catch {
+      // localStorage no disponible: se deja sin favorito
+    }
+  }, [producto.id]);
 
   useEffect(() => {
     const el = cardRef.current;

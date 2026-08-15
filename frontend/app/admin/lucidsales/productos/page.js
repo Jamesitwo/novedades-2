@@ -181,7 +181,6 @@ export default function LucidSalesProductosPage() {
     try {
       const { data } = await api.post('/api/lucidsales/productos');
       const list = Array.isArray(data) ? data : data.productos || data.data || [];
-      if (list.length > 0) console.log('[Productos] fields:', Object.keys(list[0]).filter(k => !isEmpty(list[0][k])).join(', '));
       setProductos(list);
       setSelected(null);
       setLastUpdate(new Date());

@@ -197,7 +197,7 @@ async function syncTemplates() {
 }
 
 async function findRecordByPhone(celular) {
-  const limpio = celular.replace(/[\s+\-\(\)]/g, '');
+  const limpio = celular.replace(/[\s+\-()]/g, '');
   const novedad = await prisma.pedidoNovedad.findFirst({
     where: {
       OR: [

@@ -17,12 +17,13 @@ const getDateRange = (periodo, fechaDesde, fechaHasta) => {
       start = new Date();
       start.setHours(0, 0, 0, 0);
       break;
-    case 'semana':
+    case 'semana': {
       const dayOfWeek = new Date().getDay();
       start = new Date();
       start.setDate(start.getDate() - dayOfWeek);
       start.setHours(0, 0, 0, 0);
       break;
+    }
     case 'mes':
       start = new Date();
       start.setDate(1);
@@ -327,7 +328,6 @@ const getMetricasOperadores = async (req, res) => {
     const whereOficina = start ? { createdAt: { gte: start, lte: end } } : {};
     const whereContacto = start ? { createdAt: { gte: start, lte: end } } : {};
     const whereTransferencia = start ? { createdAt: { gte: start, lte: end } } : {};
-    const whereHistorial = start ? { createdAt: { gte: start, lte: end } } : {};
 
     const operadores = await prisma.usuario.findMany({
       where: { rol: { in: ['admin', 'operador'] }, activo: true },
@@ -675,7 +675,7 @@ const getMetricasLucidsales = async (req, res) => {
     });
 
     const metricas = await Promise.all(operadores.map(async (op) => {
-      const [vinculadosCreados, vinculadosAsignados, vinculadosSubidos] = await Promise.all([
+      const [vinculadosCreados, vinculadosAsignados] = await Promise.all([
         prisma.pedidoVinculado.count({ where: { ...whereDate, createdById: op.id } }),
         prisma.pedidoVinculado.count({ where: { ...whereDate, asignadoId: op.id } }),
         prisma.pedidoVinculado.count({ where: { ...whereDate, createdById: op.id, notas: { contains: 'Producto' } } })

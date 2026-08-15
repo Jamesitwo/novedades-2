@@ -73,33 +73,43 @@ const create = async (req, res) => {
     const ivaMonto = parseFloat(iva) || 0;
     const total = subtotal + ivaMonto;
 
-    const ultima = await prisma.factura.findFirst({ orderBy: { numero: 'desc' }, select: { numero: true } });
-    const numero = (ultima?.numero || 0) + 1;
-
-    const factura = await prisma.factura.create({
-      data: {
-        numero,
-        clienteNombre,
-        clienteDocumento: clienteDocumento || null,
-        clienteTelefono: clienteTelefono || null,
-        clienteDireccion: clienteDireccion || null,
-        subtotal,
-        iva: ivaMonto,
-        total,
-        notas: notas || null,
-        metodoPago: metodoPago || 'contraentrega',
-        createdById: req.usuario.id,
-        items: {
-          create: items.map(i => ({
-            descripcion: i.descripcion || 'Sin descripción',
-            cantidad: parseInt(i.cantidad) || 1,
-            precioUnitario: parseFloat(i.precioUnitario) || 0,
-            total: (parseFloat(i.precioUnitario) || 0) * (parseInt(i.cantidad) || 1)
-          }))
-        }
-      },
-      include: { items: true, createdBy: { select: { id: true, nombre: true } } }
-    });
+    let factura = null;
+    for (let intento = 0; intento < 3; intento++) {
+      try {
+        factura = await prisma.$transaction(async (tx) => {
+          const ultima = await tx.factura.findFirst({ orderBy: { numero: 'desc' }, select: { numero: true } });
+          const numero = (ultima?.numero || 0) + 1;
+          return tx.factura.create({
+            data: {
+              numero,
+              clienteNombre,
+              clienteDocumento: clienteDocumento || null,
+              clienteTelefono: clienteTelefono || null,
+              clienteDireccion: clienteDireccion || null,
+              subtotal,
+              iva: ivaMonto,
+              total,
+              notas: notas || null,
+              metodoPago: metodoPago || 'contraentrega',
+              createdById: req.usuario.id,
+              items: {
+                create: items.map(i => ({
+                  descripcion: i.descripcion || 'Sin descripción',
+                  cantidad: parseInt(i.cantidad) || 1,
+                  precioUnitario: parseFloat(i.precioUnitario) || 0,
+                  total: (parseFloat(i.precioUnitario) || 0) * (parseInt(i.cantidad) || 1)
+                }))
+              }
+            },
+            include: { items: true, createdBy: { select: { id: true, nombre: true } } }
+          });
+        });
+        break;
+      } catch (error) {
+        if (error.code === 'P2002' && intento < 2) continue;
+        throw error;
+      }
+    }
 
     wsService.facturaCreada(factura, req.usuario);
     res.status(201).json(factura);
@@ -115,6 +125,9 @@ const update = async (req, res) => {
     const { clienteNombre, clienteDocumento, clienteTelefono, clienteDireccion, iva, items, notas, metodoPago } = req.body;
 
     const existente = await prisma.factura.findUnique({ where: { id } });
+    if (!existente) {
+      return res.status(404).json({ error: 'Factura no encontrada' });
+    }
 
     const data = {};
     if (clienteNombre !== undefined) data.clienteNombre = clienteNombre;
@@ -125,29 +138,33 @@ const update = async (req, res) => {
     if (metodoPago !== undefined) data.metodoPago = metodoPago;
     if (iva !== undefined) data.iva = parseFloat(iva) || 0;
 
-    if (items && Array.isArray(items)) {
-      const subtotal = items.reduce((s, i) => s + ((parseFloat(i.precioUnitario) || 0) * (parseInt(i.cantidad) || 1)), 0);
-      const ivaMonto = data.iva !== undefined ? data.iva : existente.iva;
-      data.subtotal = subtotal;
-      data.total = subtotal + ivaMonto;
+    const factura = await prisma.$transaction(async (tx) => {
+      if (items && Array.isArray(items)) {
+        const subtotal = items.reduce((s, i) => s + ((parseFloat(i.precioUnitario) || 0) * (parseInt(i.cantidad) || 1)), 0);
+        const ivaMonto = data.iva !== undefined ? data.iva : existente.iva;
+        data.subtotal = subtotal;
+        data.total = subtotal + ivaMonto;
 
-      await prisma.facturaItem.deleteMany({ where: { facturaId: id } });
+        await tx.facturaItem.deleteMany({ where: { facturaId: id } });
 
-      await prisma.facturaItem.createMany({
-        data: items.map(i => ({
-          facturaId: id,
-          descripcion: i.descripcion || 'Sin descripción',
-          cantidad: parseInt(i.cantidad) || 1,
-          precioUnitario: parseFloat(i.precioUnitario) || 0,
-          total: (parseFloat(i.precioUnitario) || 0) * (parseInt(i.cantidad) || 1)
-        }))
+        await tx.facturaItem.createMany({
+          data: items.map(i => ({
+            facturaId: id,
+            descripcion: i.descripcion || 'Sin descripción',
+            cantidad: parseInt(i.cantidad) || 1,
+            precioUnitario: parseFloat(i.precioUnitario) || 0,
+            total: (parseFloat(i.precioUnitario) || 0) * (parseInt(i.cantidad) || 1)
+          }))
+        });
+      } else if (data.iva !== undefined) {
+        data.total = existente.subtotal + data.iva;
+      }
+
+      return tx.factura.update({
+        where: { id },
+        data,
+        include: { items: true, createdBy: { select: { id: true, nombre: true } } }
       });
-    }
-
-    const factura = await prisma.factura.update({
-      where: { id },
-      data,
-      include: { items: true, createdBy: { select: { id: true, nombre: true } } }
     });
 
     res.json(factura);
@@ -237,7 +254,6 @@ const getPdf = async (req, res) => {
     doc.pipe(res);
 
     // Header section - Logo + title
-    let headerH = 0;
     if (empresaLogo) {
       try {
         const resp = await fetch(empresaLogo);

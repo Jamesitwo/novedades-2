@@ -100,7 +100,7 @@ async function geocode(direccion, options = {}) {
     clearTimeout(timeout);
 
     if (!resp.ok) {
-      const errorText = await resp.text().catch(() => '');
+      await resp.text().catch(() => '');
       let errorMsg = `HTTP ${resp.status}`;
       if (resp.status === 401 || resp.status === 403) errorMsg = 'API key inválida o sin permisos';
       if (resp.status === 429) errorMsg = 'Rate limit excedido en HERE API';

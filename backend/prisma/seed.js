@@ -4,25 +4,41 @@ const bcrypt = require('bcryptjs');
 const prisma = new PrismaClient();
 
 async function main() {
-  console.log('🔧 Creando usuario admin inicial...');
+  const isProduction = process.env.NODE_ENV === 'production';
+  const adminPassword = process.env.SEED_ADMIN_PASSWORD || 'admin123';
 
-  const hashedPassword = await bcrypt.hash('admin123', 10);
+  if (isProduction && !process.env.SEED_ADMIN_PASSWORD) {
+    console.log('⚠️  Producción sin SEED_ADMIN_PASSWORD: no se creará el usuario admin con contraseña por defecto.');
+    console.log('   Si necesitas crearlo, define SEED_ADMIN_PASSWORD y vuelve a ejecutar el seed.');
+  } else {
+    console.log('🔧 Creando usuario admin inicial...');
 
-  const admin = await prisma.usuario.upsert({
-    where: { email: 'admin@novedades.com' },
-    update: {},
-    create: {
-      nombre: 'Administrador',
-      email: 'admin@novedades.com',
-      password: hashedPassword,
-      rol: 'admin',
-      activo: true
+    const hashedPassword = await bcrypt.hash(adminPassword, 10);
+
+    await prisma.usuario.upsert({
+      where: { email: 'admin@novedades.com' },
+      update: {},
+      create: {
+        nombre: 'Administrador',
+        email: 'admin@novedades.com',
+        password: hashedPassword,
+        rol: 'admin',
+        activo: true
+      }
+    });
+
+    console.log('✅ Usuario admin listo: admin@novedades.com');
+    if (!isProduction) {
+      console.log('   Password: admin123');
     }
-  });
+  }
 
-  console.log('✅ Usuario admin creado:');
-  console.log('   Email: admin@novedades.com');
-  console.log('   Password: admin123');
+  if (isProduction) {
+    console.log('⏭  Producción: se omiten los datos de prueba.');
+    return;
+  }
+
+  const admin = await prisma.usuario.findUnique({ where: { email: 'admin@novedades.com' } });
 
   const operador = await prisma.usuario.upsert({
     where: { email: 'operador@novedades.com' },
@@ -30,7 +46,7 @@ async function main() {
     create: {
       nombre: 'Operador Test',
       email: 'operador@novedades.com',
-      password: hashedPassword,
+      password: await bcrypt.hash('admin123', 10),
       rol: 'operador',
       activo: true
     }

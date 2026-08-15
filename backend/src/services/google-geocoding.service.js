@@ -138,7 +138,7 @@ async function geocode(direccion, options = {}) {
     clearTimeout(timeout);
 
     if (!resp.ok) {
-      const errorText = await resp.text().catch(() => '');
+      await resp.text().catch(() => '');
       if (resp.status === 403) return { exito: false, items: [], error: 'API key inválida o sin permisos (verifica que Geocoding API esté habilitada)' };
       if (resp.status === 429) return { exito: false, items: [], error: 'Rate limit excedido en Google Maps API' };
       return { exito: false, items: [], error: `HTTP ${resp.status}` };

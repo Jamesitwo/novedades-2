@@ -17,7 +17,6 @@ export default function DevolucionesPage() {
   const [filtroOrigen, setFiltroOrigen] = useState('todos');
   const [search, setSearch] = useState('');
   const [detailPanel, setDetailPanel] = useState(null);
-  const [searchTimeout, setSearchTimeout] = useState(null);
   const [toast, setToast] = useState(null);
 
   const showToast = (message, type = 'success') => {
@@ -54,10 +53,6 @@ export default function DevolucionesPage() {
 
   const handleSearchChange = (value) => {
     setSearch(value);
-    if (searchTimeout) clearTimeout(searchTimeout);
-    setSearchTimeout(setTimeout(() => {
-      // Search is applied client-side
-    }, 300));
   };
 
   const filterBySearch = (items) => {

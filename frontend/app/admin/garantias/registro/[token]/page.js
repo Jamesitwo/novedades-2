@@ -4,6 +4,9 @@ import { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import api from '@/lib/api';
 
+const CLOUDINARY_CLOUD_NAME = process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME || 'dgbz1ze71';
+const CLOUDINARY_UPLOAD_PRESET = process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET || 'garantias_preset';
+
 export default function RegistroGarantiaPage() {
   const params = useParams();
   const router = useRouter();
@@ -49,8 +52,8 @@ export default function RegistroGarantiaPage() {
     if (!window.cloudinary) return;
     window.cloudinary.openUploadWidget(
       {
-        cloudName: 'dgbz1ze71',
-        uploadPreset: 'garantias_preset',
+        cloudName: CLOUDINARY_CLOUD_NAME,
+        uploadPreset: CLOUDINARY_UPLOAD_PRESET,
         sources: ['local', 'camera'],
         multiple: true,
         maxFiles: 10,
@@ -68,8 +71,8 @@ export default function RegistroGarantiaPage() {
     if (!window.cloudinary) return;
     window.cloudinary.openUploadWidget(
       {
-        cloudName: 'dgbz1ze71',
-        uploadPreset: 'garantias_preset',
+        cloudName: CLOUDINARY_CLOUD_NAME,
+        uploadPreset: CLOUDINARY_UPLOAD_PRESET,
         resourceType: 'video',
         sources: ['local', 'camera'],
         multiple: false,

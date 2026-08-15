@@ -44,17 +44,25 @@ export default function PedidosAdminPage() {
   useEffect(() => { fetchPedidos(); }, [page, estadoFilter, pagoFilter, search]);
 
   const handleEstado = async (id, estado) => {
-    await api.put(`/api/pedidos/${id}`, { estado });
-    showToast('Estado actualizado');
-    fetchPedidos();
-    if (detail?.id === id) setDetail(prev => ({ ...prev, estado }));
+    try {
+      await api.put(`/api/pedidos/${id}`, { estado });
+      showToast('Estado actualizado');
+      fetchPedidos();
+      if (detail?.id === id) setDetail(prev => ({ ...prev, estado }));
+    } catch (e) {
+      showToast(e.response?.data?.error || 'Error al actualizar estado', 'error');
+    }
   };
 
   const handlePagado = async (id, pagado) => {
-    await api.put(`/api/pedidos/${id}`, { pagado });
-    showToast(pagado ? 'Marcado como pagado' : 'Desmarcado');
-    fetchPedidos();
-    if (detail?.id === id) setDetail(prev => ({ ...prev, pagado }));
+    try {
+      await api.put(`/api/pedidos/${id}`, { pagado });
+      showToast(pagado ? 'Marcado como pagado' : 'Desmarcado');
+      fetchPedidos();
+      if (detail?.id === id) setDetail(prev => ({ ...prev, pagado }));
+    } catch (e) {
+      showToast(e.response?.data?.error || 'Error al actualizar pago', 'error');
+    }
   };
 
   const handleCotizarDropi = async () => {

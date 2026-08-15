@@ -190,7 +190,10 @@ export default function TiendaAdminPage() {
         ofertaHasta: p.ofertaHasta ? new Date(p.ofertaHasta).toISOString().slice(0, 16) : '',
         ventasSimuladas: p.ventasSimuladas, activo: p.activo, destacado: p.destacado,
         upsellIds: Array.isArray(p.upsellIds) ? p.upsellIds : [],
-        landingConfig: typeof p.landingConfig === 'string' ? JSON.parse(p.landingConfig || '{}') : (p.landingConfig || {}),
+        landingConfig: (() => {
+          if (typeof p.landingConfig !== 'string') return p.landingConfig || {};
+          try { return JSON.parse(p.landingConfig || '{}'); } catch { return {}; }
+        })(),
         envioGratis: p.envioGratis || false,
         envioCosto: p.envioCosto || '',
         dropiId: p.dropiId || '',
@@ -269,13 +272,21 @@ export default function TiendaAdminPage() {
   };
 
   const handleToggleActivo = async (id) => {
-    await api.patch(`/api/tienda/${id}/toggle`);
-    fetchProductos();
+    try {
+      await api.patch(`/api/tienda/${id}/toggle`);
+      fetchProductos();
+    } catch (e) {
+      showToast(e.response?.data?.error || 'Error al cambiar estado', 'error');
+    }
   };
 
   const handleToggleDestacado = async (id, current) => {
-    await api.put(`/api/tienda/${id}`, { destacado: !current });
-    fetchProductos();
+    try {
+      await api.put(`/api/tienda/${id}`, { destacado: !current });
+      fetchProductos();
+    } catch (e) {
+      showToast(e.response?.data?.error || 'Error al cambiar destacado', 'error');
+    }
   };
 
   const handleDelete = (p) => {
@@ -283,9 +294,13 @@ export default function TiendaAdminPage() {
       message: `Estás por eliminar "${p.nombre}". Esta acción no se puede deshacer.`,
       onConfirm: async () => {
         setConfirm(null);
-        await api.delete(`/api/tienda/${p.id}`);
-        showToast('Producto eliminado');
-        fetchProductos();
+        try {
+          await api.delete(`/api/tienda/${p.id}`);
+          showToast('Producto eliminado');
+          fetchProductos();
+        } catch (e) {
+          showToast(e.response?.data?.error || 'Error al eliminar', 'error');
+        }
       },
       onCancel: () => setConfirm(null)
     });

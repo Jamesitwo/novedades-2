@@ -65,8 +65,6 @@ const COMPLEMENTOS = [
   { regex: /\bETAPA\b/i, canonical: 'Etapa' },
 ];
 
-const NOMENCLATURA_PATTERN = /^(Calle|Cll|Carrera|Cra|Avenida|Av|Diagonal|Dg|Transversal|Tv|Circular|Cir|Manzana|Mz|Autopista|Vía|Pasaje|Paseo|Boulevard|Blvd)\.?\s*\d+\s*[A-Za-z]?\s*(#|No\.?|Nro\.?)?\s*\d+(-\d+)?(?:\s*(Sur|Norte|Este|Oeste|Oriente|Occidente))?\s*(#|No\.?|Nro\.?)?\s*\d+(-\d+)?(?:\s+(Apto|Int|Torre|Bloque|Casa|Local|Oficina|Piso|Conjunto|Edificio|Urb|Etapa)\.?\s*\d+[A-Za-z]?)?/i;
-
 function detectarVia(direccion) {
   const trimmed = direccion.trim();
   for (const v of VIA_TYPES) {

@@ -29,6 +29,16 @@ function TiendaPageContent() {
   const [homeConfig, setHomeConfig] = useState({});
   const [homeCategorias, setHomeCategorias] = useState([]);
   const [redesSociales, setRedesSociales] = useState([]);
+  const [vistos, setVistos] = useState([]);
+
+  useEffect(() => {
+    try {
+      const stored = JSON.parse(localStorage.getItem('pizdo_vistos') || '[]');
+      setVistos(Array.isArray(stored) ? stored : []);
+    } catch {
+      setVistos([]);
+    }
+  }, []);
 
   useEffect(() => {
     const onScroll = () => setScrollY(window.scrollY);
@@ -214,11 +224,6 @@ function TiendaPageContent() {
             Categorías destacadas
           </h2>
           <div className="ff-cats" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: 16 }}>
-            {homeCategorias.length === 0 && (
-              <div style={{ color: '#897362', fontSize: 14, fontWeight: 500, textAlign: 'center', padding: 20 }}>
-                Configura las categorías desde el panel de administración
-              </div>
-            )}
             {homeCategorias.length === 0 && (
               <div style={{ color: '#897362', fontSize: 14, fontWeight: 500, textAlign: 'center', padding: 20 }}>
                 Configura las categorías desde el panel de administración
@@ -466,32 +471,26 @@ function TiendaPageContent() {
       </section>
 
       {/* RECENTLY VIEWED */}
-      {(() => {
-        try {
-          const vistos = JSON.parse(localStorage.getItem('pizdo_vistos') || '[]');
-          if (vistos.length === 0) return null;
-          return (
-            <section className="ff-section" style={{ padding: '48px 24px', background: C.surface, borderTop: '1px solid ' + C.border }}>
-              <div style={{ maxWidth: 1280, margin: '0 auto' }}>
-                <h2 style={{ fontSize: 'clamp(20px, 4vw, 24px)', fontWeight: 700, marginBottom: 20, borderLeft: '4px solid #ff8c00', paddingLeft: 12, color: C.text }}>👀 Viste recientemente</h2>
-                <div style={{ display: 'flex', gap: 16, overflowX: 'auto', paddingBottom: 4 }}>
-                  {vistos.map(v => (
-                    <a key={v.id} href={`/producto/${v.slug || v.id}`} style={{
-                      minWidth: 160, maxWidth: 200, textDecoration: 'none', color: C.text, background: C.surface,
-                      border: '1px solid ' + C.border, borderRadius: 8, boxShadow: '0 2px 8px rgba(0,0,0,0.04)',
-                      display: 'flex', flexDirection: 'column', flexShrink: 0
-                    }}>
-                      {v.imagen ? <img src={v.imagen} alt={v.nombre} style={{ width: '100%', height: 100, objectFit: 'contain', borderBottom: '1px solid ' + C.border, background: '#F8F9FA', borderRadius: '8px 8px 0 0' }} onError={e => { e.target.style.display = 'none'; }} />
-                        : <div style={{ height: 100, background: '#F8F9FA', borderBottom: '1px solid ' + C.border, borderRadius: '8px 8px 0 0' }} />}
-                      <div style={{ padding: 10, fontSize: 12, fontWeight: 600, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{v.nombre}</div>
-                    </a>
-                  ))}
-                </div>
-              </div>
-            </section>
-          );
-        } catch { return null; }
-      })()}
+      {vistos.length > 0 && (
+        <section className="ff-section" style={{ padding: '48px 24px', background: C.surface, borderTop: '1px solid ' + C.border }}>
+          <div style={{ maxWidth: 1280, margin: '0 auto' }}>
+            <h2 style={{ fontSize: 'clamp(20px, 4vw, 24px)', fontWeight: 700, marginBottom: 20, borderLeft: '4px solid #ff8c00', paddingLeft: 12, color: C.text }}>👀 Viste recientemente</h2>
+            <div style={{ display: 'flex', gap: 16, overflowX: 'auto', paddingBottom: 4 }}>
+              {vistos.map(v => (
+                <a key={v.id} href={`/producto/${v.slug || v.id}`} style={{
+                  minWidth: 160, maxWidth: 200, textDecoration: 'none', color: C.text, background: C.surface,
+                  border: '1px solid ' + C.border, borderRadius: 8, boxShadow: '0 2px 8px rgba(0,0,0,0.04)',
+                  display: 'flex', flexDirection: 'column', flexShrink: 0
+                }}>
+                  {v.imagen ? <img src={v.imagen} alt={v.nombre} style={{ width: '100%', height: 100, objectFit: 'contain', borderBottom: '1px solid ' + C.border, background: '#F8F9FA', borderRadius: '8px 8px 0 0' }} onError={e => { e.target.style.display = 'none'; }} />
+                    : <div style={{ height: 100, background: '#F8F9FA', borderBottom: '1px solid ' + C.border, borderRadius: '8px 8px 0 0' }} />}
+                  <div style={{ padding: 10, fontSize: 12, fontWeight: 600, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{v.nombre}</div>
+                </a>
+              ))}
+            </div>
+          </div>
+        </section>
+      )}
 
       {redesSociales.length > 0 && (
         <section className="ff-section" style={{ padding: '48px 24px', background: '#213145', color: '#ffb77d' }}>

@@ -25,16 +25,14 @@ function AutocompleteInput({ value, onChange, options, placeholder, disabled }) 
       <input type="text" value={value} disabled={disabled}
         placeholder={placeholder}
         onChange={e => { onChange(e.target.value); setFilter(e.target.value); setOpen(true); }}
-        onFocus={() => setOpen(true)}
+        onFocus={e => { setOpen(true); e.target.style.borderColor = '#ff8c00'; e.target.style.boxShadow = '0 0 0 3px rgba(255,140,0,0.1)'; }}
+        onBlur={e => { e.target.style.borderColor = '#E2E8F0'; e.target.style.boxShadow = 'none'; }}
         style={{
           marginTop: 6, width: '100%', padding: '14px 16px', background: disabled ? '#f8f9ff' : '#fff',
           border: '1px solid #E2E8F0', borderRadius: 10, fontSize: 16, fontWeight: 500,
           color: disabled ? '#897362' : '#0b1c30', outline: 'none', fontFamily: '"Inter", sans-serif',
           transition: 'border-color 0.15s', boxSizing: 'border-box'
-        }}
-        onFocus2={e => { e.target.style.borderColor = '#ff8c00'; e.target.style.boxShadow = '0 0 0 3px rgba(255,140,0,0.1)'; }}
-        onBlur2={e => { e.target.style.borderColor = '#E2E8F0'; e.target.style.boxShadow = 'none'; }} />
-      {open && filtered.length > 0 && (
+        }} />      {open && filtered.length > 0 && (
         <div style={{
           position: 'absolute', top: '100%', left: 0, right: 0, zIndex: 100,
           background: '#fff', border: '1px solid #E2E8F0', borderRadius: 8,
@@ -74,7 +72,7 @@ export default function ComprarPage() {
   });
   const [departamentos, setDepartamentos] = useState([]);
   const [ciudades, setCiudades] = useState([]);
-  const { addItem, init, items: cartItems, getTotal, removeItem } = useCartStore();
+  const { addItem, init, items: cartItems, removeItem } = useCartStore();
   const [bankConfig, setBankConfig] = useState({});
 
   useEffect(() => { init(); }, []);
@@ -113,6 +111,8 @@ export default function ComprarPage() {
     }
     setSaving(true); setError('');
     try {
+      const carritoFiltrado = cartItems.filter(i => i.id !== id);
+      const cantidadEnCarrito = cartItems.find(i => i.id === id)?.cantidad || 0;
       await api.post('/api/tienda/comprar', {
         productoId: id, nombre: form.nombre.trim(), apellido: form.apellido.trim(),
         celular: form.celular.trim(), direccion: form.direccion.trim(),
@@ -121,8 +121,8 @@ export default function ComprarPage() {
         metodoPago: form.metodoPago,
         envioTotal: envioPrincipal + envioCarrito,
         items: [
-          { productoId: id, cantidad: form.cantidad || 1 },
-          ...cartItems.map(i => ({ productoId: i.id, cantidad: i.cantidad }))
+          { productoId: id, cantidad: (form.cantidad || 1) + cantidadEnCarrito },
+          ...carritoFiltrado.map(i => ({ productoId: i.id, cantidad: i.cantidad }))
         ]
       });
       setEnviado(true);
@@ -132,14 +132,16 @@ export default function ComprarPage() {
     finally { setSaving(false); }
   };
 
-  const cartTotal = getTotal();
   const formatPrice = (n) => '$' + Number(n).toLocaleString('es-CO', { minimumFractionDigits: 0 });
   const tieneOferta = producto?.ofertaActiva && producto?.ofertaPrecio && new Date(producto.ofertaHasta) > new Date();
   const precioFinal = tieneOferta ? producto?.ofertaPrecio : producto?.precioVenta;
   const subtotalProducto = precioFinal * form.cantidad;
   const envioPrincipal = producto?.envioGratis ? 0 : (producto?.envioCosto || 0);
-  const envioCarrito = cartItems.reduce((sum, item) => sum + (item.envioGratis ? 0 : (item.envioCosto || 0)), 0);
-  const total = subtotalProducto + (cartItems.length > 0 ? cartTotal : 0) + envioPrincipal + envioCarrito;
+  const carritoFiltrado = cartItems.filter(i => i.id !== id);
+  const cantidadEnCarrito = cartItems.find(i => i.id === id)?.cantidad || 0;
+  const cantidadTotal = (form.cantidad || 1) + cantidadEnCarrito;
+  const envioCarrito = carritoFiltrado.reduce((sum, item) => sum + (item.envioGratis ? 0 : (item.envioCosto || 0)), 0);
+  const total = subtotalProducto + (cantidadEnCarrito * precioFinal) + carritoFiltrado.reduce((sum, item) => sum + item.precio * item.cantidad, 0) + envioPrincipal + envioCarrito;
   const C = { primary: '#ff8c00', primaryDark: '#904d00', text: '#0b1c30', subtext: '#564334', muted: '#897362', bg: '#f8f9ff', surface: '#fff', border: '#E2E8F0', red: '#ba1a1a', amber: '#feb700', green: '#22c55e', navy: '#213145' };
 
   if (loading) return <div style={{ minHeight: '100vh', background: C.bg, display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: '"Inter", sans-serif', fontSize: 18, fontWeight: 600, color: C.muted }}>Cargando...</div>;
@@ -286,17 +288,17 @@ export default function ComprarPage() {
                 )}
                 <div style={{ padding: '16px 0', borderTop: '1px solid ' + C.border, borderBottom: '1px solid ' + C.border, marginTop: 8 }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 14, marginBottom: 8, color: C.subtext }}><span>Precio unitario</span><span style={{ fontWeight: 600 }}>{formatPrice(precioFinal)}</span></div>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 14, marginBottom: 8, color: C.subtext }}><span>Cantidad</span><span style={{ fontWeight: 600 }}>x{form.cantidad}</span></div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 14, marginBottom: 8, color: C.subtext }}><span>Cantidad</span><span style={{ fontWeight: 600 }}>x{cantidadTotal}</span></div>
                   <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 18, fontWeight: 700, marginTop: 12, paddingTop: 12, borderTop: '1px solid ' + C.border }}><span>Total</span><span style={{ color: tieneOferta ? C.red : C.text }}>{formatPrice(total)}</span></div>
                 </div>
                 {tieneOferta && <div style={{ fontSize: 13, color: C.muted, marginTop: 12 }}>Precio normal: <span style={{ textDecoration: 'line-through', fontWeight: 600 }}>{formatPrice(producto.precioVenta)}</span></div>}
 
-                {cartItems.length > 0 && (
+                {carritoFiltrado.length > 0 && (
                   <div style={{ marginTop: 16, padding: '12px 0', borderTop: '1px solid ' + C.border }}>
                     <div style={{ fontSize: 12, fontWeight: 700, color: C.subtext, textTransform: 'uppercase', letterSpacing: 1, marginBottom: 10 }}>
                       🛒 Productos del carrito
                     </div>
-                    {cartItems.map(item => (
+                    {carritoFiltrado.map(item => (
                       <div key={item.id} style={{ marginBottom: 8 }}>
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: 13, marginBottom: 2 }}>
                           <button onClick={() => removeItem(item.id)} style={{ background: 'none', border: 'none', color: '#ba1a1a', cursor: 'pointer', fontSize: 14, fontWeight: 700, padding: '0 6px 0 0', flexShrink: 0 }}>✕</button>

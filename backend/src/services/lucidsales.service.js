@@ -52,8 +52,6 @@ async function authenticate(config) {
 
   authPromise = (async () => {
     try {
-      console.log('[LucidSales] Autenticando...');
-
       const loginResp = await fetchWithTimeout(`${BASE_URL}/auth/login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -62,7 +60,6 @@ async function authenticate(config) {
       const loginRaw = await loginResp.text();
       let loginData;
       try { loginData = JSON.parse(loginRaw); } catch { loginData = { ok: false, error: 'Respuesta no JSON: ' + loginRaw.slice(0, 200) }; }
-      console.log('[LucidSales] Login status:', loginResp.status);
 
       if (!loginData.ok || !loginData.token) {
         throw new Error(`Login LucidSales fallido (${loginResp.status}): ${JSON.stringify(loginData)}`);
@@ -79,7 +76,6 @@ async function authenticate(config) {
       const shopRaw = await shopResp.text();
       let shopData;
       try { shopData = JSON.parse(shopRaw); } catch { shopData = { ok: false, error: 'Respuesta no JSON: ' + shopRaw.slice(0, 200) }; }
-      console.log('[LucidSales] addShopId status:', shopResp.status);
 
       if (!shopData.ok || !shopData.token) {
         throw new Error(`Activacion tienda LucidSales fallida (${shopResp.status}): ${JSON.stringify(shopData)}`);
@@ -110,7 +106,6 @@ async function authenticate(config) {
 
 async function apiGet(path, token) {
   const url = `${BASE_URL}${path}`;
-  console.log(`[LucidSales] GET ${url}`);
   try {
     const resp = await fetchWithTimeout(url, { headers: { 'x-token': token } });
     const data = await resp.json();
@@ -132,7 +127,6 @@ async function apiGet(path, token) {
 
 async function apiPost(path, body, token) {
   const url = `${BASE_URL}${path}`;
-  console.log(`[LucidSales] POST ${url}`);
   try {
     const resp = await fetchWithTimeout(url, {
       method: 'POST',
@@ -269,18 +263,6 @@ async function confirmarIntegracion(pedidoId, transportadora_id) {
   return apiPost('/pedidos/upload/dropi', body, token);
 }
 
-async function uploadToHoko(pedidoId) {
-  const config = await getConfig();
-  const { token } = await authenticate(config);
-
-  const pedido = await getPedidoById(pedidoId);
-
-  return apiPost(`/pedidos/upload/hoko`, {
-    id: pedido.id,
-    idPedido: pedido.idPedido
-  }, token);
-}
-
 async function validateAddress(direccion, ciudad, departamento, pais = 47) {
   const config = await getConfig();
   const { token } = await authenticate(config);
@@ -297,12 +279,6 @@ const getProductos = cached(async () => {
   const { token, shopId } = await authenticate(config);
   return apiPost('/productos/getproductos', { idEmpresa: shopId }, token);
 }, CACHE_PRODUCTOS_MS);
-
-async function getProductoIndividual(productoId) {
-  const config = await getConfig();
-  const { token } = await authenticate(config);
-  return apiGet(`/productos/getproducto/${productoId}`, token);
-}
 
 const validateDropiId = cached(async (dropiProductId) => {
   const config = await getConfig();
@@ -341,7 +317,7 @@ async function verificarConexion() {
   try {
     const config = await getConfig();
     const { token, shopId } = await authenticate(config);
-    const result = await apiGet('/pedidos/get-filters-data?idEmpresa=' + shopId, token);
+    await apiGet('/pedidos/get-filters-data?idEmpresa=' + shopId, token);
     return { conectado: true, mensaje: 'Conexión exitosa con LucidSales' };
   } catch (error) {
     return { conectado: false, mensaje: error.message };
@@ -537,7 +513,6 @@ module.exports = {
   createPedido,
   cotizarEnvio,
   confirmarIntegracion,
-  uploadToHoko,
   validateAddress,
   getFiltersData,
   getPaises,
@@ -546,7 +521,6 @@ module.exports = {
   verificarConexion,
   clearTokenCache,
   getProductos,
-  getProductoIndividual,
   validateDropiId,
   getCiudadesLocales,
   getDepartamentosLocales,

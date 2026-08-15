@@ -3,7 +3,7 @@ const router = express.Router();
 const ctrl = require('../controllers/whatsapp.controller');
 const { authMiddleware } = require('../middlewares/auth.middleware');
 const { adminOnly } = require('../middlewares/roles.middleware');
-const { validateBody, validateParams, idParamSchema } = require('../middlewares/validate.middleware');
+const { validateBody, validateParams } = require('../middlewares/validate.middleware');
 const { z } = require('zod');
 
 const sendSchema = z.object({

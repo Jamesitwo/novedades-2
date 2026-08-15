@@ -22,7 +22,8 @@ api.interceptors.response.use(
     if (error.response?.status === 401) {
       if (typeof window !== 'undefined') {
         const isBackgroundRequest = error.config?.skipAuthRedirect;
-        if (!isBackgroundRequest) {
+        const onAdminSection = window.location.pathname.startsWith('/admin');
+        if (!isBackgroundRequest && onAdminSection) {
           localStorage.removeItem('token');
           localStorage.removeItem('usuario');
           window.location.href = '/admin/login';

@@ -2,7 +2,6 @@ const express = require('express');
 const router = express.Router();
 const { getAll, create, update, remove } = require('../controllers/etiquetas.controller');
 const { authMiddleware } = require('../middlewares/auth.middleware');
-const { adminOnly } = require('../middlewares/roles.middleware');
 
 router.use(authMiddleware);
 

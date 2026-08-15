@@ -24,7 +24,7 @@ export default function CountdownTimer({ endsAt }) {
   return (
     <span style={{
       fontFamily: '"Inter", monospace', fontSize: 15, fontWeight: 800, color: timeLeft.urgent ? '#ba1a1a' : '#0b1c30',
-      background: timeLeft.urgent ? '#ffdad6' : '#ffdad6', padding: '4px 10px', borderRadius: 8,
+      background: '#ffdad6', padding: '4px 10px', borderRadius: 8,
       letterSpacing: 1, display: 'inline-block',
       animation: timeLeft.urgent ? 'pulse-red 1s infinite' : 'none'
     }}>

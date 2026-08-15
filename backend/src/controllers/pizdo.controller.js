@@ -92,8 +92,6 @@ const update = async (req, res) => {
     const { id } = req.params;
     const { dropiId, nombre, ventas, categoria, potencial, imagen, link, precioProveedor } = req.body;
 
-    const existente = await prisma.productoGanador.findUnique({ where: { id } });
-
     const data = {};
     if (dropiId !== undefined) data.dropiId = String(dropiId);
     if (nombre !== undefined) data.nombre = nombre;

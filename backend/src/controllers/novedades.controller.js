@@ -231,7 +231,7 @@ const create = async (req, res) => {
 const update = async (req, res) => {
   try {
     const { id } = req.params;
-    const { nombre, apellido, celular, celular2, producto, totalAPagar, transportadora, guia, motivoNovedad, notas, conversacionLink } = req.body;
+    const { nombre, apellido, celular, producto, transportadora, guia, motivoNovedad, notas } = req.body;
 
     const actual = await prisma.pedidoNovedad.findUnique({ where: { id } });
     if (!actual) {

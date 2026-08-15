@@ -12,6 +12,7 @@ export default function UsuariosPage() {
   const [editingUser, setEditingUser] = useState(null);
   const [formData, setFormData] = useState({ nombre: '', email: '', password: '', rol: 'operador', accesoLucidsales: false, gestionaNovedades: true, gestionaOficina: true, gestionaPedidos: false, puedeModificarTodo: false });
   const [error, setError] = useState('');
+  const [pageError, setPageError] = useState('');
 
   const fetchUsuarios = async () => {
     try {
@@ -65,7 +66,7 @@ export default function UsuariosPage() {
       await api.put(`/api/usuarios/${usuario.id}`, { activo: !usuario.activo, password: '' });
       fetchUsuarios();
     } catch (error) {
-      showToast('Error al actualizar usuario', 'error');
+      setPageError('Error al actualizar usuario');
     }
   };
 
@@ -74,7 +75,7 @@ export default function UsuariosPage() {
       await api.put(`/api/usuarios/${usuario.id}`, { verSoloAsignados: !usuario.verSoloAsignados, password: '' });
       fetchUsuarios();
     } catch (error) {
-      showToast('Error al actualizar', 'error');
+      setPageError('Error al actualizar');
     }
   };
 
@@ -85,6 +86,19 @@ export default function UsuariosPage() {
 
   return (
     <div className="content">
+      {pageError && (
+        <div style={{
+          background: 'rgba(239,68,68,0.1)',
+          border: '1px solid rgba(239,68,68,0.3)',
+          color: 'var(--red)',
+          padding: '10px 14px',
+          borderRadius: 8,
+          fontSize: 13,
+          marginBottom: 16
+        }}>
+          {pageError}
+        </div>
+      )}
       <div className="table-card">
         <div className="table-header">
           <span className="table-header-title">{usuarios.length} usuarios registrados</span>

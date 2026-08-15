@@ -80,6 +80,7 @@ export default function Sidebar() {
     { href: '/admin/pizdo', label: 'Productos Ganadores', icon: '🏆' },
     { href: '/admin/tareas', label: 'Tareas', icon: '📋' },
     { href: '/admin/usuarios', label: 'Usuarios', icon: '👥' },
+    { href: '/admin/plantillas', label: 'Plantillas WhatsApp', icon: '💬' },
     { href: '/admin/configuracion', label: 'Configuración', icon: '⚙' },
     { href: '/apikey', label: 'API Keys', icon: '🔑' },
     { href: '/admin/sesiones', label: 'Sesiones', icon: '🔐' },

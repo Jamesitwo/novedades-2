@@ -27,7 +27,9 @@ function authorizeRecord(module) {
       if (usuario?.puedeModificarTodo) {
         return next();
       }
-    } catch {}
+    } catch {
+      // si falla la consulta, se continúa con la validación por registro
+    }
 
     const recordId = req.params.id;
     if (!recordId) {

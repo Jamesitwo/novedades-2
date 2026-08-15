@@ -45,16 +45,6 @@ const getNextOperador = async (tabla) => {
   console.log(`[autoAssign] ${tabla}: ${activos.length} elegibles de ${operadoresIncluidos.length} incluidos`);
 
   if (activos.length === 0) {
-    const todos = await prisma.usuario.findMany({
-      where: { id: { in: operadoresIncluidos } },
-      select: { id: true, nombre: true, rol: true, activo: true }
-    });
-    console.log('[autoAssign] DEBUG usuarios en operadores_incluidos:', JSON.stringify(todos.map(u => ({
-      id: u.id.slice(0, 8),
-      nombre: u.nombre,
-      rol: u.rol,
-      activo: u.activo
-    }))));
     return null;
   }
 

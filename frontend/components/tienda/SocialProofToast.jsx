@@ -1,15 +1,20 @@
 'use client';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 
 export default function SocialProofToast({ data, onDone }) {
   const [visible, setVisible] = useState(false);
   const [exiting, setExiting] = useState(false);
+  const onDoneRef = useRef(onDone);
+
+  useEffect(() => {
+    onDoneRef.current = onDone;
+  }, [onDone]);
 
   useEffect(() => {
     requestAnimationFrame(() => setVisible(true));
-    const timer = setTimeout(() => { setExiting(true); setTimeout(() => onDone?.(), 400); }, 5000);
+    const timer = setTimeout(() => { setExiting(true); setTimeout(() => onDoneRef.current?.(), 400); }, 5000);
     return () => clearTimeout(timer);
-  }, [onDone]);
+  }, []);
 
   return (
     <div style={{
@@ -21,7 +26,7 @@ export default function SocialProofToast({ data, onDone }) {
       opacity: visible && !exiting ? 1 : 0,
       transform: visible && !exiting ? 'translateX(0)' : 'translateX(-120%)',
       transition: 'all 0.35s cubic-bezier(0.34, 1.56, 0.64, 1)'
-    }} onClick={() => { setExiting(true); setTimeout(() => onDone?.(), 400); }}>
+    }} onClick={() => { setExiting(true); setTimeout(() => onDoneRef.current?.(), 400); }}>
       <span style={{ fontSize: 22, flexShrink: 0 }}>🔥</span>
       <div style={{ minWidth: 0 }}>
         <div style={{ fontWeight: 700, fontSize: 13, lineHeight: 1.3 }}>{data?.mensaje || '¡Alguien acaba de comprar!'}</div>

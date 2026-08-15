@@ -20,7 +20,6 @@ export default function ProductoDetallePage() {
   const [resenaForm, setResenaForm] = useState({ nombre: '', calificacion: 5, comentario: '' });
   const [resenaSaving, setResenaSaving] = useState(false);
   const [resenaSuccess, setResenaSuccess] = useState(false);
-  const [viendoAhora] = useState(() => Math.floor(Math.random() * 4) + 1);
   const [comprado24h, setComprado24h] = useState(0);
   const [reviewConfig, setReviewConfig] = useState({ cantidad: 10, distribucion: { 5: 45, 4: 25, 3: 12, 2: 10, 1: 8 }, diasMax: 90, conComentario: 75 });
   const { usuario } = useAuthStore();
@@ -77,7 +76,7 @@ export default function ProductoDetallePage() {
     api.get(`/api/resenas/${producto.id}`)
       .then(({ data }) => { setResenas(data.resenas); setPromedioResenas(data.promedio); setResenasTotal(data.total); setDistribucion(data.distribucion); })
       .catch(() => {});
-  }, [id]);
+  }, [id, producto?.id]);
 
   const handleResenaSubmit = async (e) => { e.preventDefault(); if (!resenaForm.nombre.trim()) return; setResenaSaving(true);
     try { await api.post(`/api/resenas/${producto.id}`, resenaForm); setResenaSuccess(true); setShowResenaForm(false); setResenaForm({ nombre: '', calificacion: 5, comentario: '' });
@@ -208,7 +207,12 @@ export default function ProductoDetallePage() {
       </div>
 
       {producto.landingConfig && (() => {
-        const lc = typeof producto.landingConfig === 'string' ? JSON.parse(producto.landingConfig) : producto.landingConfig;
+        let lc = {};
+        try {
+          lc = typeof producto.landingConfig === 'string' ? JSON.parse(producto.landingConfig) : producto.landingConfig;
+        } catch {
+          lc = {};
+        }
         const sections = [
           { key: 'beneficios', icon: '✨', defaultTitle: 'Beneficios' },
           { key: 'autoridad', icon: '🏆', defaultTitle: 'Certificaciones' },

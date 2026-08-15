@@ -5,7 +5,10 @@ const { authMiddleware } = require('../middlewares/auth.middleware');
 
 router.use(authMiddleware);
 
-router.get('/', getByProducto);
+router.get('/', (req, res, next) => {
+  if (req.query.productoId) return getByProducto(req, res, next);
+  return getAll(req, res, next);
+});
 router.get('/pedido/:lucidsalesPedidoId', getByPedido);
 router.post('/', create);
 router.put('/:id', update);

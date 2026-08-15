@@ -22,7 +22,27 @@ const authMiddleware = async (req, res, next) => {
         return sendError(res, 401, 'SESSION_EXPIRED', 'Sesion invalida o expirada');
       }
 
-      req.usuario = decoded;
+      const usuario = await prisma.usuario.findUnique({
+        where: { id: decoded.id },
+        select: {
+          id: true,
+          nombre: true,
+          email: true,
+          rol: true,
+          activo: true,
+          verSoloAsignados: true,
+          accesoLucidsales: true,
+          gestionaNovedades: true,
+          gestionaOficina: true,
+          gestionaPedidos: true,
+          puedeModificarTodo: true
+        }
+      });
+      if (!usuario || !usuario.activo) {
+        return sendError(res, 401, 'USER_INACTIVE', 'Usuario no encontrado o inactivo');
+      }
+
+      req.usuario = usuario;
       req.authType = 'jwt';
       return next();
     }
@@ -35,7 +55,7 @@ const authMiddleware = async (req, res, next) => {
       }
       const adminUser = await prisma.usuario.findFirst({
         where: { rol: 'admin', activo: true },
-        select: { id: true, email: true, rol: true }
+        select: { id: true, nombre: true, email: true, rol: true, activo: true }
       });
       if (!adminUser) {
         return sendError(res, 500, 'NO_ADMIN', 'No hay administrador activo en el sistema. Contacte al soporte.');

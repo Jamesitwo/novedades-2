@@ -45,6 +45,7 @@ export default function Header() {
     if (pathname.startsWith('/admin/facturas')) return 'Facturas';
     if (pathname.startsWith('/admin/garantias')) return 'Garantías';
     if (pathname.startsWith('/admin/tareas')) return 'Tareas';
+    if (pathname.startsWith('/admin/plantillas')) return 'Plantillas WhatsApp';
     if (pathname.startsWith('/admin/lucidsales/productos')) return 'LucidSales · Productos';
     if (pathname.startsWith('/admin/lucidsales')) return 'LucidSales · Pedidos';
     return '';
@@ -70,7 +71,7 @@ export default function Header() {
         ☰
       </button>
       <h1 className="topbar-title">{getTitle()}</h1>
-      <div style={{ marginLeft: 'auto', color: 'var(--text3)', fontSize: '11px', fontFamily: 'var(--mono)' }}>
+      <div style={{ marginLeft: 'auto', color: 'var(--text3)', fontSize: '11px', fontFamily: 'var(--mono)' }} suppressHydrationWarning>
         {new Date().toLocaleDateString('es-CO', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
       </div>
     </header>
