@@ -692,12 +692,14 @@ export default function LucidsalesDetailPanel({ id, ids, currentIndex, onClose, 
               background: 'var(--bg3)', borderRadius: 12,
               border: '1px solid color-mix(in srgb, var(--accent) 40%, var(--border))',
               boxShadow: '0 10px 24px -8px color-mix(in srgb, var(--accent) 25%, transparent)',
-              cursor: uploaded ? 'default' : 'pointer', opacity: uploaded ? 0.75 : 1,
+              opacity: uploaded ? 0.75 : 1,
               overflow: 'hidden', transition: 'all 0.15s'
             }}
-            onClick={() => { if (uploaded) return; if (!quotes) handleQuote(); else setShowCotizador(!showCotizador); }}
           >
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10, padding: 12 }}>
+            <div
+              style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10, padding: 12, cursor: uploaded ? 'default' : 'pointer' }}
+              onClick={() => { if (uploaded) return; if (!quotes) handleQuote(); else setShowCotizador(!showCotizador); }}
+            >
               <span style={{ display: 'flex', alignItems: 'center', gap: 8, fontWeight: 700, fontSize: 13, color: 'var(--accent2)', minWidth: 0 }}>
                 <Icon name="local_shipping" size={20} />
                 {uploaded ? '✓ Pedido subido' : 'Cotizar envío Dropi'}
@@ -920,9 +922,16 @@ export default function LucidsalesDetailPanel({ id, ids, currentIndex, onClose, 
                 <div>
                   <label style={LBL}>Chat / Conversacion</label>
                   {(pedido.botInbox || pedido.conversacionLink) ? (
-                    <a href={pedido.botInbox || pedido.conversacionLink} target="_blank" rel="noopener noreferrer" className="btn btn-ghost"
-                      style={{ fontSize: 12, justifyContent: 'flex-start', gap: 8, textDecoration: 'none', width: '100%', boxSizing: 'border-box', minHeight: 40 }}>
-                      <Icon name="chat" size={16} /> Abrir conversacion
+                    <a href={pedido.botInbox || pedido.conversacionLink} target="_blank" rel="noopener noreferrer"
+                      style={{
+                        display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
+                        fontSize: 13, fontWeight: 700, width: '100%', boxSizing: 'border-box', minHeight: 44,
+                        background: '#25D366', color: '#06281a', borderRadius: 8, textDecoration: 'none',
+                        boxShadow: '0 4px 14px rgba(37,211,102,0.35)', transition: 'filter 0.15s'
+                      }}
+                      onMouseEnter={e => { e.currentTarget.style.filter = 'brightness(1.08)'; }}
+                      onMouseLeave={e => { e.currentTarget.style.filter = 'none'; }}>
+                      <Icon name="chat" size={18} /> Abrir conversación
                     </a>
                   ) : (
                     <span style={{ color: 'var(--text3)', fontSize: 11 }}>Sin conversacion</span>
