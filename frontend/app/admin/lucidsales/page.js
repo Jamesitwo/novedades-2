@@ -450,22 +450,22 @@ export default function LucidSalesPage() {
               <tbody>
                 {pedidos.map((p) => (
                   <tr key={p.id} onClick={() => { setDetailIds(pedidos.map(pe => pe.id)); setDetailId(p.id); }} style={{ cursor: 'pointer' }}>
-                    <td className="td-mono" title={`ID LucidSales: ${p.id}`}>#{p.idPedido}</td>
-                    <td style={{ fontSize: 11, whiteSpace: 'nowrap', color: 'var(--text3)' }}>
+                    <td data-label="# Pedido" className="td-mono" title={`ID LucidSales: ${p.id}`}>#{p.idPedido}</td>
+                    <td data-label="Fecha" style={{ fontSize: 11, whiteSpace: 'nowrap', color: 'var(--text3)' }}>
                       {p.createdAt ? new Date(p.createdAt).toLocaleDateString('es-CO') : '—'}
                     </td>
-                    <td className="td-name">{p.Nombre} {p.Apellido}</td>
-                    <td>{p.Movil}</td>
-                    <td className="td-mono">{formatMoney(p.Total)}</td>
-                    <td>
+                    <td data-label="Cliente" className="td-name">{p.Nombre} {p.Apellido}</td>
+                    <td data-label="Teléfono">{p.Movil}</td>
+                    <td data-label="Total" className="td-mono">{formatMoney(p.Total)}</td>
+                    <td data-label="Estado">
                       <span className={`badge ${(ESTADOS[p.EstadoPedido] || ESTADOS[0]).class}`}>
                         {(ESTADOS[p.EstadoPedido] || ESTADOS[0]).label}
                       </span>
                     </td>
-                    <td style={{ fontSize: 12, maxWidth: 160, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                    <td data-label="Producto" style={{ fontSize: 12, maxWidth: 160, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                       {getProductoLabel(p)}
                     </td>
-                    <td style={{ textAlign: 'center' }}>
+                    <td data-label="Alertas" style={{ textAlign: 'center' }}>
                       {(() => {
                         const count = getPedidoAlertCount(p);
                         return count > 0 ? (
@@ -480,14 +480,14 @@ export default function LucidSalesPage() {
                         ) : null;
                       })()}
                     </td>
-                    <td style={{ fontSize: 12 }}>
+                    <td data-label="Asignado" style={{ fontSize: 12 }}>
                       {p.asignado ? (
                         <span style={{ color: 'var(--accent)', fontWeight: 500 }}>{p.asignado.nombre}</span>
                       ) : (
                         <span style={{ color: 'var(--text3)' }}>—</span>
                       )}
                     </td>
-                    <td style={{ fontSize: 12 }}>
+                    <td data-label="Subido por" style={{ fontSize: 12 }}>
                       {p.subidoPor ? (
                         <span style={{ color: 'var(--accent)', fontWeight: 500 }}>{p.subidoPor.nombre}</span>
                       ) : p.creador ? (
@@ -496,10 +496,10 @@ export default function LucidSalesPage() {
                         <span style={{ color: '#feb700', fontSize: 11, fontWeight: 600 }}>Pendiente</span>
                       )}
                     </td>
-                    <td style={{ maxWidth: 150, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                    <td data-label="Referencias" style={{ maxWidth: 150, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                       {p.Referencias || '-'}
                     </td>
-                    <td style={{ maxWidth: 120 }}>
+                    <td data-label="Etiquetas" style={{ maxWidth: 120 }}>
                       {p._etiquetas && p._etiquetas.length > 0 && (
                         <div style={{ display: 'flex', gap: 3, flexWrap: 'wrap' }}>
                           {p._etiquetas.map(e => (

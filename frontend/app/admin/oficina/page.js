@@ -48,6 +48,7 @@ export default function OficinaPage() {
   const [operadores, setOperadores] = useState([]);
   const [bulkLoading, setBulkLoading] = useState(false);
   const [toast, setToast] = useState(null);
+  const [showFilters, setShowFilters] = useState(false);
   const [confirmModal, setConfirmModal] = useState(null);
   const [searchTimeout, setSearchTimeout] = useState(null);
   const [pageSize, setPageSize] = useState(() => {
@@ -389,7 +390,16 @@ export default function OficinaPage() {
         </div>
       </div>
 
-      <div className="filters">
+      <button
+        className="filters-toggle-btn btn btn-ghost"
+        onClick={() => setShowFilters(v => !v)}
+        style={{ marginBottom: 8 }}
+      >
+        {showFilters ? '▲ Ocultar filtros' : '⚙ Filtros'}
+        {totalFiltrosActivos > 0 && <span className="nav-badge" style={{ marginLeft: 4 }}>{totalFiltrosActivos}</span>}
+      </button>
+
+      <div className={`filters filters-collapsible ${showFilters ? '' : 'collapsed'}`}>
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, alignItems: 'center' }}>
           <button
             onClick={toggleAsignados}
@@ -706,7 +716,7 @@ export default function OficinaPage() {
                       <td>
                         <input type="checkbox" checked={selected.includes(pedido.id)} onChange={() => handleSelect(pedido.id)} />
                       </td>
-                      <td>
+                      <td data-label="Cliente">
                         <div className="td-name">{pedido.nombre} {pedido.apellido}</div>
                         <div className="td-mono" style={{ color: 'var(--text3)' }}>{pedido.celular}</div>
                         {pedido.celular2 && (
@@ -723,14 +733,14 @@ export default function OficinaPage() {
                           </div>
                         )}
                       </td>
-                      <td>{pedido.producto}</td>
-                      <td className="td-mono">{pedido.precio > 0 ? `$${Number(pedido.precio).toLocaleString()}` : '—'}</td>
-                      <td>{pedido.transportadora}</td>
-                      <td className="td-mono">{pedido.guia}</td>
-                      <td className="td-mono" style={{ color: 'var(--text2)' }}>
+                      <td data-label="Producto">{pedido.producto}</td>
+                      <td data-label="Precio" className="td-mono">{pedido.precio > 0 ? `$${Number(pedido.precio).toLocaleString()}` : '—'}</td>
+                      <td data-label="Transportadora">{pedido.transportadora}</td>
+                      <td data-label="Guía" className="td-mono">{pedido.guia}</td>
+                      <td data-label="Ingreso" className="td-mono" style={{ color: 'var(--text2)' }}>
                         {fechaIngreso.toLocaleDateString('es-CO')}
                       </td>
-                      <td className="td-mono">
+                      <td data-label="Vence" className="td-mono">
                         {new Date(pedido.fechaLimite).toLocaleDateString('es-CO')}
                         {dias <= 0 ? (
                           <span className="vence-tag vence-hoy">hoy</span>
@@ -738,7 +748,7 @@ export default function OficinaPage() {
                           <span className="vence-tag vence-pronto">{dias}d</span>
                         ) : null}
                       </td>
-                      <td>
+                      <td data-label="Asignado">
                         {pedido.asignado ? (
                           <span style={{ color: 'var(--accent)', fontSize: 12, fontWeight: 500 }}>
                             {pedido.asignado.nombre}
@@ -747,7 +757,7 @@ export default function OficinaPage() {
                           <span style={{ color: 'var(--text3)', fontSize: 12 }}>—</span>
                         )}
                       </td>
-                      <td>
+                      <td data-label="Transferencias">
                         {(() => {
                           const transfer = getTransferenciaForRegistro(pedido.id);
                           if (transfer.length === 0) return <span style={{ color: 'var(--text3)', fontSize: 12 }}>—</span>;
@@ -762,8 +772,8 @@ export default function OficinaPage() {
                           );
                         })()}
                       </td>
-                      <td><span className={`badge ${ESTADOS[pedido.estado]?.color}`}>{ESTADOS[pedido.estado]?.label}</span></td>
-                      <td style={{ textAlign: 'center' }}>
+                      <td data-label="Estado"><span className={`badge ${ESTADOS[pedido.estado]?.color}`}>{ESTADOS[pedido.estado]?.label}</span></td>
+                      <td data-label="Chat" style={{ textAlign: 'center' }}>
                         {pedido.conversacionLink && (
                           <span title={pedido.chatActivo ? 'Chat activo (ventana 24h abierta)' : 'Chat inactivo (ventana 24h cerrada)'} style={{
                             fontSize: 14, cursor: 'pointer',

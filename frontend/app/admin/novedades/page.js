@@ -49,6 +49,7 @@ export default function NovedadesPage() {
   const [operadores, setOperadores] = useState([]);
   const [bulkLoading, setBulkLoading] = useState(false);
   const [toast, setToast] = useState(null);
+  const [showFilters, setShowFilters] = useState(false);
   const [confirmModal, setConfirmModal] = useState(null);
   const [searchTimeout, setSearchTimeout] = useState(null);
   const [pageSize, setPageSize] = useState(() => {
@@ -418,7 +419,16 @@ export default function NovedadesPage() {
         </div>
       </div>
 
-      <div className="filters">
+      <button
+        className="filters-toggle-btn btn btn-ghost"
+        onClick={() => setShowFilters(v => !v)}
+        style={{ marginBottom: 8 }}
+      >
+        {showFilters ? '▲ Ocultar filtros' : '⚙ Filtros'}
+        {totalFiltrosActivos > 0 && <span className="nav-badge" style={{ marginLeft: 4 }}>{totalFiltrosActivos}</span>}
+      </button>
+
+      <div className={`filters filters-collapsible ${showFilters ? '' : 'collapsed'}`}>
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, alignItems: 'center' }}>
           <button
             onClick={toggleAsignados}
@@ -753,7 +763,7 @@ export default function NovedadesPage() {
                         onChange={() => handleSelect(novedad.id)}
                       />
                     </td>
-                    <td>
+                    <td data-label="Cliente">
                       <div className="td-name">{novedad.nombre} {novedad.apellido}</div>
                       <div className="td-mono" style={{ color: 'var(--text3)' }}>{novedad.celular}</div>
                       {novedad.celular2 && (
@@ -770,8 +780,8 @@ export default function NovedadesPage() {
                         </div>
                       )}
                     </td>
-                    <td style={{ maxWidth: 140, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{novedad.producto}</td>
-                    <td>
+                    <td data-label="Producto" style={{ maxWidth: 140, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{novedad.producto}</td>
+                    <td data-label="Motivo">
                       {novedad.motivoNovedad ? (
                         <span style={{ color: 'var(--amber)', fontSize: 12 }} title={novedad.motivoNovedad}>
                           {novedad.motivoNovedad.length > 20 ? novedad.motivoNovedad.substring(0, 20) + '...' : novedad.motivoNovedad}
@@ -780,10 +790,10 @@ export default function NovedadesPage() {
                         <span style={{ color: 'var(--text3)', fontSize: 12 }}>-</span>
                       )}
                     </td>
-                    <td className="td-mono">${Number(novedad.totalAPagar).toLocaleString()}</td>
-                    <td>{novedad.transportadora}</td>
-                    <td className="td-mono">{novedad.guia}</td>
-                    <td>
+                    <td data-label="Total" className="td-mono">${Number(novedad.totalAPagar).toLocaleString()}</td>
+                    <td data-label="Transportadora">{novedad.transportadora}</td>
+                    <td data-label="Guía" className="td-mono">{novedad.guia}</td>
+                    <td data-label="Asignado">
                       {novedad.asignado ? (
                         <span style={{ color: 'var(--accent)', fontSize: 12, fontWeight: 500 }}>
                           {novedad.asignado.nombre}
@@ -792,7 +802,7 @@ export default function NovedadesPage() {
                         <span style={{ color: 'var(--text3)', fontSize: 12 }}>—</span>
                       )}
                     </td>
-                    <td>
+                    <td data-label="Transferencias">
                       {(() => {
                         const transfer = getTransferenciaForRegistro(novedad.id);
                         if (transfer.length === 0) return <span style={{ color: 'var(--text3)', fontSize: 12 }}>—</span>;
@@ -807,8 +817,8 @@ export default function NovedadesPage() {
                         );
                       })()}
                     </td>
-                    <td><span className={`badge ${getBadgeClass(novedad.estado)}`}>{getLabelEstado(novedad.estado)}</span></td>
-                    <td style={{ textAlign: 'center' }}>
+                    <td data-label="Estado"><span className={`badge ${getBadgeClass(novedad.estado)}`}>{getLabelEstado(novedad.estado)}</span></td>
+                    <td data-label="Chat" style={{ textAlign: 'center' }}>
                       {novedad.conversacionLink && (
                         <span title={novedad.chatActivo ? 'Chat activo (ventana 24h abierta)' : 'Chat inactivo (ventana 24h cerrada)'} style={{
                           fontSize: 14, cursor: 'pointer',
@@ -819,7 +829,7 @@ export default function NovedadesPage() {
                         </span>
                       )}
                     </td>
-                    <td className="td-mono" style={{ fontSize: 12, color: 'var(--text2)' }}>
+                    <td data-label="Fecha" className="td-mono" style={{ fontSize: 12, color: 'var(--text2)' }}>
                       {new Date(novedad.createdAt).toLocaleDateString('es-CO')}
                     </td>
                     <td>

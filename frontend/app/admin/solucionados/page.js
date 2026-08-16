@@ -63,15 +63,15 @@ export default function SolucionadosPage() {
             <tbody>
               {novedades.map(n => (
                 <tr key={n.id}>
-                  <td>
+                  <td data-label="Cliente">
                     <div className="td-name">{n.nombre} {n.apellido}</div>
                     <div className="td-mono" style={{ color: 'var(--text3)', fontSize: 11 }}>{n.celular}</div>
                   </td>
-                  <td style={{ maxWidth: 150, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{n.producto}</td>
-                  <td className="td-mono" style={{ fontWeight: 600, color: 'var(--green)' }}>{formatMoney(n.totalAPagar)}</td>
-                  <td>{n.transportadora}</td>
-                  <td className="td-mono">{n.guia}</td>
-                  <td className="td-mono" style={{ fontSize: 12, color: 'var(--text2)' }}>{new Date(n.createdAt).toLocaleDateString('es-CO')}</td>
+                  <td data-label="Producto" style={{ maxWidth: 150, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{n.producto}</td>
+                  <td data-label="Total" className="td-mono" style={{ fontWeight: 600, color: 'var(--green)' }}>{formatMoney(n.totalAPagar)}</td>
+                  <td data-label="Transportadora">{n.transportadora}</td>
+                  <td data-label="Guía" className="td-mono">{n.guia}</td>
+                  <td data-label="Fecha" className="td-mono" style={{ fontSize: 12, color: 'var(--text2)' }}>{new Date(n.createdAt).toLocaleDateString('es-CO')}</td>
                   <td><Link href={`/novedades/${n.id}`} className="action-btn">Ver</Link></td>
                 </tr>
               ))}

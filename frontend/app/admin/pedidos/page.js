@@ -187,11 +187,11 @@ export default function PedidosAdminPage() {
               ) : (
                 pedidos.map(p => (
                   <tr key={p.id} onClick={() => openDetail(p.id)}>
-                    <td style={{ whiteSpace: 'nowrap', fontSize: 13 }}>{formatDate(p.createdAt)}</td>
-                    <td style={{ fontWeight: 600 }}>{p.nombre} {p.apellido}</td>
-                    <td style={{ maxWidth: 220, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{p.productoNombre}</td>
-                    <td style={{ fontWeight: 700, fontFamily: 'monospace' }}>{formatPrice(p.total)}</td>
-                    <td>
+                    <td data-label="Fecha" style={{ whiteSpace: 'nowrap', fontSize: 13 }}>{formatDate(p.createdAt)}</td>
+                    <td data-label="Cliente" style={{ fontWeight: 600 }}>{p.nombre} {p.apellido}</td>
+                    <td data-label="Producto" style={{ maxWidth: 220, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{p.productoNombre}</td>
+                    <td data-label="Total" style={{ fontWeight: 700, fontFamily: 'monospace' }}>{formatPrice(p.total)}</td>
+                    <td data-label="Pago">
                       <span style={{
                         fontSize: 11, fontWeight: 700, padding: '3px 8px', borderRadius: 20,
                         background: p.metodoPago === 'transferencia' ? '#e5eeff' : '#f0fdf4',
@@ -201,7 +201,7 @@ export default function PedidosAdminPage() {
                       </span>
                       {p.pagado && <span style={{ marginLeft: 4, fontSize: 12, color: '#22c55e', fontWeight: 700 }}>✓</span>}
                     </td>
-                    <td>
+                    <td data-label="Estado">
                       <span style={{
                         fontSize: 11, fontWeight: 700, padding: '3px 10px', borderRadius: 20,
                         background: estadoColors[p.estado] || '#E2E8F0', color: '#fff'

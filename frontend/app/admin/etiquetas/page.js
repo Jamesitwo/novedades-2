@@ -129,7 +129,7 @@ export default function EtiquetasPage() {
             <tbody>
               {etiquetas.map(e => (
                 <tr key={e.id}>
-                  <td>
+                  <td data-label="Vista previa">
                     <span style={{
                       display: 'inline-block', padding: '3px 10px', borderRadius: 12,
                       fontSize: 11, fontWeight: 600, color: '#fff', background: e.color
@@ -137,14 +137,14 @@ export default function EtiquetasPage() {
                       {e.nombre}
                     </span>
                   </td>
-                  <td className="td-name">{e.nombre}</td>
-                  <td>
+                  <td data-label="Nombre" className="td-name">{e.nombre}</td>
+                  <td data-label="Color">
                     <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                       <div style={{ width: 18, height: 18, borderRadius: 4, background: e.color }} />
                       <span style={{ fontFamily: 'var(--mono)', fontSize: 12, color: 'var(--text2)' }}>{e.color}</span>
                     </div>
                   </td>
-                  <td style={{ fontSize: 12, color: 'var(--text3)' }}>
+                  <td data-label="Creada" style={{ fontSize: 12, color: 'var(--text3)' }}>
                     {new Date(e.createdAt).toLocaleDateString('es-CO')}
                   </td>
                   <td>

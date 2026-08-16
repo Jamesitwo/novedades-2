@@ -112,17 +112,17 @@ export default function FacturasPage() {
             <tbody>
               {facturas.map(f => (
                 <tr key={f.id}>
-                  <td className="td-mono" style={{ fontWeight: 600 }}>{String(f.numero).padStart(4, '0')}</td>
-                  <td className="td-name">{f.clienteNombre}</td>
-                  <td className="td-mono" style={{ fontSize: 12, color: 'var(--text2)' }}>{f.clienteDocumento || '—'}</td>
-                  <td className="td-mono" style={{ fontWeight: 600 }}>{formatMoney(f.total)}</td>
-                  <td>
+                  <td data-label="N°" className="td-mono" style={{ fontWeight: 600 }}>{String(f.numero).padStart(4, '0')}</td>
+                  <td data-label="Cliente" className="td-name">{f.clienteNombre}</td>
+                  <td data-label="Documento" className="td-mono" style={{ fontSize: 12, color: 'var(--text2)' }}>{f.clienteDocumento || '—'}</td>
+                  <td data-label="Total" className="td-mono" style={{ fontWeight: 600 }}>{formatMoney(f.total)}</td>
+                  <td data-label="Estado">
                     <span className="badge" style={{
                       background: f.estado === 'pagada' ? 'rgba(34,197,94,0.15)' : f.estado === 'cancelada' ? 'rgba(239,68,68,0.15)' : 'rgba(245,158,11,0.15)',
                       color: f.estado === 'pagada' ? 'var(--green)' : f.estado === 'cancelada' ? 'var(--red)' : 'var(--amber)'
                     }}>{f.estado}</span>
                   </td>
-                  <td className="td-mono" style={{ fontSize: 12, color: 'var(--text3)' }}>{new Date(f.createdAt).toLocaleDateString('es-CO')}</td>
+                  <td data-label="Fecha" className="td-mono" style={{ fontSize: 12, color: 'var(--text3)' }}>{new Date(f.createdAt).toLocaleDateString('es-CO')}</td>
                   <td>
                     <div className="row-actions">
                       <Link href={`/facturas/${f.id}`} className="action-btn">Ver</Link>

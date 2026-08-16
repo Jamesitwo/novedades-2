@@ -108,9 +108,9 @@ export default function GarantiasPage() {
                 const fotos = getPhotosPreview(g);
                 return (
                   <tr key={g.id}>
-                    <td className="td-name">{g.clienteNombre || <span style={{ color: 'var(--text3)', fontStyle: 'italic' }}>Sin registrar</span>}</td>
-                    <td style={{ maxWidth: 150, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', fontSize: 13 }}>{g.producto || '—'}</td>
-                    <td>
+                    <td data-label="Cliente" className="td-name">{g.clienteNombre || <span style={{ color: 'var(--text3)', fontStyle: 'italic' }}>Sin registrar</span>}</td>
+                    <td data-label="Producto" style={{ maxWidth: 150, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', fontSize: 13 }}>{g.producto || '—'}</td>
+                    <td data-label="Fotos">
                       <div style={{ display: 'flex', gap: 4 }}>
                         {fotos.length > 0 ? fotos.map((f, i) => (
                           <img key={i} src={f} alt="" style={{ width: 32, height: 32, borderRadius: 4, objectFit: 'cover', background: 'var(--bg3)' }}
@@ -119,13 +119,13 @@ export default function GarantiasPage() {
                         {g.fotos && JSON.parse(g.fotos).length > 2 && <span style={{ fontSize: 10, color: 'var(--text3)', alignSelf: 'center' }}>+{JSON.parse(g.fotos).length - 2}</span>}
                       </div>
                     </td>
-                    <td>
+                    <td data-label="Video">
                       {g.videoUrl ? <span style={{ fontSize: 11, color: 'var(--accent2)' }}>🎥 Sí</span> : <span style={{ fontSize: 11, color: 'var(--text3)' }}>—</span>}
                     </td>
-                    <td>
+                    <td data-label="Estado">
                       <span style={{ padding: '2px 8px', borderRadius: 4, fontSize: 11, fontWeight: 500, background: ESTADO_COLORS[g.estado]?.bg, color: ESTADO_COLORS[g.estado]?.color, textTransform: 'capitalize' }}>{g.estado}</span>
                     </td>
-                    <td className="td-mono" style={{ fontSize: 11, color: new Date(g.fechaExpiracion) < new Date() ? 'var(--red)' : 'var(--text3)' }}>
+                    <td data-label="Expira" className="td-mono" style={{ fontSize: 11, color: new Date(g.fechaExpiracion) < new Date() ? 'var(--red)' : 'var(--text3)' }}>
                       {new Date(g.fechaExpiracion).toLocaleDateString('es-CO')}
                     </td>
                     <td>

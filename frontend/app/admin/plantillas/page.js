@@ -150,12 +150,12 @@ export default function PlantillasPage() {
             <tbody>
               {templates.map(t => (
                 <tr key={t.id || t.nombre}>
-                  <td>
+                  <td data-label="Nombre">
                     <span style={{ fontWeight: 500, fontSize: 14, fontFamily: 'var(--mono)' }}>
                       {t.nombre}
                     </span>
                   </td>
-                  <td>
+                  <td data-label="Categoría">
                     <span className={`badge ${t.categoria}`} style={{
                       background: t.categoria === 'MARKETING' || t.categoria === 'marketing' ? 'rgba(168,85,247,0.15)' :
                                   t.categoria === 'UTILITY' || t.categoria === 'utility' ? 'rgba(59,130,246,0.15)' :
@@ -167,10 +167,10 @@ export default function PlantillasPage() {
                       {CATEGORY_LABELS[t.categoria] || t.categoria}
                     </span>
                   </td>
-                  <td style={{ fontSize: 12, color: 'var(--text3)', textTransform: 'uppercase' }}>
+                  <td data-label="Idioma" style={{ fontSize: 12, color: 'var(--text3)', textTransform: 'uppercase' }}>
                     {t.idioma}
                   </td>
-                  <td>
+                  <td data-label="Estado Meta">
                     <span style={{
                       fontSize: 12, fontWeight: 500,
                       color: t.estado === 'approved' || t.estado === 'aprobada' ? 'var(--green)' :
@@ -179,7 +179,7 @@ export default function PlantillasPage() {
                       {ESTADO_LABELS[t.estado] || t.estado}
                     </span>
                   </td>
-                  <td>
+                  <td data-label="Activa">
                     <span style={{
                       display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 12,
                       color: t.activa ? 'var(--green)' : 'var(--text3)'

@@ -464,7 +464,7 @@ export default function LucidSalesProductosPage() {
                       <td style={{ textAlign: 'center', color: 'var(--accent)', fontWeight: 600 }}>
                         ▶
                       </td>
-                      <td style={{ textAlign: 'center' }}>
+                      <td data-label="Alerta" style={{ textAlign: 'center' }}>
                         {(() => {
                           const prodId = String(p.id ?? p.Id);
                           const count = alertasMap[prodId] || 0;
@@ -485,7 +485,7 @@ export default function LucidSalesProductosPage() {
                           );
                         })()}
                       </td>
-                      <td style={{ textAlign: 'center', fontFamily: 'var(--mono)', fontWeight: 600 }}>
+                      <td data-label="Stock" style={{ textAlign: 'center', fontFamily: 'var(--mono)', fontWeight: 600 }}>
                         {stockVal !== null && stockVal !== undefined ? (stockVal === 0 ? 'AGOTADO' : stockVal) : '-'}
                         <button
                           onClick={(e) => handleRefreshStock(String(p.id ?? p.Id), e)}
@@ -498,7 +498,7 @@ export default function LucidSalesProductosPage() {
                         </button>
                       </td>
                       {sortedColumns.map(col => (
-                        <td key={col} style={{ maxWidth: 200, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                        <td key={col} data-label={formatLabel(col)} style={{ maxWidth: 200, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                           {isEmpty(p[col]) ? '-' : renderVal(p[col], col, true)}
                         </td>
                       ))}

@@ -65,15 +65,15 @@ export default function RecogerPage() {
                 const dias = Math.ceil((new Date(p.fechaLimite) - new Date()) / 86400000);
                 return (
                   <tr key={p.id}>
-                    <td>
+                    <td data-label="Cliente">
                       <div className="td-name">{p.nombre} {p.apellido}</div>
                       <div className="td-mono" style={{ color: 'var(--text3)', fontSize: 11 }}>{p.celular}</div>
                     </td>
-                    <td style={{ maxWidth: 150, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{p.producto}</td>
-                    <td className="td-mono">{p.precio > 0 ? formatMoney(p.precio) : '—'}</td>
-                    <td>{p.transportadora}</td>
-                    <td className="td-mono">{p.guia}</td>
-                    <td className="td-mono" style={{ fontSize: 12, color: dias <= 0 ? 'var(--red)' : 'var(--text2)' }}>
+                    <td data-label="Producto" style={{ maxWidth: 150, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{p.producto}</td>
+                    <td data-label="Precio" className="td-mono">{p.precio > 0 ? formatMoney(p.precio) : '—'}</td>
+                    <td data-label="Transportadora">{p.transportadora}</td>
+                    <td data-label="Guía" className="td-mono">{p.guia}</td>
+                    <td data-label="Fecha Límite" className="td-mono" style={{ fontSize: 12, color: dias <= 0 ? 'var(--red)' : 'var(--text2)' }}>
                       {new Date(p.fechaLimite).toLocaleDateString('es-CO')}
                       {dias <= 3 && <span style={{ color: 'var(--amber)', marginLeft: 6 }}>⚠ {dias}d</span>}
                     </td>

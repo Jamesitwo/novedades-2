@@ -527,7 +527,7 @@ export default function TiendaAdminPage() {
                       <input type="checkbox" checked={selected.includes(p.id)}
                         onChange={() => toggleSelect(p.id)} style={{ width: 18, height: 18, cursor: 'pointer', accentColor: '#ff8c00' }} />
                     </td>
-                    <td>
+                    <td data-label="Imagen">
                       {p.imagen ? (
                         <img src={p.imagen} alt="" style={{ width: 44, height: 44, objectFit: 'cover', border: '1px solid #E2E8F0', background: '#eff4ff' }}
                           onError={e => { e.target.outerHTML = '<div style="width:44px;height:44px;border:2px solid #181c1e;background:#f1f4f6"></div>'; }} />
@@ -535,14 +535,14 @@ export default function TiendaAdminPage() {
                         <div style={{ width: 44, height: 44, border: '1px solid #E2E8F0', background: '#eff4ff' }} />
                       )}
                     </td>
-                    <td style={{ fontWeight: 700 }}>
+                    <td data-label="Nombre" style={{ fontWeight: 700 }}>
                       <button onClick={() => openModal(p)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#0b1c30', fontWeight: 700, fontSize: 14, textAlign: 'left', padding: 0, textDecoration: 'underline', textDecorationColor: '#ff8c00', textUnderlineOffset: 3 }}>
                         {p.nombre}
                       </button>
                       {p.descripcion && <div style={{ fontSize: 12, color: '#897362', maxWidth: 220, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', marginTop: 2 }}>{p.descripcion}</div>}
                     </td>
-                    <td><span style={{ fontSize: 12, fontWeight: 700, color: '#ff8c00', textTransform: 'uppercase', letterSpacing: 1 }}>{p.categoria}</span></td>
-                    <td style={{ fontWeight: 700, fontFamily: 'monospace' }}>
+                    <td data-label="Categoría"><span style={{ fontSize: 12, fontWeight: 700, color: '#ff8c00', textTransform: 'uppercase', letterSpacing: 1 }}>{p.categoria}</span></td>
+                    <td data-label="Precio" style={{ fontWeight: 700, fontFamily: 'monospace' }}>
                       {p.ofertaActiva && p.ofertaPrecio ? (
                         <>
                           <span style={{ color: '#ba1a1a' }}>{formatPrice(p.ofertaPrecio)}</span>
@@ -551,23 +551,23 @@ export default function TiendaAdminPage() {
                         </>
                       ) : formatPrice(p.precioVenta)}
                     </td>
-                    <td>
+                    <td data-label="Oferta">
                       {p.ofertaActiva ? (
                         <span style={{ color: '#ba1a1a', fontSize: 12, fontWeight: 700 }}>
                           {p.ofertaHasta ? new Date(p.ofertaHasta).toLocaleDateString('es-CO') : 'Activa'}
                         </span>
                       ) : <span style={{ color: '#897362', fontSize: 12 }}>—</span>}
                     </td>
-                    <td style={{ textAlign: 'center', fontWeight: 700, fontFamily: 'monospace', color: p.stock <= 5 ? '#ba1a1a' : '#0b1c30' }}>
+                    <td data-label="Stock" style={{ textAlign: 'center', fontWeight: 700, fontFamily: 'monospace', color: p.stock <= 5 ? '#ba1a1a' : '#0b1c30' }}>
                       {p.stock}
                     </td>
-                    <td style={{ textAlign: 'center' }}>
+                    <td data-label="Destacado" style={{ textAlign: 'center' }}>
                       <button onClick={() => handleToggleDestacado(p.id, p.destacado)} style={{
                         background: 'none', border: 'none', cursor: 'pointer', fontSize: 22,
                         color: p.destacado ? '#ff8c00' : '#E2E8F0'
                       }}>{p.destacado ? '★' : '☆'}</button>
                     </td>
-                    <td style={{ textAlign: 'center' }}>
+                    <td data-label="Estado" style={{ textAlign: 'center' }}>
                       <button onClick={() => handleToggleActivo(p.id)} style={{
                         minWidth: 44, height: 32, fontWeight: 800, fontSize: 12, cursor: 'pointer',
                         border: '1px solid #E2E8F0', background: p.activo ? '#22c55e' : '#ba1a1a', color: '#fff',

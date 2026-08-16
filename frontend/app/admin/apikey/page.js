@@ -215,18 +215,18 @@ export default function ApiKeyPage() {
             ) : (
               keys.map((key) => (
                 <tr key={key.id}>
-                  <td style={{ fontWeight: 500 }}>{key.nombre}</td>
-                  <td>
+                  <td data-label="Nombre" style={{ fontWeight: 500 }}>{key.nombre}</td>
+                  <td data-label="Clave">
                     <span style={{ fontFamily: 'var(--mono)', fontSize: 11, color: 'var(--text3)' }}>
                       {key.clave.substring(0, 16)}...{key.clave.substring(key.clave.length - 8)}
                     </span>
                   </td>
-                  <td>
+                  <td data-label="Estado">
                     <span className={`badge ${key.activo ? 'green' : 'red'}`}>
                       {key.activo ? 'Activa' : 'Inactiva'}
                     </span>
                   </td>
-                  <td style={{ fontSize: 12, color: 'var(--text3)' }}>
+                  <td data-label="Creada" style={{ fontSize: 12, color: 'var(--text3)' }}>
                     {new Date(key.createdAt).toLocaleDateString('es-CO')}
                   </td>
                   <td>

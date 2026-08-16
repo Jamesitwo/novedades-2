@@ -123,40 +123,40 @@ export default function UsuariosPage() {
           <tbody>
             {usuarios.map((usuario) => (
               <tr key={usuario.id}>
-                <td><div className="td-name">{usuario.nombre}</div></td>
-                <td className="td-mono" style={{ fontSize: 12 }}>{usuario.email}</td>
-                <td><span className={`badge ${getBadgeClass(usuario.rol)}`}>{usuario.rol}</span></td>
-                <td>
+                <td data-label="Nombre"><div className="td-name">{usuario.nombre}</div></td>
+                <td data-label="Email" className="td-mono" style={{ fontSize: 12 }}>{usuario.email}</td>
+                <td data-label="Rol"><span className={`badge ${getBadgeClass(usuario.rol)}`}>{usuario.rol}</span></td>
+                <td data-label="Estado">
                   <span className={`badge ${usuario.activo ? 'activo' : 'inactivo'}`}>
                     {usuario.activo ? 'Activo' : 'Inactivo'}
                   </span>
                 </td>
-                <td>
+                <td data-label="LucidSales">
                   <span className={`badge ${usuario.accesoLucidsales ? 'activo' : 'inactivo'}`} style={{ fontSize: 11 }}>
                     {usuario.accesoLucidsales ? 'Sí' : 'No'}
                   </span>
                 </td>
-                <td>
+                <td data-label="Novedades">
                   <span className={`badge ${usuario.gestionaNovedades !== false ? 'activo' : 'inactivo'}`} style={{ fontSize: 11 }}>
                     {usuario.gestionaNovedades !== false ? 'Sí' : 'No'}
                   </span>
                 </td>
-                <td>
+                <td data-label="Oficina">
                   <span className={`badge ${usuario.gestionaOficina !== false ? 'activo' : 'inactivo'}`} style={{ fontSize: 11 }}>
                     {usuario.gestionaOficina !== false ? 'Sí' : 'No'}
                   </span>
                 </td>
-                <td>
+                <td data-label="Pedidos">
                   <span className={`badge ${usuario.gestionaPedidos ? 'activo' : 'inactivo'}`} style={{ fontSize: 11 }}>
                     {usuario.gestionaPedidos ? 'Sí' : 'No'}
                   </span>
                 </td>
-                <td>
+                <td data-label="Modif. Todo">
                   <span className={`badge ${usuario.puedeModificarTodo ? 'activo' : 'inactivo'}`} style={{ fontSize: 11 }}>
                     {usuario.puedeModificarTodo ? 'Sí' : 'No'}
                   </span>
                 </td>
-                <td>
+                <td data-label="Visibilidad">
                   {usuario.rol !== 'admin' && (
                     <button
                       onClick={() => handleToggleVerSoloAsignados(usuario)}

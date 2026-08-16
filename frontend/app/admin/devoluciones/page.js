@@ -176,15 +176,15 @@ export default function DevolucionesPage() {
                 <tbody>
                   {novedadesFiltradas.map((item) => (
                     <tr key={`novedad-${item.id}`}>
-                      <td>
+                      <td data-label="Cliente">
                         <div className="td-name">{item.nombre} {item.apellido}</div>
                         <div className="td-mono" style={{ color: 'var(--text3)' }}>{item.celular}</div>
                       </td>
-                      <td style={{ maxWidth: 140, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{item.producto}</td>
-                      <td className="td-mono">${Number(item.totalAPagar).toLocaleString()}</td>
-                      <td>{item.transportadora}</td>
-                      <td className="td-mono">{item.guia}</td>
-                      <td>
+                      <td data-label="Producto" style={{ maxWidth: 140, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{item.producto}</td>
+                      <td data-label="Total" className="td-mono">${Number(item.totalAPagar).toLocaleString()}</td>
+                      <td data-label="Transportadora">{item.transportadora}</td>
+                      <td data-label="Guía" className="td-mono">{item.guia}</td>
+                      <td data-label="Asignado">
                         {item.asignado ? (
                           <span style={{ color: 'var(--accent)', fontSize: 12, fontWeight: 500 }}>
                             {item.asignado.nombre}
@@ -193,7 +193,7 @@ export default function DevolucionesPage() {
                           <span style={{ color: 'var(--text3)', fontSize: 12 }}>—</span>
                         )}
                       </td>
-                      <td className="td-mono" style={{ color: 'var(--text2)', fontSize: 12 }}>
+                      <td data-label="Fecha" className="td-mono" style={{ color: 'var(--text2)', fontSize: 12 }}>
                         {new Date(item.createdAt).toLocaleDateString('es-CO')}
                       </td>
                       <td>
@@ -230,14 +230,14 @@ export default function DevolucionesPage() {
                     const dias = Math.ceil((new Date(item.fechaLimite) - new Date()) / (1000 * 60 * 60 * 24));
                     return (
                       <tr key={`oficina-${item.id}`}>
-                        <td>
+                        <td data-label="Cliente">
                           <div className="td-name">{item.nombre} {item.apellido}</div>
                           <div className="td-mono" style={{ color: 'var(--text3)' }}>{item.celular}</div>
                         </td>
-                        <td>{item.producto}</td>
-                        <td>{item.transportadora}</td>
-                        <td className="td-mono">{item.guia}</td>
-                        <td>
+                        <td data-label="Producto">{item.producto}</td>
+                        <td data-label="Transportadora">{item.transportadora}</td>
+                        <td data-label="Guía" className="td-mono">{item.guia}</td>
+                        <td data-label="Asignado">
                           {item.asignado ? (
                             <span style={{ color: 'var(--accent)', fontSize: 12, fontWeight: 500 }}>
                               {item.asignado.nombre}
@@ -246,7 +246,7 @@ export default function DevolucionesPage() {
                             <span style={{ color: 'var(--text3)', fontSize: 12 }}>—</span>
                           )}
                         </td>
-                        <td className="td-mono">
+                        <td data-label="Fecha Límite" className="td-mono">
                           {new Date(item.fechaLimite).toLocaleDateString('es-CO')}
                           {dias <= 0 ? (
                             <span className="vence-tag vence-hoy">hoy</span>

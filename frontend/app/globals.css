@@ -1004,8 +1004,160 @@ tr:hover td { background: var(--bg3); }
     overflow-x: auto;
   }
 
-  table {
-    min-width: 600px;
+  /* =============================================
+     MODO TARJETA EN MOVIL (tablas -> tarjetas)
+     ============================================= */
+  .table-card table,
+  .table-card tbody,
+  .table-card thead,
+  .table-card tr,
+  .table-card td,
+  .table-card th,
+  .admin-table,
+  .admin-table tbody,
+  .admin-table thead,
+  .admin-table tr,
+  .admin-table td,
+  .admin-table th,
+  .pedido-table,
+  .pedido-table tbody,
+  .pedido-table thead,
+  .pedido-table tr,
+  .pedido-table td,
+  .pedido-table th,
+  .data-table,
+  .data-table tbody,
+  .data-table thead,
+  .data-table tr,
+  .data-table td,
+  .data-table th {
+    display: block;
+  }
+
+  .table-card thead,
+  .admin-table thead,
+  .pedido-table thead,
+  .data-table thead {
+    display: none;
+  }
+
+  .table-card tbody tr,
+  .admin-table tbody tr,
+  .pedido-table tbody tr,
+  .data-table tbody tr {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    margin-bottom: 10px;
+    padding: 12px 14px;
+  }
+
+  .table-card tbody tr:hover td,
+  .admin-table tbody tr:hover td,
+  .pedido-table tbody tr:hover td,
+  .data-table tbody tr:hover td {
+    background: transparent;
+  }
+
+  .table-card td,
+  .admin-table td,
+  .pedido-table td,
+  .data-table td {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+    padding: 6px 0;
+    border-bottom: 1px solid var(--border);
+    font-size: 13px;
+    min-height: 28px;
+  }
+
+  .table-card td:last-child,
+  .admin-table td:last-child,
+  .pedido-table td:last-child,
+  .data-table td:last-child {
+    border-bottom: none;
+  }
+
+  .table-card td::before,
+  .admin-table td::before,
+  .pedido-table td::before,
+  .data-table td::before {
+    content: attr(data-label);
+    font-size: 10px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--text3);
+    flex-shrink: 0;
+    text-align: left;
+    max-width: 45%;
+  }
+
+  /* Celdas sin data-label (acciones, checkbox): bloque completo */
+  .table-card td:not([data-label])::before,
+  .admin-table td:not([data-label])::before,
+  .pedido-table td:not([data-label])::before,
+  .data-table td:not([data-label])::before {
+    content: none;
+  }
+
+  .table-card td:not([data-label]),
+  .admin-table td:not([data-label]),
+  .pedido-table td:not([data-label]),
+  .data-table td:not([data-label]) {
+    display: block;
+    text-align: left;
+  }
+
+  /* Columnas ocultas en movil */
+  .td-hide-mobile {
+    display: none !important;
+  }
+
+  /* Acciones como botones grandes */
+  .table-card .row-actions,
+  .admin-table .row-actions,
+  .pedido-table .row-actions,
+  .data-table .row-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 4px;
+  }
+
+  .table-card .row-actions .action-btn,
+  .admin-table .row-actions .action-btn,
+  .pedido-table .row-actions .action-btn,
+  .data-table .row-actions .action-btn {
+    min-height: 40px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0 14px;
+    font-size: 12px;
+  }
+
+  /* En modo tarjeta no se necesita scroll horizontal */
+  .table-card table,
+  .admin-table,
+  .pedido-table,
+  .data-table {
+    min-width: 0;
+  }
+
+  /* =============================================
+     FILTROS COLAPSABLES EN MOVIL
+     ============================================= */
+  .filters-collapsible.collapsed {
+    display: none;
+  }
+
+  /* Paginacion tactil */
+  .pagination button {
+    min-height: 40px;
+    min-width: 40px;
   }
 
   /* Buttons on mobile */
@@ -1080,6 +1232,19 @@ tr:hover td { background: var(--bg3); }
   /* Pizdo grid (solo dentro del panel admin) */
   .layout [style*="grid-template-columns: repeat(auto-fill"] {
     grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)) !important;
+  }
+}
+
+/* Boton de filtros: oculto en desktop, visible solo en movil */
+.filters-toggle-btn {
+  display: none;
+}
+
+@media (max-width: 768px) {
+  .filters-toggle-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
   }
 }
 
