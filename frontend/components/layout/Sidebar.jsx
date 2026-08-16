@@ -8,6 +8,7 @@ import { useThemeStore } from '../../store/themeStore';
 import { on, isConnected } from '../../lib/websocket';
 import api from '../../lib/api';
 import PasswordChangeModal from './PasswordChangeModal';
+import Toaster from '../ui/Toaster';
 
 export default function Sidebar() {
   const pathname = usePathname();
@@ -97,6 +98,7 @@ export default function Sidebar() {
 
   return (
     <>
+    <Toaster />
     <aside className="sidebar">
       <div className="sidebar-logo">
         <div className="logo-text">

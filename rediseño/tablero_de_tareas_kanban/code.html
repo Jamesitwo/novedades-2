@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Internal Tasks Kanban Board</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=Geist:wght@400;500;600&amp;family=JetBrains+Mono:wght@400;500&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "on-primary-container": "#a9a7ff",
+                        "surface-container": "#f0ecf6",
+                        "inverse-surface": "#303037",
+                        "tertiary-fixed-dim": "#ffb694",
+                        "secondary-container": "#dae2fd",
+                        "surface-container-highest": "#e4e1eb",
+                        "on-error": "#ffffff",
+                        "secondary-fixed": "#dae2fd",
+                        "surface-tint": "#544fc0",
+                        "on-tertiary-fixed-variant": "#7a3003",
+                        "on-primary-fixed-variant": "#3b35a7",
+                        "surface-bright": "#fcf8ff",
+                        "background": "#fcf8ff",
+                        "on-primary": "#ffffff",
+                        "inverse-primary": "#c3c0ff",
+                        "outline-variant": "#c8c4d5",
+                        "error": "#ba1a1a",
+                        "tertiary": "#511c00",
+                        "primary-fixed": "#e2dfff",
+                        "error-container": "#ffdad6",
+                        "on-tertiary": "#ffffff",
+                        "surface-variant": "#e4e1eb",
+                        "surface-container-lowest": "#ffffff",
+                        "tertiary-fixed": "#ffdbcc",
+                        "surface-container-high": "#eae6f1",
+                        "primary": "#1f108e",
+                        "on-background": "#1b1b22",
+                        "on-primary-fixed": "#0f0069",
+                        "primary-fixed-dim": "#c3c0ff",
+                        "surface": "#fcf8ff",
+                        "inverse-on-surface": "#f3eff9",
+                        "on-secondary-fixed": "#131b2e",
+                        "surface-container-low": "#f6f2fc",
+                        "secondary": "#565e74",
+                        "tertiary-container": "#752c00",
+                        "on-secondary-container": "#5c647a",
+                        "on-secondary-fixed-variant": "#3f465c",
+                        "on-secondary": "#ffffff",
+                        "primary-container": "#3730a3",
+                        "on-tertiary-fixed": "#351000",
+                        "on-error-container": "#93000a",
+                        "outline": "#777584",
+                        "surface-dim": "#dcd8e3",
+                        "on-surface": "#1b1b22",
+                        "on-tertiary-container": "#fe9562",
+                        "on-surface-variant": "#464553",
+                        "secondary-fixed-dim": "#bec6e0"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.125rem",
+                        "lg": "0.25rem",
+                        "xl": "0.5rem",
+                        "full": "0.75rem"
+                    },
+                    "spacing": {
+                        "unit": "4px",
+                        "sidebar-collapsed": "64px",
+                        "sidebar-width": "260px",
+                        "gutter": "16px",
+                        "container-margin": "24px"
+                    },
+                    "fontFamily": {
+                        "headline-lg": ["Inter"],
+                        "code-sm": ["jetbrainsMono"],
+                        "body-md": ["Inter"],
+                        "body-sm": ["Inter"],
+                        "label-md": ["Geist"],
+                        "headline-md": ["Inter"],
+                        "body-lg": ["Inter"],
+                        "display-sm": ["Inter"]
+                    },
+                    "fontSize": {
+                        "headline-lg": ["24px", { "lineHeight": "32px", "letterSpacing": "-0.01em", "fontWeight": "600" }],
+                        "code-sm": ["12px", { "lineHeight": "16px", "fontWeight": "400" }],
+                        "body-md": ["14px", { "lineHeight": "20px", "fontWeight": "400" }],
+                        "body-sm": ["13px", { "lineHeight": "18px", "fontWeight": "400" }],
+                        "label-md": ["12px", { "lineHeight": "16px", "letterSpacing": "0.02em", "fontWeight": "500" }],
+                        "headline-md": ["20px", { "lineHeight": "28px", "fontWeight": "600" }],
+                        "body-lg": ["16px", { "lineHeight": "24px", "fontWeight": "400" }],
+                        "display-sm": ["30px", { "lineHeight": "38px", "letterSpacing": "-0.02em", "fontWeight": "600" }]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        .kanban-col { min-width: 280px; max-width: 320px; }
+        .drag-hover { transform: rotate(2deg); box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1); }
+    </style>
+</head>
+<body class="bg-surface text-on-surface font-body-md min-h-screen flex">
+<!-- SideNavBar -->
+<aside class="bg-surface w-sidebar-width h-screen sticky top-0 left-0 border-r border-outline-variant flex flex-col py-unit-6 px-unit-4 z-50">
+<div class="mb-8 px-4">
+<h1 class="font-headline-lg text-headline-lg font-bold text-primary">AdminPanel</h1>
+<p class="font-body-sm text-body-sm text-on-surface-variant">Back-office</p>
+</div>
+<button class="w-full bg-primary text-on-primary font-label-md text-label-md py-2 rounded-lg mb-6 hover:opacity-90 transition-opacity">
+            New Order
+        </button>
+<nav class="flex-1 overflow-y-auto space-y-1">
+<a class="flex items-center gap-3 px-4 py-2 text-on-surface-variant hover:bg-surface-container-high transition-colors duration-200 rounded-lg" href="#">
+<span class="material-symbols-outlined" data-icon="dashboard">dashboard</span>
+<span class="font-label-md text-label-md">Dashboard</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-2 text-on-surface-variant hover:bg-surface-container-high transition-colors duration-200 rounded-lg" href="#">
+<span class="material-symbols-outlined" data-icon="local_shipping">local_shipping</span>
+<span class="font-label-md text-label-md">Novedades</span>
+</a>
+<!-- Active Tab -->
+<a class="flex items-center gap-3 px-4 py-2 bg-primary text-on-primary rounded-lg border-l-2 border-primary opacity-90 transition-all" href="#">
+<span class="material-symbols-outlined" data-icon="view_kanban">view_kanban</span>
+<span class="font-label-md text-label-md">Kanban Tasks</span>
+</a>
+<!-- Other Tabs omitted for brevity in this mock, but would normally be fully rendered based on JSON -->
+<a class="flex items-center gap-3 px-4 py-2 text-on-surface-variant hover:bg-surface-container-high transition-colors duration-200 rounded-lg" href="#">
+<span class="material-symbols-outlined" data-icon="group">group</span>
+<span class="font-label-md text-label-md">Users</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-2 text-on-surface-variant hover:bg-surface-container-high transition-colors duration-200 rounded-lg" href="#">
+<span class="material-symbols-outlined" data-icon="settings">settings</span>
+<span class="font-label-md text-label-md">Config</span>
+</a>
+</nav>
+</aside>
+<!-- Main Content Area -->
+<main class="flex-1 flex flex-col min-w-0">
+<!-- TopNavBar -->
+<header class="flex justify-between items-center h-16 px-gutter w-full bg-surface-bright border-b border-outline-variant sticky top-0 z-40">
+<div class="flex-1"></div> <!-- Spacer -->
+<div class="flex items-center gap-4">
+<button class="text-on-surface-variant hover:text-primary transition-colors">
+<span class="material-symbols-outlined">notifications</span>
+</button>
+<button class="text-on-surface-variant hover:text-primary transition-colors">
+<span class="material-symbols-outlined">settings</span>
+</button>
+<button class="text-on-surface-variant hover:text-primary transition-colors">
+<span class="material-symbols-outlined">help</span>
+</button>
+<div class="h-6 w-px bg-outline-variant mx-2"></div>
+<button class="font-label-md text-label-md text-on-surface-variant hover:text-primary">Support</button>
+<button class="font-label-md text-label-md text-primary font-bold">Profile</button>
+<img alt="User Avatar" class="w-8 h-8 rounded-full bg-surface-variant object-cover" data-alt="A small circular user avatar image showing a professional headshot of a person in a well-lit office environment, conveying a modern and corporate aesthetic suitable for an admin panel dashboard." src="https://lh3.googleusercontent.com/aida-public/AB6AXuD3V7BBunEaqqiXzIX471wRnPRYvxVo1LSfBYkeFx9Zpt65F5VIhLNV983khkh_-qK4AVCg_B7h8hkJu-wRQdxWK53VJ1vKer1a25TpEohLng5iUtg1wY0WQ-KQLsKhGRVo2vRBcxXEHL7FwhLEjg6AyAW2xBEQ2aKfT0sJL1Uxm3LdhW5hdLlHcMq60sWFr3D0GerIT8iD0Zg_aHib878HEhvKaEP3GubSHkrRGr625YMWCcxIFmHz1Q"/>
+</div>
+</header>
+<!-- Page Canvas -->
+<div class="p-container-margin flex-1 overflow-x-auto flex flex-col bg-background">
+<!-- Header & Filters -->
+<div class="mb-6 flex justify-between items-end flex-wrap gap-4">
+<div>
+<h2 class="font-display-sm text-display-sm text-on-background">Internal Tasks</h2>
+<p class="font-body-md text-body-md text-on-surface-variant mt-1">Manage and track administrative workflows.</p>
+</div>
+<div class="flex items-center gap-3">
+<!-- Filters -->
+<div class="flex bg-surface-container-lowest border border-outline-variant rounded-lg p-1">
+<button class="px-3 py-1 font-label-md text-label-md bg-surface-container-high text-on-surface rounded-md">Assignee</button>
+<button class="px-3 py-1 font-label-md text-label-md text-on-surface-variant hover:bg-surface-container transition-colors rounded-md">Priority</button>
+</div>
+<button class="flex items-center gap-2 bg-primary text-on-primary px-4 py-2 rounded-lg font-label-md text-label-md hover:bg-primary-container transition-colors">
+<span class="material-symbols-outlined text-sm">add</span>
+                        New Task
+                    </button>
+</div>
+</div>
+<!-- Kanban Board Area -->
+<div class="flex gap-6 flex-1 items-start">
+<!-- Column: To Do -->
+<div class="kanban-col bg-surface-container-low rounded-xl p-4 flex flex-col gap-3">
+<div class="flex justify-between items-center mb-2">
+<h3 class="font-label-md text-label-md text-on-surface uppercase tracking-wider">To Do</h3>
+<span class="bg-surface-variant text-on-surface-variant text-xs py-0.5 px-2 rounded-full font-code-sm">3</span>
+</div>
+<!-- Card 1 -->
+<div class="bg-surface-container-lowest p-3 rounded-lg border border-outline-variant hover:bg-surface-container-lowest transition-colors cursor-grab active:cursor-grabbing group">
+<div class="flex justify-between items-start mb-2">
+<span class="bg-error/10 text-error text-[10px] uppercase font-bold px-1.5 py-0.5 rounded">High</span>
+<span class="material-symbols-outlined text-outline text-sm group-hover:text-primary">more_horiz</span>
+</div>
+<h4 class="font-body-md text-body-md text-on-surface font-medium mb-1 line-clamp-2">Update server certificates</h4>
+<div class="flex justify-between items-center mt-4">
+<span class="font-code-sm text-code-sm text-on-surface-variant flex items-center gap-1">
+<span class="material-symbols-outlined text-[14px]">calendar_today</span> Oct 12
+                            </span>
+<img alt="Assignee" class="w-6 h-6 rounded-full bg-surface-variant border border-surface-container-lowest" data-alt="A tiny circular user avatar image showing a confident professional woman wearing glasses, suitable for a task assignment icon in a modern corporate dashboard." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDluyWAPcm2FXO5lIVAAxJU96JPIqkoLM3LAd2gxS9571r0rWfFvODv8cpB-YpGFoLNK3sAHg7q1UBM9pdSnBf-BqpR96AgNiIT2775SLy8qUCFRugIOETI7ZG53YtQ4TiXyHKZDD28-ZzmFzEhFHGPSSFhC4nwEFXZjsnZkQB03z5nCKegwwI8UFQhaPOjxuegGGK77fo181mNOQoYku4wcTDsOC9m0-YkfnSV0IQbXj8l-Hsi8BnUAA"/>
+</div>
+</div>
+<!-- Card 2 -->
+<div class="bg-surface-container-lowest p-3 rounded-lg border border-outline-variant hover:bg-surface-container-lowest transition-colors cursor-grab active:cursor-grabbing group">
+<div class="flex justify-between items-start mb-2">
+<span class="bg-tertiary-container/10 text-tertiary-container text-[10px] uppercase font-bold px-1.5 py-0.5 rounded">Medium</span>
+<span class="material-symbols-outlined text-outline text-sm group-hover:text-primary">more_horiz</span>
+</div>
+<h4 class="font-body-md text-body-md text-on-surface font-medium mb-1 line-clamp-2">Review Q3 Financial Reports</h4>
+<div class="flex justify-between items-center mt-4">
+<span class="font-code-sm text-code-sm text-on-surface-variant flex items-center gap-1">
+<span class="material-symbols-outlined text-[14px]">calendar_today</span> Oct 15
+                            </span>
+<div class="w-6 h-6 rounded-full bg-secondary-container text-on-secondary-container flex items-center justify-center font-label-md text-[10px] border border-surface-container-lowest">JS</div>
+</div>
+</div>
+<button class="w-full py-2 border border-dashed border-outline-variant text-on-surface-variant rounded-lg font-label-md text-label-md hover:border-primary hover:text-primary transition-colors flex items-center justify-center gap-1 mt-2">
+<span class="material-symbols-outlined text-sm">add</span> Add Card
+                    </button>
+</div>
+<!-- Column: In Progress -->
+<div class="kanban-col bg-surface-container-low rounded-xl p-4 flex flex-col gap-3">
+<div class="flex justify-between items-center mb-2">
+<h3 class="font-label-md text-label-md text-on-surface uppercase tracking-wider flex items-center gap-2">
+<span class="w-2 h-2 rounded-full bg-primary"></span> In Progress
+                        </h3>
+<span class="bg-surface-variant text-on-surface-variant text-xs py-0.5 px-2 rounded-full font-code-sm">2</span>
+</div>
+<!-- Card 3 -->
+<div class="bg-surface-container-lowest p-3 rounded-lg border border-outline-variant hover:bg-surface-container-lowest transition-colors cursor-grab active:cursor-grabbing group">
+<div class="flex justify-between items-start mb-2">
+<span class="bg-error/10 text-error text-[10px] uppercase font-bold px-1.5 py-0.5 rounded">High</span>
+<span class="material-symbols-outlined text-outline text-sm group-hover:text-primary">more_horiz</span>
+</div>
+<h4 class="font-body-md text-body-md text-on-surface font-medium mb-1 line-clamp-2">Database Migration Script</h4>
+<div class="flex justify-between items-center mt-4">
+<span class="font-code-sm text-code-sm text-error flex items-center gap-1">
+<span class="material-symbols-outlined text-[14px]">warning</span> Today
+                            </span>
+<img alt="Assignee" class="w-6 h-6 rounded-full bg-surface-variant border border-surface-container-lowest" data-alt="A small circular avatar showing a male software developer focused, suitable for a technical task assignment in an admin dashboard." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCiXdXqnHSY2ElJ_BtFGFGozdPANn3O4ZGt-9arWbAQP2XBQnIwPanQh-JRh5herox2UV65egGYq9mIOXRMpfJra1F-NsKY4zk6O4H3-3cooJxs7Ntv5cf8f2Q7Y605BG6bX7XsoeeIwdDiIfxawcW-RH701GSKa7PkrZOQqHrWTNI-PJURc-8oeJ0J7ALrbUj98Xh12BFkfcx_YJNJsSaUVWjNh3_eCKw0bYvBDwX6tHNv-5p1K969tw"/>
+</div>
+</div>
+<button class="w-full py-2 border border-dashed border-outline-variant text-on-surface-variant rounded-lg font-label-md text-label-md hover:border-primary hover:text-primary transition-colors flex items-center justify-center gap-1 mt-2">
+<span class="material-symbols-outlined text-sm">add</span> Add Card
+                    </button>
+</div>
+<!-- Column: Done -->
+<div class="kanban-col bg-surface-container-low rounded-xl p-4 flex flex-col gap-3 opacity-80">
+<div class="flex justify-between items-center mb-2">
+<h3 class="font-label-md text-label-md text-on-surface uppercase tracking-wider flex items-center gap-2">
+<span class="material-symbols-outlined text-[16px] text-secondary">check_circle</span> Done
+                        </h3>
+<span class="bg-surface-variant text-on-surface-variant text-xs py-0.5 px-2 rounded-full font-code-sm">1</span>
+</div>
+<!-- Card 4 -->
+<div class="bg-surface-container-lowest p-3 rounded-lg border border-outline-variant hover:bg-surface-container-lowest transition-colors cursor-grab active:cursor-grabbing group">
+<div class="flex justify-between items-start mb-2">
+<span class="bg-surface-variant text-on-surface-variant text-[10px] uppercase font-bold px-1.5 py-0.5 rounded">Low</span>
+<span class="material-symbols-outlined text-outline text-sm group-hover:text-primary">more_horiz</span>
+</div>
+<h4 class="font-body-md text-body-md text-on-surface-variant line-through mb-1 line-clamp-2">Update Employee Handbook</h4>
+<div class="flex justify-between items-center mt-4">
+<span class="font-code-sm text-code-sm text-on-surface-variant flex items-center gap-1">
+                                 Oct 10
+                            </span>
+<div class="w-6 h-6 rounded-full bg-primary-container text-on-primary-container flex items-center justify-center font-label-md text-[10px] border border-surface-container-lowest">HR</div>
+</div>
+</div>
+<button class="w-full py-2 border border-dashed border-outline-variant text-on-surface-variant rounded-lg font-label-md text-label-md hover:border-primary hover:text-primary transition-colors flex items-center justify-center gap-1 mt-2">
+<span class="material-symbols-outlined text-sm">add</span> Add Card
+                    </button>
+</div>
+</div>
+</div>
+</main>
+</body></html>
