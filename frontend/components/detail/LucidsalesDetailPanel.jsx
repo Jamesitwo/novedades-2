@@ -580,9 +580,7 @@ export default function LucidsalesDetailPanel({ id, ids, currentIndex, onClose, 
               title="Pedido siguiente">→</button>
           </div>
           <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
-            {uploaded && (
-              <button onClick={handleDuplicate} disabled={uploading} className="btn btn-ghost" style={{ fontSize: 11 }}>🔄 Duplicar</button>
-            )}
+            <button onClick={handleDuplicate} disabled={uploading} className="btn btn-ghost" style={{ fontSize: 11 }}>🔄 Duplicar</button>
             <button onClick={handleSave} disabled={saving} className="btn btn-primary" style={{ fontSize: 11 }}>
               {saving ? 'Guardando...' : camposModificados.size > 0 ? `💾 Guardar (${camposModificados.size})` : '💾 Guardar'}
             </button>
