@@ -44,7 +44,7 @@ export default function LoginPage() {
         padding: '40px 48px',
         width: '100%',
         maxWidth: 420,
-        boxShadow: '0 20px 60px rgba(0,0,0,0.4)'
+        boxShadow: '0 20px 25px -5px rgba(0,0,0,0.25)'
       }}>
         <div style={{ textAlign: 'center', marginBottom: 32 }}>
           <div style={{
@@ -60,9 +60,9 @@ export default function LoginPage() {
               background: 'var(--green)',
               boxShadow: '0 0 8px var(--green)'
             }}></span>
-            <span style={{ fontSize: 18, fontWeight: 600, color: 'var(--text)' }}>GestiónNovedades</span>
+            <span style={{ fontSize: 20, fontWeight: 700, color: 'var(--text)' }}>AdminPanel</span>
           </div>
-          <div style={{ fontSize: 12, color: 'var(--text3)', fontFamily: 'var(--mono)' }}>v1.0 · desarrollo</div>
+          <div style={{ fontSize: 12, color: 'var(--text3)', fontFamily: 'var(--label-font)', textTransform: 'uppercase', letterSpacing: '0.1em' }}>Back-office</div>
         </div>
 
         <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>

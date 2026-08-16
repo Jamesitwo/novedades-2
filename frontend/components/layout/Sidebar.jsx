@@ -9,6 +9,7 @@ import { on, isConnected } from '../../lib/websocket';
 import api from '../../lib/api';
 import PasswordChangeModal from './PasswordChangeModal';
 import Toaster from '../ui/Toaster';
+import Icon from '../ui/Icon';
 
 export default function Sidebar() {
   const pathname = usePathname();
@@ -18,8 +19,7 @@ export default function Sidebar() {
   const [counts, setCounts] = useState({ novedadesActivas: 0, oficinaActivos: 0, devoluciones: 0 });
   const [wsConnected, setWsConnected] = useState(false);
   const [showPasswordModal, setShowPasswordModal] = useState(false);
-
-  const [openSections, setOpenSections] = useState({ pedidos: false, pizdo: false, lucidsales: false, admin: false });
+  const [openSections, setOpenSections] = useState({ logistics: true, finance: true, channels: true, system: true });
 
   useEffect(() => {
     initTheme();
@@ -55,46 +55,29 @@ export default function Sidebar() {
   const canOfi = isAdmin || usuario?.gestionaOficina !== false;
   const showLucidsales = isAdmin || usuario?.accesoLucidsales === true;
 
-  const mainItems = [
-    { href: '/admin/dashboard', label: 'Dashboard', icon: '▣' },
-    ...(canNov ? [{ href: '/admin/novedades', label: 'Novedades', icon: '⚠', badge: counts.novedadesActivas > 0 ? counts.novedadesActivas : null, badgeColor: 'amber' }] : []),
-    ...(canOfi ? [{ href: '/admin/oficina', label: 'En oficina', icon: '📦', badge: counts.oficinaActivos > 0 ? counts.oficinaActivos : null }] : []),
-    ...(canNov || canOfi ? [{ href: '/admin/devoluciones', label: 'Devoluciones', icon: '↩️', badge: counts.devoluciones > 0 ? counts.devoluciones : null, badgeColor: 'purple' }] : []),
-  ];
-
-  const pedidosItems = [
-    ...(canNov ? [{ href: '/admin/solucionados', label: 'Solucionados', icon: '✅' }] : []),
-    ...(canOfi ? [{ href: '/admin/recoger', label: 'Por Recoger', icon: '📦' }] : []),
-    { href: '/admin/facturas', label: 'Facturas', icon: '📄' },
-    { href: '/admin/garantias', label: 'Garantías', icon: '📋' },
-    { href: '/admin/etiquetas', label: 'Etiquetas', icon: '🏷️' },
-  ];
-
-  const pizdoItems = [
-    ...(showLucidsales || isAdmin ? [{ href: '/', label: 'Tienda', icon: '🛒' }] : []),
-    ...(isAdmin ? [{ href: '/admin/tienda', label: 'Admin Tienda', icon: '⚙' }] : []),
-    ...(isAdmin ? [{ href: '/admin/pedidos', label: 'Pedidos', icon: '📦' }] : []),
-  ];
-
-  const adminItems = isAdmin ? [
-    { href: '/admin/dashboard/metricas', label: 'Métricas', icon: '📊' },
-    { href: '/admin/pizdo', label: 'Productos Ganadores', icon: '🏆' },
-    { href: '/admin/tareas', label: 'Tareas', icon: '📋' },
-    { href: '/admin/usuarios', label: 'Usuarios', icon: '👥' },
-    { href: '/admin/plantillas', label: 'Plantillas WhatsApp', icon: '💬' },
-    { href: '/admin/configuracion', label: 'Configuración', icon: '⚙' },
-    { href: '/apikey', label: 'API Keys', icon: '🔑' },
-    { href: '/admin/sesiones', label: 'Sesiones', icon: '🔐' },
-  ] : [];
-
-  const lucidsalesItems = showLucidsales ? [
-    { href: '/admin/lucidsales', label: 'LucidSales', icon: '💎' },
-    { href: '/admin/lucidsales/productos', label: 'Prod. LucidSales', icon: '📦' },
-  ] : [];
-
-  const toggleSection = (key) => {
-    setOpenSections(prev => ({ ...prev, [key]: !prev[key] }));
+  const NavItem = ({ href, icon, label, badge, badgeColor, exact }) => {
+    const active = exact ? pathname === href : pathname.startsWith(href);
+    return (
+      <Link
+        href={href}
+        className={`nav-item ${active ? 'active' : ''}`}
+      >
+        <span className="nav-icon"><Icon name={icon} size={18} /></span>
+        <span className="nav-text">{label}</span>
+        {badge && <span className={`nav-badge ${badgeColor || ''}`}>{badge}</span>}
+      </Link>
+    );
   };
+
+  const Section = ({ title, children, sectionKey }) => (
+    <>
+      <div className="sidebar-label" onClick={() => setOpenSections(prev => ({ ...prev, [sectionKey]: !prev[sectionKey] }))}>
+        {title}
+        <span className="sidebar-label-arrow">{openSections[sectionKey] ? '▼' : '▶'}</span>
+      </div>
+      {openSections[sectionKey] && children}
+    </>
+  );
 
   return (
     <>
@@ -102,119 +85,85 @@ export default function Sidebar() {
     <aside className="sidebar">
       <div className="sidebar-logo">
         <div className="logo-text">
-          <span className="logo-dot"></span>GestiónNovedades
+          <span className="logo-dot"></span>AdminPanel
         </div>
-        <div className="logo-sub">v1.0 · desarrollo</div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 5, marginTop: 6, fontSize: 10 }}>
+        <div className="logo-sub">Back-office · Pizdo</div>
+        <div className="sidebar-status" style={{ display: 'flex', alignItems: 'center', gap: 5, marginTop: 6, fontSize: 10 }}>
           <span style={{
             width: 7, height: 7, borderRadius: '50%',
             background: wsConnected ? 'var(--green)' : 'var(--red)',
             boxShadow: wsConnected ? '0 0 6px var(--green)' : 'none',
             transition: 'background 0.3s'
           }} />
-          <span style={{ color: 'var(--text3)' }}>{wsConnected ? 'En vivo' : 'Sin conexión'}</span>
+          <span className="nav-text" style={{ color: 'var(--text3)' }}>{wsConnected ? 'En vivo' : 'Sin conexión'}</span>
         </div>
       </div>
 
+      <div className="sidebar-new-btn-wrap">
+        <Link href="/admin/novedades/nueva" className="sidebar-new-btn">
+          <Icon name="add" size={18} />
+          <span className="nav-text">Nueva novedad</span>
+        </Link>
+      </div>
+
       <nav className="sidebar-section">
-        {mainItems.map((item) => (
-          <Link
-            key={item.href}
-            href={item.href}
-            className={`nav-item ${pathname.startsWith(item.href) ? 'active' : ''}`}
-          >
-            <span className="icon">{item.icon}</span>
-            <span>{item.label}</span>
-            {item.badge && <span className={`nav-badge ${item.badgeColor || ''}`}>{item.badge}</span>}
-          </Link>
-        ))}
+        <NavItem href="/admin/dashboard" icon="dashboard" label="Dashboard" exact />
 
-        <div className="sidebar-label" onClick={() => toggleSection('pedidos')} style={{ cursor: 'pointer', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <span>Pedidos</span>
-          <span style={{ fontSize: 10 }}>{openSections.pedidos ? '▲' : '▼'}</span>
-        </div>
-        {openSections.pedidos && pedidosItems.map((item) => (
-          <Link
-            key={item.href}
-            href={item.href}
-            className={`nav-item ${pathname.startsWith(item.href) ? 'active' : ''}`}
-          >
-            <span className="icon">{item.icon}</span>
-            <span>{item.label}</span>
-          </Link>
-        ))}
+        <Section title="Logística" sectionKey="logistics">
+          {canNov && <NavItem href="/admin/novedades" icon="local_shipping" label="Novedades" badge={counts.novedadesActivas > 0 ? counts.novedadesActivas : null} badgeColor="amber" />}
+          {canOfi && <NavItem href="/admin/oficina" icon="inventory_2" label="En oficina" badge={counts.oficinaActivos > 0 ? counts.oficinaActivos : null} badgeColor="amber" />}
+          {(canNov || canOfi) && <NavItem href="/admin/devoluciones" icon="assignment_return" label="Devoluciones" badge={counts.devoluciones > 0 ? counts.devoluciones : null} badgeColor="purple" />}
+          {canOfi && <NavItem href="/admin/recoger" icon="hail" label="Por Recoger" />}
+          {canNov && <NavItem href="/admin/solucionados" icon="check_circle" label="Solucionados" />}
+        </Section>
 
-        <div className="sidebar-label" onClick={() => toggleSection('pizdo')} style={{ cursor: 'pointer', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <span>Pizdo</span>
-          <span style={{ fontSize: 10 }}>{openSections.pizdo ? '▲' : '▼'}</span>
-        </div>
-        {openSections.pizdo && pizdoItems.map((item) => (
-          <Link
-            key={item.href}
-            href={item.href}
-            className={`nav-item ${pathname.startsWith(item.href) ? 'active' : ''}`}
-          >
-            <span className="icon">{item.icon}</span>
-            <span>{item.label}</span>
-          </Link>
-        ))}
+        <Section title="Finanzas y Admin" sectionKey="finance">
+          <NavItem href="/admin/facturas" icon="receipt_long" label="Facturas" />
+          <NavItem href="/admin/garantias" icon="verified" label="Garantías" />
+          <NavItem href="/admin/etiquetas" icon="label" label="Etiquetas" />
+        </Section>
 
-        {lucidsalesItems.length > 0 && (
-          <>
-            <div className="sidebar-label" onClick={() => toggleSection('lucidsales')} style={{ cursor: 'pointer', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <span>LucidSales</span>
-              <span style={{ fontSize: 10 }}>{openSections.lucidsales ? '▲' : '▼'}</span>
-            </div>
-            {openSections.lucidsales && lucidsalesItems.map((item) => (
-              <Link
-                key={item.href}
-                href={item.href}
-                className={`nav-item ${pathname.startsWith(item.href) ? 'active' : ''}`}
-              >
-                <span className="icon">{item.icon}</span>
-                <span>{item.label}</span>
-              </Link>
-            ))}
-          </>
-        )}
+        <Section title="Canales" sectionKey="channels">
+          {(showLucidsales || isAdmin) && <NavItem href="/" icon="storefront" label="Pizdo · Tienda" exact />}
+          {showLucidsales && <NavItem href="/admin/lucidsales" icon="shopping_cart" label="LucidSales" />}
+        </Section>
 
-        {adminItems.length > 0 && (
-          <>
-            <div className="sidebar-label" onClick={() => toggleSection('admin')} style={{ cursor: 'pointer', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <span>Administración</span>
-              <span style={{ fontSize: 10 }}>{openSections.admin ? '▲' : '▼'}</span>
-            </div>
-            {openSections.admin && adminItems.map((item) => (
-              <Link
-                key={item.href}
-                href={item.href}
-                className={`nav-item ${pathname.startsWith(item.href) ? 'active' : ''}`}
-              >
-                <span className="icon">{item.icon}</span>
-                <span>{item.label}</span>
-              </Link>
-            ))}
-          </>
-        )}
-        </nav>
+        <Section title="Sistema" sectionKey="system">
+          {isAdmin && <NavItem href="/admin/dashboard/metricas" icon="bar_chart" label="Métricas" />}
+          {isAdmin && <NavItem href="/admin/tareas" icon="task_alt" label="Tareas" />}
+          {isAdmin && <NavItem href="/admin/tienda" icon="store" label="Admin Tienda" />}
+          {isAdmin && <NavItem href="/admin/pedidos" icon="package_2" label="Pedidos" />}
+          {isAdmin && <NavItem href="/admin/pizdo" icon="trophy" label="P. Ganadores" />}
+          {isAdmin && <NavItem href="/admin/usuarios" icon="group" label="Usuarios" />}
+          {isAdmin && <NavItem href="/admin/plantillas" icon="forum" label="Plantillas" />}
+          {isAdmin && <NavItem href="/admin/configuracion" icon="settings" label="Configuración" />}
+          {isAdmin && <NavItem href="/apikey" icon="key" label="API Keys" />}
+          {isAdmin && <NavItem href="/admin/sesiones" icon="lock_clock" label="Sesiones" />}
+        </Section>
+      </nav>
 
       <div className="sidebar-bottom">
         <div className="user-card">
           <div className="user-avatar">{getInitials(usuario?.nombre)}</div>
           <div className="user-info">
             <div className="name">{usuario?.nombre}</div>
-            <div className="role">{usuario?.rol}</div>
+            <div className="role">{usuario?.rol} · {usuario?.email}</div>
           </div>
         </div>
-        <button onClick={() => setShowPasswordModal(true)} className="btn btn-ghost" style={{ width: '100%', marginTop: 8, justifyContent: 'center', gap: 8 }}>
-          🔒 Cambiar contraseña
-        </button>
-        <button onClick={toggleTheme} className="btn btn-ghost" style={{ width: '100%', marginTop: 4, justifyContent: 'center', gap: 8 }}>
-          {theme === 'dark' ? '☀️ Modo claro' : '🌙 Modo oscuro'}
-        </button>
-        <button onClick={() => { logout(); router.push('/admin/login'); }} className="btn btn-ghost" style={{ width: '100%', marginTop: 4, justifyContent: 'center' }}>
-          Cerrar Sesión
-        </button>
+        <div className="sidebar-bottom-actions">
+          <button onClick={() => setShowPasswordModal(true)} className="btn btn-ghost" title="Cambiar contraseña">
+            <Icon name="key" size={16} />
+            <span className="nav-text">Contraseña</span>
+          </button>
+          <button onClick={toggleTheme} className="btn btn-ghost" title="Cambiar tema">
+            <Icon name={theme === 'dark' ? 'light_mode' : 'dark_mode'} size={16} />
+            <span className="nav-text">{theme === 'dark' ? 'Modo claro' : 'Modo oscuro'}</span>
+          </button>
+          <button onClick={() => { logout(); router.push('/admin/login'); }} className="btn btn-ghost" title="Cerrar sesión">
+            <Icon name="logout" size={16} />
+            <span className="nav-text">Cerrar sesión</span>
+          </button>
+        </div>
       </div>
     </aside>
 

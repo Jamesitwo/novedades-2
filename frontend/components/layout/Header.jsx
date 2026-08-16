@@ -1,24 +1,14 @@
 'use client';
 
 import { useEffect } from 'react';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
+import { useAuthStore } from '../../store/authStore';
+import Icon from '../ui/Icon';
 
 export default function Header() {
   const pathname = usePathname();
-
-  useEffect(() => {
-    const handleClickOutside = (e) => {
-      if (document.body.classList.contains('sidebar-open')) {
-        const sidebar = document.querySelector('.sidebar');
-        const hamburger = document.querySelector('.hamburger-btn');
-        if (sidebar && !sidebar.contains(e.target) && hamburger && !hamburger.contains(e.target)) {
-          document.body.classList.remove('sidebar-open');
-        }
-      }
-    };
-    document.addEventListener('click', handleClickOutside);
-    return () => document.removeEventListener('click', handleClickOutside);
-  }, []);
+  const router = useRouter();
+  const { usuario } = useAuthStore();
 
   useEffect(() => {
     document.body.classList.remove('sidebar-open');
@@ -46,9 +36,16 @@ export default function Header() {
     if (pathname.startsWith('/admin/garantias')) return 'Garantías';
     if (pathname.startsWith('/admin/tareas')) return 'Tareas';
     if (pathname.startsWith('/admin/plantillas')) return 'Plantillas WhatsApp';
+    if (pathname.startsWith('/admin/tienda')) return 'Admin Tienda';
+    if (pathname.startsWith('/admin/pedidos')) return 'Pedidos Tienda';
     if (pathname.startsWith('/admin/lucidsales/productos')) return 'LucidSales · Productos';
     if (pathname.startsWith('/admin/lucidsales')) return 'LucidSales · Pedidos';
     return '';
+  };
+
+  const getInitials = (nombre) => {
+    if (!nombre) return '?';
+    return nombre.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
   };
 
   return (
@@ -56,23 +53,22 @@ export default function Header() {
       <button
         className="hamburger-btn"
         onClick={toggleSidebar}
-        style={{
-          background: 'none',
-          border: 'none',
-          color: 'var(--text)',
-          fontSize: 22,
-          cursor: 'pointer',
-          padding: '4px 6px',
-          marginRight: 8,
-          lineHeight: 1
-        }}
         aria-label="Menú"
       >
-        ☰
+        <Icon name="menu" size={22} />
       </button>
       <h1 className="topbar-title">{getTitle()}</h1>
-      <div className="topbar-date" style={{ marginLeft: 'auto', color: 'var(--text3)', fontSize: '11px', fontFamily: 'var(--mono)', whiteSpace: 'nowrap' }} suppressHydrationWarning>
-        {new Date().toLocaleDateString('es-CO', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
+      <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 12 }}>
+        <div className="topbar-date" style={{ color: 'var(--text3)', fontSize: 11, fontFamily: 'var(--mono)', whiteSpace: 'nowrap' }} suppressHydrationWarning>
+          {new Date().toLocaleDateString('es-CO', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
+        </div>
+        <button
+          className="topbar-avatar"
+          onClick={() => router.push('/admin/configuracion')}
+          title={usuario?.nombre || 'Perfil'}
+        >
+          {getInitials(usuario?.nombre)}
+        </button>
       </div>
     </header>
   );
