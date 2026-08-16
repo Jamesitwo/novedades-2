@@ -2,6 +2,8 @@
 
 import { useState, useEffect, useRef, useCallback } from 'react';
 import api from '@/lib/api';
+import Icon from '@/components/ui/Icon';
+import Button from '@/components/ui/Button';
 
 const ESTADOS = [
   { value: 0, label: 'Por confirmar' },
@@ -504,11 +506,11 @@ export default function LucidsalesDetailPanel({ id, ids, currentIndex, onClose, 
   };
 
   const fieldStyle = (fieldName) => ({
-    background: 'var(--bg3)',
+    background: 'var(--bg)',
     border: camposModificados.has(fieldName) ? '2px solid var(--green)' : '1px solid var(--border)',
-    borderRadius: 6, padding: '6px 8px', color: 'var(--text)', fontSize: 12,
+    borderRadius: 8, padding: '8px 10px', color: 'var(--text)', fontSize: 13,
     width: '100%', boxSizing: 'border-box', outline: 'none', fontFamily: 'inherit',
-    transition: 'border-color 0.2s'
+    transition: 'border-color 0.2s, box-shadow 0.2s'
   });
 
   // ----- RENDER -----
@@ -553,273 +555,322 @@ export default function LucidsalesDetailPanel({ id, ids, currentIndex, onClose, 
     return stock !== undefined && stock !== null && stock <= 20;
   }).map(prod => ({ ...prod, _stock: productosStock[String(prod.product_id)] }));
 
+  const estadoColor = { 0: 'var(--amber)', 1: 'var(--red)', 2: 'var(--green)', 3: 'var(--purple)' }[pedido.EstadoPedido] || 'var(--text2)';
+
+  const LBL = { fontSize: 11, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em', color: 'var(--text3)', fontFamily: 'var(--label-font)', display: 'block', marginBottom: 4 };
+
+  const SelectField = ({ label, value, onChange, children, disabled, fn }) => (
+    <div style={{ minWidth: 0 }}>
+      <label style={LBL}>{label}</label>
+      <div style={{ position: 'relative' }}>
+        <select value={value} onChange={onChange} disabled={disabled} style={{ ...fieldStyle(fn), appearance: 'none', paddingRight: 32, height: 40, cursor: 'pointer' }}>
+          {children}
+        </select>
+        <Icon name="expand_more" size={18} style={{ position: 'absolute', right: 8, top: 11, color: 'var(--text3)', pointerEvents: 'none' }} />
+      </div>
+    </div>
+  );
+
+  const AccordionHeader = ({ title, count, open, onToggle }) => (
+    <div onClick={onToggle} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '12px 14px', cursor: 'pointer', userSelect: 'none', fontWeight: 700, fontSize: 13, color: 'var(--text)', borderBottom: open ? '1px solid var(--border)' : 'none' }}>
+      <Icon name={open ? 'expand_more' : 'play_arrow'} size={18} style={{ color: 'var(--text3)' }} />
+      {title}
+      {count != null && <span style={{ color: 'var(--text3)', fontWeight: 400 }}>({count})</span>}
+    </div>
+  );
+
   return (
     <>
       <div className="detail-panel-overlay" onClick={onClose} />
-      <div className="detail-panel" ref={panelRef} style={{ overflowY: 'auto' }}>
+
+      <div className="detail-panel" ref={panelRef} style={{ overflowY: 'auto', background: 'var(--bg2)' }}>
 
         {/* HEADER */}
-        <div className="lsd-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 8, padding: '12px 16px', borderBottom: '1px solid var(--border)', background: 'var(--bg2)', position: 'sticky', top: 0, zIndex: 10, boxShadow: '0 2px 8px rgba(0,0,0,0.15)' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap', minWidth: 0 }}>
-            <button onClick={() => hasPrev && onNavigate(ids[idIndex - 1])} disabled={!hasPrev}
-              style={{ background: 'none', border: '1px solid var(--border)', borderRadius: 6, width: 28, height: 28, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: hasPrev ? 'pointer' : 'default', color: 'var(--text)', opacity: hasPrev ? 1 : 0.3, fontSize: 14 }}
-              title="Pedido anterior">←</button>
-            <div>
-              <div style={{ fontWeight: 700, fontSize: 14, color: 'var(--text)' }}>
-                Pedido #{pedido.idPedido}
-                <span className={`badge ${ESTADOS_BADGE[estadoActual.value] || 'pendiente'}`} style={{ marginLeft: 8, verticalAlign: 'middle', fontSize: 10 }}>
+        <div className="lsd-header" style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '12px 16px', borderBottom: '1px solid var(--border)', background: 'var(--bg2)', position: 'sticky', top: 0, zIndex: 10, boxShadow: '0 2px 8px rgba(0,0,0,0.15)' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 2, minWidth: 0, flex: 1 }}>
+            <button onClick={() => hasPrev && onNavigate(ids[idIndex - 1])} disabled={!hasPrev} className="lsd-nav-btn" title="Pedido anterior" aria-label="Pedido anterior">
+              <Icon name="arrow_back" size={20} />
+            </button>
+            <div style={{ minWidth: 0, padding: '0 4px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+                <h1 style={{ fontSize: 19, fontWeight: 600, color: 'var(--text)', letterSpacing: '-0.01em', margin: 0, whiteSpace: 'nowrap' }}>Pedido #{pedido.idPedido}</h1>
+                <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '2px 10px', borderRadius: 20, fontSize: 12, fontWeight: 600, background: `color-mix(in srgb, ${estadoColor} 15%, transparent)`, color: estadoColor, border: `1px solid color-mix(in srgb, ${estadoColor} 35%, transparent)` }}>
+                  <span style={{ width: 6, height: 6, borderRadius: '50%', background: estadoColor }} />
                   {estadoActual.label}
                 </span>
               </div>
-              <div style={{ fontSize: 10, color: 'var(--text3)' }}>
+              <div style={{ fontSize: 11, color: 'var(--text3)', marginTop: 2, fontFamily: 'var(--mono)' }}>
                 {idIndex + 1} de {ids.length}
               </div>
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginTop: 6 }}>
+                {etiquetas.map(e => (
+                  <span key={e.id} style={{ display: 'inline-flex', alignItems: 'center', padding: '2px 10px', borderRadius: 20, fontSize: 11, fontWeight: 700, color: '#fff', background: e.color, border: '1px solid transparent' }}>
+                    {e.nombre}
+                  </span>
+                ))}
+                <button onClick={() => { setOpenSections(prev => ({ ...prev, etiquetas: true })); }} className="lsd-nav-btn" style={{ width: 26, height: 26, border: '1px dashed var(--border)' }} title="Agregar etiqueta">
+                  <Icon name="add" size={14} />
+                </button>
+              </div>
             </div>
-            <button onClick={() => hasNext && onNavigate(ids[idIndex + 1])} disabled={!hasNext}
-              style={{ background: 'none', border: '1px solid var(--border)', borderRadius: 6, width: 28, height: 28, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: hasNext ? 'pointer' : 'default', color: 'var(--text)', opacity: hasNext ? 1 : 0.3, fontSize: 14 }}
-              title="Pedido siguiente">→</button>
-          </div>
-          <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
-            <button onClick={handleDuplicate} disabled={uploading} className="btn btn-ghost" style={{ fontSize: 11 }}>🔄 Duplicar</button>
-            <button onClick={handleSave} disabled={saving} className="btn btn-primary" style={{ fontSize: 11 }}>
-              {saving ? 'Guardando...' : camposModificados.size > 0 ? `💾 Guardar (${camposModificados.size})` : '💾 Guardar'}
+            <button onClick={() => hasNext && onNavigate(ids[idIndex + 1])} disabled={!hasNext} className="lsd-nav-btn" title="Pedido siguiente" aria-label="Pedido siguiente">
+              <Icon name="arrow_forward" size={20} />
             </button>
-            <button onClick={onClose} style={{ background: 'none', border: 'none', color: 'var(--text3)', cursor: 'pointer', fontSize: 16, padding: '0 4px' }}>✕</button>
+          </div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexShrink: 0 }}>
+            <Button variant="ghost" size="sm" icon="content_copy" onClick={handleDuplicate} disabled={uploading}>Duplicar</Button>
+            <Button size="sm" icon="save" onClick={handleSave} disabled={saving}>
+              {saving ? 'Guardando...' : camposModificados.size > 0 ? `Guardar (${camposModificados.size})` : 'Guardar'}
+            </Button>
+            <button onClick={onClose} className="lsd-nav-btn" aria-label="Cerrar">
+              <Icon name="close" size={20} />
+            </button>
           </div>
         </div>
 
         {/* BODY */}
-        <div style={{ padding: '12px 16px' }}>
+        <div style={{ padding: 16, display: 'flex', flexDirection: 'column', gap: 12 }}>
+
           {/* STOCK ALERT */}
           {bajoStock.length > 0 && (
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap', padding: '8px 12px', borderRadius: 6, marginBottom: 10, background: 'rgba(229,62,62,0.08)', border: '1px solid rgba(229,62,62,0.3)', fontSize: 11 }}>
-              <span style={{ fontWeight: 600 }}>⚠ Stock bajo:</span>
-              {bajoStock.map((p, i) => (
-                <span key={i} style={{ fontWeight: 500, color: p._stock === 0 ? '#e53e3e' : '#f59e0b', whiteSpace: 'nowrap' }}>
-                  {productosMap[String(p.product_id)]?.name || `#${p.product_id}`}
-                  {p._stock === 0 ? ' — AGOTADO' : ` — ${p._stock}`}{i < bajoStock.length - 1 ? ' ·' : ''}
-                </span>
-              ))}
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap', padding: '10px 12px', borderRadius: 10, background: 'color-mix(in srgb, var(--red) 12%, transparent)', border: '1px solid color-mix(in srgb, var(--red) 35%, transparent)', color: 'var(--red)', fontSize: 12 }}>
+              <Icon name="warning" size={18} />
+              <span style={{ fontWeight: 700 }}>Stock bajo:</span>
+              <span style={{ flex: 1, minWidth: 0 }}>
+                {bajoStock.map((p, i) => (
+                  <span key={i} style={{ fontWeight: 500 }}>
+                    {productosMap[String(p.product_id)]?.name || `#${p.product_id}`}
+                    {p._stock === 0 ? ' — AGOTADO' : ` — ${p._stock}`}{i < bajoStock.length - 1 ? ' · ' : ''}
+                  </span>
+                ))}
+              </span>
             </div>
           )}
 
           {/* PRODUCT ALERTS */}
-          {alertasPedido.length > 0 && (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 6, marginBottom: 10 }}>
-              {alertasPedido.map((a, i) => (
-                <div key={a.id} style={{
-                  display: 'flex', alignItems: 'flex-start', gap: 8, padding: '8px 12px', borderRadius: 6,
-                  background: a.tipo === 'danger' ? 'rgba(239,68,68,0.08)' : a.tipo === 'info' ? 'rgba(59,130,246,0.08)' : 'rgba(245,158,11,0.08)',
-                  border: `1px solid ${a.tipo === 'danger' ? 'rgba(239,68,68,0.25)' : a.tipo === 'info' ? 'rgba(59,130,246,0.25)' : 'rgba(245,158,11,0.25)'}`,
-                  fontSize: 11
-                }}>
-                  <span style={{ fontSize: 14, flexShrink: 0 }}>
-                    {a.tipo === 'danger' ? '🔴' : a.tipo === 'info' ? 'ℹ️' : '⚠️'}
-                  </span>
-                  <div style={{ flex: 1, minWidth: 0 }}>
-                    <span style={{ fontWeight: 600, color: 'var(--accent2)', display: 'block' }}>{a.productoNombre}</span>
-                    <span style={{ color: 'var(--text)' }}>{a.mensaje}</span>
-                    <span style={{ fontSize: 10, color: 'var(--text3)', display: 'block', marginTop: 2 }}>
-                      Por {a.createdBy?.nombre || '...'} · {new Date(a.createdAt).toLocaleDateString('es-CO')}
-                    </span>
-                  </div>
-                </div>
-              ))}
+          {alertasPedido.length > 0 && alertasPedido.map((a, i) => (
+            <div key={a.id} style={{
+              display: 'flex', alignItems: 'flex-start', gap: 8, padding: '10px 12px', borderRadius: 10,
+              background: a.tipo === 'danger' ? 'rgba(239,68,68,0.08)' : a.tipo === 'info' ? 'rgba(59,130,246,0.08)' : 'rgba(245,158,11,0.08)',
+              border: `1px solid ${a.tipo === 'danger' ? 'rgba(239,68,68,0.25)' : a.tipo === 'info' ? 'rgba(59,130,246,0.25)' : 'rgba(245,158,11,0.25)'}`,
+              fontSize: 11
+            }}>
+              <span style={{ fontSize: 14, flexShrink: 0 }}>
+                {a.tipo === 'danger' ? '🔴' : a.tipo === 'info' ? 'ℹ️' : '⚠️'}
+              </span>
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <span style={{ fontWeight: 600, color: 'var(--accent2)', display: 'block' }}>{a.productoNombre}</span>
+                <span style={{ color: 'var(--text)' }}>{a.mensaje}</span>
+                <span style={{ fontSize: 10, color: 'var(--text3)', display: 'block', marginTop: 2 }}>
+                  Por {a.createdBy?.nombre || '...'} · {new Date(a.createdAt).toLocaleDateString('es-CO')}
+                </span>
+              </div>
             </div>
-          )}
+          ))}
 
-          {/* RESUMEN */}
-          <div className="table-card" style={{ padding: 12, marginBottom: 10 }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 10, background: 'var(--bg3)', borderRadius: 8, padding: '10px 12px', marginBottom: 10 }}>
-              <div style={{ minWidth: 0 }}>
-                <div style={{ fontSize: 10, color: 'var(--text3)', textTransform: 'uppercase', letterSpacing: 1, fontWeight: 600 }}>Total</div>
-                <div style={{ fontWeight: 700, fontSize: 20, color: 'var(--accent2)', fontFamily: 'var(--mono)' }}>{formatMoney(pedido.Total)}</div>
-              </div>
-              <div style={{ textAlign: 'right' }}>
-                <div style={{ fontSize: 10, color: 'var(--text3)' }}>Flete</div>
-                <div style={{ fontWeight: 600, fontSize: 12, fontFamily: 'var(--mono)', color: 'var(--text)' }}>{formatMoney(pedido.fleteDropi)}</div>
-                <div style={{ fontSize: 10, color: 'var(--text3)', marginTop: 4 }}>Ganancia</div>
-                <div style={{ fontWeight: 700, fontSize: 12, fontFamily: 'var(--mono)', color: 'var(--green)' }}>{formatMoney(pedido.gananciaEsperadaDropi)}</div>
-              </div>
+          {/* SUMMARY CARD */}
+          <div style={{ background: 'var(--bg3)', borderRadius: 12, border: '1px solid var(--border)', padding: 16, display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', gap: 12 }}>
+            <div style={{ minWidth: 0 }}>
+              <div style={{ ...LBL, marginBottom: 2 }}>Total</div>
+              <div style={{ fontSize: 28, fontWeight: 600, letterSpacing: '-0.02em', fontFamily: 'var(--mono)', color: 'var(--accent2)', lineHeight: 1.1 }}>{formatMoney(pedido.Total)}</div>
             </div>
-            {pedido.TipoPago === 2 && (
-              <div style={{ padding: '6px 10px', borderRadius: 4, fontSize: 11, background: 'rgba(229,62,62,0.08)', border: '1px solid rgba(229,62,62,0.3)', color: '#e53e3e', fontWeight: 500, marginBottom: 10 }}>
-                ⚠ Transferencia: verifica el pago antes de subir el envio
+            <div style={{ textAlign: 'right', display: 'flex', flexDirection: 'column', gap: 6 }}>
+              <div style={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center', gap: 8 }}>
+                <span style={{ fontSize: 12, color: 'var(--text3)' }}>Flete</span>
+                <span style={{ fontFamily: 'var(--mono)', fontSize: 14, fontWeight: 600, color: 'var(--text)' }}>{formatMoney(pedido.fleteDropi)}</span>
               </div>
-            )}
-            <div className="lsd-grid-2" style={{ gap: 8 }}>
-              <div>
-                <label style={{ fontSize: 10, color: 'var(--text3)', marginBottom: 2, display: 'block' }}>Estado</label>
-                <select value={pedido.EstadoPedido ?? 0} onChange={e => handleChange('EstadoPedido', Number(e.target.value))} style={{ ...fieldStyle('EstadoPedido'), appearance: 'auto', cursor: 'pointer' }}>
-                  {ESTADOS.map(e => (<option key={e.value} value={e.value}>{e.label}</option>))}
-                </select>
-              </div>
-              <div>
-                <label style={{ fontSize: 10, color: 'var(--text3)', marginBottom: 2, display: 'block' }}>Tipo de pago</label>
-                <select value={pedido.TipoPago ?? 1} onChange={e => handleChange('TipoPago', Number(e.target.value))} style={{ ...fieldStyle('TipoPago'), appearance: 'auto', cursor: 'pointer' }}>
-                  <option value={1}>Contra entrega</option>
-                  <option value={2}>Transferencia</option>
-                </select>
-              </div>
-              <div>
-                <label style={{ fontSize: 10, color: 'var(--text3)', marginBottom: 2, display: 'block' }}>Asignado a</label>
-                <select value={pedido._asignadoId || ''} onChange={e => handleChange('_asignadoId', e.target.value)} style={{ ...fieldStyle('_asignadoId'), appearance: 'auto', cursor: 'pointer' }}>
-                  <option value="">Sin asignar</option>
-                  {operadores.map(op => (<option key={op.id} value={op.id}>{op.nombre}</option>))}
-                </select>
-              </div>
-              <div style={{ display: 'flex', alignItems: 'flex-end' }}>
-                <div style={{ width: '100%' }}>
-                  <label style={{ fontSize: 10, color: 'var(--text3)', marginBottom: 2, display: 'block' }}>Referencias</label>
-                  <div style={{ ...fieldStyle('Total'), fontSize: 12, fontFamily: 'var(--mono)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                    {pedido.Referencias || '—'}
-                  </div>
-                </div>
+              <div style={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center', gap: 8 }}>
+                <span style={{ fontSize: 12, color: 'var(--text3)' }}>Ganancia</span>
+                <span style={{ fontFamily: 'var(--mono)', fontSize: 14, fontWeight: 700, color: 'var(--green)' }}>{formatMoney(pedido.gananciaEsperadaDropi)}</span>
               </div>
             </div>
           </div>
 
           {/* COTIZADOR */}
-          <div style={{ padding: '8px 12px', marginBottom: 10, cursor: uploaded ? 'default' : 'pointer', display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderRadius: 6, background: 'var(--bg3)', border: '1px solid var(--border)', opacity: uploaded ? 0.7 : 1, fontSize: 12 }}
-            onClick={() => { if (uploaded) return; if (!quotes) handleQuote(); else setShowCotizador(!showCotizador); }}>
-            <span style={{ fontWeight: 600 }}>
-              {uploaded ? '✓ Pedido subido' : `Cotizar envio Dropi ${showCotizador ? '▲' : '▼'}`}
-              {!uploaded && !showCotizador && quotes?.quotes?.length > 0 && (
-                <span style={{ fontWeight: 400, color: 'var(--text2)', fontSize: 10, marginLeft: 6 }}>· {quotes.quotes.length} cot.</span>
+          <div
+            style={{
+              background: 'var(--bg3)', borderRadius: 12,
+              border: '1px solid color-mix(in srgb, var(--accent) 40%, var(--border))',
+              boxShadow: '0 10px 24px -8px color-mix(in srgb, var(--accent) 25%, transparent)',
+              cursor: uploaded ? 'default' : 'pointer', opacity: uploaded ? 0.75 : 1,
+              overflow: 'hidden', transition: 'all 0.15s'
+            }}
+            onClick={() => { if (uploaded) return; if (!quotes) handleQuote(); else setShowCotizador(!showCotizador); }}
+          >
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10, padding: 12 }}>
+              <span style={{ display: 'flex', alignItems: 'center', gap: 8, fontWeight: 700, fontSize: 13, color: 'var(--accent2)', minWidth: 0 }}>
+                <Icon name="local_shipping" size={20} />
+                {uploaded ? '✓ Pedido subido' : 'Cotizar envío Dropi'}
+                {!uploaded && (
+                  <>
+                    <Icon name={showCotizador ? 'expand_less' : 'expand_more'} size={18} style={{ color: 'var(--text3)' }} />
+                    {!showCotizador && quotes?.quotes?.length > 0 && (
+                      <span style={{ fontWeight: 400, color: 'var(--text3)', fontSize: 11 }}>· {quotes.quotes.length} cot.</span>
+                    )}
+                  </>
+                )}
+              </span>
+              {!uploaded && (
+                <Button size="sm" onClick={(e) => { e.stopPropagation(); handleQuote(); }} disabled={quoting}>
+                  {quoting ? '...' : quotes?.quotes ? 'Re-cotizar' : 'Cotizar ahora'}
+                </Button>
               )}
-            </span>
-            {!uploaded && (
-              <button onClick={e => { e.stopPropagation(); handleQuote(); }} disabled={quoting} className="btn btn-primary" style={{ fontSize: 10 }}>{quoting ? '...' : quotes?.quotes ? 'Re-cotizar' : 'Cotizar'}</button>
+            </div>
+
+            {!uploaded && showCotizador && quotes && (
+              <div style={{ padding: '0 12px 12px', borderTop: '1px solid var(--border)' }}>
+                <div style={{ padding: '10px 0' }}>
+                  {quotes?.error && <div style={{ color: 'var(--red)', fontSize: 12, padding: 4 }}>{quotes.error}</div>}
+                  {quotes?.quotes && quotes.quotes.length > 0 && (
+                    <>
+                      <div className="lsd-quotes">
+                        {quotes.quotes.map((q, i) => {
+                          const hasError = !!q.error; const selected = selectedQuoteIdx === i;
+                          const tColors = getTransportadoraColors(q.transportadora);
+                          return (
+                            <div key={i} onClick={() => !hasError && setSelectedQuoteIdx(i)} style={{
+                              display: 'flex', flexDirection: 'column', gap: 2, padding: '8px 10px', borderRadius: 8, cursor: hasError ? 'default' : 'pointer',
+                              border: selected ? `2px solid ${tColors.border}` : `1px solid ${tColors.border}`,
+                              background: selected ? tColors.bg : 'var(--bg2)', opacity: hasError ? 0.5 : 1,
+                              transition: 'all 0.15s'
+                            }}>
+                              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                <span style={{ fontWeight: 600, fontSize: 12, color: tColors.text }}>{q.transportadora}</span>
+                                {selected && <span style={{ color: tColors.border, fontSize: 12 }}>✓</span>}
+                              </div>
+                              {q.objects && (
+                                <div style={{ fontSize: 11, color: 'var(--text2)' }}>
+                                  {q.objects.precioEnvio != null && <div style={{ fontWeight: 700, color: 'var(--accent2)', fontFamily: 'var(--mono)' }}>{formatMoney(q.objects.precioEnvio)}</div>}
+                                  {q.objects.trayecto && <div style={{ fontSize: 10 }}>{q.objects.trayecto}</div>}
+                                  {q.objects.seguroEnvio != null && <div style={{ fontSize: 10 }}>Seguro: {formatMoney(q.objects.seguroEnvio)}</div>}
+                                </div>
+                              )}
+                              {hasError && <div style={{ fontSize: 10, color: 'var(--red)' }}>{q.error}</div>}
+                            </div>
+                          );
+                        })}
+                      </div>
+                      {selectedQuoteIdx != null && (
+                        <Button variant="success" size="sm" icon="upload" onClick={handleUpload} disabled={uploading} style={{ marginTop: 10 }}>
+                          {uploading ? 'Subiendo...' : `Subir con ${quotes.quotes[selectedQuoteIdx].transportadora}`}
+                        </Button>
+                      )}
+                    </>
+                  )}
+                  {quotes && !quotes.error && (!quotes.quotes || quotes.quotes.length === 0) && (
+                    <div style={{ color: 'var(--text3)', fontSize: 12 }}>No hay cotizaciones</div>
+                  )}
+                </div>
+              </div>
             )}
           </div>
 
-          {!uploaded && showCotizador && quotes && (
-            <div style={{ padding: 10, marginBottom: 10, borderRadius: 6, background: 'var(--bg3)', border: '1px solid var(--border)' }}>
-              {quotes?.error && <div style={{ color: 'var(--red)', fontSize: 12, padding: 8 }}>{quotes.error}</div>}
-              {quotes?.quotes && quotes.quotes.length > 0 && (
-                <>
-                  <div className="lsd-quotes">
-                    {quotes.quotes.map((q, i) => {
-                      const hasError = !!q.error; const selected = selectedQuoteIdx === i;
-                      const tColors = getTransportadoraColors(q.transportadora);
-                      return (
-                        <div key={i} onClick={() => !hasError && setSelectedQuoteIdx(i)} style={{
-                          display: 'flex', flexDirection: 'column', gap: 2, padding: '8px 10px', borderRadius: 6, cursor: hasError ? 'default' : 'pointer',
-                          border: selected ? `2px solid ${tColors.border}` : `1px solid ${tColors.border}`,
-                          background: selected ? tColors.bg : 'var(--bg2)', opacity: hasError ? 0.5 : 1,
-                          transition: 'all 0.15s'
-                        }}>
-                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                            <span style={{ fontWeight: 600, fontSize: 12, color: tColors.text }}>{q.transportadora}</span>
-                            {selected && <span style={{ color: tColors.border, fontSize: 12 }}>✓</span>}
-                          </div>
-                          {q.objects && (
-                            <div style={{ fontSize: 11, color: 'var(--text2)' }}>
-                              {q.objects.precioEnvio != null && <div style={{ fontWeight: 700, color: 'var(--accent2)', fontFamily: 'var(--mono)' }}>{formatMoney(q.objects.precioEnvio)}</div>}
-                              {q.objects.trayecto && <div style={{ fontSize: 10 }}>{q.objects.trayecto}</div>}
-                              {q.objects.seguroEnvio != null && <div style={{ fontSize: 10 }}>Seguro: {formatMoney(q.objects.seguroEnvio)}</div>}
-                            </div>
-                          )}
-                          {hasError && <div style={{ fontSize: 10, color: 'var(--red)' }}>{q.error}</div>}
-                        </div>
-                      );
-                    })}
-                  </div>
-                  {selectedQuoteIdx != null && (
-                    <button onClick={handleUpload} disabled={uploading} className="btn btn-success" style={{ fontSize: 11, marginTop: 10 }}>
-                      {uploading ? 'Subiendo...' : `↑ Subir con ${quotes.quotes[selectedQuoteIdx].transportadora}`}
-                    </button>
-                  )}
-                </>
-              )}
-              {quotes && !quotes.error && (!quotes.quotes || quotes.quotes.length === 0) && (
-                <div style={{ color: 'var(--text3)', fontSize: 12 }}>No hay cotizaciones</div>
-              )}
+          {/* FORM GRID */}
+          <div className="lsd-grid-2" style={{ gap: 12 }}>
+            <SelectField label="Estado" fn="EstadoPedido" value={pedido.EstadoPedido ?? 0} onChange={e => handleChange('EstadoPedido', Number(e.target.value))}>
+              {ESTADOS.map(e => (<option key={e.value} value={e.value}>{e.label}</option>))}
+            </SelectField>
+            <SelectField label="Tipo de pago" fn="TipoPago" value={pedido.TipoPago ?? 1} onChange={e => handleChange('TipoPago', Number(e.target.value))}>
+              <option value={1}>Contra entrega</option>
+              <option value={2}>Transferencia</option>
+            </SelectField>
+            <SelectField label="Asignado a" fn="_asignadoId" value={pedido._asignadoId || ''} onChange={e => handleChange('_asignadoId', e.target.value)}>
+              <option value="">Sin asignar</option>
+              {operadores.map(op => (<option key={op.id} value={op.id}>{op.nombre}</option>))}
+            </SelectField>
+            <div style={{ minWidth: 0 }}>
+              <label style={LBL}>Referencias</label>
+              <input type="text" value={pedido.Referencias || ''} onChange={e => handleChange('Referencias', e.target.value)}
+                style={{ ...fieldStyle('Referencias'), height: 40, fontFamily: 'var(--mono)' }} />
             </div>
-          )}
+            {pedido.TipoPago === 2 && (
+              <div style={{ gridColumn: '1 / -1', display: 'flex', alignItems: 'center', gap: 8, padding: '8px 12px', borderRadius: 8, fontSize: 11, background: 'color-mix(in srgb, var(--red) 12%, transparent)', border: '1px solid color-mix(in srgb, var(--red) 35%, transparent)', color: 'var(--red)', fontWeight: 500 }}>
+                <Icon name="warning" size={16} />
+                Transferencia: verifica el pago antes de subir el envio
+              </div>
+            )}
+          </div>
 
           {/* PRODUCTOS */}
-          <div className="table-card" style={{ padding: 12, marginBottom: 10 }}>
-            <div onClick={() => toggleSection('productos')} style={{ fontWeight: 600, fontSize: 13, marginBottom: openSections.productos ? 10 : 0, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6, userSelect: 'none' }}>
-              {openSections.productos ? '▼' : '▶'} Productos ({productos.length})
-            </div>
+          <div style={{ background: 'var(--bg3)', borderRadius: 12, border: '1px solid var(--border)', overflow: 'hidden' }}>
+            <AccordionHeader title="Productos" count={productos.length} open={openSections.productos} onToggle={() => toggleSection('productos')} />
             {openSections.productos && (
-              <>
+              <div style={{ padding: 14 }}>
                 {productos.length === 0 ? (
                   <div style={{ color: 'var(--text3)', fontSize: 12 }}>Sin productos</div>
                 ) : (
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
                     {productos.map((prod, i) => {
                       const stock = productosStock[String(prod.product_id)];
                       const stockErr = stockErrors[String(prod.product_id)];
                       const stockBadge = stockErr ? (
-                        <span style={{ fontSize: 9, padding: '1px 5px', borderRadius: 8, fontWeight: 600, background: 'rgba(229,62,62,0.1)', color: '#e53e3e', border: '1px solid rgba(229,62,62,0.2)' }} title={stockErr}>
+                        <span style={{ fontSize: 10, padding: '2px 8px', borderRadius: 10, fontWeight: 700, background: 'color-mix(in srgb, var(--red) 15%, transparent)', color: 'var(--red)', border: '1px solid color-mix(in srgb, var(--red) 30%, transparent)' }} title={stockErr}>
                           ⚠ Stock no disponible
                         </span>
                       ) : stock !== undefined && stock !== null ? (
-                        <span style={{ fontSize: 9, padding: '1px 5px', borderRadius: 8, fontWeight: 600, background: stock === 0 ? 'rgba(229,62,62,0.15)' : stock <= 20 ? 'rgba(245,158,11,0.15)' : 'rgba(34,200,122,0.1)', color: stock === 0 ? '#e53e3e' : stock <= 20 ? '#f59e0b' : '#22c87a', border: `1px solid ${stock === 0 ? 'rgba(229,62,62,0.3)' : stock <= 20 ? 'rgba(245,158,11,0.3)' : 'rgba(34,200,122,0.2)'}` }}>
+                        <span style={{ fontSize: 10, padding: '2px 8px', borderRadius: 10, fontWeight: 700, background: stock === 0 ? 'color-mix(in srgb, var(--red) 18%, transparent)' : stock <= 20 ? 'color-mix(in srgb, var(--amber) 18%, transparent)' : 'color-mix(in srgb, var(--green) 14%, transparent)', color: stock === 0 ? 'var(--red)' : stock <= 20 ? 'var(--amber)' : 'var(--green)', border: `1px solid ${stock === 0 ? 'color-mix(in srgb, var(--red) 35%, transparent)' : stock <= 20 ? 'color-mix(in srgb, var(--amber) 35%, transparent)' : 'color-mix(in srgb, var(--green) 30%, transparent)'}` }}>
                           {stock === 0 ? 'AGOTADO' : `Stock: ${stock}`}
                         </span>
                       ) : null;
 
                       return editProdMode === i ? (
-                        <div key={i} style={{ padding: '6px 10px', background: 'var(--bg3)', borderRadius: 4 }}>
-                          <div style={{ display: 'flex', alignItems: 'center', gap: 4, marginBottom: 4 }}>
+                        <div key={i} style={{ padding: '10px 12px', background: 'var(--bg2)', borderRadius: 8, border: '1px solid var(--border)' }}>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
                             {(() => {
                               const pi = productosMap[String(prod.product_id)];
-                              return pi?.image ? <img src={pi.image} alt="" style={{ width: 28, height: 28, borderRadius: 4, objectFit: 'cover', border: '1px solid var(--border)', flexShrink: 0 }} onError={e => { e.target.style.display = 'none'; }} /> : null;
+                              return pi?.image ? <img src={pi.image} alt="" style={{ width: 32, height: 32, borderRadius: 6, objectFit: 'cover', border: '1px solid var(--border)', flexShrink: 0 }} onError={e => { e.target.style.display = 'none'; }} /> : null;
                             })()}
-                            <select value={prod.product_id || ''} onChange={e => handleProductChange(i, e.target.value)} style={{ ...fieldStyle(`prod-${i}`), flex: 1, fontSize: 11, appearance: 'auto', cursor: 'pointer' }}>
+                            <select value={prod.product_id || ''} onChange={e => handleProductChange(i, e.target.value)} style={{ ...fieldStyle(`prod-${i}`), flex: 1, fontSize: 12, appearance: 'auto', cursor: 'pointer' }}>
                               <option value="">Seleccionar producto</option>
                               {Object.entries(productosMap).map(([id, info]) => (<option key={id} value={id}>{info.name || `#${id}`}</option>))}
                             </select>
                           </div>
-                          <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                            <span style={{ fontSize: 10, color: 'var(--text3)' }}>Cant:</span>
-                            <input type="number" min="1" value={prod.quantity || 1} onChange={e => handleQuantityChange(i, e.target.value)} style={{ width: 50, ...fieldStyle(`qty-${i}`), fontSize: 11, textAlign: 'center' }} />
-                            <span style={{ fontSize: 10, color: 'var(--text3)' }}>Precio:</span>
-                            <input type="number" value={prod.price} onChange={e => handleProductPriceChange(i, e.target.value)} style={{ width: 90, ...fieldStyle(`price-${i}`), fontSize: 11, textAlign: 'right', fontFamily: 'var(--mono)' }} />
-                            <button onClick={() => setEditProdMode(null)} className="btn btn-primary" style={{ fontSize: 10, padding: '2px 6px', flexShrink: 0 }}>✓ Listo</button>
-                            <button onClick={() => handleRemoveProduct(i)} className="btn btn-ghost" style={{ fontSize: 10, padding: '2px 4px', color: 'var(--red)', flexShrink: 0 }}>✕</button>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+                            <span style={{ fontSize: 11, color: 'var(--text3)' }}>Cant:</span>
+                            <input type="number" min="1" value={prod.quantity || 1} onChange={e => handleQuantityChange(i, e.target.value)} style={{ width: 56, ...fieldStyle(`qty-${i}`), fontSize: 12, textAlign: 'center' }} />
+                            <span style={{ fontSize: 11, color: 'var(--text3)' }}>Precio:</span>
+                            <input type="number" value={prod.price} onChange={e => handleProductPriceChange(i, e.target.value)} style={{ width: 100, ...fieldStyle(`price-${i}`), fontSize: 12, textAlign: 'right', fontFamily: 'var(--mono)' }} />
+                            <Button size="sm" onClick={() => setEditProdMode(null)}>✓ Listo</Button>
+                            <Button variant="dangerGhost" size="sm" onClick={() => handleRemoveProduct(i)}>✕</Button>
                           </div>
                         </div>
                       ) : (
-                        <div key={i} style={{ padding: '6px 10px', background: 'var(--bg3)', borderRadius: 4, display: 'flex', justifyContent: 'space-between', alignItems: 'center', cursor: 'pointer', border: '1px solid var(--border)' }}
+                        <div key={i} style={{ padding: '8px 12px', background: 'var(--bg2)', borderRadius: 8, border: '1px solid var(--border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 10, cursor: 'pointer' }}
                           onClick={() => setEditProdMode(i)}>
                           <div style={{ flex: 1, minWidth: 0 }}>
-                            <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
                               {(() => {
                                 const pi = productosMap[String(prod.product_id)];
                                 return (
                                   <>
-                                    {pi?.image && <img src={pi.image} alt="" style={{ width: 32, height: 32, borderRadius: 4, objectFit: 'cover', border: '1px solid var(--border)' }} onError={e => { e.target.style.display = 'none'; }} />}
-                                    <span style={{ color: 'var(--accent)', fontWeight: 500, fontSize: 12 }}>{pi?.name || `#${prod.product_id}`}</span>
+                                    {pi?.image && <img src={pi.image} alt="" style={{ width: 40, height: 40, borderRadius: 8, objectFit: 'cover', border: '1px solid var(--border)', background: 'var(--bg3)' }} onError={e => { e.target.style.display = 'none'; }} />}
+                                    <span style={{ color: 'var(--accent2)', fontWeight: 700, fontSize: 12 }}>{pi?.name || `#${prod.product_id}`}</span>
                                   </>
                                 );
                               })()}
-                              <span style={{ color: 'var(--text)', fontSize: 11 }}>x{prod.quantity || 1}</span>
+                              <span style={{ color: 'var(--text2)', fontSize: 11, fontFamily: 'var(--mono)' }}>x{prod.quantity || 1}</span>
                               {prod.variations?.length > 0 && <span style={{ color: 'var(--text3)', fontSize: 10 }}>({prod.variations.join(', ')})</span>}
                               {stockBadge}
                             </div>
                           </div>
-                          <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexShrink: 0 }}>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexShrink: 0 }}>
                             {editProdPrice === i ? (
                               <input type="number" autoFocus value={prod.price} onChange={e => handleProductPriceChange(i, e.target.value)}
                                 onClick={e => e.stopPropagation()} onBlur={() => setEditProdPrice(null)} onKeyDown={e => e.key === 'Enter' && setEditProdPrice(null)}
-                                style={{ width: 90, ...fieldStyle(`inline-price-${i}`), textAlign: 'right', fontFamily: 'var(--mono)', fontSize: 11 }} />
+                                style={{ width: 100, ...fieldStyle(`inline-price-${i}`), textAlign: 'right', fontFamily: 'var(--mono)', fontSize: 12 }} />
                             ) : (
-                              <div onClick={e => { e.stopPropagation(); setEditProdPrice(i); }} style={{ color: 'var(--accent2)', fontFamily: 'var(--mono)', fontWeight: 500, padding: '1px 4px', borderRadius: 3, cursor: 'pointer', fontSize: 11 }}>
+                              <div onClick={e => { e.stopPropagation(); setEditProdPrice(i); }} style={{ color: 'var(--accent2)', fontFamily: 'var(--mono)', fontWeight: 600, padding: '2px 6px', borderRadius: 4, cursor: 'pointer', fontSize: 13 }}>
                                 {formatMoneyShort(prod.price)}
                               </div>
                             )}
                             <button
                               onClick={(e) => handleRefreshStock(prod.product_id, e)}
                               disabled={refreshingStock[prod.product_id]}
-                              className="btn btn-ghost"
-                              style={{ fontSize: 10, padding: '2px 6px' }}
+                              className="lsd-nav-btn"
                               title="Actualizar stock desde Dropi"
+                              aria-label="Actualizar stock"
                             >
-                              {refreshingStock[prod.product_id] ? '⏳' : '↻'}
+                              <Icon name="refresh" size={16} />
                             </button>
                           </div>
                         </div>
@@ -827,50 +878,51 @@ export default function LucidsalesDetailPanel({ id, ids, currentIndex, onClose, 
                     })}
                   </div>
                 )}
-                <button onClick={handleAddProduct} className="btn btn-ghost" style={{ marginTop: 6, fontSize: 11, width: '100%', justifyContent: 'center' }}>+ Agregar producto</button>
-              </>
+                <button onClick={handleAddProduct} className="btn btn-ghost" style={{ marginTop: 10, fontSize: 12, width: '100%', justifyContent: 'center', borderStyle: 'dashed', minHeight: 40 }}>
+                  <Icon name="add" size={18} /> Agregar producto
+                </button>
+              </div>
             )}
           </div>
 
-          {/* CLIENT DATA */}
-          <div className="table-card" style={{ padding: 12, marginBottom: 10 }}>
-            <div onClick={() => toggleSection('direccion')} style={{ fontWeight: 600, fontSize: 13, marginBottom: openSections.direccion ? 10 : 0, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6, userSelect: 'none' }}>
-              {openSections.direccion ? '▼' : '▶'} Datos del cliente
-            </div>
+          {/* CLIENTE */}
+          <div style={{ background: 'var(--bg3)', borderRadius: 12, border: '1px solid var(--border)', overflow: 'hidden' }}>
+            <AccordionHeader title="Datos del cliente" open={openSections.direccion} onToggle={() => toggleSection('direccion')} />
             {openSections.direccion && (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-                <div className="lsd-grid-2" style={{ gap: 8 }}>
-                  <div>
-                    <label style={{ fontSize: 10, color: 'var(--text3)', marginBottom: 2, display: 'block' }}>Nombre</label>
-                    <input type="text" value={pedido.Nombre || ''} onChange={e => handleChange('Nombre', e.target.value)} style={fieldStyle('Nombre')} />
+              <div style={{ padding: 14, display: 'flex', flexDirection: 'column', gap: 12 }}>
+                <div className="lsd-grid-2" style={{ gap: 12 }}>
+                  <div style={{ minWidth: 0 }}>
+                    <label style={LBL}>Nombre</label>
+                    <input type="text" value={pedido.Nombre || ''} onChange={e => handleChange('Nombre', e.target.value)} style={{ ...fieldStyle('Nombre'), height: 40 }} />
                   </div>
-                  <div>
-                    <label style={{ fontSize: 10, color: 'var(--text3)', marginBottom: 2, display: 'block' }}>Apellido</label>
-                    <input type="text" value={pedido.Apellido || ''} onChange={e => handleChange('Apellido', e.target.value)} style={fieldStyle('Apellido')} />
+                  <div style={{ minWidth: 0 }}>
+                    <label style={LBL}>Apellido</label>
+                    <input type="text" value={pedido.Apellido || ''} onChange={e => handleChange('Apellido', e.target.value)} style={{ ...fieldStyle('Apellido'), height: 40 }} />
                   </div>
-                  <div>
-                    <label style={{ fontSize: 10, color: 'var(--text3)', marginBottom: 2, display: 'block' }}>Telefono</label>
-                    <input type="text" value={pedido.Movil || ''} onChange={e => handleChange('Movil', e.target.value)} style={fieldStyle('Movil')} />
+                  <div style={{ minWidth: 0 }}>
+                    <label style={LBL}>Telefono</label>
+                    <input type="text" value={pedido.Movil || ''} onChange={e => handleChange('Movil', e.target.value)} style={{ ...fieldStyle('Movil'), height: 40, fontFamily: 'var(--mono)' }} />
                   </div>
-                  <div>
-                    <label style={{ fontSize: 10, color: 'var(--text3)', marginBottom: 2, display: 'block' }}>Correo</label>
-                    <input type="text" value={pedido.Correo || ''} onChange={e => handleChange('Correo', e.target.value)} style={fieldStyle('Correo')} />
+                  <div style={{ minWidth: 0 }}>
+                    <label style={LBL}>Correo</label>
+                    <input type="text" value={pedido.Correo || ''} onChange={e => handleChange('Correo', e.target.value)} style={{ ...fieldStyle('Correo'), height: 40 }} />
                   </div>
-                  <div>
-                    <label style={{ fontSize: 10, color: 'var(--text3)', marginBottom: 2, display: 'block' }}>NIT / Documento</label>
-                    <input type="text" value={pedido.NIT || ''} onChange={e => handleChange('NIT', e.target.value)} style={fieldStyle('NIT')} />
+                  <div style={{ minWidth: 0 }}>
+                    <label style={LBL}>NIT / Documento</label>
+                    <input type="text" value={pedido.NIT || ''} onChange={e => handleChange('NIT', e.target.value)} style={{ ...fieldStyle('NIT'), height: 40 }} />
                   </div>
-                  <div>
-                    <label style={{ fontSize: 10, color: 'var(--text3)', marginBottom: 2, display: 'block' }}>Referencias</label>
-                    <input type="text" value={pedido.Referencias || ''} onChange={e => handleChange('Referencias', e.target.value)} style={fieldStyle('Referencias')} />
+                  <div style={{ minWidth: 0 }}>
+                    <label style={LBL}>Referencias</label>
+                    <input type="text" value={pedido.Referencias || ''} onChange={e => handleChange('Referencias', e.target.value)} style={{ ...fieldStyle('Referencias'), height: 40, fontFamily: 'var(--mono)' }} />
                   </div>
                 </div>
+
                 <div>
-                  <label style={{ fontSize: 10, color: 'var(--text3)', marginBottom: 2, display: 'block' }}>Chat / Conversacion</label>
+                  <label style={LBL}>Chat / Conversacion</label>
                   {(pedido.botInbox || pedido.conversacionLink) ? (
                     <a href={pedido.botInbox || pedido.conversacionLink} target="_blank" rel="noopener noreferrer" className="btn btn-ghost"
-                      style={{ fontSize: 11, justifyContent: 'flex-start', gap: 6, textDecoration: 'none', width: '100%', boxSizing: 'border-box' }}>
-                      💬 Abrir conversacion
+                      style={{ fontSize: 12, justifyContent: 'flex-start', gap: 8, textDecoration: 'none', width: '100%', boxSizing: 'border-box', minHeight: 40 }}>
+                      <Icon name="chat" size={16} /> Abrir conversacion
                     </a>
                   ) : (
                     <span style={{ color: 'var(--text3)', fontSize: 11 }}>Sin conversacion</span>
@@ -879,26 +931,27 @@ export default function LucidsalesDetailPanel({ id, ids, currentIndex, onClose, 
 
                 {/* DIRECCION */}
                 <div ref={direccionRef}>
-                  <label style={{ fontSize: 10, color: 'var(--text3)', marginBottom: 2, display: 'block' }}>Direccion</label>
-                  <div style={{ display: 'flex', gap: 4 }}>
+                  <label style={LBL}>Direccion</label>
+                  <div style={{ display: 'flex', gap: 8 }}>
                     <input type="text" value={pedido.Direccion || ''} onChange={e => { handleChange('Direccion', e.target.value); if (validacion) setValidacion(null); }}
-                      style={{ ...fieldStyle('Direccion'), flex: 1 }} placeholder="Cra 12 # 45-67, Barrio..." />
-                    <button onClick={handleValidarDireccion} disabled={validando || !pedido.Direccion} className="btn btn-ghost" style={{ fontSize: 10, whiteSpace: 'nowrap', padding: '0 8px' }} title="Validar direccion">
-                      {validando ? '...' : '✓ Validar'}
-                    </button>
-                    <button onClick={() => { setShowIR(!showIR); if (!showIR && !oficinasIR.length && pedido?.Ciudad) handleBuscarIR(); }}
-                      className="btn btn-ghost" style={{ fontSize: 10, whiteSpace: 'nowrap', padding: '0 8px' }} title="Inter Rapidismo">🏢 IR</button>
+                      style={{ ...fieldStyle('Direccion'), flex: 1, height: 40 }} placeholder="Cra 12 # 45-67, Barrio..." />
+                    <Button variant="ghost" size="sm" icon="check" onClick={handleValidarDireccion} disabled={validando || !pedido.Direccion} style={{ height: 40 }} title="Validar direccion">
+                      Validar
+                    </Button>
+                    <Button variant="ghost" size="sm" icon="location_on" onClick={() => { setShowIR(!showIR); if (!showIR && !oficinasIR.length && pedido?.Ciudad) handleBuscarIR(); }} style={{ height: 40 }} title="Inter Rapidismo">
+                      IR
+                    </Button>
                   </div>
 
                   {/* VALIDACION OVERLAY */}
                   {showValidacion && validacion && (
                     <>
                       <div onClick={() => setShowValidacion(false)} style={{ position: 'fixed', inset: 0, zIndex: 999 }} />
-                      <div style={{ ...getOverlayPos(), zIndex: 1000, padding: 10, borderRadius: 6, background: 'var(--bg2)', border: '1px solid var(--border)', fontSize: 11, boxShadow: '0 8px 24px rgba(0,0,0,0.3)', maxHeight: '55vh', overflowY: 'auto', maxWidth: 480 }}>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
-                          <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                      <div style={{ ...getOverlayPos(), zIndex: 1000, padding: 12, borderRadius: 10, background: 'var(--bg2)', border: '1px solid var(--border)', fontSize: 11, boxShadow: '0 16px 30px rgba(0,0,0,0.35)', maxHeight: '55vh', overflowY: 'auto', maxWidth: 480 }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
                             <span style={{ fontWeight: 600 }}>Validacion</span>
-                            <span style={{ fontWeight: 600, color: validacion.puntuacion >= 80 ? 'var(--green)' : validacion.puntuacion >= 50 ? '#f59e0b' : 'var(--red)' }}>
+                            <span style={{ fontWeight: 600, color: validacion.puntuacion >= 80 ? 'var(--green)' : validacion.puntuacion >= 50 ? 'var(--amber)' : 'var(--red)' }}>
                               {validacion.puntuacion != null ? `${validacion.puntuacion}/100` : '-'}
                             </span>
                             {validacion.here?.exito && validacion.here?.geoLevel && (
@@ -920,7 +973,7 @@ export default function LucidsalesDetailPanel({ id, ids, currentIndex, onClose, 
                         {validacion.advertencias?.map((a, i) => {
                           const isCityConflict = a.codigo === 'CIUDAD_NO_COINCIDE';
                           return (
-                            <div key={i} style={{ padding: isCityConflict ? '4px 8px' : '2px 0', color: isCityConflict ? '#e53e3e' : '#f59e0b', fontSize: 10, fontWeight: isCityConflict ? 500 : 400, background: isCityConflict ? 'rgba(229,62,62,0.08)' : 'transparent', borderRadius: isCityConflict ? 4 : 0 }}>
+                            <div key={i} style={{ padding: isCityConflict ? '4px 8px' : '2px 0', color: isCityConflict ? 'var(--red)' : 'var(--amber)', fontSize: 10, fontWeight: isCityConflict ? 500 : 400, background: isCityConflict ? 'color-mix(in srgb, var(--red) 10%, transparent)' : 'transparent', borderRadius: isCityConflict ? 4 : 0 }}>
                               {isCityConflict ? '🔴 ' : '⚠ '}{a.mensaje}
                             </div>
                           );
@@ -936,7 +989,7 @@ export default function LucidsalesDetailPanel({ id, ids, currentIndex, onClose, 
                             />
                             <a href={`https://www.google.com/maps?q=${validacion.here.lat},${validacion.here.lng}`}
                               target="_blank" rel="noopener noreferrer"
-                              style={{ display: 'block', textAlign: 'center', padding: '6px 0', fontSize: 10, color: 'var(--accent)', textDecoration: 'none', background: 'var(--bg3)' }}>
+                              style={{ display: 'block', textAlign: 'center', padding: '6px 0', fontSize: 10, color: 'var(--accent2)', textDecoration: 'none', background: 'var(--bg3)' }}>
                               📍 Abrir en Google Maps ↗
                             </a>
                           </div>
@@ -944,12 +997,12 @@ export default function LucidsalesDetailPanel({ id, ids, currentIndex, onClose, 
                         {validacion.sugerencias?.map((s, i) => {
                           const isHere = s.tipo === 'here_verified';
                           return (
-                            <div key={i} style={{ display: 'flex', justifyContent: 'space-between', padding: '4px 8px', borderRadius: 4, marginTop: 4, background: isHere ? 'rgba(34,200,122,0.06)' : 'var(--bg3)', border: `1px solid ${isHere ? 'rgba(34,200,122,0.25)' : 'var(--border)'}` }}>
+                            <div key={i} style={{ display: 'flex', justifyContent: 'space-between', padding: '4px 8px', borderRadius: 4, marginTop: 4, background: isHere ? 'color-mix(in srgb, var(--green) 8%, transparent)' : 'var(--bg3)', border: `1px solid ${isHere ? 'color-mix(in srgb, var(--green) 25%, transparent)' : 'var(--border)'}` }}>
                               <div>
                                 <div style={{ fontFamily: 'var(--mono)', fontSize: 11 }}>{s.direccion}</div>
                                 <div style={{ fontSize: 9, color: isHere ? 'var(--green)' : 'var(--text3)', fontWeight: isHere ? 600 : 400 }}>{isHere ? '✓ ' : ''}{s.label}</div>
                               </div>
-                              <button onClick={() => handleAplicarDireccion(s.direccion)} className="btn btn-primary" style={{ fontSize: 9, padding: '2px 8px' }}>Aplicar</button>
+                              <Button size="sm" onClick={() => handleAplicarDireccion(s.direccion)}>Aplicar</Button>
                             </div>
                           );
                         })}
@@ -964,23 +1017,23 @@ export default function LucidsalesDetailPanel({ id, ids, currentIndex, onClose, 
                   {showIR && (
                     <>
                       <div onClick={() => { setShowIR(false); setOficinasIR([]); }} style={{ position: 'fixed', inset: 0, zIndex: 999 }} />
-                      <div style={{ ...getOverlayPos(), zIndex: 1000, padding: 10, borderRadius: 6, background: 'var(--bg2)', border: '1px solid var(--border)', fontSize: 11, boxShadow: '0 8px 24px rgba(0,0,0,0.3)', maxHeight: '55vh', overflowY: 'auto', maxWidth: 480 }}>
+                      <div style={{ ...getOverlayPos(), zIndex: 1000, padding: 12, borderRadius: 10, background: 'var(--bg2)', border: '1px solid var(--border)', fontSize: 11, boxShadow: '0 16px 30px rgba(0,0,0,0.35)', maxHeight: '55vh', overflowY: 'auto', maxWidth: 480 }}>
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
                           <span style={{ fontWeight: 600 }}>🏢 Inter Rapidismo</span>
                           <div style={{ display: 'flex', gap: 4 }}>
-                            <button onClick={handleBuscarIR} disabled={!pedido?.Ciudad || buscandoIR} className="btn btn-primary" style={{ fontSize: 10 }}>{buscandoIR ? '...' : 'Buscar'}</button>
+                            <Button size="sm" onClick={handleBuscarIR} disabled={!pedido?.Ciudad || buscandoIR}>{buscandoIR ? '...' : 'Buscar'}</Button>
                             <button onClick={() => { setShowIR(false); setOficinasIR([]); }} style={{ background: 'none', border: 'none', color: 'var(--text3)', cursor: 'pointer', fontSize: 14 }}>✕</button>
                           </div>
                         </div>
                         {!pedido?.Ciudad && <div style={{ color: 'var(--text3)', fontSize: 11 }}>Selecciona un departamento y ciudad</div>}
                         {errorIR && <div style={{ color: 'var(--red)', fontSize: 11 }}>{errorIR}</div>}
                         {oficinasIR.map((ofi, i) => (
-                          <div key={ofi.IdCentroServicio || i} style={{ padding: '6px 10px', background: 'var(--bg3)', borderRadius: 4, border: '1px solid var(--border)', fontSize: 11, display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 8, marginTop: 4 }}>
+                          <div key={ofi.IdCentroServicio || i} style={{ padding: '8px 10px', background: 'var(--bg3)', borderRadius: 8, border: '1px solid var(--border)', fontSize: 11, display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 8, marginTop: 4 }}>
                             <div>
                               <div style={{ fontWeight: 600 }}>{ofi.Nombre || 'Oficina'}</div>
                               <div style={{ color: 'var(--text2)', fontSize: 10 }}>{ofi.Direccion}{ofi.Telefono1 && ` · ${ofi.Telefono1}`}</div>
                             </div>
-                            <button onClick={() => handleSeleccionarOficinaIR(ofi)} className="btn btn-primary" style={{ fontSize: 10, whiteSpace: 'nowrap' }}>Usar</button>
+                            <Button size="sm" onClick={() => handleSeleccionarOficinaIR(ofi)}>Usar</Button>
                           </div>
                         ))}
                       </div>
@@ -988,60 +1041,52 @@ export default function LucidsalesDetailPanel({ id, ids, currentIndex, onClose, 
                   )}
                 </div>
 
-                <div className="lsd-grid-2" style={{ gap: 8 }}>
-                  <div>
-                    <label style={{ fontSize: 10, color: 'var(--text3)', marginBottom: 2, display: 'block' }}>Departamento</label>
-                    <select value={pedido.Departamento ?? ''} onChange={e => handleDepartamentoChange(e.target.value)} style={{ ...fieldStyle('Departamento'), appearance: 'auto', cursor: 'pointer' }}>
-                      <option value="">Seleccionar...</option>
-                      {deptos.map(d => (<option key={d.id} value={d.id}>{d.name}</option>))}
-                    </select>
-                  </div>
-                  <div>
-                    <label style={{ fontSize: 10, color: 'var(--text3)', marginBottom: 2, display: 'block' }}>Ciudad</label>
-                    <select value={pedido.Ciudad ?? ''} onChange={e => handleChange('Ciudad', Number(e.target.value))} style={{ ...fieldStyle('Ciudad'), appearance: 'auto', cursor: 'pointer' }} disabled={!pedido.Departamento}>
-                      <option value="">{loadingGeo ? 'Cargando...' : 'Seleccionar...'}</option>
-                      {ciudades.map(c => (<option key={c.id} value={c.id}>{c.name}</option>))}
-                    </select>
-                  </div>
+                <div className="lsd-grid-2" style={{ gap: 12 }}>
+                  <SelectField label="Departamento" fn="Departamento" value={pedido.Departamento ?? ''} onChange={e => handleDepartamentoChange(e.target.value)}>
+                    <option value="">Seleccionar...</option>
+                    {deptos.map(d => (<option key={d.id} value={d.id}>{d.name}</option>))}
+                  </SelectField>
+                  <SelectField label="Ciudad" fn="Ciudad" value={pedido.Ciudad ?? ''} onChange={e => handleChange('Ciudad', Number(e.target.value))} disabled={!pedido.Departamento}>
+                    <option value="">{loadingGeo ? 'Cargando...' : 'Seleccionar...'}</option>
+                    {ciudades.map(c => (<option key={c.id} value={c.id}>{c.name}</option>))}
+                  </SelectField>
                 </div>
+
                 <div>
-                  <label style={{ fontSize: 10, color: 'var(--text3)', marginBottom: 2, display: 'block' }}>Notas</label>
-                  <textarea value={pedido.notas || ''} onChange={e => handleChange('notas', e.target.value)} rows={2} style={{ ...fieldStyle('notas'), resize: 'vertical' }} />
+                  <label style={LBL}>Notas</label>
+                  <textarea value={pedido.notas || ''} onChange={e => handleChange('notas', e.target.value)} rows={2} style={{ ...fieldStyle('notas'), resize: 'vertical', minHeight: 80 }} />
                 </div>
               </div>
             )}
           </div>
 
-          <div className="lsd-grid-2" style={{ gap: 10, alignItems: 'start' }}>
           {/* OBSERVACIONES */}
-          <div className="table-card" style={{ padding: 12, marginBottom: 10 }}>
-            <div onClick={() => toggleSection('observaciones')} style={{ fontWeight: 600, fontSize: 13, marginBottom: openSections.observaciones ? 8 : 0, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6, userSelect: 'none' }}>
-              {openSections.observaciones ? '▼' : '▶'} Observaciones ({obs.length})
-            </div>
+          <div style={{ background: 'var(--bg3)', borderRadius: 12, border: '1px solid var(--border)', overflow: 'hidden' }}>
+            <AccordionHeader title="Observaciones" count={obs.length} open={openSections.observaciones} onToggle={() => toggleSection('observaciones')} />
             {openSections.observaciones && (
-              obs.length === 0 ? <div style={{ color: 'var(--text3)', fontSize: 12 }}>Sin observaciones</div> : (
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-                  {obs.map((o, i) => (
-                    <div key={i} style={{ padding: '6px 10px', background: 'var(--bg3)', borderRadius: 4, fontSize: 12, borderLeft: '3px solid var(--accent)' }}>
-                      <div style={{ color: 'var(--text)' }}>{o.desc}</div>
-                      <div style={{ color: 'var(--text3)', fontSize: 10, marginTop: 1 }}>{o.update || ''}</div>
-                    </div>
-                  ))}
-                </div>
-              )
+              <div style={{ padding: 14 }}>
+                {obs.length === 0 ? <div style={{ color: 'var(--text3)', fontSize: 12 }}>Sin observaciones</div> : (
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                    {obs.map((o, i) => (
+                      <div key={i} style={{ padding: '8px 12px', background: 'var(--bg2)', borderRadius: 8, fontSize: 12, borderLeft: '3px solid var(--accent)', border: '1px solid var(--border)' }}>
+                        <div style={{ color: 'var(--text)' }}>{o.desc}</div>
+                        <div style={{ color: 'var(--text3)', fontSize: 10, marginTop: 2 }}>{o.update || ''}</div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
             )}
           </div>
 
           {/* ETIQUETAS */}
-          <div className="table-card" style={{ padding: 12, marginBottom: 10 }}>
-            <div onClick={() => toggleSection('etiquetas')} style={{ fontWeight: 600, fontSize: 13, marginBottom: openSections.etiquetas ? 8 : 0, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6, userSelect: 'none' }}>
-              {openSections.etiquetas ? '▼' : '▶'} Etiquetas ({etiquetas.length})
-            </div>
+          <div style={{ background: 'var(--bg3)', borderRadius: 12, border: '1px solid var(--border)', overflow: 'hidden' }}>
+            <AccordionHeader title="Etiquetas" count={etiquetas.length} open={openSections.etiquetas} onToggle={() => toggleSection('etiquetas')} />
             {openSections.etiquetas && (
-              <>
-                <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap', marginBottom: 8 }}>
+              <div style={{ padding: 14 }}>
+                <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginBottom: 10 }}>
                   {etiquetas.length > 0 ? etiquetas.map(e => (
-                    <span key={e.id} style={{ display: 'inline-flex', alignItems: 'center', gap: 4, padding: '2px 8px', borderRadius: 10, fontSize: 11, fontWeight: 600, color: '#fff', background: e.color }}>
+                    <span key={e.id} style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '3px 10px', borderRadius: 20, fontSize: 11, fontWeight: 600, color: '#fff', background: e.color }}>
                       {e.nombre}
                       <button onClick={async () => {
                         try { await api.delete(`/api/lucidsales/vinculados/${currentId}/etiquetas/${e.id}`); const { data } = await api.get(`/api/lucidsales/vinculados/${currentId}/etiquetas`); setEtiquetas(Array.isArray(data) ? data : []); if (onUpdate) onUpdate(); } catch {}
@@ -1049,19 +1094,18 @@ export default function LucidsalesDetailPanel({ id, ids, currentIndex, onClose, 
                     </span>
                   )) : <span style={{ color: 'var(--text3)', fontSize: 11 }}>Sin etiquetas</span>}
                 </div>
-                <div style={{ display: 'flex', gap: 6 }}>
+                <div style={{ display: 'flex', gap: 8 }}>
                   <select value={selectedEtiqueta} onChange={e => setSelectedEtiqueta(e.target.value)} style={{ ...fieldStyle('etiqueta'), flex: 1, appearance: 'auto', cursor: 'pointer' }}>
                     <option value="">Agregar etiqueta...</option>
                     {todasEtiquetas.filter(e => !etiquetas.some(ne => ne.id === e.id)).map(e => (<option key={e.id} value={e.id}>{e.nombre}</option>))}
                   </select>
-                  <button disabled={!selectedEtiqueta} onClick={async () => {
+                  <Button disabled={!selectedEtiqueta} onClick={async () => {
                     try { await api.post(`/api/lucidsales/vinculados/${currentId}/etiquetas`, { etiquetaId: selectedEtiqueta }); const { data } = await api.get(`/api/lucidsales/vinculados/${currentId}/etiquetas`); setEtiquetas(Array.isArray(data) ? data : []); setSelectedEtiqueta(''); if (onUpdate) onUpdate(); }
                     catch (err) { showToast(err.response?.data?.error || 'Error', 'error'); }
-                  }} className="btn btn-primary" style={{ fontSize: 11 }}>Agregar</button>
+                  }}>Agregar</Button>
                 </div>
-              </>
+              </div>
             )}
-          </div>
           </div>
         </div>
       </div>
@@ -1075,8 +1119,8 @@ export default function LucidsalesDetailPanel({ id, ids, currentIndex, onClose, 
 
       {/* SPLIT MODAL */}
       {showSplitModal && (
-        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.7)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 100000 }}>
-          <div style={{ background: 'var(--bg2)', borderRadius: 14, width: 'min(450px, 92vw)', boxShadow: '0 20px 60px rgba(0,0,0,0.5)', border: '1px solid var(--border)' }}>
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.7)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 100000, padding: 16 }}>
+          <div style={{ background: 'var(--bg2)', borderRadius: 14, width: 'min(450px, 100%)', boxShadow: '0 20px 60px rgba(0,0,0,0.5)', border: '1px solid var(--border)' }}>
             <div style={{ padding: '14px 18px', borderBottom: '1px solid var(--border)', fontWeight: 600, fontSize: 15 }}>Dividir pedido en ordenes separadas</div>
             <div style={{ padding: 18 }}>
               <div style={{ fontSize: 12, color: 'var(--text2)', marginBottom: 14, lineHeight: 1.5 }}>
@@ -1107,16 +1151,16 @@ export default function LucidsalesDetailPanel({ id, ids, currentIndex, onClose, 
                   )}
                 </div>
               ) : (
-                <div style={{ fontSize: 12, color: '#f59e0b', marginBottom: 14 }}>⚠ Se crearan {productos.length} pedidos y se subiran a Dropi automaticamente.</div>
+                <div style={{ fontSize: 12, color: 'var(--amber)', marginBottom: 14 }}>⚠ Se crearan {productos.length} pedidos y se subiran a Dropi automaticamente.</div>
               )}
               <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
                 {!splitResults && (
                   <>
-                    <button onClick={() => setShowSplitModal(false)} className="btn btn-ghost">Cancelar</button>
-                    <button onClick={handleSplitUpload} className="btn btn-primary" style={{ fontSize: 12 }}>Dividir y subir</button>
+                    <Button variant="ghost" onClick={() => setShowSplitModal(false)}>Cancelar</Button>
+                    <Button onClick={handleSplitUpload}>Dividir y subir</Button>
                   </>
                 )}
-                {splitResults && <button onClick={() => { setShowSplitModal(false); setSplitResults(null); }} className="btn btn-primary">Cerrar</button>}
+                {splitResults && <Button onClick={() => { setShowSplitModal(false); setSplitResults(null); }}>Cerrar</Button>}
               </div>
             </div>
           </div>

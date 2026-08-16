@@ -910,6 +910,32 @@ tr:hover td { background: var(--bg3); }
   }
 }
 
+/* Boton de navegacion del panel LucidSales */
+.lsd-nav-btn {
+  width: 34px;
+  height: 34px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
+  border: none;
+  background: none;
+  color: var(--text2);
+  cursor: pointer;
+  transition: all 0.15s;
+  flex-shrink: 0;
+}
+
+.lsd-nav-btn:hover:not(:disabled) {
+  background: var(--bg3);
+  color: var(--text);
+}
+
+.lsd-nav-btn:disabled {
+  opacity: 0.3;
+  cursor: default;
+}
+
 @keyframes slideInRight {
   from { transform: translateX(100%); }
   to { transform: translateX(0); }
