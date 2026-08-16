@@ -559,7 +559,7 @@ export default function LucidsalesDetailPanel({ id, ids, currentIndex, onClose, 
       <div className="detail-panel" ref={panelRef} style={{ overflowY: 'auto' }}>
 
         {/* HEADER */}
-        <div className="lsd-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 8, padding: '12px 16px', borderBottom: '1px solid var(--border)', background: 'var(--bg2)' }}>
+        <div className="lsd-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 8, padding: '12px 16px', borderBottom: '1px solid var(--border)', background: 'var(--bg2)', position: 'sticky', top: 0, zIndex: 10, boxShadow: '0 2px 8px rgba(0,0,0,0.15)' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap', minWidth: 0 }}>
             <button onClick={() => hasPrev && onNavigate(ids[idIndex - 1])} disabled={!hasPrev}
               style={{ background: 'none', border: '1px solid var(--border)', borderRadius: 6, width: 28, height: 28, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: hasPrev ? 'pointer' : 'default', color: 'var(--text)', opacity: hasPrev ? 1 : 0.3, fontSize: 14 }}
@@ -628,6 +628,57 @@ export default function LucidsalesDetailPanel({ id, ids, currentIndex, onClose, 
             </div>
           )}
 
+          {/* RESUMEN */}
+          <div className="table-card" style={{ padding: 12, marginBottom: 10 }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 10, background: 'var(--bg3)', borderRadius: 8, padding: '10px 12px', marginBottom: 10 }}>
+              <div style={{ minWidth: 0 }}>
+                <div style={{ fontSize: 10, color: 'var(--text3)', textTransform: 'uppercase', letterSpacing: 1, fontWeight: 600 }}>Total</div>
+                <div style={{ fontWeight: 700, fontSize: 20, color: 'var(--accent2)', fontFamily: 'var(--mono)' }}>{formatMoney(pedido.Total)}</div>
+              </div>
+              <div style={{ textAlign: 'right' }}>
+                <div style={{ fontSize: 10, color: 'var(--text3)' }}>Flete</div>
+                <div style={{ fontWeight: 600, fontSize: 12, fontFamily: 'var(--mono)', color: 'var(--text)' }}>{formatMoney(pedido.fleteDropi)}</div>
+                <div style={{ fontSize: 10, color: 'var(--text3)', marginTop: 4 }}>Ganancia</div>
+                <div style={{ fontWeight: 700, fontSize: 12, fontFamily: 'var(--mono)', color: 'var(--green)' }}>{formatMoney(pedido.gananciaEsperadaDropi)}</div>
+              </div>
+            </div>
+            {pedido.TipoPago === 2 && (
+              <div style={{ padding: '6px 10px', borderRadius: 4, fontSize: 11, background: 'rgba(229,62,62,0.08)', border: '1px solid rgba(229,62,62,0.3)', color: '#e53e3e', fontWeight: 500, marginBottom: 10 }}>
+                ⚠ Transferencia: verifica el pago antes de subir el envio
+              </div>
+            )}
+            <div className="lsd-grid-2" style={{ gap: 8 }}>
+              <div>
+                <label style={{ fontSize: 10, color: 'var(--text3)', marginBottom: 2, display: 'block' }}>Estado</label>
+                <select value={pedido.EstadoPedido ?? 0} onChange={e => handleChange('EstadoPedido', Number(e.target.value))} style={{ ...fieldStyle('EstadoPedido'), appearance: 'auto', cursor: 'pointer' }}>
+                  {ESTADOS.map(e => (<option key={e.value} value={e.value}>{e.label}</option>))}
+                </select>
+              </div>
+              <div>
+                <label style={{ fontSize: 10, color: 'var(--text3)', marginBottom: 2, display: 'block' }}>Tipo de pago</label>
+                <select value={pedido.TipoPago ?? 1} onChange={e => handleChange('TipoPago', Number(e.target.value))} style={{ ...fieldStyle('TipoPago'), appearance: 'auto', cursor: 'pointer' }}>
+                  <option value={1}>Contra entrega</option>
+                  <option value={2}>Transferencia</option>
+                </select>
+              </div>
+              <div>
+                <label style={{ fontSize: 10, color: 'var(--text3)', marginBottom: 2, display: 'block' }}>Asignado a</label>
+                <select value={pedido._asignadoId || ''} onChange={e => handleChange('_asignadoId', e.target.value)} style={{ ...fieldStyle('_asignadoId'), appearance: 'auto', cursor: 'pointer' }}>
+                  <option value="">Sin asignar</option>
+                  {operadores.map(op => (<option key={op.id} value={op.id}>{op.nombre}</option>))}
+                </select>
+              </div>
+              <div style={{ display: 'flex', alignItems: 'flex-end' }}>
+                <div style={{ width: '100%' }}>
+                  <label style={{ fontSize: 10, color: 'var(--text3)', marginBottom: 2, display: 'block' }}>Referencias</label>
+                  <div style={{ ...fieldStyle('Total'), fontSize: 12, fontFamily: 'var(--mono)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                    {pedido.Referencias || '—'}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
           {/* COTIZADOR */}
           <div style={{ padding: '8px 12px', marginBottom: 10, cursor: uploaded ? 'default' : 'pointer', display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderRadius: 6, background: 'var(--bg3)', border: '1px solid var(--border)', opacity: uploaded ? 0.7 : 1, fontSize: 12 }}
             onClick={() => { if (uploaded) return; if (!quotes) handleQuote(); else setShowCotizador(!showCotizador); }}>
@@ -647,35 +698,35 @@ export default function LucidsalesDetailPanel({ id, ids, currentIndex, onClose, 
               {quotes?.error && <div style={{ color: 'var(--red)', fontSize: 12, padding: 8 }}>{quotes.error}</div>}
               {quotes?.quotes && quotes.quotes.length > 0 && (
                 <>
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: 6, marginBottom: 10 }}>
+                  <div className="lsd-quotes">
                     {quotes.quotes.map((q, i) => {
                       const hasError = !!q.error; const selected = selectedQuoteIdx === i;
                       const tColors = getTransportadoraColors(q.transportadora);
                       return (
                         <div key={i} onClick={() => !hasError && setSelectedQuoteIdx(i)} style={{
-                          display: 'flex', alignItems: 'center', gap: 8, padding: '8px 10px', borderRadius: 6, cursor: hasError ? 'default' : 'pointer',
+                          display: 'flex', flexDirection: 'column', gap: 2, padding: '8px 10px', borderRadius: 6, cursor: hasError ? 'default' : 'pointer',
                           border: selected ? `2px solid ${tColors.border}` : `1px solid ${tColors.border}`,
                           background: selected ? tColors.bg : 'var(--bg2)', opacity: hasError ? 0.5 : 1,
                           transition: 'all 0.15s'
                         }}>
-                          <div style={{ width: 16 }}>{selected && <span style={{ color: tColors.border }}>✓</span>}</div>
-                          <div style={{ flex: 1 }}>
-                            <div style={{ fontWeight: 600, fontSize: 12, color: tColors.text }}>{q.transportadora}</div>
-                            {q.objects && (
-                              <div style={{ fontSize: 11, color: 'var(--text2)', marginTop: 1 }}>
-                                {q.objects.precioEnvio != null && <span style={{ fontWeight: 500, color: 'var(--accent2)', marginRight: 8 }}>{formatMoney(q.objects.precioEnvio)}</span>}
-                                {q.objects.trayecto && <span style={{ marginRight: 6 }}>{q.objects.trayecto}</span>}
-                                {q.objects.seguroEnvio != null && <span>Seguro: {formatMoney(q.objects.seguroEnvio)}</span>}
-                              </div>
-                            )}
-                            {hasError && <div style={{ fontSize: 10, color: 'var(--red)' }}>{q.error}</div>}
+                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                            <span style={{ fontWeight: 600, fontSize: 12, color: tColors.text }}>{q.transportadora}</span>
+                            {selected && <span style={{ color: tColors.border, fontSize: 12 }}>✓</span>}
                           </div>
+                          {q.objects && (
+                            <div style={{ fontSize: 11, color: 'var(--text2)' }}>
+                              {q.objects.precioEnvio != null && <div style={{ fontWeight: 700, color: 'var(--accent2)', fontFamily: 'var(--mono)' }}>{formatMoney(q.objects.precioEnvio)}</div>}
+                              {q.objects.trayecto && <div style={{ fontSize: 10 }}>{q.objects.trayecto}</div>}
+                              {q.objects.seguroEnvio != null && <div style={{ fontSize: 10 }}>Seguro: {formatMoney(q.objects.seguroEnvio)}</div>}
+                            </div>
+                          )}
+                          {hasError && <div style={{ fontSize: 10, color: 'var(--red)' }}>{q.error}</div>}
                         </div>
                       );
                     })}
                   </div>
                   {selectedQuoteIdx != null && (
-                    <button onClick={handleUpload} disabled={uploading} className="btn btn-success" style={{ fontSize: 11 }}>
+                    <button onClick={handleUpload} disabled={uploading} className="btn btn-success" style={{ fontSize: 11, marginTop: 10 }}>
                       {uploading ? 'Subiendo...' : `↑ Subir con ${quotes.quotes[selectedQuoteIdx].transportadora}`}
                     </button>
                   )}
@@ -686,6 +737,100 @@ export default function LucidsalesDetailPanel({ id, ids, currentIndex, onClose, 
               )}
             </div>
           )}
+
+          {/* PRODUCTOS */}
+          <div className="table-card" style={{ padding: 12, marginBottom: 10 }}>
+            <div onClick={() => toggleSection('productos')} style={{ fontWeight: 600, fontSize: 13, marginBottom: openSections.productos ? 10 : 0, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6, userSelect: 'none' }}>
+              {openSections.productos ? '▼' : '▶'} Productos ({productos.length})
+            </div>
+            {openSections.productos && (
+              <>
+                {productos.length === 0 ? (
+                  <div style={{ color: 'var(--text3)', fontSize: 12 }}>Sin productos</div>
+                ) : (
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+                    {productos.map((prod, i) => {
+                      const stock = productosStock[String(prod.product_id)];
+                      const stockErr = stockErrors[String(prod.product_id)];
+                      const stockBadge = stockErr ? (
+                        <span style={{ fontSize: 9, padding: '1px 5px', borderRadius: 8, fontWeight: 600, background: 'rgba(229,62,62,0.1)', color: '#e53e3e', border: '1px solid rgba(229,62,62,0.2)' }} title={stockErr}>
+                          ⚠ Stock no disponible
+                        </span>
+                      ) : stock !== undefined && stock !== null ? (
+                        <span style={{ fontSize: 9, padding: '1px 5px', borderRadius: 8, fontWeight: 600, background: stock === 0 ? 'rgba(229,62,62,0.15)' : stock <= 20 ? 'rgba(245,158,11,0.15)' : 'rgba(34,200,122,0.1)', color: stock === 0 ? '#e53e3e' : stock <= 20 ? '#f59e0b' : '#22c87a', border: `1px solid ${stock === 0 ? 'rgba(229,62,62,0.3)' : stock <= 20 ? 'rgba(245,158,11,0.3)' : 'rgba(34,200,122,0.2)'}` }}>
+                          {stock === 0 ? 'AGOTADO' : `Stock: ${stock}`}
+                        </span>
+                      ) : null;
+
+                      return editProdMode === i ? (
+                        <div key={i} style={{ padding: '6px 10px', background: 'var(--bg3)', borderRadius: 4 }}>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: 4, marginBottom: 4 }}>
+                            {(() => {
+                              const pi = productosMap[String(prod.product_id)];
+                              return pi?.image ? <img src={pi.image} alt="" style={{ width: 28, height: 28, borderRadius: 4, objectFit: 'cover', border: '1px solid var(--border)', flexShrink: 0 }} onError={e => { e.target.style.display = 'none'; }} /> : null;
+                            })()}
+                            <select value={prod.product_id || ''} onChange={e => handleProductChange(i, e.target.value)} style={{ ...fieldStyle(`prod-${i}`), flex: 1, fontSize: 11, appearance: 'auto', cursor: 'pointer' }}>
+                              <option value="">Seleccionar producto</option>
+                              {Object.entries(productosMap).map(([id, info]) => (<option key={id} value={id}>{info.name || `#${id}`}</option>))}
+                            </select>
+                          </div>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                            <span style={{ fontSize: 10, color: 'var(--text3)' }}>Cant:</span>
+                            <input type="number" min="1" value={prod.quantity || 1} onChange={e => handleQuantityChange(i, e.target.value)} style={{ width: 50, ...fieldStyle(`qty-${i}`), fontSize: 11, textAlign: 'center' }} />
+                            <span style={{ fontSize: 10, color: 'var(--text3)' }}>Precio:</span>
+                            <input type="number" value={prod.price} onChange={e => handleProductPriceChange(i, e.target.value)} style={{ width: 90, ...fieldStyle(`price-${i}`), fontSize: 11, textAlign: 'right', fontFamily: 'var(--mono)' }} />
+                            <button onClick={() => setEditProdMode(null)} className="btn btn-primary" style={{ fontSize: 10, padding: '2px 6px', flexShrink: 0 }}>✓ Listo</button>
+                            <button onClick={() => handleRemoveProduct(i)} className="btn btn-ghost" style={{ fontSize: 10, padding: '2px 4px', color: 'var(--red)', flexShrink: 0 }}>✕</button>
+                          </div>
+                        </div>
+                      ) : (
+                        <div key={i} style={{ padding: '6px 10px', background: 'var(--bg3)', borderRadius: 4, display: 'flex', justifyContent: 'space-between', alignItems: 'center', cursor: 'pointer', border: '1px solid var(--border)' }}
+                          onClick={() => setEditProdMode(i)}>
+                          <div style={{ flex: 1, minWidth: 0 }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
+                              {(() => {
+                                const pi = productosMap[String(prod.product_id)];
+                                return (
+                                  <>
+                                    {pi?.image && <img src={pi.image} alt="" style={{ width: 32, height: 32, borderRadius: 4, objectFit: 'cover', border: '1px solid var(--border)' }} onError={e => { e.target.style.display = 'none'; }} />}
+                                    <span style={{ color: 'var(--accent)', fontWeight: 500, fontSize: 12 }}>{pi?.name || `#${prod.product_id}`}</span>
+                                  </>
+                                );
+                              })()}
+                              <span style={{ color: 'var(--text)', fontSize: 11 }}>x{prod.quantity || 1}</span>
+                              {prod.variations?.length > 0 && <span style={{ color: 'var(--text3)', fontSize: 10 }}>({prod.variations.join(', ')})</span>}
+                              {stockBadge}
+                            </div>
+                          </div>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexShrink: 0 }}>
+                            {editProdPrice === i ? (
+                              <input type="number" autoFocus value={prod.price} onChange={e => handleProductPriceChange(i, e.target.value)}
+                                onClick={e => e.stopPropagation()} onBlur={() => setEditProdPrice(null)} onKeyDown={e => e.key === 'Enter' && setEditProdPrice(null)}
+                                style={{ width: 90, ...fieldStyle(`inline-price-${i}`), textAlign: 'right', fontFamily: 'var(--mono)', fontSize: 11 }} />
+                            ) : (
+                              <div onClick={e => { e.stopPropagation(); setEditProdPrice(i); }} style={{ color: 'var(--accent2)', fontFamily: 'var(--mono)', fontWeight: 500, padding: '1px 4px', borderRadius: 3, cursor: 'pointer', fontSize: 11 }}>
+                                {formatMoneyShort(prod.price)}
+                              </div>
+                            )}
+                            <button
+                              onClick={(e) => handleRefreshStock(prod.product_id, e)}
+                              disabled={refreshingStock[prod.product_id]}
+                              className="btn btn-ghost"
+                              style={{ fontSize: 10, padding: '2px 6px' }}
+                              title="Actualizar stock desde Dropi"
+                            >
+                              {refreshingStock[prod.product_id] ? '⏳' : '↻'}
+                            </button>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+                <button onClick={handleAddProduct} className="btn btn-ghost" style={{ marginTop: 6, fontSize: 11, width: '100%', justifyContent: 'center' }}>+ Agregar producto</button>
+              </>
+            )}
+          </div>
 
           {/* CLIENT DATA */}
           <div className="table-card" style={{ padding: 12, marginBottom: 10 }}>
@@ -867,156 +1012,7 @@ export default function LucidsalesDetailPanel({ id, ids, currentIndex, onClose, 
             )}
           </div>
 
-          {/* ORDER DATA */}
-          <div className="table-card" style={{ padding: 12, marginBottom: 10 }}>
-            <div onClick={() => toggleSection('pedido')} style={{ fontWeight: 600, fontSize: 13, marginBottom: openSections.pedido ? 10 : 0, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6, userSelect: 'none' }}>
-              {openSections.pedido ? '▼' : '▶'} Datos del pedido
-            </div>
-            {openSections.pedido && (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-                {pedido.TipoPago === 2 && (
-                  <div style={{ padding: '6px 10px', borderRadius: 4, fontSize: 11, background: 'rgba(229,62,62,0.08)', border: '1px solid rgba(229,62,62,0.3)', color: '#e53e3e', fontWeight: 500 }}>
-                    ⚠ Transferencia: verifica el pago antes de subir el envio
-                  </div>
-                )}
-                <div className="lsd-grid-2" style={{ gap: 8 }}>
-                  <div>
-                    <label style={{ fontSize: 10, color: 'var(--text3)', marginBottom: 2, display: 'block' }}>Estado</label>
-                    <select value={pedido.EstadoPedido ?? 0} onChange={e => handleChange('EstadoPedido', Number(e.target.value))} style={{ ...fieldStyle('EstadoPedido'), appearance: 'auto', cursor: 'pointer' }}>
-                      {ESTADOS.map(e => (<option key={e.value} value={e.value}>{e.label}</option>))}
-                    </select>
-                  </div>
-                  <div>
-                    <label style={{ fontSize: 10, color: 'var(--text3)', marginBottom: 2, display: 'block' }}>Asignado a</label>
-                    <select value={pedido._asignadoId || ''} onChange={e => handleChange('_asignadoId', e.target.value)} style={{ ...fieldStyle('_asignadoId'), appearance: 'auto', cursor: 'pointer' }}>
-                      <option value="">Sin asignar</option>
-                      {operadores.map(op => (<option key={op.id} value={op.id}>{op.nombre}</option>))}
-                    </select>
-                  </div>
-                  <div>
-                    <label style={{ fontSize: 10, color: 'var(--text3)', marginBottom: 2, display: 'block' }}>Tipo de pago</label>
-                    <select value={pedido.TipoPago ?? 1} onChange={e => handleChange('TipoPago', Number(e.target.value))} style={{ ...fieldStyle('TipoPago'), appearance: 'auto', cursor: 'pointer' }}>
-                      <option value={1}>Contra entrega</option>
-                      <option value={2}>Transferencia</option>
-                    </select>
-                  </div>
-                  <div>
-                  <label style={{ fontSize: 10, color: 'var(--text3)', marginBottom: 2, display: 'block' }}>Total</label>
-                  <div style={{ ...fieldStyle('Total'), fontWeight: 600, color: 'var(--accent2)', fontSize: 16 }}>
-                    {formatMoney(pedido.Total)}
-                  </div>
-                  </div>
-                  <div>
-                    <label style={{ fontSize: 10, color: 'var(--text3)', marginBottom: 2, display: 'block' }}>Flete Dropi</label>
-                    <div style={{ ...fieldStyle('Total'), fontWeight: 500, color: 'var(--text)', fontSize: 13 }}>
-                      {formatMoney(pedido.fleteDropi)}
-                    </div>
-                  </div>
-                  <div>
-                    <label style={{ fontSize: 10, color: 'var(--text3)', marginBottom: 2, display: 'block' }}>Ganancia Dropi</label>
-                    <div style={{ ...fieldStyle('Total'), fontWeight: 600, color: 'var(--green)', fontSize: 13 }}>
-                      {formatMoney(pedido.gananciaEsperadaDropi)}
-                    </div>
-                  </div>
-                </div>
-              </div>
-            )}
-          </div>
-
-          {/* PRODUCTOS */}
-          <div className="table-card" style={{ padding: 12, marginBottom: 10 }}>
-            <div onClick={() => toggleSection('productos')} style={{ fontWeight: 600, fontSize: 13, marginBottom: openSections.productos ? 10 : 0, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6, userSelect: 'none' }}>
-              {openSections.productos ? '▼' : '▶'} Productos ({productos.length})
-            </div>
-            {openSections.productos && (
-              <>
-                {productos.length === 0 ? (
-                  <div style={{ color: 'var(--text3)', fontSize: 12 }}>Sin productos</div>
-                ) : (
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-                    {productos.map((prod, i) => {
-                      const stock = productosStock[String(prod.product_id)];
-                      const stockErr = stockErrors[String(prod.product_id)];
-                      const stockBadge = stockErr ? (
-                        <span style={{ fontSize: 9, padding: '1px 5px', borderRadius: 8, fontWeight: 600, background: 'rgba(229,62,62,0.1)', color: '#e53e3e', border: '1px solid rgba(229,62,62,0.2)' }} title={stockErr}>
-                          ⚠ Stock no disponible
-                        </span>
-                      ) : stock !== undefined && stock !== null ? (
-                        <span style={{ fontSize: 9, padding: '1px 5px', borderRadius: 8, fontWeight: 600, background: stock === 0 ? 'rgba(229,62,62,0.15)' : stock <= 20 ? 'rgba(245,158,11,0.15)' : 'rgba(34,200,122,0.1)', color: stock === 0 ? '#e53e3e' : stock <= 20 ? '#f59e0b' : '#22c87a', border: `1px solid ${stock === 0 ? 'rgba(229,62,62,0.3)' : stock <= 20 ? 'rgba(245,158,11,0.3)' : 'rgba(34,200,122,0.2)'}` }}>
-                          {stock === 0 ? 'AGOTADO' : `Stock: ${stock}`}
-                        </span>
-                      ) : null;
-
-                      return editProdMode === i ? (
-                        <div key={i} style={{ padding: '6px 10px', background: 'var(--bg3)', borderRadius: 4 }}>
-                          <div style={{ display: 'flex', alignItems: 'center', gap: 4, marginBottom: 4 }}>
-                            {(() => {
-                              const pi = productosMap[String(prod.product_id)];
-                              return pi?.image ? <img src={pi.image} alt="" style={{ width: 28, height: 28, borderRadius: 4, objectFit: 'cover', border: '1px solid var(--border)', flexShrink: 0 }} onError={e => { e.target.style.display = 'none'; }} /> : null;
-                            })()}
-                            <select value={prod.product_id || ''} onChange={e => handleProductChange(i, e.target.value)} style={{ ...fieldStyle(`prod-${i}`), flex: 1, fontSize: 11, appearance: 'auto', cursor: 'pointer' }}>
-                              <option value="">Seleccionar producto</option>
-                              {Object.entries(productosMap).map(([id, info]) => (<option key={id} value={id}>{info.name || `#${id}`}</option>))}
-                            </select>
-                          </div>
-                          <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                            <span style={{ fontSize: 10, color: 'var(--text3)' }}>Cant:</span>
-                            <input type="number" min="1" value={prod.quantity || 1} onChange={e => handleQuantityChange(i, e.target.value)} style={{ width: 50, ...fieldStyle(`qty-${i}`), fontSize: 11, textAlign: 'center' }} />
-                            <span style={{ fontSize: 10, color: 'var(--text3)' }}>Precio:</span>
-                            <input type="number" value={prod.price} onChange={e => handleProductPriceChange(i, e.target.value)} style={{ width: 90, ...fieldStyle(`price-${i}`), fontSize: 11, textAlign: 'right', fontFamily: 'var(--mono)' }} />
-                            <button onClick={() => setEditProdMode(null)} className="btn btn-primary" style={{ fontSize: 10, padding: '2px 6px', flexShrink: 0 }}>✓ Listo</button>
-                            <button onClick={() => handleRemoveProduct(i)} className="btn btn-ghost" style={{ fontSize: 10, padding: '2px 4px', color: 'var(--red)', flexShrink: 0 }}>✕</button>
-                          </div>
-                        </div>
-                      ) : (
-                        <div key={i} style={{ padding: '6px 10px', background: 'var(--bg3)', borderRadius: 4, display: 'flex', justifyContent: 'space-between', alignItems: 'center', cursor: 'pointer', border: '1px solid var(--border)' }}
-                          onClick={() => setEditProdMode(i)}>
-                          <div style={{ flex: 1, minWidth: 0 }}>
-                            <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
-                              {(() => {
-                                const pi = productosMap[String(prod.product_id)];
-                                return (
-                                  <>
-                                    {pi?.image && <img src={pi.image} alt="" style={{ width: 32, height: 32, borderRadius: 4, objectFit: 'cover', border: '1px solid var(--border)' }} onError={e => { e.target.style.display = 'none'; }} />}
-                                    <span style={{ color: 'var(--accent)', fontWeight: 500, fontSize: 12 }}>{pi?.name || `#${prod.product_id}`}</span>
-                                  </>
-                                );
-                              })()}
-                              <span style={{ color: 'var(--text)', fontSize: 11 }}>x{prod.quantity || 1}</span>
-                              {prod.variations?.length > 0 && <span style={{ color: 'var(--text3)', fontSize: 10 }}>({prod.variations.join(', ')})</span>}
-                              {stockBadge}
-                            </div>
-                          </div>
-                          <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexShrink: 0 }}>
-                            {editProdPrice === i ? (
-                              <input type="number" autoFocus value={prod.price} onChange={e => handleProductPriceChange(i, e.target.value)}
-                                onClick={e => e.stopPropagation()} onBlur={() => setEditProdPrice(null)} onKeyDown={e => e.key === 'Enter' && setEditProdPrice(null)}
-                                style={{ width: 90, ...fieldStyle(`inline-price-${i}`), textAlign: 'right', fontFamily: 'var(--mono)', fontSize: 11 }} />
-                            ) : (
-                              <div onClick={e => { e.stopPropagation(); setEditProdPrice(i); }} style={{ color: 'var(--accent2)', fontFamily: 'var(--mono)', fontWeight: 500, padding: '1px 4px', borderRadius: 3, cursor: 'pointer', fontSize: 11 }}>
-                                {formatMoneyShort(prod.price)}
-                              </div>
-                            )}
-                            <button
-                              onClick={(e) => handleRefreshStock(prod.product_id, e)}
-                              disabled={refreshingStock[prod.product_id]}
-                              className="btn btn-ghost"
-                              style={{ fontSize: 10, padding: '2px 6px' }}
-                              title="Actualizar stock desde Dropi"
-                            >
-                              {refreshingStock[prod.product_id] ? '⏳' : '↻'}
-                            </button>
-                          </div>
-                        </div>
-                      );
-                    })}
-                  </div>
-                )}
-                <button onClick={handleAddProduct} className="btn btn-ghost" style={{ marginTop: 6, fontSize: 11, width: '100%', justifyContent: 'center' }}>+ Agregar producto</button>
-              </>
-            )}
-          </div>
-
+          <div className="lsd-grid-2" style={{ gap: 10, alignItems: 'start' }}>
           {/* OBSERVACIONES */}
           <div className="table-card" style={{ padding: 12, marginBottom: 10 }}>
             <div onClick={() => toggleSection('observaciones')} style={{ fontWeight: 600, fontSize: 13, marginBottom: openSections.observaciones ? 8 : 0, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6, userSelect: 'none' }}>
@@ -1065,6 +1061,7 @@ export default function LucidsalesDetailPanel({ id, ids, currentIndex, onClose, 
                 </div>
               </>
             )}
+          </div>
           </div>
         </div>
       </div>

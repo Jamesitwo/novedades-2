@@ -757,6 +757,26 @@ tr:hover td { background: var(--bg3); }
   min-height: 100vh;
 }
 
+/* Grid de 2 columnas dentro del panel LucidSales */
+.lsd-grid-2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+}
+
+/* Cotizaciones como chips compactos */
+.lsd-quotes {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+  gap: 6px;
+}
+
+/* Panel mas ancho en desktop */
+@media (min-width: 769px) {
+  .detail-panel {
+    width: 600px;
+  }
+}
+
 @keyframes slideInRight {
   from { transform: translateX(100%); }
   to { transform: translateX(0); }
