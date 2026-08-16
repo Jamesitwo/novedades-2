@@ -197,12 +197,22 @@ function generarSlug(nombre) {
     .substring(0, 80) || 'producto';
 }
 
+async function slugUnico(base) {
+  const existente = await prisma.productoTienda.findFirst({ where: { slug: base }, select: { id: true } });
+  if (!existente) return base;
+  for (let i = 2; i < 100; i++) {
+    const cand = `${base}-${i}`.substring(0, 80);
+    const dup = await prisma.productoTienda.findFirst({ where: { slug: cand }, select: { id: true } });
+    if (!dup) return cand;
+  }
+  return `${base}-${Date.now().toString(36)}`.substring(0, 80);
+}
+
 async function guardarCatalogoLocal(tienda, producto, usuarioId) {
   const lucidsalesId = String(producto.id ?? '');
   const imagenes = extraerImagenes(producto);
   const data = {
     nombre: producto.Nombre || `Producto ${lucidsalesId}`,
-    slug: generarSlug(producto.Nombre || lucidsalesId),
     descripcion: producto.Descripcion || null,
     categoria: producto.categoria || producto.Categoria || 'Perfumes',
     precioVenta: extraerPrecio(producto),
@@ -213,8 +223,10 @@ async function guardarCatalogoLocal(tienda, producto, usuarioId) {
     createdById: usuarioId
   };
 
+  const baseSlug = generarSlug(producto.Nombre || lucidsalesId);
+
   if (!lucidsalesId) {
-    return prisma.productoTienda.create({ data: { tiendaId: tienda.id, ...data } });
+    return prisma.productoTienda.create({ data: { tiendaId: tienda.id, ...data, slug: await slugUnico(baseSlug) } });
   }
 
   const existente = await prisma.productoTienda.findFirst({
@@ -223,7 +235,7 @@ async function guardarCatalogoLocal(tienda, producto, usuarioId) {
   if (existente) {
     return prisma.productoTienda.update({ where: { id: existente.id }, data });
   }
-  return prisma.productoTienda.create({ data: { tiendaId: tienda.id, ...data } });
+  return prisma.productoTienda.create({ data: { tiendaId: tienda.id, ...data, slug: await slugUnico(baseSlug) } });
 }
 
 async function importarProductos(tienda, productoIds, usuarioId) {
