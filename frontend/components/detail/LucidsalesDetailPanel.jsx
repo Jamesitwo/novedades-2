@@ -944,10 +944,18 @@ export default function LucidsalesDetailPanel({ id, ids, currentIndex, onClose, 
                   <div style={{ display: 'flex', gap: 8 }}>
                     <input type="text" value={pedido.Direccion || ''} onChange={e => { handleChange('Direccion', e.target.value); if (validacion) setValidacion(null); }}
                       style={{ ...fieldStyle('Direccion'), flex: 1, height: 40 }} placeholder="Cra 12 # 45-67, Barrio..." />
-                    <Button variant="ghost" size="sm" icon="check" onClick={handleValidarDireccion} disabled={validando || !pedido.Direccion} style={{ height: 40 }} title="Validar direccion">
+                    <Button size="sm" icon="check" onClick={handleValidarDireccion} disabled={validando || !pedido.Direccion}
+                      style={{
+                        height: 40, background: 'var(--green)', color: '#fff', border: 'none',
+                        boxShadow: '0 4px 14px rgba(16,185,129,0.35)', fontWeight: 700
+                      }} title="Validar direccion">
                       Validar
                     </Button>
-                    <Button variant="ghost" size="sm" icon="location_on" onClick={() => { setShowIR(!showIR); if (!showIR && !oficinasIR.length && pedido?.Ciudad) handleBuscarIR(); }} style={{ height: 40 }} title="Inter Rapidismo">
+                    <Button size="sm" icon="location_on" onClick={() => { setShowIR(!showIR); if (!showIR && !oficinasIR.length && pedido?.Ciudad) handleBuscarIR(); }}
+                      style={{
+                        height: 40, background: '#f97316', color: '#fff', border: 'none',
+                        boxShadow: '0 4px 14px rgba(249,115,22,0.35)', fontWeight: 700
+                      }} title="Inter Rapidismo">
                       IR
                     </Button>
                   </div>
