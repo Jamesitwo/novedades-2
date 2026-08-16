@@ -14,6 +14,7 @@ const nextConfig = {
       { source: '/oficina/:path*', destination: '/admin/oficina/:path*', permanent: true },
       { source: '/lucidsales/:path*', destination: '/admin/lucidsales/:path*', permanent: true },
       { source: '/usuarios', destination: '/admin/usuarios', permanent: true },
+      { source: '/apikey', destination: '/admin/apikey', permanent: true },
       { source: '/configuracion', destination: '/admin/configuracion', permanent: true },
       { source: '/facturas/:path*', destination: '/admin/facturas/:path*', permanent: true },
       { source: '/garantias/:path*', destination: '/admin/garantias/:path*', permanent: true },

@@ -25,7 +25,7 @@ export default function Header() {
     if (pathname.startsWith('/admin/oficina')) return 'Paquetes en oficina';
     if (pathname.startsWith('/admin/usuarios')) return 'Gestión de usuarios';
     if (pathname.startsWith('/admin/configuracion')) return 'Configuración';
-    if (pathname.startsWith('/apikey')) return 'API Keys';
+    if (pathname.startsWith('/admin/apikey')) return 'API Keys';
     if (pathname.startsWith('/admin/sesiones')) return 'Sesiones';
     if (pathname.startsWith('/admin/devoluciones')) return 'Devoluciones';
     if (pathname.startsWith('/admin/solucionados')) return 'Solucionados';

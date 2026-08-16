@@ -137,7 +137,7 @@ export default function Sidebar() {
           {isAdmin && <NavItem href="/admin/usuarios" icon="group" label="Usuarios" />}
           {isAdmin && <NavItem href="/admin/plantillas" icon="forum" label="Plantillas" />}
           {isAdmin && <NavItem href="/admin/configuracion" icon="settings" label="Configuración" />}
-          {isAdmin && <NavItem href="/apikey" icon="key" label="API Keys" />}
+          {isAdmin && <NavItem href="/admin/apikey" icon="key" label="API Keys" />}
           {isAdmin && <NavItem href="/admin/sesiones" icon="lock_clock" label="Sesiones" />}
         </Section>
       </nav>
