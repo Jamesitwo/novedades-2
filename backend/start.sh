@@ -32,5 +32,12 @@ else
   echo "⚠️  Migraciones de datos fallaron, continuando arranque..."
 fi
 
+echo "Ejecutando migracion de tiendas..."
+if node prisma/migrate-tiendas.js 2>/dev/null; then
+  echo "✅ Migracion de tiendas completada"
+else
+  echo "⚠️  Migracion de tiendas fallo, continuando arranque..."
+fi
+
 echo "🚀 Iniciando servidor..."
 exec node server.js

@@ -152,6 +152,9 @@ app.use('/api/lucidsales', lucidsalesRoutes);
 const alertasRoutes = require('./src/routes/alertas.routes');
 app.use('/api/alertas', alertasRoutes);
 
+const perfumesRoutes = require('./src/routes/perfumes.routes');
+app.use('/api/perfumes', perfumesRoutes);
+
 app.get('/api/health', (req, res) => {
   const wsService = require('./src/services/websocket.service');
   res.json({

@@ -1,10 +1,12 @@
 const { prisma } = require('../prisma/client');
+const { resolveTiendaId } = require('../utils/tienda');
 
 const getByProducto = async (req, res) => {
   try {
     const { productoId } = req.params;
+    const tiendaId = await resolveTiendaId(req.query.tienda);
     const resenas = await prisma.resena.findMany({
-      where: { productoTiendaId: productoId },
+      where: { productoTiendaId: productoId, tiendaId },
       orderBy: { createdAt: 'desc' }
     });
 
@@ -33,8 +35,12 @@ const create = async (req, res) => {
     if (!nombre || !nombre.trim()) return res.status(400).json({ error: 'El nombre es requerido' });
     if (!calificacion || calificacion < 1 || calificacion > 5) return res.status(400).json({ error: 'Calificación debe ser 1-5' });
 
+    const producto = await prisma.productoTienda.findUnique({ where: { id: productoId }, select: { tiendaId: true } });
+    if (!producto) return res.status(404).json({ error: 'Producto no encontrado' });
+
     const resena = await prisma.resena.create({
       data: {
+        tiendaId: producto.tiendaId,
         productoTiendaId: productoId,
         nombre: nombre.trim(),
         calificacion: parseInt(calificacion),
@@ -140,6 +146,7 @@ const generarAleatorias = async (req, res) => {
 
       const resena = await prisma.resena.create({
         data: {
+          tiendaId: producto.tiendaId,
           productoTiendaId: productoId,
           nombre,
           calificacion,

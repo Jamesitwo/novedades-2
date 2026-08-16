@@ -1,5 +1,6 @@
 const { prisma } = require('../prisma/client');
 const lucidsalesService = require('../services/lucidsales.service');
+const { resolveTiendaId } = require('../utils/tienda');
 
 const normalizar = (s) => (s || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').trim();
 
@@ -22,7 +23,8 @@ const getAll = async (req, res) => {
   try {
     const { page = 1, limit = 20, estado, metodoPago, search } = req.query;
     const skip = (parseInt(page) - 1) * parseInt(limit);
-    const where = {};
+    const tiendaId = await resolveTiendaId(req.query.tienda);
+    const where = { tiendaId };
     if (estado) where.estado = estado;
     if (metodoPago) where.metodoPago = metodoPago;
     if (search) {

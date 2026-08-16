@@ -314,6 +314,55 @@ model ApiKey {
   updatedAt DateTime @updatedAt
 }
 
+model Tienda {
+  id                  String   @id @default(uuid())
+  nombre              String
+  slug                String   @unique
+  activo              Boolean  @default(true)
+  lucidbotApiKey      String?  @map("lucidbot_api_key")
+  botFieldAdIds       String?  @map("bot_field_ad_ids")
+  botFieldCatalogo    String?  @map("bot_field_catalogo")
+  botFieldIntegracion String?  @map("bot_field_integracion")
+  botFieldMensajes    String?  @map("bot_field_mensajes")
+  botFieldMultimedia  String?  @map("bot_field_multimedia")
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+
+  productos     ProductoTienda[]
+  pedidos       PedidoTienda[]
+  resenas       Resena[]
+  botFieldCache BotFieldCache[]
+  importLogs    ImportLogProducto[]
+
+  @@map("tiendas")
+}
+
+model BotFieldCache {
+  id         String   @id @default(uuid())
+  tiendaId   String   @map("tienda_id")
+  tienda     Tienda   @relation(fields: [tiendaId], references: [id], onDelete: Cascade)
+  botFieldId String   @map("bot_field_id")
+  value      String   @default("[]")
+  updatedAt  DateTime @updatedAt
+
+  @@unique([tiendaId, botFieldId])
+  @@map("bot_field_cache")
+}
+
+model ImportLogProducto {
+  id                   String   @id @default(uuid())
+  tiendaId             String   @map("tienda_id")
+  tienda               Tienda   @relation(fields: [tiendaId], references: [id], onDelete: Cascade)
+  lucidsalesProductoId String   @map("lucidsales_producto_id")
+  nombre               String
+  estado               String   @default("ok")
+  detalle              String?
+  createdAt            DateTime @default(now())
+
+  @@index([tiendaId, createdAt])
+  @@map("import_log_productos")
+}
+
 model ProductoGanador {
   id              String   @id @default(uuid())
   dropiId         String   @map("dropi_id")
@@ -336,6 +385,8 @@ model ProductoGanador {
 
 model ProductoTienda {
   id              String    @id @default(uuid())
+  tiendaId        String?   @map("tienda_id")
+  tienda          Tienda?   @relation(fields: [tiendaId], references: [id])
   nombre          String
   slug            String?   @unique
   descripcion     String?
@@ -369,11 +420,14 @@ model ProductoTienda {
   @@index([destacado])
   @@index([categoria])
   @@index([ofertaActiva])
+  @@index([tiendaId])
   @@map("productos_tienda")
 }
 
 model PedidoTienda {
   id             String   @id @default(uuid())
+  tiendaId       String?  @map("tienda_id")
+  tienda         Tienda?  @relation(fields: [tiendaId], references: [id])
   productoId     String   @map("producto_id")
   productoNombre String
   nombre         String
@@ -419,6 +473,8 @@ model HistorialPedidoTienda {
 
 model Resena {
   id               String         @id @default(uuid())
+  tiendaId         String?        @map("tienda_id")
+  tienda           Tienda?        @relation(fields: [tiendaId], references: [id])
   productoTiendaId String         @map("producto_id")
   producto         ProductoTienda @relation(fields: [productoTiendaId], references: [id], onDelete: Cascade)
   nombre           String

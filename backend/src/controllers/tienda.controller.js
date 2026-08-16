@@ -1,5 +1,6 @@
 const { prisma } = require('../prisma/client');
 const { paginate } = require('../utils/paginate');
+const { resolveTiendaId } = require('../utils/tienda');
 
 const generateSlug = (nombre) => {
   return nombre
@@ -15,7 +16,8 @@ const getAll = async (req, res) => {
     const { page = 1, limit = 20, categoria, search, destacado, oferta, orden = 'reciente', todos } = req.query;
     const skip = (parseInt(page) - 1) * parseInt(limit);
 
-    const where = {};
+    const tiendaId = await resolveTiendaId(req.query.tienda);
+    const where = { tiendaId };
     if (todos !== 'true') where.activo = true;
 
     if (categoria) where.categoria = categoria;
@@ -51,7 +53,7 @@ const getAll = async (req, res) => {
       }),
       prisma.productoTienda.count({ where }),
       prisma.productoTienda.findMany({
-        where: { activo: true },
+        where: { tiendaId, activo: true },
         select: { categoria: true },
         distinct: ['categoria'],
         orderBy: { categoria: 'asc' }
@@ -71,8 +73,9 @@ const getAll = async (req, res) => {
 
 const getDestacados = async (req, res) => {
   try {
+    const tiendaId = await resolveTiendaId(req.query.tienda);
     const productos = await prisma.productoTienda.findMany({
-      where: { activo: true, destacado: true },
+      where: { tiendaId, activo: true, destacado: true },
       orderBy: { updatedAt: 'desc' },
       take: 6
     });
@@ -85,8 +88,10 @@ const getDestacados = async (req, res) => {
 
 const getOfertas = async (req, res) => {
   try {
+    const tiendaId = await resolveTiendaId(req.query.tienda);
     const productos = await prisma.productoTienda.findMany({
       where: {
+        tiendaId,
         activo: true,
         ofertaActiva: true,
         ofertaHasta: { gt: new Date() }
@@ -103,10 +108,11 @@ const getOfertas = async (req, res) => {
 const getById = async (req, res) => {
   try {
     const { id } = req.params;
+    const tiendaId = await resolveTiendaId(req.query.tienda);
     const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id);
     const producto = isUuid
-      ? await prisma.productoTienda.findUnique({ where: { id } })
-      : await prisma.productoTienda.findFirst({ where: { slug: id } });
+      ? await prisma.productoTienda.findFirst({ where: { id, tiendaId } })
+      : await prisma.productoTienda.findFirst({ where: { slug: id, tiendaId } });
     if (!producto) {
       return res.status(404).json({ error: 'Producto no encontrado' });
     }
@@ -115,13 +121,13 @@ const getById = async (req, res) => {
     let relacionados;
     if (upsellIds.length > 0) {
       relacionados = await prisma.productoTienda.findMany({
-        where: { id: { in: upsellIds }, activo: true },
+        where: { tiendaId, id: { in: upsellIds }, activo: true },
         take: 4
       });
       if (relacionados.length < 4) {
         const existentes = relacionados.map(r => r.id);
         const extra = await prisma.productoTienda.findMany({
-          where: { activo: true, categoria: producto.categoria, id: { notIn: [producto.id, ...existentes] } },
+          where: { tiendaId, activo: true, categoria: producto.categoria, id: { notIn: [producto.id, ...existentes] } },
           take: 4 - relacionados.length,
           orderBy: { ventasSimuladas: 'desc' }
         });
@@ -129,7 +135,7 @@ const getById = async (req, res) => {
       }
     } else {
       relacionados = await prisma.productoTienda.findMany({
-        where: { activo: true, categoria: producto.categoria, id: { not: producto.id } },
+        where: { tiendaId, activo: true, categoria: producto.categoria, id: { not: producto.id } },
         take: 4,
         orderBy: { ventasSimuladas: 'desc' }
       });
@@ -154,8 +160,11 @@ const create = async (req, res) => {
       return res.status(400).json({ error: 'nombre, categoria y precioVenta son requeridos' });
     }
 
+    const tiendaId = await resolveTiendaId(req.query.tienda);
+
     const producto = await prisma.productoTienda.create({
       data: {
+        tiendaId,
         nombre,
         slug: generateSlug(nombre),
         descripcion: descripcion || null,
@@ -301,10 +310,12 @@ const getCiudades = (req, res) => {
 
 const procesarCompra = async (req, res) => {
   try {
-    const { productoId, nombre, apellido, celular, direccion, departamento, ciudad, email, notas, cantidad, metodoPago, envioTotal, items } = req.body;
+    const { productoId, nombre, apellido, celular, direccion, departamento, ciudad, email, notas, cantidad, metodoPago, envioTotal, items, tienda } = req.body;
     if (!productoId || !nombre || !apellido || !celular || !direccion || !departamento || !ciudad) {
       return res.status(400).json({ error: 'Faltan datos requeridos' });
     }
+
+    const tiendaId = await resolveTiendaId(tienda);
 
     const itemsRaw = Array.isArray(items) && items.length > 0
       ? items
@@ -315,7 +326,7 @@ const procesarCompra = async (req, res) => {
     let envioTotalCalc = 0;
 
     for (const it of itemsRaw) {
-      const prod = await prisma.productoTienda.findUnique({ where: { id: it.productoId } });
+      const prod = await prisma.productoTienda.findFirst({ where: { id: it.productoId, tiendaId } });
       if (!prod) continue;
       const qtyItem = parseInt(it.cantidad) || 1;
       const precioItem = prod.ofertaActiva && prod.ofertaPrecio ? prod.ofertaPrecio : prod.precioVenta;
@@ -337,7 +348,7 @@ const procesarCompra = async (req, res) => {
       return res.status(404).json({ error: 'Productos no encontrados' });
     }
 
-    const producto = await prisma.productoTienda.findUnique({ where: { id: productoId } });
+    const producto = await prisma.productoTienda.findFirst({ where: { id: productoId, tiendaId } });
     const principal = itemsProcesados.find(i => i.productoId === productoId) || itemsProcesados[0];
     const qty = parseInt(cantidad) || 1;
     const precio = principal.precioUnitario;
@@ -353,6 +364,7 @@ const procesarCompra = async (req, res) => {
 
     await prisma.pedidoTienda.create({
       data: {
+        tiendaId,
         productoId: productoIdFinal,
         productoNombre,
         nombre: nombre.trim(),
@@ -485,6 +497,7 @@ const importarDesdeLucidSales = async (req, res) => {
     const lucidsalesService = require('../services/lucidsales.service');
     const lsProductos = await lucidsalesService.getProductos();
     const productos = Array.isArray(lsProductos) ? lsProductos : (lsProductos?.productos || lsProductos?.data || []);
+    const tiendaId = await resolveTiendaId(req.query.tienda);
 
     if (productos.length > 0) {
       const first = productos[0];
@@ -552,6 +565,7 @@ const importarDesdeLucidSales = async (req, res) => {
       try {
         await prisma.productoTienda.create({
           data: {
+            tiendaId,
             nombre,
             descripcion: ls.descripcion || ls.Descripcion || null,
             categoria,
