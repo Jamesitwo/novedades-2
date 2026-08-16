@@ -927,7 +927,7 @@ export default function LucidsalesDetailPanel({ id, ids, currentIndex, onClose, 
                         display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
                         fontSize: 13, fontWeight: 700, width: '100%', boxSizing: 'border-box', minHeight: 44,
                         background: '#25D366', color: '#06281a', borderRadius: 8, textDecoration: 'none',
-                        boxShadow: '0 4px 14px rgba(37,211,102,0.35)', transition: 'filter 0.15s'
+                        transition: 'filter 0.15s'
                       }}
                       onMouseEnter={e => { e.currentTarget.style.filter = 'brightness(1.08)'; }}
                       onMouseLeave={e => { e.currentTarget.style.filter = 'none'; }}>
@@ -947,14 +947,14 @@ export default function LucidsalesDetailPanel({ id, ids, currentIndex, onClose, 
                     <Button size="sm" icon="check" onClick={handleValidarDireccion} disabled={validando || !pedido.Direccion}
                       style={{
                         height: 40, background: 'var(--green)', color: '#fff', border: 'none',
-                        boxShadow: '0 4px 14px rgba(16,185,129,0.35)', fontWeight: 700
+                        fontWeight: 700
                       }} title="Validar direccion">
                       Validar
                     </Button>
                     <Button size="sm" icon="location_on" onClick={() => { setShowIR(!showIR); if (!showIR && !oficinasIR.length && pedido?.Ciudad) handleBuscarIR(); }}
                       style={{
                         height: 40, background: '#f97316', color: '#fff', border: 'none',
-                        boxShadow: '0 4px 14px rgba(249,115,22,0.35)', fontWeight: 700
+                        fontWeight: 700
                       }} title="Inter Rapidismo">
                       IR
                     </Button>
