@@ -111,7 +111,7 @@ const BOT_FIELDS = [
     idKey: 'lucidsales_product_id',
     build: (p) => ({
       nombre_del_producto: p.Nombre || '',
-      ids_integracion: { lucidsales_product_id: `ls-prod-${p.id}` },
+      ids_integracion: { lucidsales_product_id: `ls-prod-${String(p.id ?? '').trim() || generarSlug(p.Nombre || 'producto')}` },
       precios_por_cantidad: buildPreciosPorCantidad(p.bundle)
     })
   },
@@ -152,8 +152,16 @@ async function guardarCache(tiendaId, botFieldKey, valueObj) {
   });
 }
 
-function mergeEntrada(lista, entrada, idKey) {
-  const idx = lista.findIndex(e => e[idKey] === entrada[idKey]);
+function extraerClave(entrada, field) {
+  if (field.idKey === 'lucidsales_product_id') {
+    return entrada.ids_integracion?.lucidsales_product_id || '';
+  }
+  return entrada[field.idKey || 'nombre_del_producto'] || '';
+}
+
+function mergeEntrada(lista, entrada, field) {
+  const clave = extraerClave(entrada, field);
+  const idx = lista.findIndex(e => extraerClave(e, field) === clave);
   if (idx >= 0) {
     lista[idx] = entrada;
   } else {
@@ -166,9 +174,9 @@ async function escribirBotField(tienda, field, producto) {
   const cache = await leerCache(tienda.id, field.key);
   const lista = Array.isArray(cache[field.rootKey]) ? cache[field.rootKey] : [];
   const entrada = field.build(producto);
-  const idKey = field.idKey || 'nombre_del_producto';
-  if (!entrada[idKey]) throw new Error(`Sin clave de dedupe (${idKey}) para el producto`);
-  const nuevaLista = mergeEntrada(lista, entrada, idKey);
+  const clave = extraerClave(entrada, field);
+  if (!clave) throw new Error(`Sin clave de dedupe para el producto`);
+  const nuevaLista = mergeEntrada(lista, entrada, field);
   const nuevoValor = { [field.rootKey]: nuevaLista };
   const valueStr = JSON.stringify(nuevoValor);
   await postBotField({
