@@ -125,7 +125,7 @@ export default function Sidebar() {
 
         <Section title="Canales" sectionKey="channels">
           {(showLucidsales || isAdmin) && <NavItem href="/" icon="storefront" label="Pizdo · Tienda" exact />}
-          {isAdmin && <NavItem href="/admin/perfumes" icon="perfume" label="Perfumes" />}
+          {isAdmin && <NavItem href="/admin/perfumes" icon="sanitizer" label="Perfumes" />}
           {showLucidsales && <NavItem href="/admin/lucidsales" icon="shopping_cart" label="LucidSales" />}
         </Section>
 

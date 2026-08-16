@@ -220,7 +220,7 @@ export default function PerfumesPage() {
           {cargandoLocales ? (
             <div style={{ color: 'var(--text3)', fontSize: 13, padding: 20, textAlign: 'center' }}>Cargando...</div>
           ) : productosLocales.length === 0 ? (
-            <EmptyState icon="perfume" title="Sin productos" text="Importa productos desde Lucid Sales para llenar este catálogo." />
+            <EmptyState icon="sanitizer" title="Sin productos" text="Importa productos desde Lucid Sales para llenar este catálogo." />
           ) : (
             <div style={{ display: 'flex', flexDirection: 'column', gap: 8, maxHeight: 420, overflowY: 'auto', paddingRight: 4 }}>
               {productosLocales.map(p => (
