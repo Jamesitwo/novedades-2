@@ -14,5 +14,6 @@ router.post('/importar', ctrl.importar);
 router.get('/importaciones', ctrl.importaciones);
 router.post('/importaciones/:logId/reintentar', ctrl.reintentar);
 router.get('/productos', ctrl.listarProductosLocales);
+router.delete('/productos/:id', ctrl.desimportar);
 
 module.exports = router;

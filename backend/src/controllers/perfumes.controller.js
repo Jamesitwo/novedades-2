@@ -1,5 +1,5 @@
 const { prisma } = require('../prisma/client');
-const { importarProductos, BOT_FIELDS } = require('../services/importador-perfumes.service');
+const { importarProductos, desimportarProducto, BOT_FIELDS } = require('../services/importador-perfumes.service');
 
 const CONFIG_KEYS = ['lucidbotApiKey', 'botFieldAdIds', 'botFieldCatalogo', 'botFieldIntegracion', 'botFieldMensajes', 'botFieldMultimedia'];
 
@@ -126,6 +126,42 @@ const listarProductosLocales = async (req, res) => {
   }
 };
 
+const desimportar = async (req, res) => {
+  try {
+    const tienda = await getTiendaPerfumes();
+    const { id } = req.params;
+
+    const producto = await prisma.productoTienda.findFirst({
+      where: { id, tiendaId: tienda.id }
+    });
+    if (!producto) {
+      return res.status(404).json({ error: 'Producto no encontrado en Perfumes' });
+    }
+
+    const errores = await desimportarProducto(tienda, producto);
+    if (errores.length > 0) {
+      return res.status(502).json({
+        ok: false,
+        error: 'No se pudo eliminar de todos los bot fields',
+        errores
+      });
+    }
+
+    await prisma.productoTienda.delete({ where: { id: producto.id } });
+
+    if (producto.lucidsalesId) {
+      await prisma.importLogProducto.deleteMany({
+        where: { tiendaId: tienda.id, lucidsalesProductoId: producto.lucidsalesId }
+      });
+    }
+
+    res.json({ ok: true, message: 'Producto desimportado y eliminado de los bot fields' });
+  } catch (error) {
+    console.error('[Perfumes] desimportar error:', error.message);
+    res.status(error.status || 500).json({ error: error.message || 'Error al desimportar' });
+  }
+};
+
 module.exports = {
   getConfig,
   updateConfig,
@@ -134,6 +170,7 @@ module.exports = {
   importaciones,
   reintentar,
   listarProductosLocales,
+  desimportar,
   CONFIG_KEYS,
   BOT_FIELDS
 };

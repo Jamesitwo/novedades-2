@@ -304,4 +304,39 @@ async function importarProductos(tienda, productoIds, usuarioId) {
   return resumen;
 }
 
-module.exports = { importarProductos, BOT_FIELDS };
+async function desimportarProducto(tienda, productoLocal) {
+  const errores = [];
+  const nombre = productoLocal.nombre || '';
+  const claveIntegracion = `ls-prod-${productoLocal.lucidsalesId || ''}`;
+
+  for (const field of BOT_FIELDS) {
+    if (!tienda[field.configKey]) {
+      errores.push(`${field.key}: sin bot_field_id configurado`);
+      continue;
+    }
+    try {
+      const cache = await leerCache(tienda.id, field.key);
+      const lista = Array.isArray(cache[field.rootKey]) ? cache[field.rootKey] : [];
+      const nuevaLista = lista.filter(e => {
+        if (field.idKey === 'lucidsales_product_id') {
+          return (e.ids_integracion?.lucidsales_product_id || '') !== claveIntegracion;
+        }
+        return (e.nombre_del_producto || '') !== nombre;
+      });
+      if (nuevaLista.length === lista.length) continue;
+      const nuevoValor = { [field.rootKey]: nuevaLista };
+      await postBotField({
+        apiKey: tienda.lucidbotApiKey,
+        botFieldId: tienda[field.configKey],
+        value: JSON.stringify(nuevoValor)
+      });
+      await guardarCache(tienda.id, field.key, nuevoValor);
+    } catch (err) {
+      errores.push(`${field.key}: ${err.message}`);
+    }
+  }
+
+  return errores;
+}
+
+module.exports = { importarProductos, desimportarProducto, BOT_FIELDS };

@@ -52,6 +52,7 @@ export default function PerfumesPage() {
   const [resumen, setResumen] = useState(null);
   const [importaciones, setImportaciones] = useState([]);
   const [reintentando, setReintentando] = useState(null);
+  const [desimportando, setDesimportando] = useState(null);
 
   const fetchConfig = useCallback(async () => {
     try {
@@ -169,6 +170,21 @@ export default function PerfumesPage() {
     }
   };
 
+  const desimportar = async (p) => {
+    if (!window.confirm(`¿Desimportar "${p.nombre}"?\n\nSe eliminará del catálogo local y de los campos del bot (LucidBot).`)) return;
+    setDesimportando(p.id);
+    try {
+      await api.delete(`/api/perfumes/productos/${p.id}`);
+      toast.success('Producto desimportado');
+      fetchLocales();
+      fetchImportaciones();
+    } catch (err) {
+      toast.error(err.response?.data?.error || 'Error al desimportar');
+    } finally {
+      setDesimportando(null);
+    }
+  };
+
   const filtrados = lsProductos.filter(p => p.nombre.toLowerCase().includes(busqueda.toLowerCase()));
 
   return (
@@ -236,9 +252,20 @@ export default function PerfumesPage() {
                       ${Number(p.precioVenta || 0).toLocaleString('es-CO')}
                     </div>
                   </div>
-                  <button onClick={() => toggleActivo(p)} className="btn btn-ghost" style={{ fontSize: 11, padding: '4px 10px', flexShrink: 0 }}>
-                    {p.activo ? 'ON' : 'OFF'}
-                  </button>
+                  <div style={{ display: 'flex', gap: 6, flexShrink: 0, alignItems: 'center' }}>
+                    <button onClick={() => toggleActivo(p)} className="btn btn-ghost" style={{ fontSize: 11, padding: '4px 10px' }}>
+                      {p.activo ? 'ON' : 'OFF'}
+                    </button>
+                    <button
+                      onClick={() => desimportar(p)}
+                      disabled={desimportando === p.id}
+                      className="btn btn-ghost"
+                      title="Desimportar: elimina del catálogo local y de los bot fields"
+                      style={{ fontSize: 11, padding: '4px 10px', color: 'var(--red)', borderColor: 'color-mix(in srgb, var(--red) 40%, transparent)' }}
+                    >
+                      {desimportando === p.id ? '...' : 'Desimportar'}
+                    </button>
+                  </div>
                 </div>
               ))}
             </div>
