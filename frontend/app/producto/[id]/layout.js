@@ -22,7 +22,7 @@ export async function generateMetadata({ params }) {
         title: `${nombre} | Pizdo`,
         description: `${descripcion} — ${Number(precio).toLocaleString('es-CO')}`,
         images: producto.imagen ? [{ url: producto.imagen, width: 800, height: 800 }] : [],
-        type: 'product',
+        type: 'website',
       },
       alternates: { canonical: `https://pizdo.info/producto/${slug}` }
     };
