@@ -90,8 +90,15 @@ export default function PedidosAdminPage() {
     setDropiIdx(null);
     try {
       const { data } = await api.post(`/api/pedidos/${detail.id}/cotizar-dropi`);
-      setDropiQuotes(data.quotes || []);
-      showToast('Cotización obtenida');
+      const quotes = Array.isArray(data.quotes) ? data.quotes : [];
+      if (!data.ok) {
+        showToast(data.error || 'Error al cotizar Dropi', 'error');
+      } else if (quotes.length === 0) {
+        showToast('No se obtuvieron cotizaciones de Dropi', 'error');
+      } else {
+        setDropiQuotes(quotes);
+        showToast('Cotización obtenida');
+      }
     } catch (e) {
       showToast(e.response?.data?.error || 'Error al cotizar Dropi', 'error');
     } finally {

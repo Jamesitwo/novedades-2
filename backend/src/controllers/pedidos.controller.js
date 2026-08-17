@@ -150,10 +150,35 @@ const cotizarDropi = async (req, res) => {
       }];
     }
 
+    // Autocuracion: rellenar IDs desde el producto actual si el item los guardo vacios
+    let curado = false;
+    for (const item of items) {
+      if (!item.lucidsalesId || !item.dropiId) {
+        const prod = await prisma.productoTienda.findUnique({ where: { id: item.productoId } });
+        if (prod) {
+          if (!item.lucidsalesId && prod.lucidsalesId) {
+            item.lucidsalesId = prod.lucidsalesId;
+            curado = true;
+          }
+          if (!item.dropiId && prod.dropiId) {
+            item.dropiId = prod.dropiId;
+            curado = true;
+          }
+        }
+      }
+    }
+
     const sinDropi = items.filter(i => !i.lucidsalesId);
     if (sinDropi.length > 0) {
       return res.status(400).json({
         error: `El producto "${sinDropi[0].productoNombre}" no tiene ID de catálogo LucidSales. Re-importa el producto desde LucidSales o configura su ID.`
+      });
+    }
+
+    if (curado) {
+      await prisma.pedidoTienda.update({
+        where: { id: pedido.id },
+        data: { items }
       });
     }
 
@@ -217,7 +242,11 @@ const cotizarDropi = async (req, res) => {
     }
 
     const cotizacion = await lucidsalesService.cotizarEnvio(lucidsalesPedidoId, 'dropi');
-    res.json({ ok: true, lucidsalesPedidoId: String(lucidsalesPedidoId), quotes: cotizacion?.quotes || cotizacion || [] });
+    if (cotizacion && cotizacion.ok === false) {
+      return res.status(400).json({ error: cotizacion.msg || cotizacion.error || 'Error al cotizar envío Dropi' });
+    }
+    const quotes = Array.isArray(cotizacion?.quotes) ? cotizacion.quotes : (Array.isArray(cotizacion) ? cotizacion : []);
+    res.json({ ok: true, lucidsalesPedidoId: String(lucidsalesPedidoId), quotes });
   } catch (error) {
     console.error('Cotizar Dropi error:', error);
     res.status(500).json({ error: error.message || 'Error al cotizar envío Dropi' });
