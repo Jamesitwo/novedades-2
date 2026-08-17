@@ -17,7 +17,8 @@ export default function ConfiguracionPage() {
     factura_terminos: '', factura_resolucion: '', factura_rango_desde: '', factura_rango_hasta: '',
     factura_vigencia: '', factura_pie_legal: '', factura_prefijo: '',
     lucidsales_email: '', lucidsales_password: '', lucidsales_shop_id: '', lucidsales_activo: false,
-    metaPixelId: '', metaAccessToken: '', metaTestCode: ''
+    metaPixelId: '', metaAccessToken: '', metaTestCode: '',
+    faviconUrl: ''
   });
   const [operadores, setOperadores] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -29,6 +30,37 @@ export default function ConfiguracionPage() {
   const showToast = (message, type = 'success') => {
     setToast({ message, type });
     setTimeout(() => setToast(null), 4000);
+  };
+
+  const openFaviconUpload = () => {
+    const abrir = () => {
+      if (!window.cloudinary) return;
+      window.cloudinary.openUploadWidget(
+        {
+          cloudName: process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME || 'dgbz1ze71',
+          uploadPreset: process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET || 'garantias_preset',
+          sources: ['local', 'url'],
+          multiple: false,
+          maxFiles: 1,
+          clientAllowedFormats: ['png', 'jpg', 'jpeg', 'webp', 'ico', 'svg']
+        },
+        (error, result) => {
+          if (!error && result && result.event === 'success') {
+            setConfig(prev => ({ ...prev, faviconUrl: result.info.secure_url }));
+            showToast('Favicon subido. Guarda la configuración para aplicarlo.');
+          }
+        }
+      );
+    };
+
+    if (!window.cloudinary) {
+      const script = document.createElement('script');
+      script.src = 'https://upload-widget.cloudinary.com/global/all.js';
+      script.onload = abrir;
+      document.head.appendChild(script);
+    } else {
+      abrir();
+    }
   };
 
   const handleTestMeta = async () => {
@@ -110,7 +142,8 @@ export default function ConfiguracionPage() {
         lucidsales_activo: config.lucidsales_activo,
         meta_pixel_id: config.metaPixelId || null,
         meta_access_token: config.metaAccessToken || null,
-        meta_test_code: config.metaTestCode || null
+        meta_test_code: config.metaTestCode || null,
+        favicon_url: config.faviconUrl || null
       });
       showToast('Configuración guardada correctamente');
     } catch (error) {
@@ -539,6 +572,36 @@ export default function ConfiguracionPage() {
           </div>
           <p style={{ color: 'var(--text3)', fontSize: 11 }}>
             El botón envía un evento <code style={{ background: 'var(--bg3)', padding: '1px 4px', borderRadius: 3 }}>TestEvent</code> real a la API de Meta con esta configuración y muestra la respuesta.
+          </p>
+        </div>
+      </div>
+
+      <div className="table-card" style={{ maxWidth: 700, marginTop: 16 }}>
+        <div className="table-header">
+          <span className="table-header-title">Favicon (icono de la pestaña)</span>
+        </div>
+        <div style={{ padding: 20, display: 'grid', gap: 14 }}>
+          <div style={{ display: 'flex', gap: 16, alignItems: 'center' }}>
+            {config.faviconUrl ? (
+              <img src={config.faviconUrl} alt="Favicon" style={{ width: 40, height: 40, borderRadius: 8, objectFit: 'contain', background: 'var(--bg3)', border: '1px solid var(--border)', flexShrink: 0 }} onError={e => { e.target.style.display = 'none'; }} />
+            ) : (
+              <div style={{ width: 40, height: 40, borderRadius: 8, background: 'var(--bg3)', border: '1px solid var(--border)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text3)', fontSize: 18, flexShrink: 0 }}>🖼</div>
+            )}
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <div className="form-group">
+                <label>URL del favicon</label>
+                <input type="url" value={config.faviconUrl || ''}
+                  onChange={e => setConfig(prev => ({ ...prev, faviconUrl: e.target.value }))}
+                  placeholder="https://.../icono.png"
+                  style={{ width: '100%' }} />
+              </div>
+              <button onClick={openFaviconUpload} className="btn btn-ghost" style={{ marginTop: 10 }}>
+                ⬆ Subir imagen (Cloudinary)
+              </button>
+            </div>
+          </div>
+          <p style={{ color: 'var(--text3)', fontSize: 11 }}>
+            Imagen cuadrada de 32×32 o más (PNG/JPG/WEBP/ICO). Se muestra en la pestaña del navegador. Los navegadores cachean el favicon: puede tardar unos minutos en verse el cambio.
           </p>
         </div>
       </div>

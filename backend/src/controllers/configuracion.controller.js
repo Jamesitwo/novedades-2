@@ -45,7 +45,7 @@ const updateConfiguracion = async (req, res) => {
       whatsapp_numero,
       promo_bar_texto, homepage_categorias,
       envio_texto, envio_dias, garantia_titulo, garantia_texto, redesSociales,
-      meta_pixel_id, meta_access_token, meta_test_code } = req.body;
+      meta_pixel_id, meta_access_token, meta_test_code, favicon_url } = req.body;
 
     let config = await prisma.configuracion.findFirst();
 
@@ -103,6 +103,7 @@ const updateConfiguracion = async (req, res) => {
     if (meta_pixel_id !== undefined) extraData.metaPixelId = meta_pixel_id || null;
     if (meta_access_token !== undefined) extraData.metaAccessToken = meta_access_token || null;
     if (meta_test_code !== undefined) extraData.metaTestCode = meta_test_code || null;
+    if (favicon_url !== undefined) extraData.faviconUrl = favicon_url || null;
 
     if (req.body.lucidsales_reset === true) {
       extraData.lucidsales_token = null;
@@ -186,7 +187,8 @@ const getPublicConfig = async (req, res) => {
         empresa_numero_cuenta: config.empresa_numero_cuenta || null,
         empresa_titular_cuenta: config.empresa_titular_cuenta || null,
         redes_sociales: config.redesSociales || [],
-        meta_pixel_id: config.metaPixelId || null
+        meta_pixel_id: config.metaPixelId || null,
+        favicon_url: config.faviconUrl || null
       };
     }, 60_000, () => 'public:config')();
 

@@ -9,6 +9,9 @@ export const viewport = {
 
 export const metadata = {
   metadataBase: new URL('https://pizdo.info'),
+  icons: {
+    icon: '/icon.png'
+  },
   title: {
     default: 'Pizdo — Herramientas Industriales de Calidad Profesional',
     template: '%s | Pizdo'
