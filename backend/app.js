@@ -106,7 +106,7 @@ const loginLimiter = rateLimit({
 
 const generalLimiter = rateLimit({
   windowMs: 60 * 1000,
-  max: isProduction ? 100 : 1000,
+  max: isProduction ? 300 : 1000,
   message: { error: 'Demasiadas solicitudes. Intenta en un minuto.' }
 });
 

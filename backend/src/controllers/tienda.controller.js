@@ -1,6 +1,7 @@
 const { prisma } = require('../prisma/client');
 const { paginate } = require('../utils/paginate');
 const { resolveTiendaId } = require('../utils/tienda');
+const { cached, clearByPrefix } = require('../utils/cache');
 
 const generateSlug = (nombre) => {
   return nombre
@@ -17,54 +18,61 @@ const getAll = async (req, res) => {
     const skip = (parseInt(page) - 1) * parseInt(limit);
 
     const tiendaId = await resolveTiendaId(req.query.tienda);
-    const where = { tiendaId };
-    if (todos !== 'true') where.activo = true;
 
-    if (categoria) where.categoria = categoria;
-    if (destacado === 'true') where.destacado = true;
-    if (oferta === 'true') {
-      where.ofertaActiva = true;
-      where.ofertaHasta = { gt: new Date() };
-    }
-    if (search) {
-      const words = search.split(/\s+/).filter(Boolean);
-      where.AND = words.map(word => ({
-        OR: [
-          { nombre: { contains: word, mode: 'insensitive' } },
-          { descripcion: { contains: word, mode: 'insensitive' } },
-          { categoria: { contains: word, mode: 'insensitive' } }
-        ]
-      }));
-    }
+    const cacheKey = `tienda:list:${tiendaId}:${JSON.stringify({ page, limit, categoria, search, destacado, oferta, orden, todos })}`;
+    const payload = await cached(async () => {
+      const where = { tiendaId };
 
-    const orderMap = {
-      'precio-asc': { precioVenta: 'asc' },
-      'precio-desc': { precioVenta: 'desc' },
-      'reciente': { createdAt: 'desc' },
-      'ventas': { ventasSimuladas: 'desc' }
-    };
+      if (todos !== 'true') where.activo = true;
 
-    const [productos, total, categorias] = await Promise.all([
-      prisma.productoTienda.findMany({
-        where,
-        skip,
-        take: parseInt(limit),
-        orderBy: orderMap[orden] || { createdAt: 'desc' }
-      }),
-      prisma.productoTienda.count({ where }),
-      prisma.productoTienda.findMany({
-        where: { tiendaId, activo: true },
-        select: { categoria: true },
-        distinct: ['categoria'],
-        orderBy: { categoria: 'asc' }
-      })
-    ]);
+      if (categoria) where.categoria = categoria;
+      if (destacado === 'true') where.destacado = true;
+      if (oferta === 'true') {
+        where.ofertaActiva = true;
+        where.ofertaHasta = { gt: new Date() };
+      }
+      if (search) {
+        const words = search.split(/\s+/).filter(Boolean);
+        where.AND = words.map(word => ({
+          OR: [
+            { nombre: { contains: word, mode: 'insensitive' } },
+            { descripcion: { contains: word, mode: 'insensitive' } },
+            { categoria: { contains: word, mode: 'insensitive' } }
+          ]
+        }));
+      }
 
-    res.json({
-      productos,
-      categorias: categorias.map(c => c.categoria),
-      pagination: paginate(productos, total, parseInt(page), parseInt(limit)).pagination
-    });
+      const orderMap = {
+        'precio-asc': { precioVenta: 'asc' },
+        'precio-desc': { precioVenta: 'desc' },
+        'reciente': { createdAt: 'desc' },
+        'ventas': { ventasSimuladas: 'desc' }
+      };
+
+      const [productos, total, categorias] = await Promise.all([
+        prisma.productoTienda.findMany({
+          where,
+          skip,
+          take: parseInt(limit),
+          orderBy: orderMap[orden] || { createdAt: 'desc' }
+        }),
+        prisma.productoTienda.count({ where }),
+        prisma.productoTienda.findMany({
+          where: { tiendaId, activo: true },
+          select: { categoria: true },
+          distinct: ['categoria'],
+          orderBy: { categoria: 'asc' }
+        })
+      ]);
+
+      return {
+        productos,
+        categorias: categorias.map(c => c.categoria),
+        pagination: paginate(productos, total, parseInt(page), parseInt(limit)).pagination
+      };
+    }, 30_000, () => cacheKey)();
+
+    res.json(payload);
   } catch (error) {
     console.error('Get tienda error:', error);
     res.status(500).json({ error: 'Error en el servidor' });
@@ -74,11 +82,13 @@ const getAll = async (req, res) => {
 const getDestacados = async (req, res) => {
   try {
     const tiendaId = await resolveTiendaId(req.query.tienda);
-    const productos = await prisma.productoTienda.findMany({
-      where: { tiendaId, activo: true, destacado: true },
-      orderBy: { updatedAt: 'desc' },
-      take: 6
-    });
+    const productos = await cached(async () => {
+      return prisma.productoTienda.findMany({
+        where: { tiendaId, activo: true, destacado: true },
+        orderBy: { updatedAt: 'desc' },
+        take: 6
+      });
+    }, 60_000, () => `tienda:destacados:${tiendaId}`)();
     res.json(productos);
   } catch (error) {
     console.error('Get destacados error:', error);
@@ -89,15 +99,17 @@ const getDestacados = async (req, res) => {
 const getOfertas = async (req, res) => {
   try {
     const tiendaId = await resolveTiendaId(req.query.tienda);
-    const productos = await prisma.productoTienda.findMany({
-      where: {
-        tiendaId,
-        activo: true,
-        ofertaActiva: true,
-        ofertaHasta: { gt: new Date() }
-      },
-      orderBy: { ofertaHasta: 'asc' }
-    });
+    const productos = await cached(async () => {
+      return prisma.productoTienda.findMany({
+        where: {
+          tiendaId,
+          activo: true,
+          ofertaActiva: true,
+          ofertaHasta: { gt: new Date() }
+        },
+        orderBy: { ofertaHasta: 'asc' }
+      });
+    }, 60_000, () => `tienda:ofertas:${tiendaId}`)();
     res.json(productos);
   } catch (error) {
     console.error('Get ofertas error:', error);
@@ -109,39 +121,45 @@ const getById = async (req, res) => {
   try {
     const { id } = req.params;
     const tiendaId = await resolveTiendaId(req.query.tienda);
-    const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id);
-    const producto = isUuid
-      ? await prisma.productoTienda.findFirst({ where: { id, tiendaId } })
-      : await prisma.productoTienda.findFirst({ where: { slug: id, tiendaId } });
-    if (!producto) {
-      return res.status(404).json({ error: 'Producto no encontrado' });
-    }
 
-    const upsellIds = Array.isArray(producto.upsellIds) ? producto.upsellIds : [];
-    let relacionados;
-    if (upsellIds.length > 0) {
-      relacionados = await prisma.productoTienda.findMany({
-        where: { tiendaId, id: { in: upsellIds }, activo: true },
-        take: 4
-      });
-      if (relacionados.length < 4) {
-        const existentes = relacionados.map(r => r.id);
-        const extra = await prisma.productoTienda.findMany({
-          where: { tiendaId, activo: true, categoria: producto.categoria, id: { notIn: [producto.id, ...existentes] } },
-          take: 4 - relacionados.length,
+    const payload = await cached(async () => {
+      const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id);
+      const producto = isUuid
+        ? await prisma.productoTienda.findFirst({ where: { id, tiendaId } })
+        : await prisma.productoTienda.findFirst({ where: { slug: id, tiendaId } });
+      if (!producto) return null;
+
+      const upsellIds = Array.isArray(producto.upsellIds) ? producto.upsellIds : [];
+      let relacionados;
+      if (upsellIds.length > 0) {
+        relacionados = await prisma.productoTienda.findMany({
+          where: { tiendaId, id: { in: upsellIds }, activo: true },
+          take: 4
+        });
+        if (relacionados.length < 4) {
+          const existentes = relacionados.map(r => r.id);
+          const extra = await prisma.productoTienda.findMany({
+            where: { tiendaId, activo: true, categoria: producto.categoria, id: { notIn: [producto.id, ...existentes] } },
+            take: 4 - relacionados.length,
+            orderBy: { ventasSimuladas: 'desc' }
+          });
+          relacionados = [...relacionados, ...extra];
+        }
+      } else {
+        relacionados = await prisma.productoTienda.findMany({
+          where: { tiendaId, activo: true, categoria: producto.categoria, id: { not: producto.id } },
+          take: 4,
           orderBy: { ventasSimuladas: 'desc' }
         });
-        relacionados = [...relacionados, ...extra];
       }
-    } else {
-      relacionados = await prisma.productoTienda.findMany({
-        where: { tiendaId, activo: true, categoria: producto.categoria, id: { not: producto.id } },
-        take: 4,
-        orderBy: { ventasSimuladas: 'desc' }
-      });
-    }
 
-    res.json({ ...producto, relacionados });
+      return { ...producto, relacionados };
+    }, 30_000, () => `tienda:producto:${tiendaId}:${id}`)();
+
+    if (!payload) {
+      return res.status(404).json({ error: 'Producto no encontrado' });
+    }
+    res.json(payload);
   } catch (error) {
     console.error('Get tienda by id error:', error);
     res.status(500).json({ error: 'Error en el servidor' });
@@ -190,6 +208,7 @@ const create = async (req, res) => {
         createdById: req.usuario.id
       }
     });
+    clearByPrefix('tienda:');
 
     res.status(201).json(producto);
   } catch (error) {
@@ -231,6 +250,7 @@ const update = async (req, res) => {
     if (lucidsalesId !== undefined) data.lucidsalesId = lucidsalesId || null;
 
     const producto = await prisma.productoTienda.update({ where: { id }, data });
+    clearByPrefix('tienda:');
     res.json(producto);
   } catch (error) {
     console.error('Update producto tienda error:', error);
@@ -245,6 +265,7 @@ const remove = async (req, res) => {
     }
     const { id } = req.params;
     await prisma.productoTienda.delete({ where: { id } });
+    clearByPrefix('tienda:');
     res.json({ message: 'Producto eliminado' });
   } catch (error) {
     console.error('Delete producto tienda error:', error);
@@ -264,6 +285,7 @@ const toggleActivo = async (req, res) => {
       where: { id },
       data: { activo: !actual.activo }
     });
+    clearByPrefix('tienda:');
     res.json(producto);
   } catch (error) {
     console.error('Toggle activo error:', error);
@@ -278,6 +300,7 @@ const deleteAll = async (req, res) => {
     }
     await prisma.resena.deleteMany();
     const result = await prisma.productoTienda.deleteMany();
+    clearByPrefix('tienda:');
     res.json({ message: `${result.count} productos eliminados` });
   } catch (error) {
     console.error('DeleteAll tienda error:', error);

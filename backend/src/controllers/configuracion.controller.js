@@ -1,4 +1,5 @@
 const { prisma } = require('../prisma/client');
+const { cached, clearByPrefix } = require('../utils/cache');
 
 const getConfiguracion = async (req, res) => {
   try {
@@ -137,6 +138,8 @@ const updateConfiguracion = async (req, res) => {
       });
     }
 
+    clearByPrefix('public:');
+
     res.json({
       ...config,
       operadores_incluidos: (() => {
@@ -151,39 +154,43 @@ const updateConfiguracion = async (req, res) => {
 
 const getPublicConfig = async (req, res) => {
   try {
-    const config = await prisma.configuracion.findFirst();
-    if (!config) return res.json({});
-    res.json({
-      hero_titulo: config.hero_titulo || null,
-      hero_subtitulo: config.hero_subtitulo || null,
-      hero_boton_texto: config.hero_boton_texto || null,
-      hero_imagen_url: config.hero_imagen_url || null,
-      seccion_bestsellers_titulo: config.seccion_bestsellers_titulo || null,
-      seccion_catalogo_titulo: config.seccion_catalogo_titulo || null,
-      coupon_activo: config.coupon_activo || false,
-      coupon_codigo: config.coupon_codigo || null,
-      coupon_texto: config.coupon_texto || null,
-      coupon_descuento: config.coupon_descuento || null,
-      bundle_productos: config.bundle_productos || [],
-      bundle_titulo: config.bundle_titulo || null,
-      bundle_descripcion: config.bundle_descripcion || null,
-      bundle_precio_normal: config.bundle_precio_normal || null,
-      bundle_precio_oferta: config.bundle_precio_oferta || null,
-      bundle_badge_texto: config.bundle_badge_texto || null,
-      whatsapp_numero: config.whatsapp_numero || null,
-      promo_bar_texto: config.promo_bar_texto || null,
-      homepage_categorias: config.homepage_categorias || [],
-      envio_texto: config.envio_texto || null,
-      envio_dias: config.envio_dias || null,
-      garantia_titulo: config.garantia_titulo || null,
-      garantia_texto: config.garantia_texto || null,
-      empresa_banco: config.empresa_banco || null,
-      empresa_tipo_cuenta: config.empresa_tipo_cuenta || null,
-      empresa_numero_cuenta: config.empresa_numero_cuenta || null,
-      empresa_titular_cuenta: config.empresa_titular_cuenta || null,
-      redes_sociales: config.redesSociales || [],
-      meta_pixel_id: config.metaPixelId || null
-    });
+    const payload = await cached(async () => {
+      const config = await prisma.configuracion.findFirst();
+      if (!config) return {};
+      return {
+        hero_titulo: config.hero_titulo || null,
+        hero_subtitulo: config.hero_subtitulo || null,
+        hero_boton_texto: config.hero_boton_texto || null,
+        hero_imagen_url: config.hero_imagen_url || null,
+        seccion_bestsellers_titulo: config.seccion_bestsellers_titulo || null,
+        seccion_catalogo_titulo: config.seccion_catalogo_titulo || null,
+        coupon_activo: config.coupon_activo || false,
+        coupon_codigo: config.coupon_codigo || null,
+        coupon_texto: config.coupon_texto || null,
+        coupon_descuento: config.coupon_descuento || null,
+        bundle_productos: config.bundle_productos || [],
+        bundle_titulo: config.bundle_titulo || null,
+        bundle_descripcion: config.bundle_descripcion || null,
+        bundle_precio_normal: config.bundle_precio_normal || null,
+        bundle_precio_oferta: config.bundle_precio_oferta || null,
+        bundle_badge_texto: config.bundle_badge_texto || null,
+        whatsapp_numero: config.whatsapp_numero || null,
+        promo_bar_texto: config.promo_bar_texto || null,
+        homepage_categorias: config.homepage_categorias || [],
+        envio_texto: config.envio_texto || null,
+        envio_dias: config.envio_dias || null,
+        garantia_titulo: config.garantia_titulo || null,
+        garantia_texto: config.garantia_texto || null,
+        empresa_banco: config.empresa_banco || null,
+        empresa_tipo_cuenta: config.empresa_tipo_cuenta || null,
+        empresa_numero_cuenta: config.empresa_numero_cuenta || null,
+        empresa_titular_cuenta: config.empresa_titular_cuenta || null,
+        redes_sociales: config.redesSociales || [],
+        meta_pixel_id: config.metaPixelId || null
+      };
+    }, 60_000, () => 'public:config')();
+
+    res.json(payload);
   } catch (error) {
     console.error('Get public config error:', error);
     res.status(500).json({ error: 'Error en el servidor' });
