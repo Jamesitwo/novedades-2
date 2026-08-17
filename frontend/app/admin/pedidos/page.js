@@ -8,6 +8,7 @@ export default function PedidosAdminPage() {
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [total, setTotal] = useState(0);
+  const [tienda, setTienda] = useState('pizdo');
   const [estadoFilter, setEstadoFilter] = useState('');
   const [pagoFilter, setPagoFilter] = useState('');
   const [search, setSearch] = useState('');
@@ -18,6 +19,11 @@ export default function PedidosAdminPage() {
   const [dropiIdx, setDropiIdx] = useState(null);
   const LIMIT = 15;
 
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    setTienda(params.get('tienda') || 'pizdo');
+  }, []);
+
   const showToast = (msg, type = 'success') => {
     setToast({ message: msg, type });
     setTimeout(() => setToast(null), 3000);
@@ -26,7 +32,7 @@ export default function PedidosAdminPage() {
   const fetchPedidos = async () => {
     setLoading(true);
     try {
-      const params = new URLSearchParams({ page, limit: LIMIT });
+      const params = new URLSearchParams({ page, limit: LIMIT, tienda });
       if (estadoFilter) params.append('estado', estadoFilter);
       if (pagoFilter) params.append('metodoPago', pagoFilter);
       if (search) params.append('search', search);
@@ -41,7 +47,19 @@ export default function PedidosAdminPage() {
     }
   };
 
-  useEffect(() => { fetchPedidos(); }, [page, estadoFilter, pagoFilter, search]);
+  useEffect(() => { fetchPedidos(); }, [page, estadoFilter, pagoFilter, search, tienda]);
+
+  const cambiarTienda = (slug) => {
+    setTienda(slug);
+    setPage(1);
+    setEstadoFilter('');
+    setPagoFilter('');
+    setSearch('');
+    setDetail(null);
+    setDropiQuotes(null);
+    setDropiIdx(null);
+    window.history.replaceState(null, '', `/admin/pedidos?tienda=${slug}`);
+  };
 
   const handleEstado = async (id, estado) => {
     try {
@@ -138,8 +156,31 @@ export default function PedidosAdminPage() {
           <h2 style={{ fontSize: 24, fontWeight: 800, color: '#0b1c30', margin: '0 0 4px', borderLeft: '4px solid #ff8c00', paddingLeft: 12 }}>
             📦 Pedidos
           </h2>
-          <div style={{ fontSize: 13, color: '#897362', marginTop: 4, fontWeight: 500 }}>{total} pedidos</div>
+          <div style={{ fontSize: 13, color: '#897362', marginTop: 4, fontWeight: 500 }}>{total} pedidos · {tienda === 'perfumes' ? 'Perfumes' : 'Pizdo'}</div>
         </div>
+      </div>
+
+      <div style={{ display: 'flex', gap: 8, marginBottom: 16, flexWrap: 'wrap' }}>
+        {[{ slug: 'pizdo', label: '🛠 Pizdo' }, { slug: 'perfumes', label: '💐 Perfumes' }].map(t => (
+          <button
+            key={t.slug}
+            onClick={() => cambiarTienda(t.slug)}
+            style={{
+              padding: '10px 20px',
+              borderRadius: 20,
+              border: tienda === t.slug ? 'none' : '1px solid #E2E8F0',
+              background: tienda === t.slug ? '#ff8c00' : '#ffffff',
+              color: tienda === t.slug ? '#fff' : '#564334',
+              fontWeight: 700,
+              fontSize: 14,
+              cursor: 'pointer',
+              minHeight: 44,
+              fontFamily: '"Inter", sans-serif'
+            }}
+          >
+            {t.label}
+          </button>
+        ))}
       </div>
 
       <div style={{ display: 'flex', gap: 8, marginBottom: 16, flexWrap: 'wrap', alignItems: 'center' }}>

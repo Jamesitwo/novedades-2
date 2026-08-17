@@ -16,7 +16,7 @@ export default function Sidebar() {
   const router = useRouter();
   const { usuario, logout } = useAuthStore();
   const { theme, toggleTheme, initTheme } = useThemeStore();
-  const [counts, setCounts] = useState({ novedadesActivas: 0, oficinaActivos: 0, devoluciones: 0 });
+  const [counts, setCounts] = useState({ novedadesActivas: 0, oficinaActivos: 0, devoluciones: 0, perfumesPendientes: 0 });
   const [wsConnected, setWsConnected] = useState(false);
   const [showPasswordModal, setShowPasswordModal] = useState(false);
   const [openSections, setOpenSections] = useState({ logistics: true, finance: true, channels: true, system: true });
@@ -28,13 +28,23 @@ export default function Sidebar() {
   const fetchCounts = useCallback(async () => {
     try {
       const { data } = await api.get('/api/dashboard/resumen');
-      setCounts({
+      setCounts(prev => ({
+        ...prev,
         novedadesActivas: data.novedades?.novedad || 0,
         oficinaActivos: data.oficina?.pendiente_llamar || 0,
         devoluciones: (data.novedades?.devolucion || 0) + (data.oficina?.devolucion || 0)
-      });
+      }));
     } catch {
       // silent failure for sidebar counters
+    }
+    try {
+      const { usuario } = useAuthStore.getState();
+      if (usuario?.rol === 'admin') {
+        const { data } = await api.get('/api/pedidos/resumen?tienda=perfumes');
+        setCounts(prev => ({ ...prev, perfumesPendientes: data.pendientes || 0 }));
+      }
+    } catch {
+      // tienda perfumes sin pedidos o sin permiso
     }
   }, []);
 
@@ -125,7 +135,7 @@ export default function Sidebar() {
 
         <Section title="Canales" sectionKey="channels">
           {(showLucidsales || isAdmin) && <NavItem href="/" icon="storefront" label="Pizdo · Tienda" exact />}
-          {isAdmin && <NavItem href="/admin/perfumes" icon="sanitizer" label="Perfumes" />}
+          {isAdmin && <NavItem href="/admin/perfumes" icon="sanitizer" label="Perfumes" badge={counts.perfumesPendientes > 0 ? counts.perfumesPendientes : null} badgeColor="purple" />}
           {showLucidsales && <NavItem href="/admin/lucidsales" icon="shopping_cart" label="LucidSales" />}
         </Section>
 

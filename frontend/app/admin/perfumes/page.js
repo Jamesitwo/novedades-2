@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
+import Link from 'next/link';
 import api from '@/lib/api';
 import Icon from '@/components/ui/Icon';
 import Button from '@/components/ui/Button';
@@ -196,7 +197,12 @@ export default function PerfumesPage() {
             Tienda independiente · catálogo, importación y sincronización con LucidBot
           </p>
         </div>
-        <Button icon="cloud_download" onClick={abrirImportador}>Importar desde Lucid Sales</Button>
+        <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
+          <Link href="/admin/pedidos?tienda=perfumes" className="btn btn-ghost">
+            <Icon name="receipt_long" size={16} /> Ver pedidos de Perfumes
+          </Link>
+          <Button icon="cloud_download" onClick={abrirImportador}>Importar desde Lucid Sales</Button>
+        </div>
       </div>
 
       <div className="grid-2" style={{ alignItems: 'start', marginBottom: 24 }}>

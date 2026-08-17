@@ -2,6 +2,15 @@ const { prisma } = require('../prisma/client');
 const lucidsalesService = require('../services/lucidsales.service');
 const { resolveTiendaId } = require('../utils/tienda');
 
+async function verificarTiendaPedido(pedido, req) {
+  if (!req.query.tienda) return true;
+  const tiendaId = await resolveTiendaId(req.query.tienda);
+  if (pedido.tiendaId !== tiendaId) {
+    return false;
+  }
+  return true;
+}
+
 const normalizar = (s) => (s || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').trim();
 
 const mapearCiudadDepto = (nombreCiudad, nombreDepto) => {
@@ -56,6 +65,9 @@ const getById = async (req, res) => {
       }
     });
     if (!pedido) return res.status(404).json({ error: 'Pedido no encontrado' });
+    if (!(await verificarTiendaPedido(pedido, req))) {
+      return res.status(404).json({ error: 'Pedido no encontrado en esta tienda' });
+    }
     res.json(pedido);
   } catch (error) {
     console.error('Get pedido error:', error);
@@ -66,6 +78,11 @@ const getById = async (req, res) => {
 const updateEstado = async (req, res) => {
   try {
     const { estado, pagado } = req.body;
+    const existente = await prisma.pedidoTienda.findUnique({ where: { id: req.params.id } });
+    if (!existente) return res.status(404).json({ error: 'Pedido no encontrado' });
+    if (!(await verificarTiendaPedido(existente, req))) {
+      return res.status(404).json({ error: 'Pedido no encontrado en esta tienda' });
+    }
     const data = {};
     if (estado) data.estado = estado;
     if (pagado !== undefined) data.pagado = pagado;
@@ -79,6 +96,11 @@ const updateEstado = async (req, res) => {
 
 const remove = async (req, res) => {
   try {
+    const existente = await prisma.pedidoTienda.findUnique({ where: { id: req.params.id } });
+    if (!existente) return res.status(404).json({ error: 'Pedido no encontrado' });
+    if (!(await verificarTiendaPedido(existente, req))) {
+      return res.status(404).json({ error: 'Pedido no encontrado en esta tienda' });
+    }
     await prisma.pedidoTienda.delete({ where: { id: req.params.id } });
     res.json({ message: 'Pedido eliminado' });
   } catch (error) {
@@ -87,10 +109,31 @@ const remove = async (req, res) => {
   }
 };
 
+const getResumen = async (req, res) => {
+  try {
+    const tiendaId = await resolveTiendaId(req.query.tienda);
+    const [total, pendientes, confirmados, enviados, entregados, cancelados] = await Promise.all([
+      prisma.pedidoTienda.count({ where: { tiendaId } }),
+      prisma.pedidoTienda.count({ where: { tiendaId, estado: 'pendiente' } }),
+      prisma.pedidoTienda.count({ where: { tiendaId, estado: 'confirmado' } }),
+      prisma.pedidoTienda.count({ where: { tiendaId, estado: 'enviado' } }),
+      prisma.pedidoTienda.count({ where: { tiendaId, estado: 'entregado' } }),
+      prisma.pedidoTienda.count({ where: { tiendaId, estado: 'cancelado' } })
+    ]);
+    res.json({ total, pendientes, confirmados, enviados, entregados, cancelados });
+  } catch (error) {
+    console.error('Get resumen pedidos error:', error);
+    res.status(500).json({ error: 'Error en el servidor' });
+  }
+};
+
 const cotizarDropi = async (req, res) => {
   try {
     const pedido = await prisma.pedidoTienda.findUnique({ where: { id: req.params.id } });
     if (!pedido) return res.status(404).json({ error: 'Pedido no encontrado' });
+    if (!(await verificarTiendaPedido(pedido, req))) {
+      return res.status(404).json({ error: 'Pedido no encontrado en esta tienda' });
+    }
 
     let items = Array.isArray(pedido.items) && pedido.items.length > 0 ? pedido.items : null;
 
@@ -185,6 +228,9 @@ const confirmarDropi = async (req, res) => {
   try {
     const pedido = await prisma.pedidoTienda.findUnique({ where: { id: req.params.id } });
     if (!pedido) return res.status(404).json({ error: 'Pedido no encontrado' });
+    if (!(await verificarTiendaPedido(pedido, req))) {
+      return res.status(404).json({ error: 'Pedido no encontrado en esta tienda' });
+    }
     if (!pedido.lucidsalesPedidoId) {
       return res.status(400).json({ error: 'Primero cotiza el envío para crear el pedido en LucidSales' });
     }
@@ -215,4 +261,4 @@ const confirmarDropi = async (req, res) => {
   }
 };
 
-module.exports = { getAll, getById, updateEstado, remove, cotizarDropi, confirmarDropi };
+module.exports = { getAll, getById, updateEstado, remove, cotizarDropi, confirmarDropi, getResumen };
