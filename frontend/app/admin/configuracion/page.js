@@ -31,7 +31,6 @@ export default function ConfiguracionPage() {
     setTimeout(() => setToast(null), 4000);
   };
 
-  useEffect(() => {
   const handleTestMeta = async () => {
     setMetaTesting(true);
     setMetaTestResult(null);
@@ -48,7 +47,8 @@ export default function ConfiguracionPage() {
     }
   };
 
-  if (usuario?.rol !== 'admin') {
+  useEffect(() => {
+    if (usuario?.rol !== 'admin') {
       setLoading(false);
       return;
     }
