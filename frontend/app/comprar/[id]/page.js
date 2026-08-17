@@ -153,18 +153,25 @@ export default function ComprarPage() {
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
         @keyframes confetti-fall { 0% { transform: translateY(-100vh) rotate(0deg); opacity: 1; } 100% { transform: translateY(100vh) rotate(720deg); opacity: 0; } }
         @media (max-width: 768px) {
-          .compra-grid { grid-template-columns: 1fr !important; }
+          .compra-grid { grid-template-columns: 1fr !important; gap: 20px !important; }
           .compra-form-row { grid-template-columns: 1fr !important; gap: 12px !important; }
-          .compra-summary { position: static !important; }
+          .compra-summary { position: static !important; padding: 20px !important; }
+          .compra-summary img { height: 120px !important; }
+          .compra-container { padding: 28px 16px 48px !important; }
+          .compra-topbar { padding: 0 16px !important; }
+          .compra-title { margin-bottom: 24px !important; }
+          .compra-title h1 { font-size: 24px !important; }
+          .compra-grid input, .compra-grid select, .compra-grid textarea { padding: 12px 14px !important; }
+          .compra-grid .compra-form-row { gap: 12px !important; }
         }
       `}} />
 
-      <div style={{ background: C.navy, borderBottom: '1px solid rgba(255,255,255,0.1)', padding: '0 24px', display: 'flex', alignItems: 'center', height: 52 }}>
+      <div className="compra-topbar" style={{ background: C.navy, borderBottom: '1px solid rgba(255,255,255,0.1)', padding: '0 24px', display: 'flex', alignItems: 'center', height: 52 }}>
         <a href={`/producto/${id}`} style={{ color: '#ffb77d', textDecoration: 'none', fontSize: 14, fontWeight: 600 }}>← Volver al producto</a>
         <span style={{ marginLeft: 'auto', fontSize: 18, fontWeight: 800, color: '#ffb77d', textTransform: 'uppercase', letterSpacing: 1 }}>Pizdo</span>
       </div>
 
-      <div style={{ maxWidth: 960, margin: '0 auto', padding: 'clamp(32px, 6vw, 56px) 24px' }}>
+      <div className="compra-container" style={{ maxWidth: 960, margin: '0 auto', padding: 'clamp(32px, 6vw, 56px) 24px' }}>
         {enviado ? (
           <div style={{ textAlign: 'center', padding: 'clamp(32px, 8vw, 80px) 24px', position: 'relative', overflow: 'hidden' }}>
             {confetti.map(p => <div key={p.id} style={{ position: 'absolute', top: -20, left: p.left, width: p.size, height: p.size, background: p.color, borderRadius: '50%', animation: `confetti-fall ${p.duration} ${p.delay} linear`, pointerEvents: 'none' }} />)}
@@ -175,7 +182,7 @@ export default function ComprarPage() {
           </div>
         ) : (
           <div>
-            <div style={{ marginBottom: 48 }}>
+            <div className="compra-title" style={{ marginBottom: 48 }}>
               <h1 style={{ fontSize: 'clamp(26px, 5vw, 36px)', fontWeight: 800, marginBottom: 8, color: C.text }}>Finalizar compra</h1>
               <p style={{ fontSize: 16, color: C.subtext, lineHeight: 1.5 }}>Completa tus datos y te contactaremos para coordinar el envío.</p>
             </div>
