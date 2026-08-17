@@ -41,7 +41,8 @@ const updateConfiguracion = async (req, res) => {
       coupon_activo, coupon_codigo, coupon_texto, coupon_descuento,
       whatsapp_numero,
       promo_bar_texto, homepage_categorias,
-      envio_texto, envio_dias, garantia_titulo, garantia_texto, redesSociales } = req.body;
+      envio_texto, envio_dias, garantia_titulo, garantia_texto, redesSociales,
+      meta_pixel_id, meta_access_token, meta_test_code } = req.body;
 
     let config = await prisma.configuracion.findFirst();
 
@@ -96,6 +97,9 @@ const updateConfiguracion = async (req, res) => {
     if (garantia_titulo !== undefined) extraData.garantia_titulo = garantia_titulo || null;
     if (garantia_texto !== undefined) extraData.garantia_texto = garantia_texto || null;
     if (redesSociales !== undefined) extraData.redesSociales = redesSociales || [];
+    if (meta_pixel_id !== undefined) extraData.meta_pixel_id = meta_pixel_id || null;
+    if (meta_access_token !== undefined) extraData.meta_access_token = meta_access_token || null;
+    if (meta_test_code !== undefined) extraData.meta_test_code = meta_test_code || null;
 
     if (req.body.lucidsales_reset === true) {
       extraData.lucidsales_token = null;
@@ -171,7 +175,8 @@ const getPublicConfig = async (req, res) => {
       empresa_tipo_cuenta: config.empresa_tipo_cuenta || null,
       empresa_numero_cuenta: config.empresa_numero_cuenta || null,
       empresa_titular_cuenta: config.empresa_titular_cuenta || null,
-      redes_sociales: config.redesSociales || []
+      redes_sociales: config.redesSociales || [],
+      meta_pixel_id: config.metaPixelId || null
     });
   } catch (error) {
     console.error('Get public config error:', error);
@@ -179,4 +184,47 @@ const getPublicConfig = async (req, res) => {
   }
 };
 
-module.exports = { getPublicConfig, getConfiguracion, updateConfiguracion };
+const testMeta = async (req, res) => {
+  try {
+    const config = await prisma.configuracion.findFirst();
+    if (!config?.metaPixelId || !config?.metaAccessToken) {
+      return res.status(400).json({ ok: false, error: 'Configura primero el Pixel ID y el Access Token de Meta' });
+    }
+
+    const metaService = require('../services/meta-conversions.service');
+    const result = await metaService.sendEvent(
+      config.metaPixelId,
+      config.metaAccessToken,
+      'TestEvent',
+      { content_name: 'prueba-conexion' },
+      { email: 'prueba@pizdo.info', phone: '3000000000' },
+      {
+        sourceUrl: 'https://pizdo.info/admin/configuracion',
+        testEventCode: config.metaTestCode || undefined
+      }
+    );
+
+    if (result.ok) {
+      return res.json({
+        ok: true,
+        message: 'Evento de prueba enviado correctamente a Meta',
+        events_received: result.result?.events_received,
+        eventId: result.eventId,
+        conTestCode: !!config.metaTestCode
+      });
+    }
+
+    const metaError = result.result?.error;
+    return res.status(502).json({
+      ok: false,
+      error: metaError?.message || result.error || 'Meta rechazó el evento',
+      code: metaError?.code || null,
+      subcode: metaError?.error_subcode || null
+    });
+  } catch (error) {
+    console.error('[MetaCAPI] testMeta error:', error.message);
+    res.status(500).json({ ok: false, error: error.message });
+  }
+};
+
+module.exports = { getPublicConfig, getConfiguracion, updateConfiguracion, testMeta };

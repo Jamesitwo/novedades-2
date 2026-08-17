@@ -16,12 +16,15 @@ export default function ConfiguracionPage() {
     empresa_logo: '', empresa_banco: '', empresa_tipo_cuenta: '', empresa_numero_cuenta: '', empresa_titular_cuenta: '',
     factura_terminos: '', factura_resolucion: '', factura_rango_desde: '', factura_rango_hasta: '',
     factura_vigencia: '', factura_pie_legal: '', factura_prefijo: '',
-    lucidsales_email: '', lucidsales_password: '', lucidsales_shop_id: '', lucidsales_activo: false
+    lucidsales_email: '', lucidsales_password: '', lucidsales_shop_id: '', lucidsales_activo: false,
+    metaPixelId: '', metaAccessToken: '', metaTestCode: ''
   });
   const [operadores, setOperadores] = useState([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [toast, setToast] = useState(null);
+  const [metaTesting, setMetaTesting] = useState(false);
+  const [metaTestResult, setMetaTestResult] = useState(null);
 
   const showToast = (message, type = 'success') => {
     setToast({ message, type });
@@ -29,7 +32,23 @@ export default function ConfiguracionPage() {
   };
 
   useEffect(() => {
-    if (usuario?.rol !== 'admin') {
+  const handleTestMeta = async () => {
+    setMetaTesting(true);
+    setMetaTestResult(null);
+    try {
+      const { data } = await api.post('/api/configuracion/meta-test');
+      setMetaTestResult({ ok: true, ...data });
+      showToast('Evento de prueba enviado a Meta correctamente');
+    } catch (err) {
+      const e = err.response?.data || {};
+      setMetaTestResult({ ok: false, ...e });
+      showToast(e.error || 'Error al probar el envío a Meta', 'error');
+    } finally {
+      setMetaTesting(false);
+    }
+  };
+
+  if (usuario?.rol !== 'admin') {
       setLoading(false);
       return;
     }
@@ -88,7 +107,10 @@ export default function ConfiguracionPage() {
         factura_prefijo: config.factura_prefijo,
         lucidsales_email: config.lucidsales_email, lucidsales_password: config.lucidsales_password,
         lucidsales_shop_id: Number(config.lucidsales_shop_id) || null,
-        lucidsales_activo: config.lucidsales_activo
+        lucidsales_activo: config.lucidsales_activo,
+        meta_pixel_id: config.metaPixelId || null,
+        meta_access_token: config.metaAccessToken || null,
+        meta_test_code: config.metaTestCode || null
       });
       showToast('Configuración guardada correctamente');
     } catch (error) {
@@ -462,6 +484,61 @@ export default function ConfiguracionPage() {
           <p style={{ color: 'var(--text3)', fontSize: 11, marginTop: 4 }}>
             El ID de la tienda se obtiene del <code style={{ background: 'var(--bg3)', padding: '1px 4px', borderRadius: 3 }}>idEmpresa</code> en la respuesta del login. 
             Es la tienda que quedará activa para gestionar pedidos.
+          </p>
+        </div>
+      </div>
+
+      <div className="table-card" style={{ maxWidth: 700, marginTop: 16 }}>
+        <div className="table-header">
+          <span className="table-header-title">Meta Pixel</span>
+          <span style={{ fontSize: 11, color: 'var(--text3)' }}>Pixel del navegador + Conversions API (compra)</span>
+        </div>
+        <div style={{ padding: 20, display: 'grid', gap: 14 }}>
+          <div className="form-group">
+            <label>Pixel ID</label>
+            <input type="text" value={config.metaPixelId || ''}
+              onChange={e => setConfig(prev => ({ ...prev, metaPixelId: e.target.value }))}
+              placeholder="Ej: 1234567890123456"
+              style={{ width: '100%' }} />
+          </div>
+          <div className="form-group">
+            <label>Access Token (Conversions API)</label>
+            <input type="password" value={config.metaAccessToken || ''}
+              onChange={e => setConfig(prev => ({ ...prev, metaAccessToken: e.target.value }))}
+              placeholder="Token generado en Events Manager → Settings"
+              style={{ width: '100%' }} />
+          </div>
+          <div className="form-group">
+            <label>Test Event Code (opcional)</label>
+            <input type="text" value={config.metaTestCode || ''}
+              onChange={e => setConfig(prev => ({ ...prev, metaTestCode: e.target.value }))}
+              placeholder="TESTXXXX (de Events Manager → Test events)"
+              style={{ width: '100%' }} />
+            <p style={{ color: 'var(--text3)', fontSize: 11, marginTop: 4 }}>
+              Con test code, los eventos se ven solo en la pestaña "Test events" de Meta y no afectan métricas reales.
+            </p>
+          </div>
+
+          <div style={{ display: 'flex', gap: 10, alignItems: 'center', flexWrap: 'wrap' }}>
+            <button onClick={handleTestMeta} disabled={metaTesting} className="btn btn-secondary">
+              {metaTesting ? 'Enviando...' : '🧪 Probar envío a Meta'}
+            </button>
+            {metaTestResult && (
+              metaTestResult.ok ? (
+                <span style={{ color: 'var(--green)', fontSize: 13, fontWeight: 600 }}>
+                  ✅ Evento recibido por Meta (events_received: {metaTestResult.events_received ?? 'n/a'})
+                  {metaTestResult.conTestCode ? ' · con test code' : ''}
+                </span>
+              ) : (
+                <span style={{ color: 'var(--red)', fontSize: 13, fontWeight: 600, maxWidth: 480 }}>
+                  ❌ {metaTestResult.error || 'Error desconocido'}
+                  {metaTestResult.code ? ` · code: ${metaTestResult.code}` : ''}
+                </span>
+              )
+            )}
+          </div>
+          <p style={{ color: 'var(--text3)', fontSize: 11 }}>
+            El botón envía un evento <code style={{ background: 'var(--bg3)', padding: '1px 4px', borderRadius: 3 }}>TestEvent</code> real a la API de Meta con esta configuración y muestra la respuesta.
           </p>
         </div>
       </div>

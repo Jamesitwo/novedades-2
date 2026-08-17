@@ -58,6 +58,8 @@ async function sendEvent(pixelId, accessToken, eventName, eventData, userData, o
     const result = await response.json().catch(() => ({ error: response.statusText }));
     if (result.error) {
       console.error('[MetaCAPI] Error:', JSON.stringify(result.error));
+    } else {
+      console.log(`[MetaCAPI] OK: ${eventName} -> events_received: ${result.events_received ?? 'n/a'} (eventId: ${payload.data[0].event_id})`);
     }
     return { ok: !result.error, result, eventId: payload.data[0].event_id };
   } catch (error) {
