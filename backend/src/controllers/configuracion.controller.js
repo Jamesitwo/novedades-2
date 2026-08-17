@@ -18,11 +18,13 @@ const getConfiguracion = async (req, res) => {
 
     res.json({
       ...config,
-      operadores_incluidos: JSON.parse(config.operadores_incluidos)
+      operadores_incluidos: (() => {
+        try { return JSON.parse(config.operadores_incluidos); } catch { return []; }
+      })()
     });
   } catch (error) {
     console.error('Get configuracion error:', error);
-    res.status(500).json({ error: 'Error en el servidor' });
+    res.status(500).json({ error: 'Error en el servidor', detalle: error.message });
   }
 };
 
@@ -97,9 +99,9 @@ const updateConfiguracion = async (req, res) => {
     if (garantia_titulo !== undefined) extraData.garantia_titulo = garantia_titulo || null;
     if (garantia_texto !== undefined) extraData.garantia_texto = garantia_texto || null;
     if (redesSociales !== undefined) extraData.redesSociales = redesSociales || [];
-    if (meta_pixel_id !== undefined) extraData.meta_pixel_id = meta_pixel_id || null;
-    if (meta_access_token !== undefined) extraData.meta_access_token = meta_access_token || null;
-    if (meta_test_code !== undefined) extraData.meta_test_code = meta_test_code || null;
+    if (meta_pixel_id !== undefined) extraData.metaPixelId = meta_pixel_id || null;
+    if (meta_access_token !== undefined) extraData.metaAccessToken = meta_access_token || null;
+    if (meta_test_code !== undefined) extraData.metaTestCode = meta_test_code || null;
 
     if (req.body.lucidsales_reset === true) {
       extraData.lucidsales_token = null;
@@ -115,11 +117,13 @@ const updateConfiguracion = async (req, res) => {
           auto_asignar_oficina: auto_asignar_oficina ?? false,
           auto_asignar_lucidsales: auto_asignar_lucidsales ?? false,
           metodo_asignacion: metodo_asignacion ?? 'round_robin',
-          operadores_incluidos: JSON.stringify(operadores_incluidos ?? []),
+          operadores_incluidos: JSON.stringify(Array.isArray(operadores_incluidos) ? operadores_incluidos : []),
           ...extraData
         }
       });
     } else {
+      let operadoresActuales = [];
+      try { operadoresActuales = JSON.parse(config.operadores_incluidos || '[]'); } catch { operadoresActuales = []; }
       config = await prisma.configuracion.update({
         where: { id: config.id },
         data: {
@@ -127,7 +131,7 @@ const updateConfiguracion = async (req, res) => {
           auto_asignar_oficina: auto_asignar_oficina ?? config.auto_asignar_oficina,
           auto_asignar_lucidsales: auto_asignar_lucidsales ?? config.auto_asignar_lucidsales,
           metodo_asignacion: metodo_asignacion ?? config.metodo_asignacion,
-          operadores_incluidos: JSON.stringify(operadores_incluidos ?? JSON.parse(config.operadores_incluidos)),
+          operadores_incluidos: JSON.stringify(Array.isArray(operadores_incluidos) ? operadores_incluidos : operadoresActuales),
           ...extraData
         }
       });
@@ -135,11 +139,13 @@ const updateConfiguracion = async (req, res) => {
 
     res.json({
       ...config,
-      operadores_incluidos: JSON.parse(config.operadores_incluidos)
+      operadores_incluidos: (() => {
+        try { return JSON.parse(config.operadores_incluidos || '[]'); } catch { return []; }
+      })()
     });
   } catch (error) {
     console.error('Update configuracion error:', error);
-    res.status(500).json({ error: 'Error en el servidor' });
+    res.status(500).json({ error: 'Error en el servidor', detalle: error.message });
   }
 };
 
