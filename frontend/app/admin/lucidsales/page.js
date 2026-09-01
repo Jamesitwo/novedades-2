@@ -29,6 +29,8 @@ export default function LucidSalesPage() {
   const [search, setSearch] = useState('');
   const [itemsPerPage] = useState(50);
   const [estadoFilter, setEstadoFilter] = useState('');
+  const [estados, setEstados] = useState([]);
+  const [asignadoAMi, setAsignadoAMi] = useState(false);
   const [vincularId, setVincularId] = useState('');
   const [vinculando, setVinculando] = useState(false);
   const [etiquetaId, setEtiquetaId] = useState('');
@@ -77,9 +79,10 @@ export default function LucidSalesPage() {
       params.set('page', String(page));
       params.set('itemsPerPage', String(itemsPerPage));
       if (search) params.set('search', search);
-      if (estadoFilter !== '') params.set('estadoFilter', estadoFilter);
+      if (estados.length > 0) params.set('estados', estados.join(','));
+      if (asignadoAMi) params.set('asignado_a_mi', 'true');
       if (etiquetaId) params.set('etiquetaId', etiquetaId);
-      if (asignadoId) params.set('asignadoId', asignadoId);
+      if (asignadoId && !asignadoAMi) params.set('asignadoId', asignadoId);
       if (fechaDesde) params.set('fechaDesde', fechaDesde);
       if (fechaHasta) params.set('fechaHasta', fechaHasta);
       if (filtroProducto) params.set('producto', filtroProducto);
@@ -108,7 +111,7 @@ export default function LucidSalesPage() {
     } finally {
       setLoading(false);
     }
-  }, [page, search, itemsPerPage, estadoFilter, etiquetaId, asignadoId, fechaDesde, fechaHasta, filtroProducto]);
+  }, [page, search, itemsPerPage, estados, asignadoAMi, etiquetaId, asignadoId, fechaDesde, fechaHasta, filtroProducto]);
 
   useEffect(() => {
     setConnected(isConnected());
@@ -233,7 +236,12 @@ export default function LucidSalesPage() {
   };
 
   const handleEstadoFilter = (estado) => {
-    setEstadoFilter(estado === estadoFilter ? '' : estado);
+    setEstados(prev => {
+      const next = new Set(prev.map(String));
+      const key = String(estado);
+      if (next.has(key)) next.delete(key); else next.add(key);
+      return Array.from(next).map(Number);
+    });
     setPage(1);
   };
 
@@ -348,14 +356,14 @@ export default function LucidSalesPage() {
             <button
               key={k}
               onClick={() => handleEstadoFilter(k)}
-              className={`filter-tab ${estadoFilter === k ? 'active' : ''}`}
+              className={`filter-tab ${estados.includes(Number(k)) ? 'active' : ''}`}
             >
               {v.label}
             </button>
           ))}
           <button
-            onClick={() => handleEstadoFilter('asignados')}
-            className={`filter-tab ${estadoFilter === 'asignados' ? 'active' : ''}`}
+            onClick={() => { setAsignadoAMi(v => !v); setAsignadoId(''); setPage(1); }}
+            className={`filter-tab ${asignadoAMi ? 'active' : ''}`}
           >
             👤 Asignados a mí
           </button>
@@ -373,9 +381,11 @@ export default function LucidSalesPage() {
           {usuario?.rol === 'admin' && (
             <select
               value={asignadoId}
-              onChange={e => { setAsignadoId(e.target.value); setPage(1); }}
+              onChange={e => { setAsignadoId(e.target.value); setAsignadoAMi(false); setPage(1); }}
               className={`filter-tab ${asignadoId ? 'active' : ''}`}
-              style={{ appearance: 'auto', cursor: 'pointer', paddingRight: 26 }}
+              style={{ appearance: 'auto', cursor: 'pointer', paddingRight: 26, opacity: asignadoAMi ? 0.5 : 1 }}
+              disabled={asignadoAMi}
+              title={asignadoAMi ? 'Desactiva "Asignados a mí" para elegir un operador' : ''}
             >
               <option value="">👤 Asignado</option>
               {operadores.map(op => (
@@ -512,6 +522,11 @@ export default function LucidSalesPage() {
                       )}
                     </td>
                     <td className="row-actions">
+                      {p.notas && (
+                        <span className="action-btn" title={p.notas} style={{ fontSize: 14, cursor: 'default', color: 'var(--amber)' }}>
+                          📝
+                        </span>
+                      )}
                       {p.conversacionLink && (
                         <a href={p.conversacionLink} target="_blank" rel="noopener noreferrer" className="action-btn" title="Abrir chat" style={{ fontSize: 14 }} onClick={e => e.stopPropagation()}>
                           💬

@@ -412,7 +412,7 @@ async function guardarVinculacionLocal(lucidsalesPedidoId, pedido, usuarioId, as
     referencias: pedido.Referencias || '',
     jsonProductos: typeof pedido.Json === 'string' ? pedido.Json : JSON.stringify(pedido.Json || []),
     conversacionLink: pedido.conversacionLink || pedido.ConversacionLink || pedido.linkConversacion || null,
-    notas: pedido.notas || null
+    notas: pedido.notas !== undefined && pedido.notas !== null ? pedido.notas : undefined
   };
   if (usuarioId && !baseData.createdById) {
     baseData.createdById = usuarioId;
@@ -426,7 +426,7 @@ async function guardarVinculacionLocal(lucidsalesPedidoId, pedido, usuarioId, as
   });
 }
 
-async function listVinculaciones({ page = 1, itemsPerPage = 50, search = '', estadoFilter, asignadoId, lucidsalesPedidoIds, fechaDesde, fechaHasta, producto } = {}) {
+async function listVinculaciones({ page = 1, itemsPerPage = 50, search = '', estadoFilter, estados, asignadoId, lucidsalesPedidoIds, fechaDesde, fechaHasta, producto } = {}) {
   const where = {};
   if (search) {
     where.OR = [
@@ -436,7 +436,9 @@ async function listVinculaciones({ page = 1, itemsPerPage = 50, search = '', est
       { referencias: { contains: search } },
     ];
   }
-  if (estadoFilter !== undefined && estadoFilter !== '' && estadoFilter !== null) {
+  if (Array.isArray(estados) && estados.length > 0) {
+    where.estadoPedido = { in: estados };
+  } else if (estadoFilter !== undefined && estadoFilter !== '' && estadoFilter !== null) {
     where.estadoPedido = Number(estadoFilter);
   }
   if (asignadoId) {
@@ -494,6 +496,7 @@ async function listVinculaciones({ page = 1, itemsPerPage = 50, search = '', est
       EstadoPedido: p.estadoPedido ?? 0,
       Referencias: p.referencias || '',
       conversacionLink: p.conversacionLink || null,
+      notas: p.notas || null,
       Json: p.jsonProductos || '[]',
       asignado: p.asignado || null,
       creador: p.createdBy || null,

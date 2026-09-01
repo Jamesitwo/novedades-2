@@ -4,6 +4,7 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 import api from '@/lib/api';
 import Icon from '@/components/ui/Icon';
 import Button from '@/components/ui/Button';
+import Autocomplete from '@/components/ui/Autocomplete';
 
 const ESTADOS = [
   { value: 0, label: 'Por confirmar' },
@@ -1059,14 +1060,31 @@ export default function LucidsalesDetailPanel({ id, ids, currentIndex, onClose, 
                 </div>
 
                 <div className="lsd-grid-2" style={{ gap: 12 }}>
-                  <SelectField label="Departamento" fn="Departamento" value={pedido.Departamento ?? ''} onChange={e => handleDepartamentoChange(e.target.value)}>
-                    <option value="">Seleccionar...</option>
-                    {deptos.map(d => (<option key={d.id} value={d.id}>{d.name}</option>))}
-                  </SelectField>
-                  <SelectField label="Ciudad" fn="Ciudad" value={pedido.Ciudad ?? ''} onChange={e => handleChange('Ciudad', Number(e.target.value))} disabled={!pedido.Departamento}>
-                    <option value="">{loadingGeo ? 'Cargando...' : 'Seleccionar...'}</option>
-                    {ciudades.map(c => (<option key={c.id} value={c.id}>{c.name}</option>))}
-                  </SelectField>
+                  <div style={{ minWidth: 0 }}>
+                    <label style={LBL}>Departamento</label>
+                    <Autocomplete
+                      value={(() => { const d = deptos.find(d => String(d.id) === String(pedido.Departamento)); return d ? d.name : ''; })()}
+                      onChange={name => {
+                        const d = deptos.find(d => d.name.toLowerCase() === String(name).toLowerCase());
+                        if (d) handleDepartamentoChange(String(d.id)); else handleDepartamentoChange(String(name));
+                      }}
+                      options={deptos}
+                      placeholder="Buscar departamento..."
+                    />
+                  </div>
+                  <div style={{ minWidth: 0 }}>
+                    <label style={LBL}>Ciudad</label>
+                    <Autocomplete
+                      value={(() => { const c = ciudades.find(c => String(c.id) === String(pedido.Ciudad)); return c ? c.name : ''; })()}
+                      onChange={name => {
+                        const c = ciudades.find(c => c.name.toLowerCase() === String(name).toLowerCase());
+                        if (c) handleChange('Ciudad', Number(c.id));
+                      }}
+                      options={ciudades}
+                      placeholder={!pedido.Departamento ? 'Elige departamento primero' : (loadingGeo ? 'Cargando...' : 'Buscar ciudad...')}
+                      disabled={!pedido.Departamento}
+                    />
+                  </div>
                 </div>
 
                 <div>

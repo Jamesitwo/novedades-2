@@ -34,7 +34,7 @@ const getPedidoById = async (req, res) => {
     try {
       const local = await prisma.pedidoVinculado.findUnique({
         where: { lucidsalesPedidoId: Number(id) },
-        select: { subidoPorId: true, asignadoId: true, conversacionLink: true }
+        select: { subidoPorId: true, asignadoId: true, conversacionLink: true, notas: true }
       });
       if (local) {
         result._subidoPorId = local.subidoPorId;
@@ -42,6 +42,7 @@ const getPedidoById = async (req, res) => {
         if (local.conversacionLink && !result.botInbox && !result.conversacionLink) {
           result.conversacionLink = local.conversacionLink;
         }
+        result.notas = local.notas || result.notas || null;
       }
     } catch {
       // sin vinculación local: se responde solo con datos de LucidSales
@@ -652,7 +653,7 @@ const subirDividido = async (req, res) => {
 
 const listarVinculados = async (req, res) => {
   try {
-    const { page = 1, itemsPerPage = 50, search = '', estadoFilter, etiquetaId, asignadoId, fechaDesde, fechaHasta, producto } = req.query;
+    const { page = 1, itemsPerPage = 50, search = '', estadoFilter, etiquetaId, asignadoId, fechaDesde, fechaHasta, producto, estados, asignado_a_mi } = req.query;
     const opts = { page: Number(page), itemsPerPage: Number(itemsPerPage), search, estadoFilter, etiquetaId, asignadoId, fechaDesde, fechaHasta, producto };
 
     if (req.usuario.rol !== 'admin') {
@@ -664,6 +665,15 @@ const listarVinculados = async (req, res) => {
         opts.asignadoId = req.usuario.id;
         opts.estadoFilter = undefined;
       }
+    }
+
+    if (asignado_a_mi === 'true') {
+      opts.asignadoId = req.usuario.id;
+    }
+
+    if (estados) {
+      const arr = String(estados).split(',').map(s => Number(s)).filter(n => !Number.isNaN(n));
+      if (arr.length > 0) opts.estados = arr;
     }
 
     if (estadoFilter === 'asignados') {
