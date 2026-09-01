@@ -110,6 +110,9 @@ export default function OficinaPage() {
   const fetchRef = useRef(fetchPedidos);
   useEffect(() => { fetchRef.current = fetchPedidos; }, [fetchPedidos]);
 
+  const pageRef = useRef(page);
+  useEffect(() => { pageRef.current = page; }, [page]);
+
   const refreshTable = useCallback(() => {
     const scrollY = window.scrollY;
     fetchPedidos(page).then(() => {
@@ -165,13 +168,7 @@ export default function OficinaPage() {
   useEffect(() => {
     const events = ['oficina:created', 'oficina:estado-changed', 'oficina:deleted', 'oficina:transferred', 'oficina:bulk-action'];
     const unsubs = events.map(evt => on(evt, () => {
-      fetchRef.current(pagination?.page || 1);
-      const fetchCounts = async () => {
-        try {
-          const { data } = await api.get('/api/dashboard/resumen');
-          setCounts(data.oficina);
-        } catch {}
-      };
+      fetchRef.current(pageRef.current);
       fetchCounts();
     }));
     return () => unsubs.forEach(u => u());
@@ -844,7 +841,14 @@ export default function OficinaPage() {
       {detailId && (
         <>
           <div className="detail-panel-overlay" onClick={() => setDetailId(null)} />
-          <DetailPanel id={detailId} tipo="oficina" onClose={() => setDetailId(null)} onUpdate={refreshTable} />
+          <DetailPanel
+            id={detailId}
+            tipo="oficina"
+            onClose={() => setDetailId(null)}
+            onUpdate={refreshTable}
+            ids={pedidos.map(p => p.id)}
+            onNavigate={setDetailId}
+          />
         </>
       )}
     </div>

@@ -41,7 +41,7 @@ function getTimeRemaining(date) {
   return h > 0 ? `${h}h ${m}m restantes` : `${m}m restantes`;
 }
 
-export default function DetailPanel({ id, tipo, onClose, onUpdate }) {
+export default function DetailPanel({ id, tipo, onClose, onUpdate, ids, onNavigate }) {
   const { usuario } = useAuthStore();
   const [record, setRecord] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -282,9 +282,37 @@ export default function DetailPanel({ id, tipo, onClose, onUpdate }) {
       <div className="detail-panel" onClick={e => e.stopPropagation()}>
         <div className="detail-panel-inner">
           <div className="detail-header">
-            <div>
-              <div className="detail-title">{record.nombre} {record.apellido}</div>
-              <div style={{ display: 'flex', gap: 8, marginTop: isNovedad ? 8 : 4, alignItems: 'center', flexWrap: 'wrap' }}>
+            <div style={{ display: 'flex', alignItems: 'flex-start', gap: 4, minWidth: 0 }}>
+              {Array.isArray(ids) && ids.length > 0 && onNavigate && (
+                <>
+                  <button
+                    onClick={() => { const idx = ids.indexOf(id); if (idx > 0) onNavigate(ids[idx - 1]); }}
+                    disabled={ids.indexOf(id) <= 0}
+                    className="lsd-nav-btn"
+                    title="Anterior"
+                    aria-label="Anterior"
+                  >
+                    ←
+                  </button>
+                  <button
+                    onClick={() => { const idx = ids.indexOf(id); if (idx >= 0 && idx < ids.length - 1) onNavigate(ids[idx + 1]); }}
+                    disabled={ids.indexOf(id) < 0 || ids.indexOf(id) >= ids.length - 1}
+                    className="lsd-nav-btn"
+                    title="Siguiente"
+                    aria-label="Siguiente"
+                  >
+                    →
+                  </button>
+                </>
+              )}
+              <div>
+                <div className="detail-title">{record.nombre} {record.apellido}</div>
+                {Array.isArray(ids) && ids.length > 0 && (
+                  <div style={{ fontSize: 10, color: 'var(--text3)', fontFamily: 'var(--mono)', marginTop: 1 }}>
+                    {Math.max(0, ids.indexOf(id)) + 1} de {ids.length}
+                  </div>
+                )}
+                <div style={{ display: 'flex', gap: 8, marginTop: isNovedad ? 8 : 4, alignItems: 'center', flexWrap: 'wrap' }}>
                 <span className={`badge ${getBadgeClass(record.estado)}`}>{LABEL_ESTADO[record.estado]}</span>
                 {!isNovedad && dias <= 3 && (
                   <span className="vence-tag" style={{ background: 'rgba(245,158,11,0.15)', color: 'var(--amber)', padding: '2px 8px', borderRadius: 8, fontSize: 11, fontWeight: 600 }}>
@@ -296,6 +324,7 @@ export default function DetailPanel({ id, tipo, onClose, onUpdate }) {
                     Asignado: <strong style={{ color: 'var(--accent)' }}>{record.asignado.nombre}</strong>
                   </span>
                 )}
+              </div>
               </div>
             </div>
             <div style={{ display: 'flex', gap: 8 }}>

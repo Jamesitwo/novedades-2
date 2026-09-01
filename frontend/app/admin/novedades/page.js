@@ -110,6 +110,9 @@ export default function NovedadesPage() {
   const fetchRef = useRef(fetchNovedades);
   useEffect(() => { fetchRef.current = fetchNovedades; }, [fetchNovedades]);
 
+  const pageRef = useRef(page);
+  useEffect(() => { pageRef.current = page; }, [page]);
+
   useEffect(() => {
     api.get('/api/etiquetas').then(({ data }) => setEtiquetas(data)).catch(() => {});
   }, []);
@@ -159,7 +162,7 @@ export default function NovedadesPage() {
   useEffect(() => {
     const events = ['novedad:created', 'novedad:estado-changed', 'novedad:deleted', 'novedad:transferred', 'novedad:bulk-action'];
     const unsubs = events.map(evt => on(evt, () => {
-      fetchRef.current(pagination?.page || 1);
+      fetchRef.current(pageRef.current);
       fetchCounts();
     }));
     return () => unsubs.forEach(u => u());
@@ -892,7 +895,14 @@ export default function NovedadesPage() {
       {detailId && (
         <>
           <div className="detail-panel-overlay" onClick={() => setDetailId(null)} />
-          <DetailPanel id={detailId} tipo="novedad" onClose={() => setDetailId(null)} onUpdate={refreshTable} />
+          <DetailPanel
+            id={detailId}
+            tipo="novedad"
+            onClose={() => setDetailId(null)}
+            onUpdate={refreshTable}
+            ids={novedades.map(n => n.id)}
+            onNavigate={setDetailId}
+          />
         </>
       )}
     </div>
