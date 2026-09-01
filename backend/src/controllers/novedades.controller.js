@@ -289,7 +289,7 @@ const cambiarEstado = async (req, res) => {
     await registrarCambio(id, 'pedidos_novedad', 'estado', actual.estado, estado, req.usuario.id, `${actual.nombre} ${actual.apellido}`);
 
     const data = { estado };
-    if (estado === 'solucionado' && !actual.solucionadoAt) {
+    if (['solucionado', 'entregado', 'devolucion'].includes(estado) && !actual.solucionadoAt) {
       data.solucionadoAt = new Date();
       data.solucionadoPorId = req.authType === 'apikey' ? null : req.usuario.id;
       data.solucionadoFuente = req.authType === 'apikey' ? 'api' : 'operador';
@@ -438,7 +438,7 @@ const bulkCambiarEstado = async (req, res) => {
 
     const ops = [...historialOps];
 
-    if (estado === 'solucionado') {
+    if (['solucionado', 'entregado', 'devolucion'].includes(estado)) {
       ops.push(prisma.pedidoNovedad.updateMany({
         where: { id: { in: ids }, solucionadoAt: null },
         data: {

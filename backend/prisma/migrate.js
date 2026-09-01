@@ -80,6 +80,19 @@ async function main() {
   }
   console.log(`   ✅ Backfill reabiertoAt: ${reabiertas.length} novedades reabiertas`);
 
+  // Backfill resolucion implicita: entregadas/devolucion directas sin pasar por solucionado
+  const implicitas = await prisma.pedidoNovedad.findMany({
+    where: { estado: { in: ['entregado', 'devolucion'] }, solucionadoAt: null },
+    select: { id: true, asignadoId: true, updatedAt: true }
+  });
+  for (const n of implicitas) {
+    await prisma.pedidoNovedad.update({
+      where: { id: n.id },
+      data: { solucionadoAt: n.updatedAt, solucionadoPorId: n.asignadoId || null, solucionadoFuente: 'operador' }
+    });
+  }
+  console.log(`   ✅ Backfill resolucion implicita (entregado/devolucion directos): ${implicitas.length} novedades`);
+
   console.log('✅ Migraciones completadas');
 }
 
