@@ -87,7 +87,7 @@ const cotizarEnvio = async (req, res) => {
     res.json(result);
   } catch (error) {
     console.error('LucidSales cotizarEnvio error:', error);
-    res.status(500).json({ error: error.message || 'Error al cotizar envío' });
+    res.status(error.status || 500).json({ error: error.message || 'Error al cotizar envío', detalle: error.datos || null });
   }
 };
 
@@ -97,7 +97,7 @@ const confirmarEnvio = async (req, res) => {
     if (!pedidoId) return res.status(400).json({ error: 'pedidoId es requerido' });
     const result = await lucidsalesService.confirmarIntegracion(pedidoId, transportadora_id);
     if (result && result.ok === false) {
-      return res.status(400).json({ error: result.msg || result.error || 'Error al confirmar envío en LucidSales' });
+      return res.status(400).json({ error: result.msg || result.error || 'Error al confirmar envío en LucidSales', detalle: result });
     }
     try {
       await prisma.pedidoVinculado.update({
@@ -114,7 +114,7 @@ const confirmarEnvio = async (req, res) => {
     res.json(result);
   } catch (error) {
     console.error('LucidSales confirmarEnvio error:', error);
-    res.status(500).json({ error: error.message || 'Error al confirmar envío' });
+    res.status(error.status || 500).json({ error: error.message || 'Error al confirmar envío', detalle: error.datos || null });
   }
 };
 
@@ -581,7 +581,7 @@ const subirDividido = async (req, res) => {
 
         const createResult = await lucidsalesService.createPedido(nuevoPedido);
         if (createResult && createResult.ok === false) {
-          resultados.push({ producto: prod.product_id, error: createResult.msg || createResult.error || 'Error al crear' });
+          resultados.push({ producto: prod.product_id, error: createResult.msg || createResult.error || 'Error al crear', detalle: createResult });
           continue;
         }
 
@@ -599,7 +599,7 @@ const subirDividido = async (req, res) => {
 
         const uploadResult = await lucidsalesService.confirmarIntegracion(nuevoId, 'dropi', { transportadora_id });
         if (uploadResult && uploadResult.ok === false) {
-          resultados.push({ producto: prod.product_id, pedidoId: nuevoId, error: uploadResult.msg || uploadResult.error || 'Error al subir' });
+          resultados.push({ producto: prod.product_id, pedidoId: nuevoId, error: uploadResult.msg || uploadResult.error || 'Error al subir', detalle: uploadResult });
           continue;
         }
 
@@ -621,7 +621,7 @@ const subirDividido = async (req, res) => {
 
         resultados.push({ producto: prod.product_id, pedidoId: nuevoId, exito: true });
       } catch (err) {
-        resultados.push({ producto: prod.product_id, error: err.message });
+        resultados.push({ producto: prod.product_id, error: err.message, detalle: err.datos || null });
       }
     }
 
@@ -647,7 +647,7 @@ const subirDividido = async (req, res) => {
     res.json({ ok: true, total: productos.length, exitos, fallos, resultados });
   } catch (error) {
     console.error('LucidSales subirDividido error:', error);
-    res.status(500).json({ error: error.message || 'Error al dividir y subir pedido' });
+    res.status(error.status || 500).json({ error: error.message || 'Error al dividir y subir pedido', detalle: error.datos || null });
   }
 };
 

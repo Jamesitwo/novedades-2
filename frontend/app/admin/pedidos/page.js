@@ -17,6 +17,8 @@ export default function PedidosAdminPage() {
   const [dropiQuotes, setDropiQuotes] = useState(null);
   const [dropiCargando, setDropiCargando] = useState(false);
   const [dropiIdx, setDropiIdx] = useState(null);
+  const [dropiError, setDropiError] = useState(null);
+  const [dropiDetalleAbierto, setDropiDetalleAbierto] = useState(false);
   const LIMIT = 15;
 
   useEffect(() => {
@@ -58,6 +60,7 @@ export default function PedidosAdminPage() {
     setDetail(null);
     setDropiQuotes(null);
     setDropiIdx(null);
+    setDropiError(null);
     window.history.replaceState(null, '', `/admin/pedidos?tienda=${slug}`);
   };
 
@@ -88,10 +91,13 @@ export default function PedidosAdminPage() {
     setDropiCargando(true);
     setDropiQuotes(null);
     setDropiIdx(null);
+    setDropiError(null);
+    setDropiDetalleAbierto(false);
     try {
       const { data } = await api.post(`/api/pedidos/${detail.id}/cotizar-dropi`);
       const quotes = Array.isArray(data.quotes) ? data.quotes : [];
       if (!data.ok) {
+        setDropiError({ mensaje: data.error || 'Error al cotizar Dropi', detalle: data.detalle || null });
         showToast(data.error || 'Error al cotizar Dropi', 'error');
       } else if (quotes.length === 0) {
         showToast('No se obtuvieron cotizaciones de Dropi', 'error');
@@ -100,6 +106,7 @@ export default function PedidosAdminPage() {
         showToast('Cotización obtenida');
       }
     } catch (e) {
+      setDropiError({ mensaje: e.response?.data?.error || 'Error al cotizar Dropi', detalle: e.response?.data?.detalle || null });
       showToast(e.response?.data?.error || 'Error al cotizar Dropi', 'error');
     } finally {
       setDropiCargando(false);
@@ -109,6 +116,8 @@ export default function PedidosAdminPage() {
   const handleConfirmarDropi = async () => {
     if (!detail || dropiIdx == null || !dropiQuotes?.[dropiIdx]) return;
     setDropiCargando(true);
+    setDropiError(null);
+    setDropiDetalleAbierto(false);
     try {
       const q = dropiQuotes[dropiIdx];
       const { data } = await api.post(`/api/pedidos/${detail.id}/confirmar-dropi`, {
@@ -121,6 +130,7 @@ export default function PedidosAdminPage() {
       setDropiIdx(null);
       fetchPedidos();
     } catch (e) {
+      setDropiError({ mensaje: e.response?.data?.error || 'Error al confirmar Dropi', detalle: e.response?.data?.detalle || null });
       showToast(e.response?.data?.error || 'Error al confirmar Dropi', 'error');
     } finally {
       setDropiCargando(false);
@@ -411,6 +421,28 @@ export default function PedidosAdminPage() {
                 </div>
               ) : (
                 <>
+                  {dropiError && (
+                    <div style={{ background: '#ffdad6', border: '1px solid #f5b5a8', borderRadius: 10, padding: '10px 14px', marginBottom: 10 }}>
+                      <div style={{ fontSize: 13, fontWeight: 600, color: '#ba1a1a', lineHeight: 1.5, wordBreak: 'break-word' }}>
+                        {dropiError.mensaje}
+                      </div>
+                      {dropiError.detalle && (
+                        <div style={{ marginTop: 6, borderTop: '1px solid rgba(186,26,26,0.2)', paddingTop: 4 }}>
+                          <button
+                            onClick={() => setDropiDetalleAbierto(!dropiDetalleAbierto)}
+                            style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 11, fontWeight: 700, color: '#904d00', fontFamily: '"Inter", sans-serif', padding: 0, display: 'flex', alignItems: 'center', gap: 4 }}
+                          >
+                            Detalle técnico {dropiDetalleAbierto ? '▲' : '▼'}
+                          </button>
+                          {dropiDetalleAbierto && (
+                            <pre style={{ margin: '6px 0 0', padding: 8, background: '#fff', border: '1px solid #E2E8F0', borderRadius: 6, fontSize: 10, fontFamily: 'monospace', whiteSpace: 'pre-wrap', wordBreak: 'break-word', color: '#564334', maxHeight: 200, overflow: 'auto' }}>
+                              {(typeof dropiError.detalle === 'string' ? dropiError.detalle : JSON.stringify(dropiError.detalle, null, 2)).slice(0, 4000)}
+                            </pre>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                  )}
                   {dropiQuotes && dropiQuotes.length > 0 ? (
                     <div style={{ display: 'grid', gap: 6 }}>
                       {dropiQuotes.map((q, i) => (

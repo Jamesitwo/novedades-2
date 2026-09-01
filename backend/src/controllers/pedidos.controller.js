@@ -212,7 +212,7 @@ const cotizarDropi = async (req, res) => {
       });
 
       if (creado && creado.ok === false) {
-        return res.status(400).json({ error: creado.msg || creado.error || 'LucidSales rechazó la creación del pedido' });
+        return res.status(400).json({ error: creado.msg || creado.error || 'LucidSales rechazó la creación del pedido', detalle: creado });
       }
 
       lucidsalesPedidoId = creado?.pedido?.id || creado?.id || creado?.Id || creado?.pedidoId || creado?.data?.id;
@@ -243,13 +243,13 @@ const cotizarDropi = async (req, res) => {
 
     const cotizacion = await lucidsalesService.cotizarEnvio(lucidsalesPedidoId, 'dropi');
     if (cotizacion && cotizacion.ok === false) {
-      return res.status(400).json({ error: cotizacion.msg || cotizacion.error || 'Error al cotizar envío Dropi' });
+      return res.status(400).json({ error: cotizacion.msg || cotizacion.error || 'Error al cotizar envío Dropi', detalle: cotizacion });
     }
     const quotes = Array.isArray(cotizacion?.quotes) ? cotizacion.quotes : (Array.isArray(cotizacion) ? cotizacion : []);
     res.json({ ok: true, lucidsalesPedidoId: String(lucidsalesPedidoId), quotes });
   } catch (error) {
     console.error('Cotizar Dropi error:', error);
-    res.status(500).json({ error: error.message || 'Error al cotizar envío Dropi' });
+    res.status(error.status || 500).json({ error: error.message || 'Error al cotizar envío Dropi', detalle: error.datos || null });
   }
 };
 
@@ -271,7 +271,7 @@ const confirmarDropi = async (req, res) => {
 
     const resultado = await lucidsalesService.confirmarIntegracion(pedido.lucidsalesPedidoId, transportadora_id);
     if (resultado && resultado.ok === false) {
-      return res.status(400).json({ error: resultado.msg || resultado.error || 'Error al subir a Dropi' });
+      return res.status(400).json({ error: resultado.msg || resultado.error || 'Error al subir a Dropi', detalle: resultado });
     }
 
     const actualizado = await prisma.pedidoTienda.update({
@@ -286,7 +286,7 @@ const confirmarDropi = async (req, res) => {
     res.json({ ok: true, pedido: actualizado });
   } catch (error) {
     console.error('Confirmar Dropi error:', error);
-    res.status(500).json({ error: error.message || 'Error al confirmar envío Dropi' });
+    res.status(error.status || 500).json({ error: error.message || 'Error al confirmar envío Dropi', detalle: error.datos || null });
   }
 };
 

@@ -38,6 +38,46 @@ function getTransportadoraColors(name) {
   return cfg || { bg: 'var(--bg2)', border: 'var(--border)', text: 'var(--text)' };
 }
 
+function DetalleTecnico({ detalle }) {
+  const [abierto, setAbierto] = useState(false);
+  if (!detalle) return null;
+  let texto;
+  try { texto = typeof detalle === 'string' ? detalle : JSON.stringify(detalle, null, 2); }
+  catch { texto = String(detalle); }
+  return (
+    <div style={{ marginTop: 8, border: '1px solid var(--border)', borderRadius: 6, overflow: 'hidden', background: 'var(--bg)' }}>
+      <button
+        type="button"
+        onClick={() => setAbierto(!abierto)}
+        style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 6, padding: '6px 10px', background: 'var(--bg2)', border: 'none', cursor: 'pointer', color: 'var(--text2)', fontSize: 11, fontWeight: 600, fontFamily: 'inherit' }}
+      >
+        <span>Detalle tecnico</span>
+        <Icon name={abierto ? 'expand_less' : 'expand_more'} size={14} />
+      </button>
+      {abierto && (
+        <pre style={{ margin: 0, padding: '8px 10px', fontSize: 10, fontFamily: 'var(--mono)', whiteSpace: 'pre-wrap', wordBreak: 'break-word', color: 'var(--text2)', maxHeight: 220, overflow: 'auto', borderTop: '1px solid var(--border)' }}>
+          {texto.slice(0, 4000)}
+        </pre>
+      )}
+    </div>
+  );
+}
+
+function ErrorCard({ mensaje, detalle }) {
+  if (!mensaje) return null;
+  return (
+    <div style={{ margin: '8px 0', padding: '10px 12px', borderRadius: 8, background: 'color-mix(in srgb, var(--red) 10%, transparent)', border: '1px solid color-mix(in srgb, var(--red) 30%, transparent)' }}>
+      <div style={{ display: 'flex', gap: 8, alignItems: 'flex-start' }}>
+        <Icon name="error" size={16} style={{ color: 'var(--red)', flexShrink: 0, marginTop: 1 }} />
+        <div style={{ minWidth: 0, flex: 1 }}>
+          <div style={{ color: 'var(--red)', fontSize: 12, fontWeight: 600, lineHeight: 1.5, wordBreak: 'break-word' }}>{mensaje}</div>
+          <DetalleTecnico detalle={detalle} />
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export default function LucidsalesDetailPanel({ id, ids, currentIndex, onClose, onNavigate, onUpdate }) {
   const [pedido, setPedido] = useState(null);
   const [originalPedido, setOriginalPedido] = useState(null);
@@ -55,6 +95,7 @@ export default function LucidsalesDetailPanel({ id, ids, currentIndex, onClose, 
   const [quoting, setQuoting] = useState(false);
   const [selectedQuoteIdx, setSelectedQuoteIdx] = useState(null);
   const [uploading, setUploading] = useState(false);
+  const [uploadError, setUploadError] = useState(null);
 
   const [toast, setToast] = useState(null);
   const [editProdPrice, setEditProdPrice] = useState(null);
@@ -345,12 +386,12 @@ export default function LucidsalesDetailPanel({ id, ids, currentIndex, onClose, 
   };
 
   const handleQuote = async () => {
-    setQuoting(true); setQuotes(null); setSelectedQuoteIdx(null); setShowCotizador(true);
+    setQuoting(true); setQuotes(null); setSelectedQuoteIdx(null); setShowCotizador(true); setUploadError(null);
     try {
       const { data } = await api.post('/api/lucidsales/pedidos/cotizar', { pedidoId: Number(currentId), carrier: 'dropi' });
       setQuotes(data);
     } catch (err) {
-      setQuotes({ error: err.response?.data?.error || err.message });
+      setQuotes({ error: err.response?.data?.error || err.message, detalle: err.response?.data?.detalle || null });
     } finally { setQuoting(false); }
   };
 
@@ -377,6 +418,7 @@ export default function LucidsalesDetailPanel({ id, ids, currentIndex, onClose, 
 
   const doUpload = async (q) => {
     setUploading(true);
+    setUploadError(null);
     try {
       await api.post(`/api/lucidsales/pedidos/${currentId}`, pedido);
       setCamposModificados(new Set());
@@ -394,7 +436,9 @@ export default function LucidsalesDetailPanel({ id, ids, currentIndex, onClose, 
         if (onUpdate) onUpdate();
       } else showToast(data.msg || data.error || 'Error al subir', 'error');
     } catch (err) {
-      showToast(err.response?.data?.error || err.message || 'Error al subir', 'error');
+      const mensaje = err.response?.data?.error || err.message || 'Error al subir';
+      setUploadError({ mensaje, detalle: err.response?.data?.detalle || null });
+      showToast(mensaje, 'error');
     } finally { setUploading(false); }
   };
 
@@ -421,7 +465,7 @@ export default function LucidsalesDetailPanel({ id, ids, currentIndex, onClose, 
       const { data } = await api.post(`/api/lucidsales/pedidos/${currentId}/subir-dividido`, { transportadora_id: q.transportadora_id });
       const updated = productos.map((p, i) => {
         const res = data.resultados?.find(r => String(r.producto) === String(p.product_id));
-        return { ...p, status: res?.exito ? 'ok' : 'error', error: res?.error };
+        return { ...p, status: res?.exito ? 'ok' : 'error', error: res?.error, detalle: res?.detalle || null };
       });
       setSplitResults({ total: data.total, exitos: data.exitos, fallos: data.fallos, items: updated });
       if (data.fallos === 0) {
@@ -429,7 +473,7 @@ export default function LucidsalesDetailPanel({ id, ids, currentIndex, onClose, 
         setPedido(prev => ({ ...prev, EstadoPedido: 2 }));
       }
     } catch (err) {
-      setSplitResults(prev => ({ ...prev, error: err.response?.data?.error || err.message, items: prev.items.map(p => ({ ...p, status: 'error' })) }));
+      setSplitResults(prev => ({ ...prev, error: err.response?.data?.error || err.message, detalle: err.response?.data?.detalle || null, items: prev.items.map(p => ({ ...p, status: 'error' })) }));
     } finally { setUploading(false); }
   };
 
@@ -723,7 +767,7 @@ export default function LucidsalesDetailPanel({ id, ids, currentIndex, onClose, 
             {!uploaded && showCotizador && quotes && (
               <div style={{ padding: '0 12px 12px', borderTop: '1px solid var(--border)' }}>
                 <div style={{ padding: '10px 0' }}>
-                  {quotes?.error && <div style={{ color: 'var(--red)', fontSize: 12, padding: 4 }}>{quotes.error}</div>}
+                  {quotes?.error && <ErrorCard mensaje={quotes.error} detalle={quotes.detalle} />}
                   {quotes?.quotes && quotes.quotes.length > 0 && (
                     <>
                       <div className="lsd-quotes">
@@ -758,6 +802,7 @@ export default function LucidsalesDetailPanel({ id, ids, currentIndex, onClose, 
                           {uploading ? 'Subiendo...' : `Subir con ${quotes.quotes[selectedQuoteIdx].transportadora}`}
                         </Button>
                       )}
+                      {uploadError && <ErrorCard mensaje={uploadError.mensaje} detalle={uploadError.detalle} />}
                     </>
                   )}
                   {quotes && !quotes.error && (!quotes.quotes || quotes.quotes.length === 0) && (
@@ -1171,13 +1216,14 @@ export default function LucidsalesDetailPanel({ id, ids, currentIndex, onClose, 
               </div>
               {splitResults ? (
                 <div style={{ marginBottom: 14 }}>
-                  {splitResults.error && <div style={{ color: 'var(--red)', fontSize: 11, marginBottom: 6 }}>{splitResults.error}</div>}
+                  {splitResults.error && <ErrorCard mensaje={splitResults.error} detalle={splitResults.detalle} />}
                   <div style={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
                     {splitResults.items.map((p, i) => (
-                      <div key={i} style={{ fontSize: 11, display: 'flex', alignItems: 'center', gap: 4 }}>
+                      <div key={i} style={{ fontSize: 11, display: 'flex', alignItems: 'center', gap: 4, flexWrap: 'wrap' }}>
                         <span>{p.status === 'ok' ? '✅' : p.status === 'error' ? '❌' : '⏳'}</span>
                         <span>{productosMap[String(p.product_id)]?.name || `#${p.product_id}`}</span>
                         {p.error && <span style={{ color: 'var(--red)', fontSize: 9 }}>{p.error}</span>}
+                        {p.detalle && <div style={{ flexBasis: '100%' }}><DetalleTecnico detalle={p.detalle} /></div>}
                       </div>
                     ))}
                   </div>

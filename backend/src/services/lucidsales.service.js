@@ -104,13 +104,40 @@ async function authenticate(config) {
   return authPromise;
 }
 
+function extraerMensajeError(data, fallback) {
+  const crudo = data?.msg || data?.error || data?.message || data?.mensaje;
+  if (typeof crudo === 'string' && crudo.trim()) return crudo;
+  if (crudo !== undefined && crudo !== null) {
+    try { return JSON.stringify(crudo); } catch { return String(crudo); }
+  }
+  return fallback;
+}
+
+function crearErrorLucidSales(data, fallback, status) {
+  const mensaje = extraerMensajeError(data, fallback);
+  const err = new Error(mensaje);
+  err.datos = data;
+  err.status = status;
+  return err;
+}
+
 async function apiGet(path, token) {
   const url = `${BASE_URL}${path}`;
   try {
     const resp = await fetchWithTimeout(url, { headers: { 'x-token': token } });
-    const data = await resp.json();
+    const rawText = await resp.text();
+    let data = null;
+    try { data = JSON.parse(rawText); } catch { data = null; }
     if (!resp.ok) {
-      throw new Error(data.error || data.msg || `HTTP ${resp.status}: ${resp.statusText}`);
+      if (data === null) {
+        const err = new Error(`HTTP ${resp.status}: ${rawText.slice(0, 500)}`);
+        err.datos = { raw: rawText.slice(0, 2000), status: resp.status };
+        throw err;
+      }
+      throw crearErrorLucidSales(data, `HTTP ${resp.status}: ${resp.statusText}`, resp.status);
+    }
+    if (data && data.ok === false) {
+      throw crearErrorLucidSales(data, 'LucidSales rechazo la solicitud', resp.status);
     }
     return data;
   } catch (error) {
@@ -133,9 +160,19 @@ async function apiPost(path, body, token) {
       headers: { 'Content-Type': 'application/json', 'x-token': token },
       body: JSON.stringify(body)
     });
-    const data = await resp.json();
+    const rawText = await resp.text();
+    let data = null;
+    try { data = JSON.parse(rawText); } catch { data = null; }
     if (!resp.ok) {
-      throw new Error(data.error || data.msg || `HTTP ${resp.status}: ${resp.statusText}`);
+      if (data === null) {
+        const err = new Error(`HTTP ${resp.status}: ${rawText.slice(0, 500)}`);
+        err.datos = { raw: rawText.slice(0, 2000), status: resp.status };
+        throw err;
+      }
+      throw crearErrorLucidSales(data, `HTTP ${resp.status}: ${resp.statusText}`, resp.status);
+    }
+    if (data && data.ok === false) {
+      throw crearErrorLucidSales(data, 'LucidSales rechazo la solicitud', resp.status);
     }
     return data;
   } catch (error) {
@@ -260,7 +297,12 @@ async function confirmarIntegracion(pedidoId, transportadora_id) {
   }
 
   console.log(`[LucidSales] confirmarIntegracion: POST /pedidos/upload/dropi body:`, JSON.stringify(body));
-  return apiPost('/pedidos/upload/dropi', body, token);
+  try {
+    return await apiPost('/pedidos/upload/dropi', body, token);
+  } catch (error) {
+    console.error('[LucidSales] upload/dropi FAIL body:', error.datos ? JSON.stringify(error.datos).slice(0, 2000) : error.message);
+    throw error;
+  }
 }
 
 async function validateAddress(direccion, ciudad, departamento, pais = 47) {
