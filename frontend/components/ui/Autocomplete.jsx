@@ -2,10 +2,14 @@
 
 import { useState, useEffect, useRef } from 'react';
 
-export default function Autocomplete({ value, onChange, options = [], placeholder, disabled = false }) {
+export default function Autocomplete({ value, onSelect, options = [], placeholder, disabled = false }) {
+  const [text, setText] = useState(value || '');
   const [open, setOpen] = useState(false);
-  const [filter, setFilter] = useState('');
   const wrapperRef = useRef(null);
+
+  useEffect(() => {
+    setText(value || '');
+  }, [value]);
 
   useEffect(() => {
     const handler = (e) => { if (wrapperRef.current && !wrapperRef.current.contains(e.target)) setOpen(false); };
@@ -15,17 +19,17 @@ export default function Autocomplete({ value, onChange, options = [], placeholde
 
   const filtered = (options || []).filter(o => {
     const name = String(o.name || o || '').toLowerCase();
-    return name.includes(filter.toLowerCase());
+    return name.includes(text.toLowerCase());
   }).slice(0, 30);
 
   return (
     <div ref={wrapperRef} style={{ position: 'relative' }}>
       <input
         type="text"
-        value={value || ''}
+        value={text}
         disabled={disabled}
         placeholder={placeholder}
-        onChange={e => { onChange(e.target.value); setFilter(e.target.value); setOpen(true); }}
+        onChange={e => { setText(e.target.value); setOpen(true); }}
         onFocus={() => setOpen(true)}
         style={{
           width: '100%', padding: '8px 10px', background: disabled ? 'var(--bg3)' : 'var(--bg)',
@@ -43,7 +47,7 @@ export default function Autocomplete({ value, onChange, options = [], placeholde
           {filtered.map((o, i) => (
             <div
               key={o.id || o.name || i}
-              onClick={() => { onChange(o.name || o); setFilter(''); setOpen(false); }}
+              onClick={() => { setText(o.name || o); setOpen(false); if (onSelect) onSelect(o.name || o); }}
               style={{
                 padding: '9px 12px', cursor: 'pointer', fontSize: 13, color: 'var(--text)',
                 borderBottom: i < filtered.length - 1 ? '1px solid var(--border)' : 'none'

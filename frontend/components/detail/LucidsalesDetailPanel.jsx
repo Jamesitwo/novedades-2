@@ -1064,9 +1064,9 @@ export default function LucidsalesDetailPanel({ id, ids, currentIndex, onClose, 
                     <label style={LBL}>Departamento</label>
                     <Autocomplete
                       value={(() => { const d = deptos.find(d => String(d.id) === String(pedido.Departamento)); return d ? d.name : ''; })()}
-                      onChange={name => {
+                      onSelect={name => {
                         const d = deptos.find(d => d.name.toLowerCase() === String(name).toLowerCase());
-                        if (d) handleDepartamentoChange(String(d.id)); else handleDepartamentoChange(String(name));
+                        if (d) handleDepartamentoChange(String(d.id));
                       }}
                       options={deptos}
                       placeholder="Buscar departamento..."
@@ -1076,7 +1076,7 @@ export default function LucidsalesDetailPanel({ id, ids, currentIndex, onClose, 
                     <label style={LBL}>Ciudad</label>
                     <Autocomplete
                       value={(() => { const c = ciudades.find(c => String(c.id) === String(pedido.Ciudad)); return c ? c.name : ''; })()}
-                      onChange={name => {
+                      onSelect={name => {
                         const c = ciudades.find(c => c.name.toLowerCase() === String(name).toLowerCase());
                         if (c) handleChange('Ciudad', Number(c.id));
                       }}
