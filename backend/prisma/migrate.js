@@ -93,6 +93,41 @@ async function main() {
   }
   console.log(`   ✅ Backfill resolucion implicita (entregado/devolucion directos): ${implicitas.length} novedades`);
 
+  // Backfill vecesResuelta: contador de resoluciones/re-resoluciones
+  const resueltasSinContador = await prisma.pedidoNovedad.findMany({
+    where: { solucionadoAt: { not: null }, vecesResuelta: 0 },
+    select: { id: true }
+  });
+  const idsSinContador = resueltasSinContador.map(n => n.id);
+  if (idsSinContador.length > 0) {
+    const transiciones = await prisma.historialCambio.groupBy({
+      by: ['registroId'],
+      where: {
+        tabla: 'pedidos_novedad',
+        campo: 'estado',
+        valorNuevo: { in: ['solucionado', 'entregado', 'devolucion'] },
+        valorAnterior: { notIn: ['solucionado', 'entregado', 'devolucion'] },
+        registroId: { in: idsSinContador }
+      },
+      _count: { _all: true }
+    });
+    let conHistorial = 0;
+    for (const t of transiciones) {
+      await prisma.pedidoNovedad.update({
+        where: { id: t.registroId },
+        data: { vecesResuelta: Math.max(1, t._count._all) }
+      });
+      conHistorial++;
+    }
+    const conTransiciones = new Set(transiciones.map(t => t.registroId));
+    const sinTransiciones = idsSinContador.filter(id => !conTransiciones.has(id));
+    const res = await prisma.pedidoNovedad.updateMany({
+      where: { id: { in: sinTransiciones }, solucionadoAt: { not: null } },
+      data: { vecesResuelta: 1 }
+    });
+    console.log(`   ✅ Backfill vecesResuelta: ${conHistorial} con historial, ${res.count} con valor 1`);
+  }
+
   console.log('✅ Migraciones completadas');
 }
 

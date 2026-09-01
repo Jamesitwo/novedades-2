@@ -276,7 +276,7 @@ export default function MetricasPage() {
               <div className="stat-card c-green">
                 <div className="stat-label">Solucionadas</div>
                 <div className="stat-value green">{globalMetricas.solucionadas}</div>
-                <div className="stat-sub">Dinero: {formatMoney(globalMetricas.dineroSolucionado)}</div>
+                <div className="stat-sub">Dinero: {formatMoney(globalMetricas.dineroSolucionado)} · Resol. totales: {globalMetricas.resolucionesTotales ?? 0}</div>
               </div>
               <div className="stat-card c-teal">
                 <div className="stat-label">Entregadas</div>
@@ -292,6 +292,11 @@ export default function MetricasPage() {
                 <div className="stat-label">Vueltas a novedad</div>
                 <div className="stat-value amber">{globalMetricas.reabiertas ?? 0}</div>
                 <div className="stat-sub">Solucionadas que se reactivaron como novedad</div>
+              </div>
+              <div className="stat-card c-red">
+                <div className="stat-label">Re-resoluciones</div>
+                <div className="stat-value" style={{ color: 'var(--accent2)' }}>+{globalMetricas.reResoluciones ?? 0}</div>
+                <div className="stat-sub">Resoluciones adicionales tras reabrir</div>
               </div>
               <div className="stat-card c-blue">
                 <div className="stat-label">Origen</div>
@@ -384,6 +389,9 @@ export default function MetricasPage() {
                   <th onClick={() => handleSort('novedadesReabiertas')} style={{ cursor: 'pointer', textAlign: 'center' }}>
                     Reabiertas <InfoBadge label="Reabiertas" /> <SortIcon field="novedadesReabiertas" />
                   </th>
+                  <th onClick={() => handleSort('novedadesReResoluciones')} style={{ cursor: 'pointer', textAlign: 'center' }}>
+                    Re-res. <InfoBadge label="Re-resoluciones" /> <SortIcon field="novedadesReResoluciones" />
+                  </th>
                   <th onClick={() => handleSort('novedadesSolucionadasApi')} style={{ cursor: 'pointer', textAlign: 'center' }}>
                     Por API <InfoBadge label="Por API" /> <SortIcon field="novedadesSolucionadasApi" />
                   </th>
@@ -447,6 +455,9 @@ export default function MetricasPage() {
                     </td>
                     <td style={{ textAlign: 'center', fontFamily: 'var(--mono)', color: m.novedadesReabiertas > 0 ? 'var(--amber)' : 'var(--text3)' }}>
                       {m.novedadesReabiertas > 0 ? m.novedadesReabiertas : '-'}
+                    </td>
+                    <td style={{ textAlign: 'center', fontFamily: 'var(--mono)', color: m.novedadesReResoluciones > 0 ? 'var(--accent2)' : 'var(--text3)' }}>
+                      {m.novedadesReResoluciones > 0 ? `+${m.novedadesReResoluciones}` : '-'}
                     </td>
                     <td style={{ textAlign: 'center', fontFamily: 'var(--mono)', color: m.novedadesSolucionadasApi > 0 ? 'var(--amber)' : 'var(--text3)', fontSize: 12 }}>
                       {m.novedadesSolucionadasApi > 0 ? m.novedadesSolucionadasApi : '-'}

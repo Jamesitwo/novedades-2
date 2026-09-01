@@ -289,10 +289,14 @@ const cambiarEstado = async (req, res) => {
     await registrarCambio(id, 'pedidos_novedad', 'estado', actual.estado, estado, req.usuario.id, `${actual.nombre} ${actual.apellido}`);
 
     const data = { estado };
-    if (['solucionado', 'entregado', 'devolucion'].includes(estado) && !actual.solucionadoAt) {
+    const estadosResolucion = ['solucionado', 'entregado', 'devolucion'];
+    if (estadosResolucion.includes(estado) && !actual.solucionadoAt) {
       data.solucionadoAt = new Date();
       data.solucionadoPorId = req.authType === 'apikey' ? null : req.usuario.id;
       data.solucionadoFuente = req.authType === 'apikey' ? 'api' : 'operador';
+      data.vecesResuelta = 1;
+    } else if (estadosResolucion.includes(estado) && !estadosResolucion.includes(actual.estado)) {
+      data.vecesResuelta = (actual.vecesResuelta || 0) + 1;
     }
     if (estado === 'novedad' && actual.estado !== 'novedad') {
       data.reabiertoAt = new Date();
@@ -446,11 +450,16 @@ const bulkCambiarEstado = async (req, res) => {
           solucionadoAt: new Date(),
           solucionadoPorId: req.authType === 'apikey' ? null : req.usuario.id,
           solucionadoFuente: req.authType === 'apikey' ? 'api' : 'operador',
-          reabiertoAt: null
+          reabiertoAt: null,
+          vecesResuelta: 1
         }
       }));
       ops.push(prisma.pedidoNovedad.updateMany({
-        where: { id: { in: ids }, solucionadoAt: { not: null } },
+        where: { id: { in: ids }, solucionadoAt: { not: null }, estado: { notIn: ['solucionado', 'entregado', 'devolucion'] } },
+        data: { estado, reabiertoAt: null, vecesResuelta: { increment: 1 } }
+      }));
+      ops.push(prisma.pedidoNovedad.updateMany({
+        where: { id: { in: ids }, solucionadoAt: { not: null }, estado: { in: ['solucionado', 'entregado', 'devolucion'] } },
         data: { estado, reabiertoAt: null }
       }));
     } else if (estado === 'novedad') {

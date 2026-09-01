@@ -73,6 +73,7 @@ model PedidoNovedad {
   solucionadoPorId      String?   @map("solucionado_por_id")
   solucionadoFuente     String?   @map("solucionado_fuente")
   reabiertoAt           DateTime? @map("reabierto_at")
+  vecesResuelta         Int       @default(0) @map("veces_resuelta")
   createdAt             DateTime  @default(now())
   updatedAt             DateTime  @updatedAt
   createdById           String    @map("created_by")

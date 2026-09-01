@@ -402,7 +402,7 @@ const getMetricasOperadores = async (req, res) => {
 
       const registrosCreados = registrosNovedadCreados + registrosOficinaCreados;
 
-      const [dineroNovedad, dineroOficina] = await Promise.all([
+      const [dineroNovedad, dineroOficina, resolucionesAgg] = await Promise.all([
         prisma.pedidoNovedad.aggregate({
           where: solucionadoFilter({ asignadoId: op.id, solucionadoFuente: 'operador' }),
           _sum: { totalAPagar: true }
@@ -410,11 +410,17 @@ const getMetricasOperadores = async (req, res) => {
         prisma.pedidoOficina.aggregate({
           where: { ...whereOficina, asignadoId: op.id, estado: 'va_a_recoger' },
           _sum: { precio: true }
+        }),
+        prisma.pedidoNovedad.aggregate({
+          where: solucionadoFilter({ asignadoId: op.id, solucionadoFuente: 'operador' }),
+          _sum: { vecesResuelta: true }
         })
       ]);
       const dineroManejado = (dineroNovedad._sum.totalAPagar || 0) + (dineroOficina._sum.precio || 0);
       const dineroNovedadVal = dineroNovedad._sum.totalAPagar || 0;
       const dineroOficinaVal = dineroOficina._sum.precio || 0;
+      const resolucionesTotales = resolucionesAgg._sum.vecesResuelta || 0;
+      const reResoluciones = Math.max(0, resolucionesTotales - novedadesResueltas);
 
       let promedioResolucionHoras = 0;
       let promResNovedadHoras = 0;
@@ -454,6 +460,8 @@ const getMetricasOperadores = async (req, res) => {
         novedadesSolucionadasOperador,
         novedadesSolucionadasApi,
         novedadesReabiertas,
+        novedadesResolucionesTotales: resolucionesTotales,
+        novedadesReResoluciones: reResoluciones,
         oficinaAsignadas,
         oficinaRecogidas,
         totalAsignados,
@@ -478,7 +486,7 @@ const getMetricasOperadores = async (req, res) => {
 
     const metricasOrdenadas = metricas.sort((a, b) => b.totalResueltos - a.totalResueltos);
 
-    const [globalSolucionadas, globalEntregadas, globalDevueltas, globalOperador, globalApi, globalReabiertas, globalDinero] = await Promise.all([
+    const [globalSolucionadas, globalEntregadas, globalDevueltas, globalOperador, globalApi, globalReabiertas, globalResolucionesAgg, globalDinero] = await Promise.all([
       prisma.pedidoNovedad.count({ where: solucionadoFilter({ solucionadoFuente: 'operador' }) }),
       prisma.pedidoNovedad.count({ where: solucionadoFilter({ solucionadoFuente: 'operador', estado: 'entregado' }) }),
       prisma.pedidoNovedad.count({ where: solucionadoFilter({ solucionadoFuente: 'operador', estado: 'devolucion' }) }),
@@ -487,9 +495,15 @@ const getMetricasOperadores = async (req, res) => {
       prisma.pedidoNovedad.count({ where: reabiertoFilter({ solucionadoFuente: 'operador' }) }),
       prisma.pedidoNovedad.aggregate({
         where: solucionadoFilter({ solucionadoFuente: 'operador' }),
+        _sum: { vecesResuelta: true }
+      }),
+      prisma.pedidoNovedad.aggregate({
+        where: solucionadoFilter({ solucionadoFuente: 'operador' }),
         _sum: { totalAPagar: true }
       })
     ]);
+
+    const resolucionesTotalesGlobal = globalResolucionesAgg._sum.vecesResuelta || 0;
 
     res.json({
       global: {
@@ -499,6 +513,8 @@ const getMetricasOperadores = async (req, res) => {
         reabiertas: globalReabiertas,
         porOperador: globalOperador,
         porApi: globalApi,
+        resolucionesTotales: resolucionesTotalesGlobal,
+        reResoluciones: Math.max(0, resolucionesTotalesGlobal - globalSolucionadas),
         dineroSolucionado: globalDinero._sum.totalAPagar || 0
       },
       metricas: metricasOrdenadas
