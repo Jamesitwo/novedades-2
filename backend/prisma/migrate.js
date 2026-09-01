@@ -67,6 +67,19 @@ async function main() {
   }
   console.log(`   ✅ Backfill solucionado* de solucionadas actuales: ${solucionadasActuales.length} novedades`);
 
+  // Backfill reabiertoAt: novedades reabiertas (solucionadas que volvieron a estado novedad)
+  const reabiertas = await prisma.pedidoNovedad.findMany({
+    where: { estado: 'novedad', solucionadoAt: { not: null }, reabiertoAt: null },
+    select: { id: true, updatedAt: true }
+  });
+  for (const n of reabiertas) {
+    await prisma.pedidoNovedad.update({
+      where: { id: n.id },
+      data: { reabiertoAt: n.updatedAt }
+    });
+  }
+  console.log(`   ✅ Backfill reabiertoAt: ${reabiertas.length} novedades reabiertas`);
+
   console.log('✅ Migraciones completadas');
 }
 

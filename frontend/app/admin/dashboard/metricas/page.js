@@ -288,6 +288,11 @@ export default function MetricasPage() {
                 <div className="stat-value purple">{globalMetricas.devueltas}</div>
                 <div className="stat-sub">Solucionadas que pasaron a devolución</div>
               </div>
+              <div className="stat-card c-amber">
+                <div className="stat-label">Vueltas a novedad</div>
+                <div className="stat-value amber">{globalMetricas.reabiertas ?? 0}</div>
+                <div className="stat-sub">Solucionadas que se reactivaron como novedad</div>
+              </div>
               <div className="stat-card c-blue">
                 <div className="stat-label">Origen</div>
                 <div className="stat-value blue">{globalMetricas.porOperador}</div>
@@ -376,6 +381,9 @@ export default function MetricasPage() {
                   <th onClick={() => handleSort('novedadesSolucionadasDevueltas')} style={{ cursor: 'pointer', textAlign: 'center' }}>
                     Devoluciones <InfoBadge label="Devoluciones" /> <SortIcon field="novedadesSolucionadasDevueltas" />
                   </th>
+                  <th onClick={() => handleSort('novedadesReabiertas')} style={{ cursor: 'pointer', textAlign: 'center' }}>
+                    Reabiertas <InfoBadge label="Reabiertas" /> <SortIcon field="novedadesReabiertas" />
+                  </th>
                   <th onClick={() => handleSort('novedadesSolucionadasApi')} style={{ cursor: 'pointer', textAlign: 'center' }}>
                     Por API <InfoBadge label="Por API" /> <SortIcon field="novedadesSolucionadasApi" />
                   </th>
@@ -436,6 +444,9 @@ export default function MetricasPage() {
                     </td>
                     <td style={{ textAlign: 'center', fontFamily: 'var(--mono)', color: m.novedadesSolucionadasDevueltas > 0 ? 'var(--purple)' : 'var(--text3)' }}>
                       {m.novedadesSolucionadasDevueltas > 0 ? m.novedadesSolucionadasDevueltas : '-'}
+                    </td>
+                    <td style={{ textAlign: 'center', fontFamily: 'var(--mono)', color: m.novedadesReabiertas > 0 ? 'var(--amber)' : 'var(--text3)' }}>
+                      {m.novedadesReabiertas > 0 ? m.novedadesReabiertas : '-'}
                     </td>
                     <td style={{ textAlign: 'center', fontFamily: 'var(--mono)', color: m.novedadesSolucionadasApi > 0 ? 'var(--amber)' : 'var(--text3)', fontSize: 12 }}>
                       {m.novedadesSolucionadasApi > 0 ? m.novedadesSolucionadasApi : '-'}

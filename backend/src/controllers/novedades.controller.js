@@ -83,7 +83,10 @@ const getAll = async (req, res) => {
           createdBy: { select: { id: true, nombre: true } },
           asignado: { select: { id: true, nombre: true } }
         },
-        orderBy: { createdAt: 'desc' }
+        orderBy: [
+          { reabiertoAt: { sort: 'desc', nulls: 'last' } },
+          { createdAt: 'desc' }
+        ]
       }),
       prisma.pedidoNovedad.count({ where }),
       prisma.transferencia.findMany({
@@ -291,6 +294,11 @@ const cambiarEstado = async (req, res) => {
       data.solucionadoPorId = req.authType === 'apikey' ? null : req.usuario.id;
       data.solucionadoFuente = req.authType === 'apikey' ? 'api' : 'operador';
     }
+    if (estado === 'novedad' && actual.estado !== 'novedad') {
+      data.reabiertoAt = new Date();
+    } else if (estado !== 'novedad' && actual.estado === 'novedad') {
+      data.reabiertoAt = null;
+    }
 
     const novedad = await prisma.pedidoNovedad.update({
       where: { id },
@@ -437,15 +445,28 @@ const bulkCambiarEstado = async (req, res) => {
           estado,
           solucionadoAt: new Date(),
           solucionadoPorId: req.authType === 'apikey' ? null : req.usuario.id,
-          solucionadoFuente: req.authType === 'apikey' ? 'api' : 'operador'
+          solucionadoFuente: req.authType === 'apikey' ? 'api' : 'operador',
+          reabiertoAt: null
         }
       }));
       ops.push(prisma.pedidoNovedad.updateMany({
         where: { id: { in: ids }, solucionadoAt: { not: null } },
+        data: { estado, reabiertoAt: null }
+      }));
+    } else if (estado === 'novedad') {
+      ops.push(prisma.pedidoNovedad.updateMany({
+        where: { id: { in: ids }, estado: { not: 'novedad' } },
+        data: { estado, reabiertoAt: new Date() }
+      }));
+      ops.push(prisma.pedidoNovedad.updateMany({
+        where: { id: { in: ids }, estado: 'novedad' },
         data: { estado }
       }));
     } else {
-      ops.push(prisma.pedidoNovedad.updateMany({ where: { id: { in: ids } }, data: { estado } }));
+      ops.push(prisma.pedidoNovedad.updateMany({
+        where: { id: { in: ids } },
+        data: { estado, reabiertoAt: null }
+      }));
     }
 
     await prisma.$transaction(ops);
