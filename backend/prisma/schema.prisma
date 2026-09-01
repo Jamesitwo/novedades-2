@@ -69,6 +69,9 @@ model PedidoNovedad {
   whatsappThreadId      String?   @map("whatsapp_thread_id")
   optOutWhatsapp        Boolean   @default(false) @map("opt_out_whatsapp")
   favorito              Boolean   @default(false)
+  solucionadoAt         DateTime? @map("solucionado_at")
+  solucionadoPorId      String?   @map("solucionado_por_id")
+  solucionadoFuente     String?   @map("solucionado_fuente")
   createdAt             DateTime  @default(now())
   updatedAt             DateTime  @updatedAt
   createdById           String    @map("created_by")

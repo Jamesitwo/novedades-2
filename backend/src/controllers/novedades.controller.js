@@ -285,9 +285,16 @@ const cambiarEstado = async (req, res) => {
 
     await registrarCambio(id, 'pedidos_novedad', 'estado', actual.estado, estado, req.usuario.id, `${actual.nombre} ${actual.apellido}`);
 
+    const data = { estado };
+    if (estado === 'solucionado' && !actual.solucionadoAt) {
+      data.solucionadoAt = new Date();
+      data.solucionadoPorId = req.authType === 'apikey' ? null : req.usuario.id;
+      data.solucionadoFuente = req.authType === 'apikey' ? 'api' : 'operador';
+    }
+
     const novedad = await prisma.pedidoNovedad.update({
       where: { id },
-      data: { estado },
+      data,
       include: {
         createdBy: { select: { id: true, nombre: true } }
       }
@@ -421,10 +428,27 @@ const bulkCambiarEstado = async (req, res) => {
       return res.status(404).json({ error: 'Ninguno de los IDs proporcionados existe' });
     }
 
-    await prisma.$transaction([
-      ...historialOps,
-      prisma.pedidoNovedad.updateMany({ where: { id: { in: ids } }, data: { estado } })
-    ]);
+    const ops = [...historialOps];
+
+    if (estado === 'solucionado') {
+      ops.push(prisma.pedidoNovedad.updateMany({
+        where: { id: { in: ids }, solucionadoAt: null },
+        data: {
+          estado,
+          solucionadoAt: new Date(),
+          solucionadoPorId: req.authType === 'apikey' ? null : req.usuario.id,
+          solucionadoFuente: req.authType === 'apikey' ? 'api' : 'operador'
+        }
+      }));
+      ops.push(prisma.pedidoNovedad.updateMany({
+        where: { id: { in: ids }, solucionadoAt: { not: null } },
+        data: { estado }
+      }));
+    } else {
+      ops.push(prisma.pedidoNovedad.updateMany({ where: { id: { in: ids } }, data: { estado } }));
+    }
+
+    await prisma.$transaction(ops);
 
     wsService.novedadBulkAction('cambiar_estado', ids, req.usuario);
     res.json({

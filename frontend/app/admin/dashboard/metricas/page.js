@@ -39,6 +39,7 @@ const SplitBadge = ({ n, o, nLabel, oLabel }) => (
 
 export default function MetricasPage() {
   const [metricas, setMetricas] = useState(null);
+  const [globalMetricas, setGlobalMetricas] = useState(null);
   const [tiempoActivo, setTiempoActivo] = useState(null);
   const [resumenDiario, setResumenDiario] = useState(null);
   const [metricasLucidsales, setMetricasLucidsales] = useState(null);
@@ -72,7 +73,8 @@ export default function MetricasPage() {
         }
 
         const results = await Promise.all(promises);
-        setMetricas(results[0].data);
+        setMetricas(results[0].data.metricas || []);
+        setGlobalMetricas(results[0].data.global || null);
         setTiempoActivo(results[1].data);
         setResumenDiario(isCustomRange ? results[2].data : null);
       } catch (error) {
@@ -269,6 +271,30 @@ export default function MetricasPage() {
 
       {tab === 'rendimiento' && (
         <>
+          {globalMetricas && (
+            <div className="stats-grid" style={{ marginBottom: 16 }}>
+              <div className="stat-card c-green">
+                <div className="stat-label">Solucionadas</div>
+                <div className="stat-value green">{globalMetricas.solucionadas}</div>
+                <div className="stat-sub">Dinero: {formatMoney(globalMetricas.dineroSolucionado)}</div>
+              </div>
+              <div className="stat-card c-teal">
+                <div className="stat-label">Entregadas</div>
+                <div className="stat-value" style={{ color: 'var(--teal)' }}>{globalMetricas.entregadas}</div>
+                <div className="stat-sub">Solucionadas que se entregaron</div>
+              </div>
+              <div className="stat-card c-purple">
+                <div className="stat-label">Devoluciones</div>
+                <div className="stat-value purple">{globalMetricas.devueltas}</div>
+                <div className="stat-sub">Solucionadas que pasaron a devolución</div>
+              </div>
+              <div className="stat-card c-blue">
+                <div className="stat-label">Origen</div>
+                <div className="stat-value blue">{globalMetricas.porOperador}</div>
+                <div className="stat-sub">Operador: {globalMetricas.porOperador} · API: {globalMetricas.porApi}</div>
+              </div>
+            </div>
+          )}
           {sortedMetricas.length > 0 && (
             <div className="grid-2" style={{ marginBottom: 16 }}>
               <div className="table-card">
@@ -344,6 +370,15 @@ export default function MetricasPage() {
                   <th onClick={() => handleSort('totalResueltos')} style={{ cursor: 'pointer', textAlign: 'center' }}>
                     Resueltos <InfoBadge label="Resueltos" /> <SortIcon field="totalResueltos" />
                   </th>
+                  <th onClick={() => handleSort('novedadesSolucionadasEntregadas')} style={{ cursor: 'pointer', textAlign: 'center' }}>
+                    Entregadas <InfoBadge label="Entregadas" /> <SortIcon field="novedadesSolucionadasEntregadas" />
+                  </th>
+                  <th onClick={() => handleSort('novedadesSolucionadasDevueltas')} style={{ cursor: 'pointer', textAlign: 'center' }}>
+                    Devoluciones <InfoBadge label="Devoluciones" /> <SortIcon field="novedadesSolucionadasDevueltas" />
+                  </th>
+                  <th onClick={() => handleSort('novedadesSolucionadasApi')} style={{ cursor: 'pointer', textAlign: 'center' }}>
+                    Por API <InfoBadge label="Por API" /> <SortIcon field="novedadesSolucionadasApi" />
+                  </th>
                   <th onClick={() => handleSort('tasaResolucion')} style={{ cursor: 'pointer', textAlign: 'center' }}>
                     Tasa <InfoBadge label="Tasa" /> <SortIcon field="tasaResolucion" />
                   </th>
@@ -395,6 +430,15 @@ export default function MetricasPage() {
                     <td style={{ textAlign: 'center', fontFamily: 'var(--mono)', fontWeight: 600, color: 'var(--green)' }}>
                       {m.totalResueltos}
                       <SplitBadge n={m.novedadesResueltas} o={m.oficinaRecogidas} />
+                    </td>
+                    <td style={{ textAlign: 'center', fontFamily: 'var(--mono)', color: m.novedadesSolucionadasEntregadas > 0 ? 'var(--teal)' : 'var(--text3)' }}>
+                      {m.novedadesSolucionadasEntregadas > 0 ? m.novedadesSolucionadasEntregadas : '-'}
+                    </td>
+                    <td style={{ textAlign: 'center', fontFamily: 'var(--mono)', color: m.novedadesSolucionadasDevueltas > 0 ? 'var(--purple)' : 'var(--text3)' }}>
+                      {m.novedadesSolucionadasDevueltas > 0 ? m.novedadesSolucionadasDevueltas : '-'}
+                    </td>
+                    <td style={{ textAlign: 'center', fontFamily: 'var(--mono)', color: m.novedadesSolucionadasApi > 0 ? 'var(--amber)' : 'var(--text3)', fontSize: 12 }}>
+                      {m.novedadesSolucionadasApi > 0 ? m.novedadesSolucionadasApi : '-'}
                     </td>
                     <td style={{ textAlign: 'center' }}>
                       <div style={{

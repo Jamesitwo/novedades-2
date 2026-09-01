@@ -35,6 +35,38 @@ async function main() {
   }
   console.log(`   ✅ Slugs generados: ${productosSinSlug.length} productos`);
 
+  // Backfill solucionado* (metricas persistentes de novedades)
+  const historialSol = await prisma.historialCambio.findMany({
+    where: { tabla: 'pedidos_novedad', campo: 'estado', valorNuevo: 'solucionado' },
+    orderBy: { createdAt: 'asc' },
+    select: { registroId: true, createdAt: true, usuarioId: true }
+  });
+  const primerSolucionado = new Map();
+  for (const h of historialSol) {
+    if (!primerSolucionado.has(h.registroId)) primerSolucionado.set(h.registroId, h);
+  }
+  let backfillHistorial = 0;
+  for (const [registroId, h] of primerSolucionado) {
+    const res = await prisma.pedidoNovedad.updateMany({
+      where: { id: registroId, solucionadoAt: null },
+      data: { solucionadoAt: h.createdAt, solucionadoPorId: h.usuarioId || null, solucionadoFuente: 'operador' }
+    });
+    backfillHistorial += res.count;
+  }
+  console.log(`   ✅ Backfill solucionado* desde historial: ${backfillHistorial} novedades`);
+
+  const solucionadasActuales = await prisma.pedidoNovedad.findMany({
+    where: { estado: 'solucionado', solucionadoAt: null },
+    select: { id: true, asignadoId: true, updatedAt: true }
+  });
+  for (const n of solucionadasActuales) {
+    await prisma.pedidoNovedad.update({
+      where: { id: n.id },
+      data: { solucionadoAt: n.updatedAt, solucionadoPorId: n.asignadoId || null, solucionadoFuente: 'operador' }
+    });
+  }
+  console.log(`   ✅ Backfill solucionado* de solucionadas actuales: ${solucionadasActuales.length} novedades`);
+
   console.log('✅ Migraciones completadas');
 }
 

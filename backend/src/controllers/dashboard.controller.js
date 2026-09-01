@@ -329,6 +329,11 @@ const getMetricasOperadores = async (req, res) => {
     const whereContacto = start ? { createdAt: { gte: start, lte: end } } : {};
     const whereTransferencia = start ? { createdAt: { gte: start, lte: end } } : {};
 
+    const solucionadoFilter = (extra = {}) => ({
+      solucionadoAt: { not: null, ...(start ? { gte: start, lte: end } : {}) },
+      ...extra
+    });
+
     const operadores = await prisma.usuario.findMany({
       where: { rol: { in: ['admin', 'operador'] }, activo: true },
       select: { id: true, nombre: true, email: true, rol: true }
@@ -338,6 +343,10 @@ const getMetricasOperadores = async (req, res) => {
       const [
         novedadesAsignadas,
         novedadesResueltas,
+        novedadesSolucionadasEntregadas,
+        novedadesSolucionadasDevueltas,
+        novedadesSolucionadasOperador,
+        novedadesSolucionadasApi,
         oficinaAsignadas,
         oficinaRecogidas,
         intentosContacto,
@@ -351,7 +360,11 @@ const getMetricasOperadores = async (req, res) => {
         sesionesActivas
       ] = await Promise.all([
         prisma.pedidoNovedad.count({ where: { ...whereNovedad, asignadoId: op.id } }),
-        prisma.pedidoNovedad.count({ where: { ...whereNovedad, asignadoId: op.id, estado: 'solucionado' } }),
+        prisma.pedidoNovedad.count({ where: solucionadoFilter({ asignadoId: op.id, solucionadoFuente: 'operador' }) }),
+        prisma.pedidoNovedad.count({ where: solucionadoFilter({ asignadoId: op.id, solucionadoFuente: 'operador', estado: 'entregado' }) }),
+        prisma.pedidoNovedad.count({ where: solucionadoFilter({ asignadoId: op.id, solucionadoFuente: 'operador', estado: 'devolucion' }) }),
+        prisma.pedidoNovedad.count({ where: solucionadoFilter({ asignadoId: op.id, solucionadoFuente: 'operador' }) }),
+        prisma.pedidoNovedad.count({ where: solucionadoFilter({ asignadoId: op.id, solucionadoFuente: 'api' }) }),
         prisma.pedidoOficina.count({ where: { ...whereOficina, asignadoId: op.id } }),
         prisma.pedidoOficina.count({ where: { ...whereOficina, asignadoId: op.id, estado: 'va_a_recoger' } }),
         prisma.intentoContacto.count({ where: { ...whereContacto, usuarioId: op.id } }),
@@ -361,8 +374,8 @@ const getMetricasOperadores = async (req, res) => {
         prisma.pedidoNovedad.count({ where: { ...whereNovedad, createdById: op.id } }),
         prisma.pedidoOficina.count({ where: { ...whereOficina, createdById: op.id } }),
         prisma.pedidoNovedad.findMany({
-          where: { ...whereNovedad, asignadoId: op.id, estado: 'solucionado' },
-          select: { createdAt: true, updatedAt: true }
+          where: solucionadoFilter({ asignadoId: op.id, solucionadoFuente: 'operador' }),
+          select: { createdAt: true, solucionadoAt: true }
         }),
         prisma.pedidoOficina.findMany({
           where: { ...whereOficina, asignadoId: op.id, estado: 'va_a_recoger' },
@@ -382,7 +395,7 @@ const getMetricasOperadores = async (req, res) => {
 
       const [dineroNovedad, dineroOficina] = await Promise.all([
         prisma.pedidoNovedad.aggregate({
-          where: { ...whereNovedad, asignadoId: op.id, estado: 'solucionado' },
+          where: solucionadoFilter({ asignadoId: op.id, solucionadoFuente: 'operador' }),
           _sum: { totalAPagar: true }
         }),
         prisma.pedidoOficina.aggregate({
@@ -398,7 +411,7 @@ const getMetricasOperadores = async (req, res) => {
       let promResNovedadHoras = 0;
       let promResOficinaHoras = 0;
       const novedadesHoras = novedadesResueltasData.map(n => ({
-        horas: (new Date(n.updatedAt) - new Date(n.createdAt)) / 3600000
+        horas: (new Date(n.solucionadoAt) - new Date(n.createdAt)) / 3600000
       }));
       const oficinaHoras = oficinaResueltasData.map(o => ({
         horas: (new Date(o.updatedAt) - new Date(o.createdAt)) / 3600000
@@ -427,6 +440,10 @@ const getMetricasOperadores = async (req, res) => {
         rol: op.rol,
         novedadesAsignadas,
         novedadesResueltas,
+        novedadesSolucionadasEntregadas,
+        novedadesSolucionadasDevueltas,
+        novedadesSolucionadasOperador,
+        novedadesSolucionadasApi,
         oficinaAsignadas,
         oficinaRecogidas,
         totalAsignados,
@@ -449,7 +466,31 @@ const getMetricasOperadores = async (req, res) => {
       };
     }));
 
-    res.json(metricas.sort((a, b) => b.totalResueltos - a.totalResueltos));
+    const metricasOrdenadas = metricas.sort((a, b) => b.totalResueltos - a.totalResueltos);
+
+    const [globalSolucionadas, globalEntregadas, globalDevueltas, globalOperador, globalApi, globalDinero] = await Promise.all([
+      prisma.pedidoNovedad.count({ where: solucionadoFilter({ solucionadoFuente: 'operador' }) }),
+      prisma.pedidoNovedad.count({ where: solucionadoFilter({ solucionadoFuente: 'operador', estado: 'entregado' }) }),
+      prisma.pedidoNovedad.count({ where: solucionadoFilter({ solucionadoFuente: 'operador', estado: 'devolucion' }) }),
+      prisma.pedidoNovedad.count({ where: solucionadoFilter({ solucionadoFuente: 'operador' }) }),
+      prisma.pedidoNovedad.count({ where: solucionadoFilter({ solucionadoFuente: 'api' }) }),
+      prisma.pedidoNovedad.aggregate({
+        where: solucionadoFilter({ solucionadoFuente: 'operador' }),
+        _sum: { totalAPagar: true }
+      })
+    ]);
+
+    res.json({
+      global: {
+        solucionadas: globalSolucionadas,
+        entregadas: globalEntregadas,
+        devueltas: globalDevueltas,
+        porOperador: globalOperador,
+        porApi: globalApi,
+        dineroSolucionado: globalDinero._sum.totalAPagar || 0
+      },
+      metricas: metricasOrdenadas
+    });
   } catch (error) {
     console.error('Get metricas operadores error:', error);
     res.status(500).json({ error: 'Error en el servidor' });
