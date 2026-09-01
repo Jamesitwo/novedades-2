@@ -11,16 +11,22 @@ import {
 const CHART_COLORS = ['#f59e0b', '#6366f1', '#14b8a6', '#22c55e', '#a855f7', '#ef4444', '#3b82f6', '#ec4899'];
 
 const COL_INFO = {
-  'Asignados': 'Novedades + Oficina asignadas al operador',
-  'Resueltos': 'Novedades solucionadas + Oficina entregadas (va_a_recoger)',
+  'Operador': 'Nombre y rol del operador.',
+  'Asignados': 'Novedades y pedidos de oficina asignados a este operador (desglose N/O debajo).',
+  'Resueltos': 'Novedades solucionadas + paquetes de oficina recogidos (va_a_recoger). El logro de solucionado es permanente: no se pierde aunque el estado cambie después a entregado, devolución o cancelado.',
+  'Entregadas': 'De sus novedades solucionadas, cuántas están ahora en estado entregado. Se acreditan al operador asignado, aunque el cambio posterior lo haga la API.',
+  'Devoluciones': 'De sus novedades solucionadas, cuántas están ahora en estado devolución. También cuenta si pasó directo a devolución sin marcar solucionado antes.',
+  'Reabiertas': 'Solucionadas que volvieron a estado novedad y siguen pendientes. El periodo se filtra por la fecha de reapertura.',
+  'Re-res.': 'Resoluciones adicionales: cada vez que una novedad reabierta se vuelve a resolver suma +1, sin duplicar el conteo de solucionadas únicas.',
+  'Por API': 'Novedades asignadas a este operador que fueron resueltas por la API (automatización con API key), no por él.',
   'Tasa': '(Resueltos ÷ Asignados) × 100. Combina novedades y oficina.',
-  'Intentos': 'Llamadas y mensajes registrados (IntentoContacto)',
-  'Contactos': 'Intentos con resultado "contactado" (cliente respondió)',
-  'Transf.': 'Transferencias enviadas (ámbar) / recibidas (azul) entre operadores',
-  'Creados': 'Registros creados por el operador (novedades + oficina)',
-  'Dinero': 'Suma de totalAPagar solucionado + precio oficina recogida',
-  'Prom. Res.': 'Tiempo promedio (horas) entre creación y resolución de novedades y oficina',
-  'Tiempo Act.': 'Minutos acumulados de actividad en la plataforma (heartbeat cada 60s)',
+  'Intentos': 'Llamadas y mensajes de contacto registrados a clientes (IntentoContacto).',
+  'Contactos': 'Intentos con resultado "contactado" (el cliente respondió).',
+  'Transf.': 'Novedades/oficina que transfirió a otro operador.',
+  'Creados': 'Registros creados por el operador (novedades + oficina).',
+  'Dinero': 'Dinero manejado: total de sus novedades solucionadas + precio de sus paquetes de oficina recogidos.',
+  'Prom. Res.': 'Tiempo promedio (horas) entre la creación y la primera resolución (novedades + oficina).',
+  'Tiempo Act.': 'Minutos acumulados de actividad en la plataforma (sesiones activas).',
 };
 
 const InfoBadge = ({ label }) => (
