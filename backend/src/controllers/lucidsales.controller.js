@@ -5,6 +5,7 @@ const addressValidator = require('../services/address-validator.service');
 const googleGeocoding = require('../services/google-geocoding.service');
 const hereGeocoding = require('../services/here-geocoding.service');
 const { getNextOperador } = require('../utils/autoAssign');
+const bitacoraService = require('../services/bitacora.service');
 const path = require('path');
 const fs = require('fs');
 
@@ -54,11 +55,36 @@ const getPedidoById = async (req, res) => {
   }
 };
 
+const ESTADOS_LS = { 0: 'Por confirmar', 1: 'Cancelado', 2: 'Confirmado', 3: 'Modificado' };
+
 const updatePedido = async (req, res) => {
   try {
     const result = await lucidsalesService.updatePedido(req.body);
     if (result && result.ok === false) {
       return res.status(400).json({ error: result.msg || result.error || 'Error al actualizar en LucidSales' });
+    }
+    try {
+      const idPedido = Number(req.body?.id || req.body?.idPedido || req.body?.pedidoId);
+      if (idPedido && req.body?.EstadoPedido !== undefined) {
+        const vinculado = await prisma.pedidoVinculado.findUnique({ where: { lucidsalesPedidoId: idPedido } });
+        const estadoNuevo = Number(req.body.EstadoPedido);
+        if (vinculado && vinculado.estadoPedido !== estadoNuevo) {
+          const descripciones = { 1: 'Pedido cancelado', 2: 'Pedido confirmado', 3: 'Pedido modificado' };
+          await bitacoraService.registrar({
+            tipo: 'pedido_estado',
+            entidad: 'pedido_lucidsales',
+            registroId: String(idPedido),
+            operadorId: req.usuario.id,
+            cliente: vinculado.nombreCliente ? `${vinculado.nombreCliente} ${vinculado.apellidoCliente || ''}`.trim() : null,
+            valorAnterior: ESTADOS_LS[vinculado.estadoPedido] || String(vinculado.estadoPedido),
+            valorNuevo: ESTADOS_LS[estadoNuevo] || String(estadoNuevo),
+            descripcion: descripciones[estadoNuevo] || 'Cambio de estado del pedido',
+            detalle: { pedidoVinculadoId: idPedido, estadoPedido: estadoNuevo }
+          });
+        }
+      }
+    } catch (e) {
+      console.error('[Bitacora] Error registrando estado pedido LucidSales:', e.message);
     }
     res.json(result);
   } catch (error) {
@@ -108,6 +134,17 @@ const confirmarEnvio = async (req, res) => {
       if (pedidoActualizado && pedidoActualizado.id) {
         await lucidsalesService.guardarVinculacionLocal(Number(pedidoId), pedidoActualizado, req.usuario.id);
       }
+      const vinculado = await prisma.pedidoVinculado.findUnique({ where: { lucidsalesPedidoId: Number(pedidoId) } });
+      await bitacoraService.registrar({
+        tipo: 'pedido_subido',
+        entidad: 'pedido_lucidsales',
+        registroId: String(pedidoId),
+        operadorId: req.usuario.id,
+        cliente: vinculado?.nombreCliente ? `${vinculado.nombreCliente} ${vinculado.apellidoCliente || ''}`.trim() : null,
+        descripcion: 'Pedido subido a Dropi',
+        detalle: { pedidoVinculadoId: Number(pedidoId), transportadora_id, transportadora: pedidoActualizado?.transportadora || null },
+        dedupeKey: `sub:${pedidoId}`
+      });
     } catch (e) {
       console.error('[LucidSales] Error actualizando pedido post-upload:', e.message);
     }
@@ -603,6 +640,17 @@ const subirDividido = async (req, res) => {
           continue;
         }
 
+        await bitacoraService.registrar({
+          tipo: 'pedido_subido',
+          entidad: 'pedido_lucidsales',
+          registroId: String(nuevoId),
+          operadorId: req.usuario.id,
+          cliente: original.Nombre ? `${original.Nombre} ${original.Apellido || ''}`.trim() : null,
+          descripcion: 'Pedido subido a Dropi (dividido)',
+          detalle: { pedidoVinculadoId: nuevoId, transportadora_id, producto: prod.product_id, refUnica },
+          dedupeKey: `sub:${nuevoId}`
+        });
+
         await lucidsalesService.crearVinculacionDirecta(nuevoId, original,
           `Producto ${i + 1}/${productos.length} del pedido #${original.idPedido || id}`, req.usuario.id, asignadoId);
 
@@ -772,8 +820,24 @@ const asignarEtiqueta = async (req, res) => {
       return res.status(400).json({ error: 'La etiqueta ya está asignada' });
     }
 
-    await prisma.registroEtiqueta.create({
+    const creada = await prisma.registroEtiqueta.create({
       data: { etiquetaId, registroId, tabla: 'pedidos_vinculados' }
+    });
+
+    const etiqueta = await prisma.etiqueta.findUnique({ where: { id: etiquetaId } });
+    const vinculado = await prisma.pedidoVinculado.findUnique({
+      where: { lucidsalesPedidoId: Number(id) },
+      select: { nombreCliente: true, apellidoCliente: true }
+    }).catch(() => null);
+    await bitacoraService.registrar({
+      tipo: 'etiqueta',
+      entidad: 'pedido_lucidsales',
+      registroId,
+      operadorId: req.usuario.id,
+      cliente: vinculado?.nombreCliente ? `${vinculado.nombreCliente} ${vinculado.apellidoCliente || ''}`.trim() : null,
+      descripcion: `Etiqueta: ${etiqueta?.nombre || 'Desconocida'}`,
+      detalle: { etiqueta: etiqueta?.nombre || null, color: etiqueta?.color || null, pedidoVinculadoId: Number(id) },
+      dedupeKey: creada ? `etq:${creada.id}` : null
     });
 
     const etiquetas = await prisma.registroEtiqueta.findMany({

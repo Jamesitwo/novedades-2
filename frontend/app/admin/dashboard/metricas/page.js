@@ -10,6 +10,24 @@ import {
 
 const CHART_COLORS = ['#f59e0b', '#6366f1', '#14b8a6', '#22c55e', '#a855f7', '#ef4444', '#3b82f6', '#ec4899'];
 
+const BITACORA_TIPOS = [
+  { key: '', label: 'Todos' },
+  { key: 'estado_novedad', label: 'Novedades', icon: '⚠' },
+  { key: 'estado_oficina', label: 'Oficina', icon: '📦' },
+  { key: 'pedido_subido', label: 'Subidos', icon: '🚚' },
+  { key: 'pedido_estado,pedido_tienda_estado', label: 'Estado pedido', icon: '🔄' },
+  { key: 'etiqueta', label: 'Etiquetas', icon: '🏷' }
+];
+
+const BITACORA_ICON = {
+  estado_novedad: { icon: '⚠', color: 'var(--amber)' },
+  estado_oficina: { icon: '📦', color: 'var(--purple)' },
+  pedido_subido: { icon: '🚚', color: 'var(--green)' },
+  pedido_estado: { icon: '🔄', color: 'var(--accent)' },
+  pedido_tienda_estado: { icon: '🛒', color: 'var(--teal)' },
+  etiqueta: { icon: '🏷', color: 'var(--accent2)' }
+};
+
 const COL_INFO = {
   'Operador': 'Nombre y rol del operador.',
   'Asignados': 'Novedades y pedidos de oficina asignados a este operador (desglose N/O debajo).',
@@ -59,6 +77,13 @@ export default function MetricasPage() {
   const [sortDir, setSortDir] = useState('desc');
   const [expandedDay, setExpandedDay] = useState(null);
 
+  const [bitacora, setBitacora] = useState(null);
+  const [bitacoraLoading, setBitacoraLoading] = useState(false);
+  const [bitacoraPage, setBitacoraPage] = useState(1);
+  const [bitacoraOperador, setBitacoraOperador] = useState('');
+  const [bitacoraTipo, setBitacoraTipo] = useState('');
+  const [bitacoraSearch, setBitacoraSearch] = useState('');
+
   const isCustomRange = fechaDesde && fechaHasta;
 
   useEffect(() => {
@@ -103,6 +128,56 @@ export default function MetricasPage() {
     const tabParam = params.get('tab');
     if (tabParam) setTab(tabParam);
   }, []);
+
+  useEffect(() => {
+    if (tab !== 'bitacora') return;
+    const fetchBitacora = async () => {
+      setBitacoraLoading(true);
+      try {
+        const params = new URLSearchParams({ page: String(bitacoraPage), limit: '50' });
+        if (isCustomRange) {
+          params.append('fechaDesde', fechaDesde);
+          params.append('fechaHasta', fechaHasta);
+        }
+        if (bitacoraOperador) params.append('operadorId', bitacoraOperador);
+        if (bitacoraTipo) params.append('tipo', bitacoraTipo);
+        if (bitacoraSearch) params.append('search', bitacoraSearch);
+        const { data } = await api.get(`/api/dashboard/bitacora?${params}`);
+        setBitacora(data);
+      } catch (error) {
+        console.error('Error fetching bitacora:', error);
+        setBitacora(null);
+      } finally {
+        setBitacoraLoading(false);
+      }
+    };
+    fetchBitacora();
+  }, [tab, bitacoraPage, isCustomRange, fechaDesde, fechaHasta, bitacoraOperador, bitacoraTipo, bitacoraSearch]);
+
+  const irABitacora = (fecha) => {
+    setPeriodo('');
+    setFechaDesde(fecha);
+    setFechaHasta(fecha);
+    setBitacoraPage(1);
+    setBitacoraTipo('');
+    setBitacoraOperador('');
+    setBitacoraSearch('');
+    setTab('bitacora');
+  };
+
+  const agruparBitacoraPorDia = (eventos) => {
+    const dias = [];
+    let actual = null;
+    eventos.forEach(e => {
+      const dk = new Date(e.fecha).toLocaleDateString('es-CO', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+      if (!actual || actual.fecha !== dk) {
+        actual = { fecha: dk, items: [] };
+        dias.push(actual);
+      }
+      actual.items.push(e);
+    });
+    return dias;
+  };
 
   const formatMoney = (amount) => {
     return new Intl.NumberFormat('es-CO', {
@@ -252,6 +327,16 @@ export default function MetricasPage() {
           }}
         >
           Resumen Diario
+        </button>
+        <button
+          onClick={() => setTab('bitacora')}
+          style={{
+            padding: '6px 16px', borderRadius: 6, fontSize: 12, fontWeight: 500, cursor: 'pointer',
+            border: 'none', background: tab === 'bitacora' ? 'var(--accent)' : 'transparent',
+            color: tab === 'bitacora' ? '#fff' : 'var(--text2)', transition: 'all 0.15s'
+          }}
+        >
+          Bitácora
         </button>
         <button
           onClick={() => setTab('pedidos')}
@@ -741,6 +826,18 @@ export default function MetricasPage() {
                                       ))
                                     )}
                                   </div>
+                                  <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: 10 }}>
+                                    <button
+                                      onClick={() => irABitacora(d.fecha)}
+                                      style={{
+                                        padding: '5px 14px', borderRadius: 8, fontSize: 11, fontWeight: 600, cursor: 'pointer',
+                                        border: '1px solid var(--border)', background: 'var(--bg2)', color: 'var(--accent)',
+                                        fontFamily: 'inherit', transition: 'all 0.15s'
+                                      }}
+                                    >
+                                      Ver en Bitácora →
+                                    </button>
+                                  </div>
                                 </td>
                               </tr>
                             )}
@@ -903,6 +1000,165 @@ export default function MetricasPage() {
           ) : (
             <div className="table-card">
               <TableSkeleton rows={5} columns={5} />
+            </div>
+          )}
+        </>
+      )}
+
+      {tab === 'bitacora' && (
+        <>
+          <div className="table-card" style={{ marginBottom: 16, padding: 14 }}>
+            <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', alignItems: 'center' }}>
+              <select
+                value={bitacoraOperador}
+                onChange={(e) => { setBitacoraOperador(e.target.value); setBitacoraPage(1); }}
+                style={{
+                  padding: '6px 10px', borderRadius: 8, fontSize: 12, cursor: 'pointer',
+                  border: '1px solid var(--border)', background: 'var(--bg3)', color: 'var(--text2)',
+                  outline: 'none', fontFamily: 'inherit'
+                }}
+              >
+                <option value="">Todos los operadores</option>
+                {metricas?.map(m => (
+                  <option key={m.operadorId} value={m.operadorId}>{m.operador}</option>
+                ))}
+              </select>
+              <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap' }}>
+                {BITACORA_TIPOS.map(t => (
+                  <button
+                    key={t.key || 'todos'}
+                    onClick={() => { setBitacoraTipo(t.key); setBitacoraPage(1); }}
+                    style={{
+                      padding: '5px 12px', borderRadius: 20, fontSize: 11, fontWeight: 500, cursor: 'pointer',
+                      border: '1px solid var(--border)',
+                      background: bitacoraTipo === t.key ? 'var(--accent)' : 'var(--bg3)',
+                      color: bitacoraTipo === t.key ? '#fff' : 'var(--text2)',
+                      transition: 'all 0.15s', fontFamily: 'inherit'
+                    }}
+                  >
+                    {t.icon && <span style={{ marginRight: 4 }}>{t.icon}</span>}{t.label}
+                  </button>
+                ))}
+              </div>
+              <input
+                type="text"
+                placeholder="Buscar cliente, guía, etiqueta..."
+                value={bitacoraSearch}
+                onChange={(e) => { setBitacoraSearch(e.target.value); setBitacoraPage(1); }}
+                style={{
+                  flex: 1, minWidth: 180, padding: '6px 12px', borderRadius: 8, fontSize: 12,
+                  border: '1px solid var(--border)', background: 'var(--bg3)', color: 'var(--text)',
+                  outline: 'none', fontFamily: 'inherit'
+                }}
+              />
+            </div>
+          </div>
+
+          {bitacoraLoading && (
+            <div className="table-card"><TableSkeleton rows={6} columns={3} /></div>
+          )}
+
+          {!bitacoraLoading && bitacora && (
+            <div className="table-card">
+              <div className="table-header">
+                <span className="table-header-title">Bitácora de Actividad</span>
+                <span style={{ fontSize: 11, color: 'var(--text3)' }}>
+                  {isCustomRange ? `${fechaDesde} → ${fechaHasta}` : 'Últimos 7 días'} · {bitacora.total} eventos
+                </span>
+              </div>
+              <div style={{ padding: '8px 16px 14px' }}>
+                {bitacora.eventos.length === 0 ? (
+                  <div style={{ textAlign: 'center', color: 'var(--text3)', padding: 40, fontSize: 12 }}>
+                    Sin eventos para este filtro
+                  </div>
+                ) : (
+                  agruparBitacoraPorDia(bitacora.eventos).map((grupo, gi) => (
+                    <div key={gi}>
+                      <div style={{
+                        fontSize: 12, fontWeight: 700, color: 'var(--accent2)', textTransform: 'capitalize',
+                        margin: '12px 0 2px', paddingBottom: 4, borderBottom: '1px solid var(--border)'
+                      }}>
+                        {grupo.fecha}
+                      </div>
+                      {grupo.items.map(e => {
+                        const meta = BITACORA_ICON[e.tipo] || { icon: '•', color: 'var(--text3)' };
+                        return (
+                          <div key={e.id} style={{ display: 'flex', gap: 10, padding: '8px 0', borderBottom: '1px solid var(--border)' }}>
+                            <div style={{
+                              width: 26, height: 26, borderRadius: '50%', background: 'var(--bg4)',
+                              display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12, flexShrink: 0
+                            }}>
+                              {meta.icon}
+                            </div>
+                            <div style={{ flex: 1, minWidth: 0 }}>
+                              <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
+                                <span style={{ fontWeight: 600, fontSize: 12, color: meta.color }}>{e.descripcion}</span>
+                                {e.valorAnterior && e.valorNuevo && e.valorAnterior !== e.valorNuevo && (
+                                  <span style={{ fontSize: 10, color: 'var(--text3)', fontFamily: 'var(--mono)' }}>
+                                    {e.valorAnterior} → {e.valorNuevo}
+                                  </span>
+                                )}
+                              </div>
+                              <div style={{ fontSize: 11, color: 'var(--text2)', marginTop: 2, display: 'flex', gap: 4, flexWrap: 'wrap', alignItems: 'center' }}>
+                                {e.cliente ? <span style={{ fontWeight: 500 }}>{e.cliente}</span> : <span style={{ color: 'var(--text3)' }}>Sin cliente</span>}
+                                <span style={{ color: 'var(--text3)' }}>·</span>
+                                <span style={{ color: 'var(--accent)', fontWeight: 500 }}>{e.operador || 'API'}</span>
+                                {e.detalle?.guia && <span style={{ color: 'var(--text3)' }}>· Guía {e.detalle.guia}</span>}
+                                {e.detalle?.transportadora && <span style={{ color: 'var(--text3)' }}>· {e.detalle.transportadora}</span>}
+                                {e.detalle?.valor ? <span style={{ color: 'var(--green)', fontFamily: 'var(--mono)' }}>· {formatMoney(e.detalle.valor)}</span> : null}
+                              </div>
+                              {e.detalle?.etiqueta && (
+                                <span style={{
+                                  display: 'inline-block', marginTop: 4, padding: '1px 8px', borderRadius: 10, fontSize: 10, fontWeight: 600,
+                                  background: `${e.detalle.color || '#6366f1'}22`, color: e.detalle.color || '#6366f1',
+                                  border: `1px solid ${e.detalle.color || '#6366f1'}55`
+                                }}>
+                                  🏷 {e.detalle.etiqueta}
+                                </span>
+                              )}
+                            </div>
+                            <div style={{ fontSize: 10, color: 'var(--text3)', fontFamily: 'var(--mono)', whiteSpace: 'nowrap', paddingTop: 2 }}>
+                              {new Date(e.fecha).toLocaleTimeString('es-CO', { hour: '2-digit', minute: '2-digit' })}
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  ))
+                )}
+              </div>
+              {bitacora.totalPages > 1 && (
+                <div style={{
+                  display: 'flex', gap: 8, alignItems: 'center', justifyContent: 'flex-end',
+                  padding: '10px 16px', borderTop: '1px solid var(--border)'
+                }}>
+                  <button
+                    onClick={() => setBitacoraPage(bitacoraPage - 1)}
+                    disabled={bitacoraPage <= 1}
+                    style={{
+                      padding: '5px 12px', borderRadius: 8, fontSize: 11, fontWeight: 500, cursor: 'pointer',
+                      border: '1px solid var(--border)', background: 'var(--bg3)', color: 'var(--text2)',
+                      opacity: bitacoraPage <= 1 ? 0.4 : 1, fontFamily: 'inherit'
+                    }}
+                  >
+                    ← Anterior
+                  </button>
+                  <span style={{ fontSize: 11, color: 'var(--text3)', fontFamily: 'var(--mono)' }}>
+                    Página {bitacoraPage} de {bitacora.totalPages}
+                  </span>
+                  <button
+                    onClick={() => setBitacoraPage(bitacoraPage + 1)}
+                    disabled={bitacoraPage >= bitacora.totalPages}
+                    style={{
+                      padding: '5px 12px', borderRadius: 8, fontSize: 11, fontWeight: 500, cursor: 'pointer',
+                      border: '1px solid var(--border)', background: 'var(--bg3)', color: 'var(--text2)',
+                      opacity: bitacoraPage >= bitacora.totalPages ? 0.4 : 1, fontFamily: 'inherit'
+                    }}
+                  >
+                    Siguiente →
+                  </button>
+                </div>
+              )}
             </div>
           )}
         </>

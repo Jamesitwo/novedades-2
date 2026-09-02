@@ -47,6 +47,7 @@ model Usuario {
   alertasProducto      AlertaProducto[]
   historialPedidosTienda HistorialPedidoTienda[]
   pedidosTiendaSubidos  PedidoTienda[]
+  actividadLogs        ActividadLog[]
 }
 
 model PedidoNovedad {
@@ -149,6 +150,28 @@ model HistorialCambio {
   @@index([createdAt])
   @@index([registroId])
   @@index([tabla, registroId])
+}
+
+model ActividadLog {
+  id            String    @id @default(uuid())
+  tipo          String
+  entidad       String
+  registroId    String    @map("registro_id")
+  operadorId    String?   @map("operador_id")
+  operador      Usuario?  @relation(fields: [operadorId], references: [id])
+  cliente       String?
+  valorAnterior String?   @map("valor_anterior")
+  valorNuevo    String?   @map("valor_nuevo")
+  descripcion   String
+  detalle       String?
+  dedupeKey     String?   @map("dedupe_key")
+  createdAt     DateTime  @default(now())
+
+  @@index([createdAt])
+  @@index([operadorId])
+  @@index([tipo])
+  @@index([entidad, registroId])
+  @@map("actividad_log")
 }
 
 model Sesion {

@@ -854,6 +854,81 @@ const getPedidosSubidos = async (req, res) => {
   }
 };
 
+const getBitacora = async (req, res) => {
+  try {
+    const { fechaDesde, fechaHasta, operadorId, tipo, search, page = 1, limit = 50 } = req.query;
+
+    const hoy = new Date();
+    const defaultDesde = new Date(hoy);
+    defaultDesde.setDate(defaultDesde.getDate() - 6);
+
+    const start = fechaDesde ? new Date(fechaDesde) : defaultDesde;
+    start.setHours(0, 0, 0, 0);
+    const end = fechaHasta ? new Date(fechaHasta) : new Date();
+    end.setHours(23, 59, 59, 999);
+
+    const pageNum = Math.max(1, parseInt(page) || 1);
+    const limitNum = Math.min(100, Math.max(1, parseInt(limit) || 50));
+    const skip = (pageNum - 1) * limitNum;
+
+    const where = { createdAt: { gte: start, lte: end } };
+    if (operadorId) where.operadorId = operadorId;
+    if (tipo) {
+      const tipos = String(tipo).split(',').map(t => t.trim()).filter(Boolean);
+      if (tipos.length) where.tipo = { in: tipos };
+    }
+    if (search) {
+      where.OR = [
+        { cliente: { contains: search } },
+        { descripcion: { contains: search } },
+        { valorNuevo: { contains: search } },
+        { valorAnterior: { contains: search } },
+        { detalle: { contains: search } }
+      ];
+    }
+
+    const [total, eventos] = await Promise.all([
+      prisma.actividadLog.count({ where }),
+      prisma.actividadLog.findMany({
+        where,
+        include: { operador: { select: { id: true, nombre: true, rol: true } } },
+        orderBy: { createdAt: 'desc' },
+        skip,
+        take: limitNum
+      })
+    ]);
+
+    const parseDetalle = (raw) => {
+      if (!raw) return null;
+      try { return JSON.parse(raw); } catch { return null; }
+    };
+
+    res.json({
+      total,
+      page: pageNum,
+      limit: limitNum,
+      totalPages: Math.max(1, Math.ceil(total / limitNum)),
+      eventos: eventos.map(e => ({
+        id: e.id,
+        tipo: e.tipo,
+        entidad: e.entidad,
+        registroId: e.registroId,
+        operadorId: e.operadorId,
+        operador: e.operador?.nombre || (e.operadorId ? null : 'API'),
+        cliente: e.cliente,
+        valorAnterior: e.valorAnterior,
+        valorNuevo: e.valorNuevo,
+        descripcion: e.descripcion,
+        detalle: parseDetalle(e.detalle),
+        fecha: e.createdAt
+      }))
+    });
+  } catch (error) {
+    console.error('Get bitacora error:', error);
+    res.status(500).json({ error: 'Error en el servidor' });
+  }
+};
+
 module.exports = { getResumen, getHoy, getChartData, getRendimientoOperadores, getMetricasOperadores, getTiempoActivo, getResumenDiario,
-  getMetricasLucidsales, getPedidosSubidos
+  getMetricasLucidsales, getPedidosSubidos, getBitacora
 };

@@ -4,6 +4,7 @@ const { registrarCambio } = require('./historial.controller');
 const { getNextOperador } = require('../utils/autoAssign');
 const wpService = require('../services/whatsapp.service');
 const wsService = require('../services/websocket.service');
+const bitacoraService = require('../services/bitacora.service');
 
 const getAll = async (req, res) => {
   try {
@@ -297,7 +298,7 @@ const cambiarEstado = async (req, res) => {
       return res.status(404).json({ error: 'Pedido no encontrado' });
     }
 
-    await registrarCambio(id, 'pedidos_oficina', 'estado', actual.estado, estado, req.usuario.id, `${actual.nombre} ${actual.apellido}`);
+    const h = await registrarCambio(id, 'pedidos_oficina', 'estado', actual.estado, estado, req.usuario.id, `${actual.nombre} ${actual.apellido}`);
 
     const pedido = await prisma.pedidoOficina.update({
       where: { id },
@@ -305,6 +306,19 @@ const cambiarEstado = async (req, res) => {
       include: {
         createdBy: { select: { id: true, nombre: true } }
       }
+    });
+
+    await bitacoraService.registrar({
+      tipo: 'estado_oficina',
+      entidad: 'oficina',
+      registroId: id,
+      operadorId: req.usuario.id,
+      cliente: `${actual.nombre} ${actual.apellido}`,
+      valorAnterior: actual.estado,
+      valorNuevo: estado,
+      descripcion: bitacoraService.descripcionCambioEstado(actual.estado, estado),
+      detalle: { guia: actual.guia, producto: actual.producto, valor: actual.precio },
+      dedupeKey: h ? `h:${h.id}` : null
     });
 
     wsService.oficinaEstadoCambiado(id, actual.estado, estado, req.usuario);
@@ -462,6 +476,36 @@ const bulkCambiarEstado = async (req, res) => {
       ...historialOps,
       prisma.pedidoOficina.updateMany({ where: { id: { in: ids } }, data: { estado } })
     ]);
+
+    const historialIds = {};
+    if (registros.length > 0) {
+      const created = await prisma.historialCambio.findMany({
+        where: {
+          tabla: 'pedidos_oficina',
+          registroId: { in: registros.map(r => r.id) },
+          campo: 'estado',
+          valorNuevo: estado,
+          createdAt: { gte: new Date(Date.now() - 60000) }
+        },
+        select: { id: true, registroId: true }
+      });
+      created.forEach(h => { historialIds[h.registroId] = h.id; });
+    }
+    for (const r of registros) {
+      if (r.estado === estado) continue;
+      await bitacoraService.registrar({
+        tipo: 'estado_oficina',
+        entidad: 'oficina',
+        registroId: r.id,
+        operadorId: req.usuario.id,
+        cliente: `${r.nombre} ${r.apellido}`,
+        valorAnterior: r.estado,
+        valorNuevo: estado,
+        descripcion: bitacoraService.descripcionCambioEstado(r.estado, estado),
+        detalle: { guia: r.guia, producto: r.producto, valor: r.precio },
+        dedupeKey: historialIds[r.id] ? `h:${historialIds[r.id]}` : null
+      });
+    }
 
     wsService.oficinaBulkAction('cambiar_estado', ids, req.usuario);
     res.json({
@@ -686,8 +730,20 @@ const asignarEtiqueta = async (req, res) => {
       return res.status(400).json({ error: 'La etiqueta ya está asignada' });
     }
 
-    await prisma.registroEtiqueta.create({
+    const creada = await prisma.registroEtiqueta.create({
       data: { etiquetaId, registroId: id, tabla: 'pedidos_oficina' }
+    });
+
+    const etiqueta = await prisma.etiqueta.findUnique({ where: { id: etiquetaId } });
+    await bitacoraService.registrar({
+      tipo: 'etiqueta',
+      entidad: 'oficina',
+      registroId: id,
+      operadorId: req.usuario.id,
+      cliente: `${pedido.nombre} ${pedido.apellido}`,
+      descripcion: `Etiqueta: ${etiqueta?.nombre || 'Desconocida'}`,
+      detalle: { etiqueta: etiqueta?.nombre || null, color: etiqueta?.color || null },
+      dedupeKey: creada ? `etq:${creada.id}` : null
     });
 
     const etiquetas = await prisma.registroEtiqueta.findMany({

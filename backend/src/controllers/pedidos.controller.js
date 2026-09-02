@@ -1,6 +1,7 @@
 const { prisma } = require('../prisma/client');
 const lucidsalesService = require('../services/lucidsales.service');
 const { resolveTiendaId } = require('../utils/tienda');
+const bitacoraService = require('../services/bitacora.service');
 
 async function verificarTiendaPedido(pedido, req) {
   if (!req.query.tienda) return true;
@@ -87,6 +88,19 @@ const updateEstado = async (req, res) => {
     if (estado) data.estado = estado;
     if (pagado !== undefined) data.pagado = pagado;
     const pedido = await prisma.pedidoTienda.update({ where: { id: req.params.id }, data });
+    if (estado && existente.estado !== estado) {
+      await bitacoraService.registrar({
+        tipo: 'pedido_tienda_estado',
+        entidad: 'pedido_tienda',
+        registroId: existente.id,
+        operadorId: req.usuario.id,
+        cliente: `${existente.nombre} ${existente.apellido || ''}`.trim(),
+        valorAnterior: existente.estado,
+        valorNuevo: estado,
+        descripcion: bitacoraService.descripcionCambioEstado(existente.estado, estado),
+        detalle: { producto: existente.productoNombre, valor: existente.total }
+      });
+    }
     res.json(pedido);
   } catch (error) {
     console.error('Update pedido error:', error);
@@ -102,6 +116,17 @@ const remove = async (req, res) => {
       return res.status(404).json({ error: 'Pedido no encontrado en esta tienda' });
     }
     await prisma.pedidoTienda.delete({ where: { id: req.params.id } });
+    await bitacoraService.registrar({
+      tipo: 'pedido_tienda_estado',
+      entidad: 'pedido_tienda',
+      registroId: existente.id,
+      operadorId: req.usuario.id,
+      cliente: `${existente.nombre} ${existente.apellido || ''}`.trim(),
+      valorAnterior: existente.estado,
+      valorNuevo: 'eliminado',
+      descripcion: 'Pedido eliminado',
+      detalle: { producto: existente.productoNombre, valor: existente.total }
+    });
     res.json({ message: 'Pedido eliminado' });
   } catch (error) {
     console.error('Delete pedido error:', error);
@@ -281,6 +306,17 @@ const confirmarDropi = async (req, res) => {
         estado: 'enviado',
         subidoPorId: req.usuario.id
       }
+    });
+
+    await bitacoraService.registrar({
+      tipo: 'pedido_subido',
+      entidad: 'pedido_tienda',
+      registroId: pedido.id,
+      operadorId: req.usuario.id,
+      cliente: `${pedido.nombre} ${pedido.apellido || ''}`.trim(),
+      descripcion: `Pedido subido a ${transportadora || 'Dropi'}`,
+      detalle: { transportadora: transportadora || null, producto: pedido.productoNombre, valor: pedido.total },
+      dedupeKey: `subT:${pedido.id}`
     });
 
     res.json({ ok: true, pedido: actualizado });

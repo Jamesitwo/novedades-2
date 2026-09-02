@@ -39,5 +39,12 @@ else
   echo "⚠️  Migracion de tiendas fallo, continuando arranque..."
 fi
 
+echo "Ejecutando backfill de bitacora..."
+if node prisma/migrate-bitacora.js 2>/dev/null; then
+  echo "✅ Backfill de bitacora completado"
+else
+  echo "⚠️  Backfill de bitacora fallo, continuando arranque..."
+fi
+
 echo "🚀 Iniciando servidor..."
 exec node server.js
