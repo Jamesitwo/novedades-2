@@ -13,6 +13,17 @@ api.interceptors.request.use(config => {
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
   }
+  if (typeof window !== 'undefined' && config.url && String(config.url).startsWith('/')) {
+    const tiendaActiva = localStorage.getItem('tiendaActiva');
+    if (tiendaActiva === 'zunto' || tiendaActiva === 'pizdo') {
+      if (config.params && !('tienda' in config.params)) {
+        config.params = { ...config.params, tienda: tiendaActiva };
+      } else if (!config.params && !String(config.url).includes('tienda=')) {
+        const separator = config.url.includes('?') ? '&' : '?';
+        config.url = `${config.url}${separator}tienda=${tiendaActiva}`;
+      }
+    }
+  }
   return config;
 });
 

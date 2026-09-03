@@ -8,6 +8,7 @@ const getAll = async (req, res) => {
     const { estado, search } = req.query;
 
     const where = {};
+    where.tiendaId = req.tiendaId;
     if (estado) where.estado = estado;
     if (search) {
       where.OR = [
@@ -23,12 +24,13 @@ const getAll = async (req, res) => {
       orderBy: { createdAt: 'desc' }
     });
 
+    const whereTienda = { tiendaId: req.tiendaId };
     const stats = {
-      total: await prisma.factura.count(),
-      pendiente: await prisma.factura.count({ where: { estado: 'pendiente' } }),
-      pagada: await prisma.factura.count({ where: { estado: 'pagada' } }),
-      cancelada: await prisma.factura.count({ where: { estado: 'cancelada' } }),
-      totalMonto: (await prisma.factura.aggregate({ _sum: { total: true }, where: { estado: 'pendiente' } }))._sum.total || 0
+      total: await prisma.factura.count({ where: whereTienda }),
+      pendiente: await prisma.factura.count({ where: { ...whereTienda, estado: 'pendiente' } }),
+      pagada: await prisma.factura.count({ where: { ...whereTienda, estado: 'pagada' } }),
+      cancelada: await prisma.factura.count({ where: { ...whereTienda, estado: 'cancelada' } }),
+      totalMonto: (await prisma.factura.aggregate({ _sum: { total: true }, where: { ...whereTienda, estado: 'pendiente' } }))._sum.total || 0
     };
 
     res.json({ facturas, stats });
@@ -51,6 +53,10 @@ const getById = async (req, res) => {
     });
 
     if (!factura) {
+      return res.status(404).json({ error: 'Factura no encontrada' });
+    }
+
+    if (factura.tiendaId && factura.tiendaId !== req.tiendaId) {
       return res.status(404).json({ error: 'Factura no encontrada' });
     }
 
@@ -92,6 +98,7 @@ const create = async (req, res) => {
               notas: notas || null,
               metodoPago: metodoPago || 'contraentrega',
               createdById: req.usuario.id,
+              tiendaId: req.tiendaId,
               items: {
                 create: items.map(i => ({
                   descripcion: i.descripcion || 'Sin descripción',
@@ -126,6 +133,9 @@ const update = async (req, res) => {
 
     const existente = await prisma.factura.findUnique({ where: { id } });
     if (!existente) {
+      return res.status(404).json({ error: 'Factura no encontrada' });
+    }
+    if (existente.tiendaId && existente.tiendaId !== req.tiendaId) {
       return res.status(404).json({ error: 'Factura no encontrada' });
     }
 
@@ -187,6 +197,9 @@ const cambiarEstado = async (req, res) => {
     if (!factura) {
       return res.status(404).json({ error: 'Factura no encontrada' });
     }
+    if (factura.tiendaId && factura.tiendaId !== req.tiendaId) {
+      return res.status(404).json({ error: 'Factura no encontrada' });
+    }
 
     const updated = await prisma.factura.update({
       where: { id },
@@ -205,6 +218,14 @@ const cambiarEstado = async (req, res) => {
 const remove = async (req, res) => {
   try {
     const { id } = req.params;
+
+    const factura = await prisma.factura.findUnique({ where: { id } });
+    if (!factura) {
+      return res.status(404).json({ error: 'Factura no encontrada' });
+    }
+    if (factura.tiendaId && factura.tiendaId !== req.tiendaId) {
+      return res.status(404).json({ error: 'Factura no encontrada' });
+    }
 
     await prisma.facturaItem.deleteMany({ where: { facturaId: id } });
     await prisma.factura.delete({ where: { id } });
@@ -226,6 +247,10 @@ const getPdf = async (req, res) => {
     });
 
     if (!factura) {
+      return res.status(404).json({ error: 'Factura no encontrada' });
+    }
+
+    if (factura.tiendaId && factura.tiendaId !== req.tiendaId) {
       return res.status(404).json({ error: 'Factura no encontrada' });
     }
 

@@ -5,6 +5,7 @@ const getAll = async (req, res) => {
   try {
     const { estado, asignadoId } = req.query;
     const where = {};
+    where.tiendaId = req.tiendaId;
     if (estado) where.estado = estado;
     if (asignadoId) where.asignadoId = asignadoId;
 
@@ -46,6 +47,7 @@ const getById = async (req, res) => {
       }
     });
     if (!tarea) return res.status(404).json({ error: 'Tarea no encontrada' });
+    if (tarea.tiendaId && tarea.tiendaId !== req.tiendaId) return res.status(404).json({ error: 'Tarea no encontrada' });
     res.json(tarea);
   } catch (error) {
     console.error('Get tarea error:', error);
@@ -67,7 +69,8 @@ const create = async (req, res) => {
         asignadoId: asignadoId || null,
         fechaLimite: fechaLimite ? new Date(fechaLimite) : null,
         origenTipo: 'manual',
-        creadoPorId: req.usuario.id
+        creadoPorId: req.usuario.id,
+        tiendaId: req.tiendaId
       },
       include: { creadoPor: { select: { id: true, nombre: true } }, asignado: { select: { id: true, nombre: true } } }
     });
@@ -83,6 +86,10 @@ const update = async (req, res) => {
   try {
     const { id } = req.params;
     const { titulo, descripcion, prioridad, asignadoId, fechaLimite } = req.body;
+
+    const existente = await prisma.tarea.findUnique({ where: { id } });
+    if (!existente) return res.status(404).json({ error: 'Tarea no encontrada' });
+    if (existente.tiendaId && existente.tiendaId !== req.tiendaId) return res.status(404).json({ error: 'Tarea no encontrada' });
 
     const data = {};
     if (titulo !== undefined) data.titulo = titulo;
@@ -111,6 +118,9 @@ const cambiarEstado = async (req, res) => {
     if (!['pendiente', 'en_progreso', 'revision', 'completada', 'cancelada'].includes(estado)) {
       return res.status(400).json({ error: 'Estado inválido' });
     }
+    const existente = await prisma.tarea.findUnique({ where: { id } });
+    if (!existente) return res.status(404).json({ error: 'Tarea no encontrada' });
+    if (existente.tiendaId && existente.tiendaId !== req.tiendaId) return res.status(404).json({ error: 'Tarea no encontrada' });
     const tarea = await prisma.tarea.update({
       where: { id },
       data: { estado },
@@ -127,6 +137,9 @@ const cambiarEstado = async (req, res) => {
 const remove = async (req, res) => {
   try {
     const { id } = req.params;
+    const existente = await prisma.tarea.findUnique({ where: { id } });
+    if (!existente) return res.status(404).json({ error: 'Tarea no encontrada' });
+    if (existente.tiendaId && existente.tiendaId !== req.tiendaId) return res.status(404).json({ error: 'Tarea no encontrada' });
     await prisma.tarea.delete({ where: { id } });
     wsService.tareaEliminada(id, req.usuario);
     res.json({ message: 'Tarea eliminada' });

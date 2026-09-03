@@ -33,7 +33,7 @@ async function registrar(evento) {
   const {
     tipo, entidad, registroId, operadorId = null,
     cliente = null, valorAnterior = null, valorNuevo = null,
-    descripcion, detalle = null, dedupeKey = null
+    descripcion, detalle = null, dedupeKey = null, tiendaId = null
   } = evento;
 
   if (!tipo || !entidad || !registroId || !descripcion) return;
@@ -50,7 +50,8 @@ async function registrar(evento) {
         valorNuevo,
         descripcion,
         detalle: detalle ? JSON.stringify(detalle) : null,
-        dedupeKey
+        dedupeKey,
+        tiendaId
       }
     });
   } catch (error) {

@@ -8,6 +8,7 @@ const getAll = async (req, res) => {
   try {
     const { estado, search } = req.query;
     const where = {};
+    where.tiendaId = req.tiendaId;
     if (estado) where.estado = estado;
     if (search) {
       where.OR = [
@@ -23,17 +24,18 @@ const getAll = async (req, res) => {
       orderBy: { createdAt: 'desc' }
     });
 
+    const whereTienda = { tiendaId: req.tiendaId };
     const stats = {
-      total: await prisma.garantia.count(),
-      esperando: await prisma.garantia.count({ where: { estado: 'esperando' } }),
-      pendiente: await prisma.garantia.count({ where: { estado: 'pendiente' } }),
-      revisada: await prisma.garantia.count({ where: { estado: 'revisada' } }),
-      subido_dropi: await prisma.garantia.count({ where: { estado: 'subido_dropi' } }),
-      guia_generada: await prisma.garantia.count({ where: { estado: 'guia_generada' } }),
-      guia_compartida: await prisma.garantia.count({ where: { estado: 'guia_compartida' } }),
-      aprobada: await prisma.garantia.count({ where: { estado: 'aprobada' } }),
-      rechazada: await prisma.garantia.count({ where: { estado: 'rechazada' } }),
-      finalizado: await prisma.garantia.count({ where: { estado: 'finalizado' } })
+      total: await prisma.garantia.count({ where: whereTienda }),
+      esperando: await prisma.garantia.count({ where: { ...whereTienda, estado: 'esperando' } }),
+      pendiente: await prisma.garantia.count({ where: { ...whereTienda, estado: 'pendiente' } }),
+      revisada: await prisma.garantia.count({ where: { ...whereTienda, estado: 'revisada' } }),
+      subido_dropi: await prisma.garantia.count({ where: { ...whereTienda, estado: 'subido_dropi' } }),
+      guia_generada: await prisma.garantia.count({ where: { ...whereTienda, estado: 'guia_generada' } }),
+      guia_compartida: await prisma.garantia.count({ where: { ...whereTienda, estado: 'guia_compartida' } }),
+      aprobada: await prisma.garantia.count({ where: { ...whereTienda, estado: 'aprobada' } }),
+      rechazada: await prisma.garantia.count({ where: { ...whereTienda, estado: 'rechazada' } }),
+      finalizado: await prisma.garantia.count({ where: { ...whereTienda, estado: 'finalizado' } })
     };
 
     res.json({ garantias, stats });
@@ -51,6 +53,7 @@ const getById = async (req, res) => {
       include: { creadoPor: { select: { id: true, nombre: true } } }
     });
     if (!garantia) return res.status(404).json({ error: 'Garantía no encontrada' });
+    if (garantia.tiendaId && garantia.tiendaId !== req.tiendaId) return res.status(404).json({ error: 'Garantía no encontrada' });
     res.json(garantia);
   } catch (error) {
     console.error('Get garantia error:', error);
@@ -93,7 +96,8 @@ const create = async (req, res) => {
         conversacionLink,
         precio: precio ? parseFloat(precio) : null,
         fechaExpiracion,
-        creadoPorId: req.usuario.id
+        creadoPorId: req.usuario.id,
+        tiendaId: req.tiendaId
       },
       include: { creadoPor: { select: { id: true, nombre: true } } }
     });
@@ -152,6 +156,9 @@ const cambiarEstado = async (req, res) => {
 
     const garantia = await prisma.garantia.findUnique({ where: { id } });
     if (!garantia) {
+      return res.status(404).json({ error: 'Garantía no encontrada' });
+    }
+    if (garantia.tiendaId && garantia.tiendaId !== req.tiendaId) {
       return res.status(404).json({ error: 'Garantía no encontrada' });
     }
 

@@ -44,8 +44,8 @@ const getResumen = async (req, res) => {
     const { periodo = 'todos', fechaDesde, fechaHasta } = req.query;
     const { start, end } = getDateRange(periodo, fechaDesde, fechaHasta);
 
-    const whereNovedad = start ? { createdAt: { gte: start, lte: end } } : {};
-    const whereOficina = start ? { createdAt: { gte: start, lte: end } } : {};
+    const whereNovedad = { tiendaId: req.tiendaId, ...(start ? { createdAt: { gte: start, lte: end } } : {}) };
+    const whereOficina = { tiendaId: req.tiendaId, ...(start ? { createdAt: { gte: start, lte: end } } : {}) };
 
     const [
       todasNovedades,
@@ -69,6 +69,7 @@ const getResumen = async (req, res) => {
         where: whereNovedad
       }),
       prisma.historialCambio.findMany({
+        where: { tiendaId: req.tiendaId },
         take: 10,
         orderBy: { createdAt: 'desc' },
         include: { usuario: { select: { nombre: true } } }
@@ -188,10 +189,10 @@ const getHoy = async (req, res) => {
 
     const [novedadesHoy, oficinaHoy] = await Promise.all([
       prisma.pedidoNovedad.count({
-        where: { createdAt: { gte: hoy, lt: manana } }
+        where: { tiendaId: req.tiendaId, createdAt: { gte: hoy, lt: manana } }
       }),
       prisma.pedidoOficina.count({
-        where: { createdAt: { gte: hoy, lt: manana } }
+        where: { tiendaId: req.tiendaId, createdAt: { gte: hoy, lt: manana } }
       })
     ]);
 
@@ -214,12 +215,12 @@ const getChartData = async (req, res) => {
     startDate.setHours(0, 0, 0, 0);
 
     const novedades = await prisma.pedidoNovedad.findMany({
-      where: { createdAt: { gte: startDate } },
+      where: { tiendaId: req.tiendaId, createdAt: { gte: startDate } },
       select: { createdAt: true, estado: true }
     });
 
     const oficina = await prisma.pedidoOficina.findMany({
-      where: { createdAt: { gte: startDate } },
+      where: { tiendaId: req.tiendaId, createdAt: { gte: startDate } },
       select: { createdAt: true, estado: true }
     });
 
@@ -277,8 +278,8 @@ const getRendimientoOperadores = async (req, res) => {
     const { periodo = 'mes', fechaDesde, fechaHasta } = req.query;
     const { start, end } = getDateRange(periodo, fechaDesde, fechaHasta);
 
-    const whereNovedad = start ? { createdAt: { gte: start, lte: end } } : {};
-    const whereOficina = start ? { createdAt: { gte: start, lte: end } } : {};
+    const whereNovedad = { tiendaId: req.tiendaId, ...(start ? { createdAt: { gte: start, lte: end } } : {}) };
+    const whereOficina = { tiendaId: req.tiendaId, ...(start ? { createdAt: { gte: start, lte: end } } : {}) };
 
     const operadores = await prisma.usuario.findMany({
       where: { rol: { in: ['admin', 'operador', 'operador_asignado'] }, activo: true },
@@ -324,13 +325,14 @@ const getMetricasOperadores = async (req, res) => {
     const { periodo = 'mes', fechaDesde, fechaHasta } = req.query;
     const { start, end } = getDateRange(periodo, fechaDesde, fechaHasta);
 
-    const whereNovedad = start ? { createdAt: { gte: start, lte: end } } : {};
-    const whereOficina = start ? { createdAt: { gte: start, lte: end } } : {};
-    const whereContacto = start ? { createdAt: { gte: start, lte: end } } : {};
-    const whereTransferencia = start ? { createdAt: { gte: start, lte: end } } : {};
+    const whereNovedad = { tiendaId: req.tiendaId, ...(start ? { createdAt: { gte: start, lte: end } } : {}) };
+    const whereOficina = { tiendaId: req.tiendaId, ...(start ? { createdAt: { gte: start, lte: end } } : {}) };
+    const whereContacto = { tiendaId: req.tiendaId, ...(start ? { createdAt: { gte: start, lte: end } } : {}) };
+    const whereTransferencia = { tiendaId: req.tiendaId, ...(start ? { createdAt: { gte: start, lte: end } } : {}) };
 
     const solucionadoFilter = (extra = {}) => ({
       solucionadoAt: { not: null, ...(start ? { gte: start, lte: end } : {}) },
+      tiendaId: req.tiendaId,
       ...extra
     });
 
@@ -338,6 +340,7 @@ const getMetricasOperadores = async (req, res) => {
       solucionadoAt: { not: null },
       estado: 'novedad',
       reabiertoAt: { not: null, ...(start ? { gte: start, lte: end } : {}) },
+      tiendaId: req.tiendaId,
       ...extra
     });
 
@@ -589,12 +592,13 @@ const getResumenDiario = async (req, res) => {
 
     const [novedadesCreadas, novedadesResueltas, oficinaCreadas, oficinaResueltas] = await Promise.all([
       prisma.pedidoNovedad.findMany({
-        where: { createdAt: { gte: start, lte: end } },
+        where: { tiendaId: req.tiendaId, createdAt: { gte: start, lte: end } },
         select: { id: true, createdAt: true, estado: true },
         orderBy: { createdAt: 'asc' }
       }),
       prisma.pedidoNovedad.findMany({
         where: {
+          tiendaId: req.tiendaId,
           updatedAt: { gte: start, lte: end },
           estado: 'solucionado'
         },
@@ -606,12 +610,13 @@ const getResumenDiario = async (req, res) => {
         orderBy: { updatedAt: 'asc' }
       }),
       prisma.pedidoOficina.findMany({
-        where: { createdAt: { gte: start, lte: end } },
+        where: { tiendaId: req.tiendaId, createdAt: { gte: start, lte: end } },
         select: { id: true, createdAt: true, estado: true },
         orderBy: { createdAt: 'asc' }
       }),
       prisma.pedidoOficina.findMany({
         where: {
+          tiendaId: req.tiendaId,
           updatedAt: { gte: start, lte: end },
           estado: 'va_a_recoger'
         },
@@ -736,7 +741,7 @@ const getMetricasLucidsales = async (req, res) => {
     const { periodo = 'mes', fechaDesde, fechaHasta } = req.query;
     const { start, end } = getDateRange(periodo, fechaDesde, fechaHasta);
 
-    const whereDate = start ? { createdAt: { gte: start, lte: end } } : {};
+    const whereDate = start ? { createdAt: { gte: start, lte: end }, tiendaId: req.tiendaId } : { tiendaId: req.tiendaId };
 
     const operadores = await prisma.usuario.findMany({
       where: { activo: true },
@@ -787,7 +792,7 @@ const getPedidosSubidos = async (req, res) => {
       operadores = [req.usuario];
     }
 
-    const whereDate = start ? { subidoAt: { gte: start, lte: end } } : {};
+    const whereDate = start ? { subidoAt: { gte: start, lte: end }, tiendaId: req.tiendaId } : { tiendaId: req.tiendaId };
 
     const pedidosOperador = await Promise.all(operadores.map(async (op) => {
       const pedidosSubidos = await prisma.pedidoVinculado.findMany({
@@ -869,7 +874,7 @@ const getBitacora = async (req, res) => {
     const limitNum = Math.min(100, Math.max(1, parseInt(limit) || 50));
     const skip = (pageNum - 1) * limitNum;
 
-    const where = { createdAt: { gte: start, lte: end } };
+    const where = { tiendaId: req.tiendaId, createdAt: { gte: start, lte: end } };
     if (operadorId) where.operadorId = operadorId;
     if (tipo) {
       const tipos = String(tipo).split(',').map(t => t.trim()).filter(Boolean);

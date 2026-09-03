@@ -113,6 +113,18 @@ const generalLimiter = rateLimit({
 app.use('/api/auth/login', loginLimiter);
 app.use('/api', generalLimiter);
 
+const { tiendaDeRequest } = require('./src/utils/tienda');
+app.use('/api', async (req, res, next) => {
+  try {
+    req.tiendaId = await tiendaDeRequest(req);
+    req.tiendaSlug = String(req.query?.tienda || req.headers?.['x-tienda'] || 'pizdo').toLowerCase();
+  } catch {
+    req.tiendaId = null;
+    req.tiendaSlug = 'pizdo';
+  }
+  next();
+});
+
 const whatsappWebhookRoutes = require('./src/routes/whatsapp.webhook.routes');
 app.use('/api/whatsapp/webhook', whatsappWebhookRoutes);
 

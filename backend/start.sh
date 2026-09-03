@@ -46,5 +46,12 @@ else
   echo "⚠️  Backfill de bitacora fallo, continuando arranque..."
 fi
 
+echo "Ejecutando segmentacion por tienda..."
+if node prisma/migrate-segmentacion.js 2>/dev/null; then
+  echo "✅ Segmentacion por tienda completada"
+else
+  echo "⚠️  Segmentacion por tienda fallo, continuando arranque..."
+fi
+
 echo "🚀 Iniciando servidor..."
 exec node server.js

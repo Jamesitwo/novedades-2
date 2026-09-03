@@ -3,6 +3,7 @@ const { prisma } = require('../prisma/client');
 const getAll = async (req, res) => {
   try {
     const etiquetas = await prisma.etiqueta.findMany({
+      where: { tiendaId: req.tiendaId },
       orderBy: { nombre: 'asc' },
       select: { id: true, nombre: true, color: true, createdById: true, createdAt: true }
     });
@@ -24,7 +25,8 @@ const create = async (req, res) => {
       data: {
         nombre,
         color: color || '#6366f1',
-        createdById: req.usuario.id
+        createdById: req.usuario.id,
+        tiendaId: req.tiendaId
       },
       select: { id: true, nombre: true, color: true, createdAt: true }
     });
@@ -43,6 +45,10 @@ const update = async (req, res) => {
 
     const existente = await prisma.etiqueta.findUnique({ where: { id } });
     if (!existente) {
+      return res.status(404).json({ error: 'Etiqueta no encontrada' });
+    }
+
+    if (existente.tiendaId && existente.tiendaId !== req.tiendaId) {
       return res.status(404).json({ error: 'Etiqueta no encontrada' });
     }
 
@@ -73,6 +79,10 @@ const remove = async (req, res) => {
 
     const existente = await prisma.etiqueta.findUnique({ where: { id } });
     if (!existente) {
+      return res.status(404).json({ error: 'Etiqueta no encontrada' });
+    }
+
+    if (existente.tiendaId && existente.tiendaId !== req.tiendaId) {
       return res.status(404).json({ error: 'Etiqueta no encontrada' });
     }
 

@@ -13,6 +13,7 @@ const getAll = async (req, res) => {
 
     const where = {};
 
+    where.tiendaId = req.tiendaId;
     where.estado = { notIn: ['solucionado'] };
 
     if (estados) {
@@ -69,7 +70,7 @@ const getAll = async (req, res) => {
 
     if (etiquetaId) {
       const registrosConEtiqueta = await prisma.registroEtiqueta.findMany({
-        where: { etiquetaId, tabla: 'pedidos_novedad' },
+        where: { etiquetaId, tabla: 'pedidos_novedad', tiendaId: req.tiendaId },
         select: { registroId: true }
       });
       where.id = { in: registrosConEtiqueta.map(r => r.registroId) };
@@ -91,7 +92,7 @@ const getAll = async (req, res) => {
       }),
       prisma.pedidoNovedad.count({ where }),
       prisma.transferencia.findMany({
-        where: { tabla: 'pedidos_novedad' },
+        where: { tabla: 'pedidos_novedad', tiendaId: req.tiendaId },
         include: {
           deUsuario: { select: { id: true, nombre: true } },
           aUsuario: { select: { id: true, nombre: true } }
@@ -138,6 +139,10 @@ const getById = async (req, res) => {
     });
 
     if (!novedad) {
+      return res.status(404).json({ error: 'Novedad no encontrada' });
+    }
+
+    if (novedad.tiendaId && novedad.tiendaId !== req.tiendaId) {
       return res.status(404).json({ error: 'Novedad no encontrada' });
     }
 
@@ -215,6 +220,7 @@ const create = async (req, res) => {
         chatActivo: chatActivo || false,
         fechaUltimoMsjCliente: fechaUltimoMsjCliente ? new Date(fechaUltimoMsjCliente) : null,
         pedidoVinculadoId: pedidoVinculadoId || null,
+        tiendaId: req.tiendaId,
         createdById: req.usuario.id,
         asignadoId
       },
@@ -244,16 +250,17 @@ const update = async (req, res) => {
 
     const campos = ['nombre', 'apellido', 'celular', 'producto', 'transportadora', 'guia', 'motivoNovedad', 'notas'];
     const clienteNombre = `${actual.nombre} ${actual.apellido}`;
+    const tiendaId = actual.tiendaId || req.tiendaId;
     for (const campo of campos) {
       if (req.body[campo] !== undefined && req.body[campo] !== actual[campo]) {
-        await registrarCambio(id, 'pedidos_novedad', campo, actual[campo], req.body[campo], req.usuario.id, clienteNombre);
+        await registrarCambio(id, 'pedidos_novedad', campo, actual[campo], req.body[campo], req.usuario.id, clienteNombre, tiendaId);
       }
     }
     if (req.body.totalAPagar !== undefined && Math.abs(parseFloat(req.body.totalAPagar) - actual.totalAPagar) > 0.001) {
-      await registrarCambio(id, 'pedidos_novedad', 'totalAPagar', actual.totalAPagar, req.body.totalAPagar, req.usuario.id, clienteNombre);
+      await registrarCambio(id, 'pedidos_novedad', 'totalAPagar', actual.totalAPagar, req.body.totalAPagar, req.usuario.id, clienteNombre, tiendaId);
     }
     if (req.body.conversacionLink !== undefined && req.body.conversacionLink !== (actual.conversacionLink || null)) {
-      await registrarCambio(id, 'pedidos_novedad', 'conversacionLink', actual.conversacionLink, req.body.conversacionLink, req.usuario.id, clienteNombre);
+      await registrarCambio(id, 'pedidos_novedad', 'conversacionLink', actual.conversacionLink, req.body.conversacionLink, req.usuario.id, clienteNombre, tiendaId);
     }
 
     const novedad = await prisma.pedidoNovedad.update({
@@ -287,7 +294,7 @@ const cambiarEstado = async (req, res) => {
       return res.status(404).json({ error: 'Novedad no encontrada' });
     }
 
-    const h = await registrarCambio(id, 'pedidos_novedad', 'estado', actual.estado, estado, req.usuario.id, `${actual.nombre} ${actual.apellido}`);
+    const h = await registrarCambio(id, 'pedidos_novedad', 'estado', actual.estado, estado, req.usuario.id, `${actual.nombre} ${actual.apellido}`, actual.tiendaId || req.tiendaId);
 
     const data = { estado };
     const estadosResolucion = ['solucionado', 'entregado', 'devolucion'];
@@ -323,7 +330,8 @@ const cambiarEstado = async (req, res) => {
       valorNuevo: estado,
       descripcion: bitacoraService.descripcionCambioEstado(actual.estado, estado),
       detalle: { guia: actual.guia, producto: actual.producto, transportadora: actual.transportadora, valor: actual.totalAPagar },
-      dedupeKey: h ? `h:${h.id}` : null
+      dedupeKey: h ? `h:${h.id}` : null,
+      tiendaId: actual.tiendaId || req.tiendaId
     });
 
     wsService.novedadEstadoCambiado(id, actual.estado, estado, req.usuario);
@@ -356,6 +364,7 @@ const exportarExcel = async (req, res) => {
   try {
     const { exportService } = require('../services/export.service');
     const novedades = await prisma.pedidoNovedad.findMany({
+      where: { tiendaId: req.tiendaId },
       orderBy: { createdAt: 'desc' }
     });
 
@@ -401,7 +410,8 @@ const registrarIntento = async (req, res) => {
         registroId: id,
         resultado,
         notas,
-        usuarioId: req.usuario.id
+        usuarioId: req.usuario.id,
+        tiendaId: novedad.tiendaId || req.tiendaId
       }
     });
 
@@ -445,7 +455,8 @@ const bulkCambiarEstado = async (req, res) => {
             valorAnterior: actual.estado,
             valorNuevo: estado,
             usuarioId: req.usuario.id,
-            clienteNombre: `${actual.nombre} ${actual.apellido}`
+            clienteNombre: `${actual.nombre} ${actual.apellido}`,
+            tiendaId: actual.tiendaId || req.tiendaId
           }
         });
       });
@@ -521,7 +532,8 @@ const bulkCambiarEstado = async (req, res) => {
         valorNuevo: estado,
         descripcion: bitacoraService.descripcionCambioEstado(r.estado, estado),
         detalle: { guia: r.guia, producto: r.producto, transportadora: r.transportadora, valor: r.totalAPagar },
-        dedupeKey: historialIds[r.id] ? `h:${historialIds[r.id]}` : null
+        dedupeKey: historialIds[r.id] ? `h:${historialIds[r.id]}` : null,
+        tiendaId: r.tiendaId || req.tiendaId
       });
     }
 
@@ -560,7 +572,8 @@ const bulkAsignar = async (req, res) => {
             valorAnterior: actual.asignadoId || null,
             valorNuevo: operador.nombre,
             usuarioId: req.usuario.id,
-            clienteNombre: `${actual.nombre} ${actual.apellido}`
+            clienteNombre: `${actual.nombre} ${actual.apellido}`,
+            tiendaId: actual.tiendaId || req.tiendaId
           }
         });
       });
@@ -622,7 +635,8 @@ const transferir = async (req, res) => {
     }
 
     const nombreAnterior = novedad.asignadoId ? (await prisma.usuario.findUnique({ where: { id: novedad.asignadoId } }))?.nombre : null;
-    await registrarCambio(id, 'pedidos_novedad', 'asignado', nombreAnterior, operadorDestino.nombre, req.usuario.id, `${novedad.nombre} ${novedad.apellido}`);
+    const tiendaId = novedad.tiendaId || req.tiendaId;
+    await registrarCambio(id, 'pedidos_novedad', 'asignado', nombreAnterior, operadorDestino.nombre, req.usuario.id, `${novedad.nombre} ${novedad.apellido}`, tiendaId);
 
     await prisma.transferencia.create({
       data: {
@@ -630,7 +644,8 @@ const transferir = async (req, res) => {
         registroId: id,
         deUsuarioId: req.usuario.id,
         aUsuarioId,
-        notas
+        notas,
+        tiendaId
       }
     });
 
@@ -654,7 +669,8 @@ const transferir = async (req, res) => {
           creadoPorId: req.usuario.id,
           asignadoId: aUsuarioId,
           origenTipo: 'novedad',
-          origenId: id
+          origenId: id,
+          tiendaId
         }
       });
     }
@@ -709,6 +725,7 @@ const duplicar = async (req, res) => {
         notas: original.notas,
         estado: 'novedad',
         favorito: false,
+        tiendaId: original.tiendaId || req.tiendaId,
         createdById: req.usuario.id,
         asignadoId: await getNextOperador('novedades') || null
       },
@@ -744,7 +761,7 @@ const asignarEtiqueta = async (req, res) => {
     }
 
     const creada = await prisma.registroEtiqueta.create({
-      data: { etiquetaId, registroId: id, tabla: 'pedidos_novedad' }
+      data: { etiquetaId, registroId: id, tabla: 'pedidos_novedad', tiendaId: novedad.tiendaId || req.tiendaId }
     });
 
     const etiqueta = await prisma.etiqueta.findUnique({ where: { id: etiquetaId } });
@@ -756,7 +773,8 @@ const asignarEtiqueta = async (req, res) => {
       cliente: `${novedad.nombre} ${novedad.apellido}`,
       descripcion: `Etiqueta: ${etiqueta?.nombre || 'Desconocida'}`,
       detalle: { etiqueta: etiqueta?.nombre || null, color: etiqueta?.color || null },
-      dedupeKey: creada ? `etq:${creada.id}` : null
+      dedupeKey: creada ? `etq:${creada.id}` : null,
+      tiendaId: novedad.tiendaId || req.tiendaId
     });
 
     const etiquetas = await prisma.registroEtiqueta.findMany({

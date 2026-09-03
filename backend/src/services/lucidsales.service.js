@@ -396,7 +396,7 @@ function getDepartamentosLocales() {
   }
 }
 
-async function crearVinculacionDirecta(lucidsalesPedidoId, pedidoData, notas, usuarioId, asignadoId) {
+async function crearVinculacionDirecta(lucidsalesPedidoId, pedidoData, notas, usuarioId, asignadoId, tiendaId = null) {
   const baseData = {
     lucidsalesIdPedido: pedidoData.idPedido || null,
     nombreCliente: pedidoData.Nombre || '',
@@ -408,7 +408,8 @@ async function crearVinculacionDirecta(lucidsalesPedidoId, pedidoData, notas, us
     jsonProductos: typeof pedidoData.Json === 'string' ? pedidoData.Json : JSON.stringify(pedidoData.Json || []),
     conversacionLink: pedidoData.botInbox || pedidoData.conversacionLink || pedidoData.ConversacionLink || pedidoData.linkConversacion || null,
     notas: notas || null,
-    createdById: usuarioId || null
+    createdById: usuarioId || null,
+    tiendaId
   };
   const updateData = asignadoId ? { ...baseData, asignadoId } : { ...baseData };
   const createData = { ...baseData, asignadoId: asignadoId || null };
@@ -419,7 +420,7 @@ async function crearVinculacionDirecta(lucidsalesPedidoId, pedidoData, notas, us
   });
 }
 
-async function crearVinculacion(lucidsalesPedidoId, notas, usuarioId, asignadoId) {
+async function crearVinculacion(lucidsalesPedidoId, notas, usuarioId, asignadoId, tiendaId = null) {
   const pedido = await getPedidoById(lucidsalesPedidoId);
   const baseData = {
     lucidsalesIdPedido: pedido.idPedido || null,
@@ -432,7 +433,8 @@ async function crearVinculacion(lucidsalesPedidoId, notas, usuarioId, asignadoId
     jsonProductos: typeof pedido.Json === 'string' ? pedido.Json : JSON.stringify(pedido.Json || []),
     conversacionLink: pedido.botInbox || pedido.conversacionLink || pedido.ConversacionLink || pedido.linkConversacion || null,
     notas: notas || null,
-    createdById: usuarioId || null
+    createdById: usuarioId || null,
+    tiendaId
   };
   const updateData = asignadoId ? { ...baseData, asignadoId } : { ...baseData };
   const createData = { ...baseData, asignadoId: asignadoId || null };
@@ -443,7 +445,7 @@ async function crearVinculacion(lucidsalesPedidoId, notas, usuarioId, asignadoId
   });
 }
 
-async function guardarVinculacionLocal(lucidsalesPedidoId, pedido, usuarioId, asignadoId) {
+async function guardarVinculacionLocal(lucidsalesPedidoId, pedido, usuarioId, asignadoId, tiendaId = null) {
   const baseData = {
     lucidsalesIdPedido: Number(pedido.idPedido ?? lucidsalesPedidoId),
     nombreCliente: pedido.Nombre || '',
@@ -459,6 +461,9 @@ async function guardarVinculacionLocal(lucidsalesPedidoId, pedido, usuarioId, as
   if (usuarioId && !baseData.createdById) {
     baseData.createdById = usuarioId;
   }
+  if (tiendaId && !baseData.tiendaId) {
+    baseData.tiendaId = tiendaId;
+  }
   const updateData = asignadoId ? { ...baseData, asignadoId } : { ...baseData };
   const createData = { ...baseData, asignadoId: asignadoId || null };
   return prisma.pedidoVinculado.upsert({
@@ -468,8 +473,9 @@ async function guardarVinculacionLocal(lucidsalesPedidoId, pedido, usuarioId, as
   });
 }
 
-async function listVinculaciones({ page = 1, itemsPerPage = 50, search = '', estadoFilter, estados, asignadoId, lucidsalesPedidoIds, fechaDesde, fechaHasta, producto } = {}) {
+async function listVinculaciones({ page = 1, itemsPerPage = 50, search = '', estadoFilter, estados, asignadoId, lucidsalesPedidoIds, fechaDesde, fechaHasta, producto, tiendaId } = {}) {
   const where = {};
+  if (tiendaId) where.tiendaId = tiendaId;
   if (search) {
     where.OR = [
       { nombreCliente: { contains: search } },

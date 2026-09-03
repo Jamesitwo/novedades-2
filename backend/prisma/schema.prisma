@@ -75,6 +75,8 @@ model PedidoNovedad {
   solucionadoFuente     String?   @map("solucionado_fuente")
   reabiertoAt           DateTime? @map("reabierto_at")
   vecesResuelta         Int       @default(0) @map("veces_resuelta")
+  tiendaId              String?   @map("tienda_id")
+  tienda                Tienda?   @relation(fields: [tiendaId], references: [id])
   createdAt             DateTime  @default(now())
   updatedAt             DateTime  @updatedAt
   createdById           String    @map("created_by")
@@ -91,6 +93,7 @@ model PedidoNovedad {
   @@index([createdAt])
   @@index([favorito])
   @@index([celular])
+  @@index([tiendaId])
 }
 
 model PedidoOficina {
@@ -115,6 +118,8 @@ model PedidoOficina {
   whatsappThreadId      String?   @map("whatsapp_thread_id")
   optOutWhatsapp        Boolean   @default(false) @map("opt_out_whatsapp")
   favorito              Boolean   @default(false)
+  tiendaId              String?   @map("tienda_id")
+  tienda                Tienda?   @relation(fields: [tiendaId], references: [id])
   createdAt             DateTime  @default(now())
   updatedAt             DateTime  @updatedAt
   createdById           String    @map("created_by")
@@ -132,6 +137,7 @@ model PedidoOficina {
   @@index([fechaLimite])
   @@index([favorito])
   @@index([celular])
+  @@index([tiendaId])
 }
 
 model HistorialCambio {
@@ -144,12 +150,15 @@ model HistorialCambio {
   usuarioId     String   @map("usuario_id")
   usuario       Usuario  @relation(fields: [usuarioId], references: [id])
   clienteNombre String?  @map("cliente_nombre")
+  tiendaId      String?  @map("tienda_id")
+  tienda        Tienda?  @relation(fields: [tiendaId], references: [id])
   createdAt     DateTime @default(now())
 
   @@index([usuarioId])
   @@index([createdAt])
   @@index([registroId])
   @@index([tabla, registroId])
+  @@index([tiendaId])
 }
 
 model ActividadLog {
@@ -165,12 +174,15 @@ model ActividadLog {
   descripcion   String
   detalle       String?
   dedupeKey     String?   @map("dedupe_key")
+  tiendaId      String?   @map("tienda_id")
+  tienda        Tienda?   @relation(fields: [tiendaId], references: [id])
   createdAt     DateTime  @default(now())
 
   @@index([createdAt])
   @@index([operadorId])
   @@index([tipo])
   @@index([entidad, registroId])
+  @@index([tiendaId])
   @@map("actividad_log")
 }
 
@@ -213,11 +225,14 @@ model IntentoContacto {
   notas      String?
   usuarioId  String   @map("usuario_id")
   usuario    Usuario  @relation(fields: [usuarioId], references: [id])
+  tiendaId   String?  @map("tienda_id")
+  tienda     Tienda?  @relation(fields: [tiendaId], references: [id])
   createdAt  DateTime @default(now())
 
   @@index([tabla, registroId])
   @@index([usuarioId])
   @@index([createdAt])
+  @@index([tiendaId])
 }
 
 model Transferencia {
@@ -229,12 +244,15 @@ model Transferencia {
   aUsuarioId  String   @map("a_usuario_id")
   aUsuario    Usuario  @relation("TransferenciaA", fields: [aUsuarioId], references: [id])
   notas       String?
+  tiendaId    String?  @map("tienda_id")
+  tienda      Tienda?  @relation(fields: [tiendaId], references: [id])
   createdAt   DateTime @default(now())
 
   @@index([tabla, registroId])
   @@index([deUsuarioId])
   @@index([aUsuarioId])
   @@index([createdAt])
+  @@index([tiendaId])
 }
 
 model PedidoVinculado {
@@ -258,6 +276,8 @@ model PedidoVinculado {
   subidoAt           DateTime? @map("subido_at")
   notas              String?
   estado             String   @default("activo")
+  tiendaId           String?  @map("tienda_id")
+  tienda             Tienda?  @relation(fields: [tiendaId], references: [id])
   createdAt          DateTime @default(now())
   updatedAt          DateTime @updatedAt
   pedidosNovedad     PedidoNovedad[]
@@ -266,6 +286,7 @@ model PedidoVinculado {
   @@index([estado])
   @@index([asignadoId])
   @@index([createdAt])
+  @@index([tiendaId])
   @@map("pedidos_vinculados")
 }
 
@@ -366,6 +387,18 @@ model Tienda {
   botFieldCache BotFieldCache[]
   importLogs    ImportLogProducto[]
   importLogsPedidos ImportLogPedido[]
+  novedades        PedidoNovedad[]
+  oficinas         PedidoOficina[]
+  vinculados       PedidoVinculado[]
+  etiquetas        Etiqueta[]
+  registrosEtiqueta RegistroEtiqueta[]
+  historiales      HistorialCambio[]
+  intentos         IntentoContacto[]
+  transferencias   Transferencia[]
+  actividadLogs    ActividadLog[]
+  facturas         Factura[]
+  garantias        Garantia[]
+  tareas           Tarea[]
 
   @@map("tiendas")
 }
@@ -549,12 +582,15 @@ model Factura {
   notas            String?
   createdById      String        @map("created_by")
   createdBy        Usuario       @relation(fields: [createdById], references: [id])
+  tiendaId         String?       @map("tienda_id")
+  tienda           Tienda?       @relation(fields: [tiendaId], references: [id])
   items            FacturaItem[]
   createdAt        DateTime      @default(now())
   updatedAt        DateTime      @updatedAt
 
   @@index([estado])
   @@index([createdAt])
+  @@index([tiendaId])
 }
 
 model FacturaItem {
@@ -575,9 +611,13 @@ model Etiqueta {
   color       String             @default("#6366f1")
   createdById String             @map("created_by")
   createdBy   Usuario            @relation(fields: [createdById], references: [id])
+  tiendaId    String?            @map("tienda_id")
+  tienda      Tienda?            @relation(fields: [tiendaId], references: [id])
   createdAt   DateTime           @default(now())
   updatedAt   DateTime           @updatedAt
   registros   RegistroEtiqueta[]
+
+  @@index([tiendaId])
 }
 
 model RegistroEtiqueta {
@@ -586,11 +626,14 @@ model RegistroEtiqueta {
   etiqueta   Etiqueta @relation(fields: [etiquetaId], references: [id])
   tabla      String
   registroId String   @map("registro_id")
+  tiendaId   String?  @map("tienda_id")
+  tienda     Tienda?  @relation(fields: [tiendaId], references: [id])
   createdAt  DateTime @default(now())
 
   @@index([etiquetaId])
   @@index([registroId])
   @@index([tabla])
+  @@index([tiendaId])
 }
 
 model Garantia {
@@ -607,12 +650,15 @@ model Garantia {
   precio           Float?   @map("precio")
   creadoPorId      String   @map("creado_por")
   creadoPor        Usuario  @relation(fields: [creadoPorId], references: [id])
+  tiendaId         String?  @map("tienda_id")
+  tienda           Tienda?  @relation(fields: [tiendaId], references: [id])
   fechaExpiracion  DateTime @map("fecha_expiracion")
   createdAt        DateTime @default(now())
   updatedAt        DateTime @updatedAt
 
   @@index([estado])
   @@index([linkToken])
+  @@index([tiendaId])
 }
 
 model Tarea {
@@ -628,11 +674,14 @@ model Tarea {
   origenTipo  String?   @map("origen_tipo")
   origenId    String?   @map("origen_id")
   fechaLimite DateTime? @map("fecha_limite")
+  tiendaId    String?   @map("tienda_id")
+  tienda      Tienda?   @relation(fields: [tiendaId], references: [id])
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
 
   @@index([estado])
   @@index([asignadoId])
+  @@index([tiendaId])
 }
 
 model MensajeWhatsApp {

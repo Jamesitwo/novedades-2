@@ -1,6 +1,6 @@
 const { prisma } = require('../prisma/client');
 
-const registrarCambio = async (registroId, tabla, campo, valorAnterior, valorNuevo, usuarioId, clienteNombre = null) => {
+const registrarCambio = async (registroId, tabla, campo, valorAnterior, valorNuevo, usuarioId, clienteNombre = null, tiendaId = null) => {
   try {
     return await prisma.historialCambio.create({
       data: {
@@ -10,7 +10,8 @@ const registrarCambio = async (registroId, tabla, campo, valorAnterior, valorNue
         valorAnterior: valorAnterior != null ? String(valorAnterior) : null,
         valorNuevo: valorNuevo != null ? String(valorNuevo) : null,
         usuarioId,
-        clienteNombre
+        clienteNombre,
+        tiendaId
       }
     });
   } catch (error) {

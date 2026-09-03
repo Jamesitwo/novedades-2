@@ -13,6 +13,7 @@ const getAll = async (req, res) => {
 
     const where = {};
 
+    where.tiendaId = req.tiendaId;
     where.estado = { notIn: ['va_a_recoger', 'entregado'] };
 
     if (estados) {
@@ -69,7 +70,7 @@ const getAll = async (req, res) => {
 
     if (etiquetaId) {
       const registrosConEtiqueta = await prisma.registroEtiqueta.findMany({
-        where: { etiquetaId, tabla: 'pedidos_oficina' },
+        where: { etiquetaId, tabla: 'pedidos_oficina', tiendaId: req.tiendaId },
         select: { registroId: true }
       });
       where.id = { in: registrosConEtiqueta.map(r => r.registroId) };
@@ -88,7 +89,7 @@ const getAll = async (req, res) => {
       }),
       prisma.pedidoOficina.count({ where }),
       prisma.transferencia.findMany({
-        where: { tabla: 'pedidos_oficina' },
+        where: { tabla: 'pedidos_oficina', tiendaId: req.tiendaId },
         include: {
           deUsuario: { select: { id: true, nombre: true } },
           aUsuario: { select: { id: true, nombre: true } }
@@ -135,6 +136,10 @@ const getById = async (req, res) => {
     });
 
     if (!pedido) {
+      return res.status(404).json({ error: 'Pedido no encontrado' });
+    }
+
+    if (pedido.tiendaId && pedido.tiendaId !== req.tiendaId) {
       return res.status(404).json({ error: 'Pedido no encontrado' });
     }
 
@@ -218,6 +223,7 @@ const create = async (req, res) => {
         chatActivo: chatActivo || false,
         fechaUltimoMsjCliente: fechaUltimoMsjCliente ? new Date(fechaUltimoMsjCliente) : null,
         pedidoVinculadoId: pedidoVinculadoId || null,
+        tiendaId: req.tiendaId,
         createdById: req.usuario.id,
         asignadoId
       },
@@ -247,22 +253,23 @@ const update = async (req, res) => {
 
     const campos = ['nombre', 'apellido', 'celular', 'producto', 'transportadora', 'guia', 'imagenGuiaUrl', 'notas', 'notasInternas'];
     const clienteNombre = `${actual.nombre} ${actual.apellido}`;
+    const tiendaId = actual.tiendaId || req.tiendaId;
     for (const campo of campos) {
       if (req.body[campo] !== undefined && req.body[campo] !== actual[campo]) {
-        await registrarCambio(id, 'pedidos_oficina', campo, actual[campo], req.body[campo], req.usuario.id, clienteNombre);
+        await registrarCambio(id, 'pedidos_oficina', campo, actual[campo], req.body[campo], req.usuario.id, clienteNombre, tiendaId);
       }
     }
     if (req.body.precio !== undefined && parseFloat(req.body.precio) !== actual.precio) {
-      await registrarCambio(id, 'pedidos_oficina', 'precio', actual.precio, req.body.precio, req.usuario.id, clienteNombre);
+      await registrarCambio(id, 'pedidos_oficina', 'precio', actual.precio, req.body.precio, req.usuario.id, clienteNombre, tiendaId);
     }
     if (req.body.conversacionLink !== undefined && req.body.conversacionLink !== (actual.conversacionLink || null)) {
-      await registrarCambio(id, 'pedidos_oficina', 'conversacionLink', actual.conversacionLink, req.body.conversacionLink, req.usuario.id, clienteNombre);
+      await registrarCambio(id, 'pedidos_oficina', 'conversacionLink', actual.conversacionLink, req.body.conversacionLink, req.usuario.id, clienteNombre, tiendaId);
     }
 
     const actualFechaLimiteStr = actual.fechaLimite ? actual.fechaLimite.toISOString().split('T')[0] : null;
     if (fechaLlegada && fechaLlegada !== actualFechaLimiteStr) {
       const nuevaFechaLimite = new Date(new Date(fechaLlegada).getTime() + 7 * 24 * 60 * 60 * 1000);
-      await registrarCambio(id, 'pedidos_oficina', 'fecha_limite', actualFechaLimiteStr, nuevaFechaLimite.toISOString(), req.usuario.id, clienteNombre);
+      await registrarCambio(id, 'pedidos_oficina', 'fecha_limite', actualFechaLimiteStr, nuevaFechaLimite.toISOString(), req.usuario.id, clienteNombre, tiendaId);
     }
 
     const data = { nombre, apellido, celular, producto, transportadora, guia, imagenGuiaUrl, notas, notasInternas };
@@ -298,7 +305,7 @@ const cambiarEstado = async (req, res) => {
       return res.status(404).json({ error: 'Pedido no encontrado' });
     }
 
-    const h = await registrarCambio(id, 'pedidos_oficina', 'estado', actual.estado, estado, req.usuario.id, `${actual.nombre} ${actual.apellido}`);
+    const h = await registrarCambio(id, 'pedidos_oficina', 'estado', actual.estado, estado, req.usuario.id, `${actual.nombre} ${actual.apellido}`, actual.tiendaId || req.tiendaId);
 
     const pedido = await prisma.pedidoOficina.update({
       where: { id },
@@ -318,7 +325,8 @@ const cambiarEstado = async (req, res) => {
       valorNuevo: estado,
       descripcion: bitacoraService.descripcionCambioEstado(actual.estado, estado),
       detalle: { guia: actual.guia, producto: actual.producto, valor: actual.precio },
-      dedupeKey: h ? `h:${h.id}` : null
+      dedupeKey: h ? `h:${h.id}` : null,
+      tiendaId: actual.tiendaId || req.tiendaId
     });
 
     wsService.oficinaEstadoCambiado(id, actual.estado, estado, req.usuario);
@@ -345,7 +353,8 @@ const registrarIntento = async (req, res) => {
         registroId: id,
         resultado,
         notas,
-        usuarioId: req.usuario.id
+        usuarioId: req.usuario.id,
+        tiendaId: pedido.tiendaId || req.tiendaId
       }
     });
 
@@ -391,7 +400,8 @@ const getVencimientos = async (req, res) => {
     const pedidos = await prisma.pedidoOficina.findMany({
       where: {
         estado: { in: ['pendiente_llamar', 'contactado'] },
-        fechaLimite: { lte: tresDias }
+        fechaLimite: { lte: tresDias },
+        tiendaId: req.tiendaId
       },
       include: {
         createdBy: { select: { id: true, nombre: true } }
@@ -410,6 +420,7 @@ const exportarExcel = async (req, res) => {
   try {
     const { exportService } = require('../services/export.service');
     const pedidos = await prisma.pedidoOficina.findMany({
+      where: { tiendaId: req.tiendaId },
       orderBy: { createdAt: 'desc' }
     });
 
@@ -463,7 +474,8 @@ const bulkCambiarEstado = async (req, res) => {
             valorAnterior: actual.estado,
             valorNuevo: estado,
             usuarioId: req.usuario.id,
-            clienteNombre: `${actual.nombre} ${actual.apellido}`
+            clienteNombre: `${actual.nombre} ${actual.apellido}`,
+            tiendaId: actual.tiendaId || req.tiendaId
           }
         });
       });
@@ -503,7 +515,8 @@ const bulkCambiarEstado = async (req, res) => {
         valorNuevo: estado,
         descripcion: bitacoraService.descripcionCambioEstado(r.estado, estado),
         detalle: { guia: r.guia, producto: r.producto, valor: r.precio },
-        dedupeKey: historialIds[r.id] ? `h:${historialIds[r.id]}` : null
+        dedupeKey: historialIds[r.id] ? `h:${historialIds[r.id]}` : null,
+        tiendaId: r.tiendaId || req.tiendaId
       });
     }
 
@@ -542,7 +555,8 @@ const bulkAsignar = async (req, res) => {
             valorAnterior: actual.asignadoId || null,
             valorNuevo: operador.nombre,
             usuarioId: req.usuario.id,
-            clienteNombre: `${actual.nombre} ${actual.apellido}`
+            clienteNombre: `${actual.nombre} ${actual.apellido}`,
+            tiendaId: actual.tiendaId || req.tiendaId
           }
         });
       });
@@ -604,7 +618,8 @@ const transferir = async (req, res) => {
     }
 
     const nombreAnterior = pedido.asignadoId ? (await prisma.usuario.findUnique({ where: { id: pedido.asignadoId } }))?.nombre : null;
-    await registrarCambio(id, 'pedidos_oficina', 'asignado', nombreAnterior, operadorDestino.nombre, req.usuario.id, `${pedido.nombre} ${pedido.apellido}`);
+    const tiendaId = pedido.tiendaId || req.tiendaId;
+    await registrarCambio(id, 'pedidos_oficina', 'asignado', nombreAnterior, operadorDestino.nombre, req.usuario.id, `${pedido.nombre} ${pedido.apellido}`, tiendaId);
 
     await prisma.transferencia.create({
       data: {
@@ -612,7 +627,8 @@ const transferir = async (req, res) => {
         registroId: id,
         deUsuarioId: req.usuario.id,
         aUsuarioId,
-        notas
+        notas,
+        tiendaId
       }
     });
 
@@ -636,7 +652,8 @@ const transferir = async (req, res) => {
           creadoPorId: req.usuario.id,
           asignadoId: aUsuarioId,
           origenTipo: 'oficina',
-          origenId: id
+          origenId: id,
+          tiendaId
         }
       });
     }
@@ -696,6 +713,7 @@ const duplicar = async (req, res) => {
         notas: original.notas,
         notasInternas: original.notasInternas,
         favorito: false,
+        tiendaId: original.tiendaId || req.tiendaId,
         createdById: req.usuario.id,
         asignadoId: await getNextOperador('oficina') || null
       },
@@ -731,7 +749,7 @@ const asignarEtiqueta = async (req, res) => {
     }
 
     const creada = await prisma.registroEtiqueta.create({
-      data: { etiquetaId, registroId: id, tabla: 'pedidos_oficina' }
+      data: { etiquetaId, registroId: id, tabla: 'pedidos_oficina', tiendaId: pedido.tiendaId || req.tiendaId }
     });
 
     const etiqueta = await prisma.etiqueta.findUnique({ where: { id: etiquetaId } });
@@ -743,7 +761,8 @@ const asignarEtiqueta = async (req, res) => {
       cliente: `${pedido.nombre} ${pedido.apellido}`,
       descripcion: `Etiqueta: ${etiqueta?.nombre || 'Desconocida'}`,
       detalle: { etiqueta: etiqueta?.nombre || null, color: etiqueta?.color || null },
-      dedupeKey: creada ? `etq:${creada.id}` : null
+      dedupeKey: creada ? `etq:${creada.id}` : null,
+      tiendaId: pedido.tiendaId || req.tiendaId
     });
 
     const etiquetas = await prisma.registroEtiqueta.findMany({
