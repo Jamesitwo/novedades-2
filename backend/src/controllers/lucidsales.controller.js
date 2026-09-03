@@ -128,7 +128,7 @@ const confirmarEnvio = async (req, res) => {
     try {
       await prisma.pedidoVinculado.update({
         where: { lucidsalesPedidoId: Number(pedidoId) },
-        data: { subidoPorId: req.usuario.id }
+        data: { subidoPorId: req.authType === 'apikey' ? null : req.usuario.id, subidoAt: new Date() }
       });
       const pedidoActualizado = await lucidsalesService.getPedidoById(pedidoId);
       if (pedidoActualizado && pedidoActualizado.id) {
@@ -139,7 +139,7 @@ const confirmarEnvio = async (req, res) => {
         tipo: 'pedido_subido',
         entidad: 'pedido_lucidsales',
         registroId: String(pedidoId),
-        operadorId: req.usuario.id,
+        operadorId: req.authType === 'apikey' ? null : req.usuario.id,
         cliente: vinculado?.nombreCliente ? `${vinculado.nombreCliente} ${vinculado.apellidoCliente || ''}`.trim() : null,
         descripcion: 'Pedido subido a Dropi',
         detalle: { pedidoVinculadoId: Number(pedidoId), transportadora_id, transportadora: pedidoActualizado?.transportadora || null },
@@ -644,7 +644,7 @@ const subirDividido = async (req, res) => {
           tipo: 'pedido_subido',
           entidad: 'pedido_lucidsales',
           registroId: String(nuevoId),
-          operadorId: req.usuario.id,
+          operadorId: req.authType === 'apikey' ? null : req.usuario.id,
           cliente: original.Nombre ? `${original.Nombre} ${original.Apellido || ''}`.trim() : null,
           descripcion: 'Pedido subido a Dropi (dividido)',
           detalle: { pedidoVinculadoId: nuevoId, transportadora_id, producto: prod.product_id, refUnica },
@@ -657,7 +657,7 @@ const subirDividido = async (req, res) => {
         try {
           await prisma.pedidoVinculado.update({
             where: { lucidsalesPedidoId: Number(nuevoId) },
-            data: { subidoPorId: req.usuario.id }
+            data: { subidoPorId: req.authType === 'apikey' ? null : req.usuario.id, subidoAt: new Date() }
           });
           const pedidoActualizado = await lucidsalesService.getPedidoById(nuevoId);
           if (pedidoActualizado && pedidoActualizado.id) {
@@ -684,8 +684,8 @@ const subirDividido = async (req, res) => {
         }
         await prisma.pedidoVinculado.upsert({
           where: { lucidsalesPedidoId: Number(id) },
-          update: { subidoPorId: req.usuario.id, estadoPedido: 2 },
-          create: { lucidsalesPedidoId: Number(id), subidoPorId: req.usuario.id, estadoPedido: 2 }
+          update: { subidoPorId: req.authType === 'apikey' ? null : req.usuario.id, subidoAt: new Date(), estadoPedido: 2 },
+          create: { lucidsalesPedidoId: Number(id), subidoPorId: req.authType === 'apikey' ? null : req.usuario.id, subidoAt: new Date(), estadoPedido: 2 }
         });
       } catch (e) {
         console.error('[LucidSales] Error marcando pedido original como subido:', e.message);

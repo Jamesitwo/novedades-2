@@ -139,6 +139,29 @@ async function main() {
   }
   console.log(`   ✅ Pedidos de tienda subidos: ${tiendaSubidos.length}`);
 
+  // Backfill subidoAt: subidas históricas sin timestamp exacto → updatedAt
+  const sinSubidoAtLS = await prisma.pedidoVinculado.findMany({
+    where: { subidoPorId: { not: null }, subidoAt: null },
+    select: { lucidsalesPedidoId: true, updatedAt: true }
+  });
+  for (const v of sinSubidoAtLS) {
+    await prisma.pedidoVinculado.updateMany({
+      where: { lucidsalesPedidoId: v.lucidsalesPedidoId, subidoAt: null },
+      data: { subidoAt: v.updatedAt }
+    });
+  }
+  const sinSubidoAtT = await prisma.pedidoTienda.findMany({
+    where: { subidoPorId: { not: null }, subidoAt: null },
+    select: { id: true, updatedAt: true }
+  });
+  for (const t of sinSubidoAtT) {
+    await prisma.pedidoTienda.updateMany({
+      where: { id: t.id, subidoAt: null },
+      data: { subidoAt: t.updatedAt }
+    });
+  }
+  console.log(`   ✅ subidoAt backfilleado: ${sinSubidoAtLS.length} LucidSales, ${sinSubidoAtT.length} tienda`);
+
   const registrosEtiqueta = await prisma.registroEtiqueta.findMany({
     include: { etiqueta: { select: { nombre: true, color: true } } }
   });

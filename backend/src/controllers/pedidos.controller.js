@@ -304,7 +304,8 @@ const confirmarDropi = async (req, res) => {
       data: {
         transportadora: transportadora || null,
         estado: 'enviado',
-        subidoPorId: req.usuario.id
+        subidoPorId: req.authType === 'apikey' ? null : req.usuario.id,
+        subidoAt: new Date()
       }
     });
 
@@ -312,7 +313,7 @@ const confirmarDropi = async (req, res) => {
       tipo: 'pedido_subido',
       entidad: 'pedido_tienda',
       registroId: pedido.id,
-      operadorId: req.usuario.id,
+      operadorId: req.authType === 'apikey' ? null : req.usuario.id,
       cliente: `${pedido.nombre} ${pedido.apellido || ''}`.trim(),
       descripcion: `Pedido subido a ${transportadora || 'Dropi'}`,
       detalle: { transportadora: transportadora || null, producto: pedido.productoNombre, valor: pedido.total },

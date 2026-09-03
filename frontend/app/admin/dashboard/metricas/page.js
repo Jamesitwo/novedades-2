@@ -895,10 +895,16 @@ export default function MetricasPage() {
         <>
           {pedidosSubidos ? (
             <>
-              <div className="grid-3" style={{ marginBottom: 16 }}>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 12, marginBottom: 16 }}>
                 <div className="stat-card" style={{ borderLeft: '3px solid var(--accent2)' }}>
                   <div className="stat-label">Pedidos Subidos</div>
                   <div className="stat-value" style={{ color: 'var(--accent2)' }}>{pedidosSubidos.totalPedidos}</div>
+                  <div className="stat-sub">Asesores: {pedidosSubidos.totalPedidos - (pedidosSubidos.porApi || 0)} · API: {pedidosSubidos.porApi ?? 0}</div>
+                </div>
+                <div className="stat-card" style={{ borderLeft: '3px solid var(--blue)' }}>
+                  <div className="stat-label">Subidos por API</div>
+                  <div className="stat-value blue">{pedidosSubidos.porApi ?? 0}</div>
+                  <div className="stat-sub">Automatización, sin asesor</div>
                 </div>
                 <div className="stat-card" style={{ borderLeft: '3px solid var(--amber)' }}>
                   <div className="stat-label">Se volvieron Novedad</div>

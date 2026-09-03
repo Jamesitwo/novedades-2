@@ -255,6 +255,7 @@ model PedidoVinculado {
   asignado           Usuario? @relation("VinculadoAsignado", fields: [asignadoId], references: [id])
   subidoPorId        String?  @map("subido_por_id")
   subidoPor          Usuario? @relation("SubidoPor", fields: [subidoPorId], references: [id])
+  subidoAt           DateTime? @map("subido_at")
   notas              String?
   estado             String   @default("activo")
   createdAt          DateTime @default(now())
@@ -477,6 +478,7 @@ model PedidoTienda {
   guia           String?
   subidoPorId    String?   @map("subido_por_id")
   subidoPor      Usuario?  @relation(fields: [subidoPorId], references: [id])
+  subidoAt       DateTime? @map("subido_at")
   estado         String   @default("pendiente")
   metodoPago     String   @default("contraentrega") @map("metodo_pago")
   pagado         Boolean  @default(false)

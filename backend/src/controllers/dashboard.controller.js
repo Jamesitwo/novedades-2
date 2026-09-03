@@ -777,8 +777,6 @@ const getPedidosSubidos = async (req, res) => {
     const { periodo = 'hoy', fechaDesde, fechaHasta } = req.query;
     const { start, end } = getDateRange(periodo, fechaDesde, fechaHasta);
 
-    const whereDate = start ? { createdAt: { gte: start, lte: end } } : {};
-
     let operadores;
     if (req.usuario.rol === 'admin') {
       operadores = await prisma.usuario.findMany({
@@ -789,20 +787,15 @@ const getPedidosSubidos = async (req, res) => {
       operadores = [req.usuario];
     }
 
+    const whereDate = start ? { subidoAt: { gte: start, lte: end } } : {};
+
     const pedidosOperador = await Promise.all(operadores.map(async (op) => {
-      const [pedidosSubidos, pedidosLegacy] = await Promise.all([
-        prisma.pedidoVinculado.findMany({
-          where: { ...whereDate, subidoPorId: op.id, estado: 'activo' },
-          select: { lucidsalesPedidoId: true }
-        }),
-        prisma.pedidoVinculado.findMany({
-          where: { ...whereDate, subidoPorId: null, createdById: op.id, estado: 'activo' },
-          select: { lucidsalesPedidoId: true }
-        })
-      ]);
-      const pedidosIds = [...pedidosSubidos, ...pedidosLegacy];
-      const ids = pedidosIds.map(p => p.lucidsalesPedidoId);
-      const totalSubidos = pedidosIds.length;
+      const pedidosSubidos = await prisma.pedidoVinculado.findMany({
+        where: { ...whereDate, subidoPorId: op.id, estado: 'activo' },
+        select: { lucidsalesPedidoId: true }
+      });
+      const ids = pedidosSubidos.map(p => p.lucidsalesPedidoId);
+      const totalSubidos = pedidosSubidos.length;
 
       let novedadesCreadas = 0;
       let devolucionesNovedad = 0;
@@ -835,7 +828,11 @@ const getPedidosSubidos = async (req, res) => {
       };
     }));
 
-    const totalPedidos = pedidosOperador.reduce((sum, m) => sum + m.pedidosSubidos, 0);
+    const subidosPorApi = await prisma.pedidoVinculado.count({
+      where: { ...whereDate, subidoPorId: null, subidoAt: { not: null }, estado: 'activo' }
+    });
+
+    const totalPedidos = pedidosOperador.reduce((sum, m) => sum + m.pedidosSubidos, 0) + subidosPorApi;
     const totalNovedades = pedidosOperador.reduce((sum, m) => sum + m.novedadesCreadas, 0);
     const totalDevoluciones = pedidosOperador.reduce((sum, m) => sum + m.devoluciones, 0);
 
@@ -844,6 +841,7 @@ const getPedidosSubidos = async (req, res) => {
       desde: start,
       hasta: end,
       totalPedidos,
+      porApi: subidosPorApi,
       totalNovedades,
       totalDevoluciones,
       operadores: pedidosOperador.sort((a, b) => b.pedidosSubidos - a.pedidosSubidos)
