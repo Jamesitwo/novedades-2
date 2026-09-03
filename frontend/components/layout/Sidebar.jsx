@@ -20,9 +20,27 @@ export default function Sidebar() {
   const [wsConnected, setWsConnected] = useState(false);
   const [showPasswordModal, setShowPasswordModal] = useState(false);
   const [openSections, setOpenSections] = useState({ logistics: true, finance: true, channels: true, system: true });
+  const [tiendaActiva, setTiendaActiva] = useState('pizdo');
 
   useEffect(() => {
     initTheme();
+    if (typeof window !== 'undefined') {
+      const guardada = localStorage.getItem('tiendaActiva');
+      if (guardada === 'zunto' || guardada === 'pizdo') setTiendaActiva(guardada);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (usuario?.id) {
+      api.get('/api/auth/me').then(({ data }) => {
+        if (data && data.id === usuario.id && (data.verMultiTienda ?? false) !== (usuario.verMultiTienda ?? false)) {
+          const actualizado = { ...usuario, verMultiTienda: !!data.verMultiTienda };
+          useAuthStore.setState({ usuario: actualizado });
+          localStorage.setItem('usuario', JSON.stringify(actualizado));
+        }
+      }).catch(() => {});
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const fetchCounts = useCallback(async () => {
@@ -64,6 +82,7 @@ export default function Sidebar() {
   const canNov = isAdmin || usuario?.gestionaNovedades !== false;
   const canOfi = isAdmin || usuario?.gestionaOficina !== false;
   const showLucidsales = isAdmin || usuario?.accesoLucidsales === true;
+  const esZunto = !!usuario?.verMultiTienda && tiendaActiva === 'zunto';
 
   const NavItem = ({ href, icon, label, badge, badgeColor, exact }) => {
     const active = exact ? pathname === href : pathname.startsWith(href);
@@ -98,6 +117,22 @@ export default function Sidebar() {
           <span className="logo-dot"></span>AdminPanel
         </div>
         <div className="logo-sub">Back-office · Pizdo</div>
+        {usuario?.verMultiTienda && (
+          <div style={{ marginTop: 10 }}>
+            <select
+              value={tiendaActiva}
+              onChange={(e) => { const v = e.target.value; setTiendaActiva(v); localStorage.setItem('tiendaActiva', v); }}
+              style={{
+                width: '100%', padding: '7px 10px', borderRadius: 8, fontSize: 12, fontWeight: 600,
+                background: 'var(--bg3)', color: 'var(--accent2)', border: '1px solid var(--border)',
+                outline: 'none', cursor: 'pointer', fontFamily: 'inherit'
+              }}
+            >
+              <option value="pizdo">Pizdo</option>
+              <option value="zunto">Zunto</option>
+            </select>
+          </div>
+        )}
         <div className="sidebar-status" style={{ display: 'flex', alignItems: 'center', gap: 5, marginTop: 6, fontSize: 10 }}>
           <span style={{
             width: 7, height: 7, borderRadius: '50%',
@@ -134,17 +169,18 @@ export default function Sidebar() {
         </Section>
 
         <Section title="Canales" sectionKey="channels">
-          {(showLucidsales || isAdmin) && <NavItem href="/" icon="storefront" label="Pizdo · Tienda" exact />}
-          {isAdmin && <NavItem href="/admin/perfumes" icon="sanitizer" label="Perfumes" badge={counts.perfumesPendientes > 0 ? counts.perfumesPendientes : null} badgeColor="purple" />}
+          {!esZunto && (showLucidsales || isAdmin) && <NavItem href="/" icon="storefront" label="Pizdo · Tienda" exact />}
+          {!esZunto && isAdmin && <NavItem href="/admin/perfumes" icon="sanitizer" label="Perfumes" badge={counts.perfumesPendientes > 0 ? counts.perfumesPendientes : null} badgeColor="purple" />}
+          {esZunto && <NavItem href="/admin/importador-pedidos" icon="cloud_download" label="Importar Pedidos" />}
           {showLucidsales && <NavItem href="/admin/lucidsales" icon="shopping_cart" label="LucidSales" />}
         </Section>
 
         <Section title="Sistema" sectionKey="system">
           {isAdmin && <NavItem href="/admin/dashboard/metricas" icon="bar_chart" label="Métricas" />}
           {isAdmin && <NavItem href="/admin/tareas" icon="task_alt" label="Tareas" />}
-          {isAdmin && <NavItem href="/admin/tienda" icon="store" label="Admin Tienda" />}
-          {isAdmin && <NavItem href="/admin/pedidos" icon="package_2" label="Pedidos" />}
-          {isAdmin && <NavItem href="/admin/pizdo" icon="trophy" label="P. Ganadores" />}
+          {isAdmin && !esZunto && <NavItem href="/admin/tienda" icon="store" label="Admin Tienda" />}
+          {isAdmin && !esZunto && <NavItem href="/admin/pedidos" icon="package_2" label="Pedidos" />}
+          {isAdmin && !esZunto && <NavItem href="/admin/pizdo" icon="trophy" label="P. Ganadores" />}
           {isAdmin && <NavItem href="/admin/usuarios" icon="group" label="Usuarios" />}
           {isAdmin && <NavItem href="/admin/plantillas" icon="forum" label="Plantillas" />}
           {isAdmin && <NavItem href="/admin/configuracion" icon="settings" label="Configuración" />}

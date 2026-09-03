@@ -355,6 +355,8 @@ model Tienda {
   botFieldIntegracion String?  @map("bot_field_integracion")
   botFieldMensajes    String?  @map("bot_field_mensajes")
   botFieldMultimedia  String?  @map("bot_field_multimedia")
+  botFieldPedidos     String?  @map("bot_field_pedidos")
+  botFieldIntegracionPedidos String? @map("bot_field_integracion_pedidos")
   createdAt           DateTime @default(now())
   updatedAt           DateTime @updatedAt
 
@@ -363,6 +365,7 @@ model Tienda {
   resenas       Resena[]
   botFieldCache BotFieldCache[]
   importLogs    ImportLogProducto[]
+  importLogsPedidos ImportLogPedido[]
 
   @@map("tiendas")
 }
@@ -391,6 +394,20 @@ model ImportLogProducto {
 
   @@index([tiendaId, createdAt])
   @@map("import_log_productos")
+}
+
+model ImportLogPedido {
+  id                 String   @id @default(uuid())
+  tiendaId           String   @map("tienda_id")
+  tienda             Tienda   @relation(fields: [tiendaId], references: [id], onDelete: Cascade)
+  lucidsalesPedidoId String   @map("lucidsales_pedido_id")
+  cliente            String
+  estado             String   @default("ok")
+  detalle            String?
+  createdAt          DateTime @default(now())
+
+  @@index([tiendaId, createdAt])
+  @@map("import_log_pedidos")
 }
 
 model ProductoGanador {

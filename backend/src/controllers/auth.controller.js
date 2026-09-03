@@ -1,6 +1,7 @@
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const { prisma } = require('../prisma/client');
+const { verMultiTienda } = require('../middlewares/multi-tienda.middleware');
 
 const parseExpiry = (str) => {
   const match = str.match(/^(\d+)\s*(s|m|h|d)$/);
@@ -54,7 +55,7 @@ const login = async (req, res) => {
 
     const { password: _, ...usuarioSinPass } = usuario;
 
-    res.json({ token, usuario: usuarioSinPass });
+    res.json({ token, usuario: { ...usuarioSinPass, verMultiTienda: verMultiTienda(usuario) } });
   } catch (error) {
     console.error('Login error:', error);
     res.status(500).json({ error: 'Error en el servidor' });
@@ -89,7 +90,7 @@ const me = async (req, res) => {
       return res.status(404).json({ error: 'Usuario no encontrado' });
     }
 
-    res.json(usuario);
+    res.json({ ...usuario, verMultiTienda: verMultiTienda(usuario) });
   } catch (error) {
     res.status(500).json({ error: 'Error en el servidor' });
   }

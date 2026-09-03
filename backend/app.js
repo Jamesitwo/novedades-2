@@ -155,6 +155,9 @@ app.use('/api/alertas', alertasRoutes);
 const perfumesRoutes = require('./src/routes/perfumes.routes');
 app.use('/api/perfumes', perfumesRoutes);
 
+const importadorPedidosRoutes = require('./src/routes/importador-pedidos.routes');
+app.use('/api/importador-pedidos', importadorPedidosRoutes);
+
 app.get('/api/health', (req, res) => {
   const wsService = require('./src/services/websocket.service');
   res.json({

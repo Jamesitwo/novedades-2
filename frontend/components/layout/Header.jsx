@@ -38,6 +38,7 @@ export default function Header() {
     if (pathname.startsWith('/admin/plantillas')) return 'Plantillas WhatsApp';
     if (pathname.startsWith('/admin/tienda')) return 'Admin Tienda';
     if (pathname.startsWith('/admin/perfumes')) return 'Perfumes';
+    if (pathname.startsWith('/admin/importador-pedidos')) return 'Zunto · Importar Pedidos';
     if (pathname.startsWith('/admin/pedidos')) return 'Pedidos Tienda';
     if (pathname.startsWith('/admin/lucidsales/productos')) return 'LucidSales · Productos';
     if (pathname.startsWith('/admin/lucidsales')) return 'LucidSales · Pedidos';

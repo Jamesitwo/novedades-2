@@ -14,7 +14,8 @@ async function main() {
 
   const pizdo = await upsertTienda('Pizdo', 'pizdo');
   const perfumes = await upsertTienda('Perfumes', 'perfumes');
-  console.log('   ✅ Tiendas listas:', pizdo.nombre, 'y', perfumes.nombre);
+  const zunto = await upsertTienda('Zunto', 'zunto');
+  console.log('   ✅ Tiendas listas:', pizdo.nombre, ',', perfumes.nombre, 'y', zunto.nombre);
 
   const prod = await prisma.productoTienda.updateMany({
     where: { tiendaId: null },
