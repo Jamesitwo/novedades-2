@@ -1,4 +1,4 @@
-FROM node:20-alpine AS frontend-builder
+FROM node:22-alpine AS frontend-builder
 WORKDIR /build/frontend
 COPY frontend/package.json frontend/package-lock.json ./
 RUN npm ci
@@ -7,7 +7,7 @@ COPY frontend/ .
 ENV NEXT_TELEMETRY_DISABLED=1
 RUN npm run build
 
-FROM node:20-alpine AS backend-builder
+FROM node:22-alpine AS backend-builder
 WORKDIR /build/backend
 RUN apk add --no-cache openssl
 COPY backend/package.json backend/package-lock.json ./
@@ -16,7 +16,7 @@ RUN npm ci
 RUN npx prisma generate --schema prisma/schema.prisma
 COPY backend/ .
 
-FROM node:20-alpine
+FROM node:22-alpine
 ARG CACHEBUST=11
 WORKDIR /app
 RUN apk add --no-cache openssl
