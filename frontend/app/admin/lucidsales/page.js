@@ -62,6 +62,8 @@ export default function LucidSalesPage() {
   const [pedidos, setPedidos] = useState([]);
   const [totalRecords, setTotalRecords] = useState(0);
   const [numPages, setNumPages] = useState(0);
+  // con filtros que se revisan en vivo (asignado + estado/busqueda) el total es aproximado
+  const [totalAprox, setTotalAprox] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [connected, setConnected] = useState(false);
@@ -139,6 +141,7 @@ export default function LucidSalesPage() {
         setPedidos(data.pedidos || []);
         setTotalRecords(data.totalRecords || 0);
         setNumPages(data.numPages || 0);
+        setTotalAprox(Boolean(data.totalAproximado));
       } else {
         setError(data.error || 'Error al obtener pedidos');
       }
@@ -371,7 +374,7 @@ export default function LucidSalesPage() {
         <div>
           <h2 style={{ margin: 0, fontSize: 20, fontWeight: 700 }}>LucidSales · Pedidos</h2>
           <div style={{ fontSize: 12, color: 'var(--text3)', marginTop: 4, display: 'flex', alignItems: 'center', gap: 8 }}>
-            <span>{totalRecords.toLocaleString()} pedidos</span>
+            <span title={totalAprox ? 'Aproximado: se revisan en vivo en LucidSales a medida que pasas de página' : undefined}>{totalAprox ? '≈ ' : ''}{totalRecords.toLocaleString()} pedidos</span>
             {pedidosHoy > 0 && (
               <span style={{
                 background: 'var(--accent2)', color: '#fff',
@@ -519,7 +522,7 @@ export default function LucidSalesPage() {
         <>
           <div className="table-card">
             <div className="table-header">
-              <span className="table-header-title">Pedidos ({totalRecords})</span>
+              <span className="table-header-title">Pedidos ({totalAprox ? '≈' : ''}{totalRecords})</span>
             </div>
             <table>
               <thead>

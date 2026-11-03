@@ -1,7 +1,3 @@
-// CONVERTIDO desde ZuntoStore (llm.js) ESM -> CommonJS.
-// Revision manual pendiente:
-//   - (ninguna)
-
 // Cliente LLM minimo (API compatible con OpenAI: /chat/completions).
 //
 // SOLO se usa para EXTRAER datos del chat en lenguaje natural. La decision de
@@ -11,11 +7,12 @@
 // DeepSeek, Together, OpenRouter o el endpoint compatible de Gemini: solo
 // cambia LLM_BASE y LLM_MODELO en server/.env.
 
-const {hoyColombia} = require('./fechaEntrega.js');
+import { hoyColombia } from "./fechaEntrega.js";
+
 const DEFECTO_BASE = "https://api.openai.com/v1";
 
 /** Prompt de extraccion: corto y explicito para forzar JSON limpio. */
-const PROMPT_DEFECTO = `Eres un extractor de datos de chats de WhatsApp de una tienda.
+export const PROMPT_DEFECTO = `Eres un extractor de datos de chats de WhatsApp de una tienda.
 Lees la conversacion entre un cliente y un bot y devuelves SOLO un JSON, sin texto.
 
 Campos exactos:
@@ -27,6 +24,7 @@ Campos exactos:
 - "entregaFutura": true si el cliente pidió que se entregue/reciba en una fecha posterior a hoy o pidió aplazarla; false si no pidió una fecha futura; null si no se puede determinar.
 - "fechaEntregaSolicitada": fecha o expresión de fecha solicitada por el cliente (string; "" si no existe).
 - "fechaEntregaISO": si entregaFutura es true, la fecha concreta pedida como "AAAA-MM-DD", calculada con la fecha de hoy que se te da y los timestamps del chat ("" si no se puede saber el dia exacto).
+- "productos": arreglo con CADA producto que el cliente pidió: [{"producto": "nombre", "cantidad": entero, "precio": precio de ese producto en pesos (numero entero; null si no se dijo)}]. Si pidió uno solo, un arreglo de un elemento. Usa los productos del pedido que te paso aparte como referencia de nombres.
 - "corregimiento": si el cliente dice que vive en un corregimiento, inspección o centro poblado (un pueblo que pertenece a otro municipio, p. ej. "Rozo" de Palmira o "San Antonio de Prado" de Medellín), su nombre solo, sin la palabra "corregimiento" (string). "" si vive en la ciudad o municipio (un barrio NO es un corregimiento).
 - "incertidumbre": arreglo de strings con lo que no quedo claro.
 - "razonamiento": 2 o 3 frases en español que expliquen lo que entendiste del chat (que pidio el cliente, a que precio, si confirmo y por que lo crees). Solo lo que dice el chat.
@@ -58,7 +56,7 @@ Reglas:
 const CLAVES_EVIDENCIA = ["producto", "cantidad", "precioAcordado", "direccion", "clienteConfirmo", "entregaFutura", "segundaCompra", "corregimiento"];
 
 /** gpt-5*, o1/o3/o4 en OpenAI (u OpenRouter con prefijo openai/) aceptan reasoning_effort. */
-function esModeloRazonamiento(modelo, base = "") {
+export function esModeloRazonamiento(modelo, base = "") {
   const m = String(modelo ?? "").toLowerCase().replace(/^openai\//, "");
   const b = String(base ?? "");
   return /^(gpt-5|o1|o3|o4)/.test(m) && (/openai\.com/.test(b) || /openrouter\.ai/.test(b) || !b);
@@ -94,6 +92,16 @@ function normalizarSalida(v) {
     entregaFutura: typeof o.entregaFutura === "boolean" ? o.entregaFutura : null,
     fechaEntregaSolicitada: typeof o.fechaEntregaSolicitada === "string" ? o.fechaEntregaSolicitada.trim() : "",
     fechaEntregaISO: typeof o.fechaEntregaISO === "string" && /^\d{4}-\d{2}-\d{2}$/.test(o.fechaEntregaISO.trim()) ? o.fechaEntregaISO.trim() : "",
+    productos: Array.isArray(o.productos)
+      ? o.productos
+          .filter((x) => x && typeof x === "object" && String(x.producto ?? "").trim())
+          .slice(0, 10)
+          .map((x) => ({
+            producto: String(x.producto).trim().slice(0, 160),
+            cantidad: Number.isInteger(Number(x.cantidad)) && Number(x.cantidad) > 0 ? Number(x.cantidad) : 1,
+            precio: Number.isFinite(Number(x.precio)) && x.precio !== null && x.precio !== "" ? Number(x.precio) : null,
+          }))
+      : [],
     corregimiento: typeof o.corregimiento === "string" ? o.corregimiento.replace(/^\s*(corregimiento|vereda|inspecci[oó]n|centro poblado)\s+(de\s+)?/i, "").trim().slice(0, 80) : "",
     incertidumbre: Array.isArray(o.incertidumbre) ? o.incertidumbre.map(String) : [],
     razonamiento: typeof o.razonamiento === "string" ? o.razonamiento.trim().slice(0, 800) : "",
@@ -125,7 +133,7 @@ function normalizarSalida(v) {
  * Crea el extractor con la config del server.
  *   extraerConversacion(mensajes) -> datos extraidos (forma normalizada)
  */
-function crearExtractorLLM(config = {}) {
+export function crearExtractorLLM(config = {}) {
   return async function extraerConversacion(mensajes, contexto = {}) {
     // se leen en cada llamada: la clave, el proveedor y el modelo se pueden
     // cambiar desde el panel sin reiniciar el servidor
@@ -175,6 +183,10 @@ function crearExtractorLLM(config = {}) {
                     "(otra unidad, otro producto, volvio a pedir despues de confirmar el primero); false si el chat solo muestra " +
                     "una compra; y en evidencia.segundaCompra la frase del cliente que lo muestra.\n\n"
                   : "") +
+                (contexto?.productosPedido
+                  ? `Productos del pedido: ${contexto.productosPedido}\n` +
+                    'Agrega al JSON "productos": [{"producto", "cantidad", "precio"}] con CADA producto que el cliente pidió en el chat (precio de ese producto en pesos, null si no se dijo).\n'
+                  : "") +
                 'Si el cliente dice que vive en un corregimiento o centro poblado (no un barrio), agrega "corregimiento" con su nombre solo ("" si no).\n' +
                 `Hoy es ${hoyColombia()} (hora de Colombia). Si el cliente pidió la entrega para una fecha futura, agrega al JSON ` +
                 '"fechaEntregaISO" con esa fecha como "AAAA-MM-DD" ("" si no se puede saber el día exacto).\n\n' +
@@ -220,7 +232,7 @@ function crearExtractorLLM(config = {}) {
  * Prueba la clave/proveedor/modelo con una peticion minima (sin datos de
  * clientes). Devuelve {ok, status, detalle, ms}.
  */
-async function probarLLM({ base, modelo, apiKey, timeoutMs = 30000, fetcher = fetch } = {}) {
+export async function probarLLM({ base, modelo, apiKey, timeoutMs = 30000, fetcher = fetch } = {}) {
   const url = `${String(base || DEFECTO_BASE).replace(/\/+$/, "")}/chat/completions`;
   if (!apiKey) return { ok: false, detalle: "No hay API key para probar" };
   const ctl = new AbortController();
@@ -264,5 +276,3 @@ async function probarLLM({ base, modelo, apiKey, timeoutMs = 30000, fetcher = fe
     clearTimeout(t);
   }
 }
-
-module.exports = { probarLLM, esModeloRazonamiento, crearExtractorLLM, PROMPT_DEFECTO };

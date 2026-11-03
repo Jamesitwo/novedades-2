@@ -1,7 +1,3 @@
-// CONVERTIDO desde ZuntoStore (agente.js) ESM -> CommonJS.
-// Revision manual pendiente:
-//   - (ninguna)
-
 // Nucleo del agente de Dropi: decide si un pedido se puede subir.
 //
 // Division de responsabilidades (acordada):
@@ -13,10 +9,12 @@
 //
 // Todo lo de comparacion es puro y sin red: se puede probar sin LLM ni APIs.
 
-const {diasHasta, fechaDeExtraccion} = require('./fechaEntrega.js');
-const {claveCalle, recogeEnOficina, validarDireccion} = require('./direccionColombia.js');
+import { diasHasta, fechaDeExtraccion } from "./fechaEntrega.js";
+import { candidatosNumeroPegado } from "./validadorDireccion.js";
+import { claveCalle, recogeEnOficina, validarDireccion } from "./direccionColombia.js";
+
 /** Separa los acentos y baja a minusculas: "Medellin" == "medellín". */
-function normalizarTexto(v) {
+export function normalizarTexto(v) {
   return String(v ?? "")
     .normalize("NFD")
     .replace(/[\u0300-\u036f]/g, "")
@@ -30,7 +28,7 @@ function normalizarTexto(v) {
  * En Colombia el punto es de miles y la coma de decimal. Si solo hay un
  * separador y le siguen 3 digitos, se trata como miles (84.900 = 84900).
  */
-function parsearPrecio(v) {
+export function parsearPrecio(v) {
   if (typeof v === "number") return Number.isFinite(v) ? v : null;
   const t = String(v ?? "").replace(/[^\d.,-]/g, "");
   if (!t || !/\d/.test(t)) return null;
@@ -105,39 +103,88 @@ function cobertura(chat, objetivo) {
  * Compara por solapamiento de palabras, no por igualdad exacta: la gente
  * escribe "el taladro ese" y el catalogo dice "Taladro Inalambrico 68V".
  */
-function coincideProducto(chat, catalogo) {
-  // acepta ["Taladro"] o [{nombre:"Taladro", ...}] (como viene en resumen.productos)
-  const nombres = (Array.isArray(catalogo) ? catalogo : [catalogo])
-    .map((x) => (x && typeof x === "object" ? (x.nombre ?? x.name ?? x.producto ?? "") : x))
-    .filter(Boolean);
+export function coincideProducto(chat, catalogo) {
+  // acepta ["Taladro"] o [{nombre:"Taladro", variante?:{nombre}}] (como viene en resumen.productos)
+  const items = (Array.isArray(catalogo) ? catalogo : [catalogo])
+    .map((x) =>
+      x && typeof x === "object"
+        ? { nombre: String(x.nombre ?? x.name ?? x.producto ?? ""), variante: String(x.variante?.nombre ?? "") }
+        : { nombre: String(x ?? ""), variante: "" },
+    )
+    .filter((x) => x.nombre);
   if (!tokens(chat).length) {
     return { ok: false, razon: "no se entendio el producto del chat", nombre: "" };
   }
-  if (!nombres.length) {
+  if (!items.length) {
     return { ok: false, razon: "el pedido no trae productos para comparar", nombre: "" };
   }
 
   let mejor = null;
-  for (const nombre of nombres) {
-    const c = cobertura(chat, nombre);
-    if (c.valor >= 0.5) return { ok: true, razon: "", nombre: String(nombre) };
+  for (const { nombre, variante } of items) {
+    // con variante, sus valores tambien cuentan ("Arbol ... (Copa: Blanca - Tamaño: 150 cm)")
+    const completo = variante ? `${nombre} ${variante}` : nombre;
+    const c = cobertura(chat, completo);
+    // y al reves: todo el nombre del catalogo esta en el chat (el chat trae de mas)
+    const alReves = cobertura(nombre, chat);
+    if (c.valor >= 0.5 || (alReves.valor >= 0.99 && alReves.tokens >= 2)) {
+      const v = varianteDistinta(chat, variante);
+      if (v) return { ok: false, razon: v, nombre };
+      return { ok: true, razon: "", nombre: completo };
+    }
     if (!mejor || c.valor > mejor.valor) {
-      mejor = {
-        ok: false,
-        razon: `sin coincidencia con "${nombre}"`,
-        nombre: String(nombre),
-        valor: c.valor,
-      };
+      mejor = { ok: false, razon: `sin coincidencia con "${nombre}"`, nombre, valor: c.valor };
     }
   }
   return mejor;
 }
 
 /**
+ * Medidas de longitud del texto, pasadas a centimetros: "1,50 m" -> 150,
+ * "150 cm" -> 150, "1.5 metros" -> 150, "90cm" -> 90.
+ */
+export function medidasCm(texto) {
+  const out = [];
+  const re = /(\d+(?:[.,]\d+)?)\s*(cm|cms|centimetros?|mts?|metros?|m)(?![a-z])/g;
+  for (const m of normalizarTexto(texto).matchAll(re)) {
+    const n = Number(m[1].replace(",", "."));
+    if (!Number.isFinite(n)) continue;
+    const cm = m[2].startsWith("c") ? n : n * 100;
+    const r = Math.round(cm);
+    if (r > 0 && !out.includes(r)) out.push(r);
+  }
+  return out;
+}
+
+/**
+ * ¿El chat pide OTRA variante? Si menciona algun valor de la variante del
+ * pedido ("blanca") pero no todos ("90 cm" en vez de "150 cm"), no es la misma.
+ * Si no menciona ninguno, no se puede saber: no frena.
+ */
+function varianteDistinta(chat, variante) {
+  if (!variante) return null;
+  const valores = variante
+    .split(";")
+    .map((x) => x.split(":").slice(1).join(":") || x)
+    .map((x) => normalizarTexto(x).replace(/[^a-z0-9\s]/g, " ").replace(/\s+/g, " ").trim())
+    .filter(Boolean);
+  if (!valores.length) return null;
+  const t = ` ${normalizarTexto(chat).replace(/[^a-z0-9\s]/g, " ").replace(/\s+/g, " ")} `;
+  const enChat = medidasCm(chat);
+  const estan = valores.filter((v) => {
+    if (t.includes(` ${v} `)) return true;
+    // medidas en otra unidad: "1,50 m" = "150 cm" = "1.5 metros"
+    const m = medidasCm(v);
+    return m.length > 0 && m.every((x) => enChat.includes(x));
+  });
+  if (!estan.length || estan.length === valores.length) return null;
+  return `variante: en el chat no coincide con la del pedido (${variante})`;
+}
+
+/**
  * ¿El precio del chat calza con el pedido?
  * Se acepta que el cliente haya citado el total (con envio) o solo el producto.
  */
-function coincidePrecio(precioChat, resumen, tolerancia = 0.01) {
+export function coincidePrecio(precioChat, resumen, tolerancia = 0.01) {
   const p = parsearPrecio(precioChat);
   if (p === null) return { ok: false, razon: "no se entendio el precio del chat", valor: null };
 
@@ -158,26 +205,121 @@ function coincidePrecio(precioChat, resumen, tolerancia = 0.01) {
 }
 
 /** ¿La direccion del chat se parece a la del pedido? (contencion de palabras) */
-function coincideDireccion(chat, pedido) {
+export function coincideDireccion(chat, pedido, { referencias = "" } = {}) {
   if (!tokens(chat).length) {
     return { ok: false, razon: "no se entendio la direccion del chat" };
   }
   if (!tokens(pedido).length) {
     return { ok: false, razon: "el pedido no tiene direccion para comparar" };
   }
+  // el mismo texto: coincide (aunque no se entienda su formato)
+  if (tokens(chat).join(" ") === tokens(pedido).join(" ")) return { ok: true, razon: "" };
   // misma calle y numeros (aunque una traiga ciudad o barrio de mas): coincide
   const kChat = claveCalle(chat);
   if (kChat && kChat === claveCalle(pedido)) return { ok: true, razon: "" };
-  const c = cobertura(chat, pedido);
-  const numerosChat = tokens(chat).filter((t) => /^\d+[a-z]?$/.test(t));
-  const numerosPedido = tokens(pedido).filter((t) => /^\d+[a-z]?$/.test(t));
+  // el pedido con sus referencias (barrio, conjunto...) es lo que se envia
+  const objetivo = `${pedido} ${referencias ?? ""}`;
+  // el chat suele traer de mas (nombre, ciudad, telefono): se mira tambien al
+  // reves, si TODO lo del pedido esta en el chat
+  const c = cobertura(chat, objetivo);
+  const alReves = cobertura(objetivo, chat);
+  // numeros de la direccion (no telefonos ni cedulas)
+  // (con los de un digito: "casa 9")
+  const numeros = (v) => new Set(normalizarTexto(v).match(/\b\d{1,5}[a-z]?\b/g) ?? []);
+  const numerosChat = numeros(chat);
+  const numerosPedido = numeros(objetivo);
   const numerosCoinciden =
-    numerosChat.length > 0 &&
-    numerosChat.length === numerosPedido.length &&
-    numerosChat.every((n) => numerosPedido.includes(n));
-  return c.valor >= 0.75 && numerosCoinciden
+    numerosChat.size > 0 &&
+    numerosChat.size === numerosPedido.size &&
+    [...numerosChat].every((n) => numerosPedido.has(n));
+  // letras de manzana, bloque, torre... ("Manzana B" no es "Manzana C")
+  const letras = (v) => {
+    const m = new Map();
+    for (const [, k, l] of normalizarTexto(v).matchAll(/\b(manzana|manz|mza|mz|bloque|bl|torre|tr|interior|int|etapa)\.?\s+([a-z])\b/g)) {
+      const g = /^m/.test(k) ? "mz" : /^b/.test(k) ? "bl" : /^t/.test(k) ? "tr" : /^i/.test(k) ? "int" : "et";
+      m.set(g, l);
+    }
+    return m;
+  };
+  const lChat = letras(chat);
+  const lPedido = letras(objetivo);
+  const letrasCoinciden = [...lChat].every(([g, l]) => !lPedido.has(g) || lPedido.get(g) === l);
+  return numerosCoinciden && letrasCoinciden && (c.valor >= 0.75 || alReves.valor >= 0.9)
     ? { ok: true, razon: "" }
-    : { ok: false, razon: `chat "${chat}" vs pedido "${pedido}" (coincidencia ${Math.round(c.valor * 100)}%)` };
+    : {
+        ok: false,
+        razon: `chat "${chat}" vs pedido "${[pedido, referencias].filter(Boolean).join(", ")}" (coincidencia ${Math.round(Math.max(c.valor, alReves.valor) * 100)}%)`,
+      };
+}
+
+/** Productos distintos por pedido que se suben (una orden de Dropi por cada uno). */
+export const MAX_LINEAS = 5;
+
+/**
+ * Pedido con varios productos: cada linea tiene que estar en lo que pidio el
+ * cliente (uno a uno), con la misma cantidad y, si el chat da el precio de
+ * ese producto, el mismo precio (unitario o total de la linea).
+ */
+export function compararLineas(lineas, extraido) {
+  const delChat = Array.isArray(extraido?.productos) ? [...extraido.productos] : [];
+  const usados = new Set();
+  const faltan = [];
+  const cantidadesMal = [];
+  const preciosMal = [];
+  const parejas = [];
+  for (const [i, l] of lineas.entries()) {
+    const nombreLinea = l.variante?.nombre ? `${l.nombre} (${l.variante.nombre})` : l.nombre;
+    let k = -1;
+    for (const [j, c] of delChat.entries()) {
+      if (usados.has(j)) continue;
+      if (coincideProducto(c.producto, [l]).ok) {
+        k = j;
+        break;
+      }
+    }
+    if (k < 0) {
+      faltan.push(nombreLinea || `línea ${i + 1}`);
+      continue;
+    }
+    usados.add(k);
+    const c = delChat[k];
+    parejas.push(`"${c.producto}" -> ${nombreLinea}`);
+    if (Number(c.cantidad) !== Number(l.cantidad)) {
+      cantidadesMal.push(`${nombreLinea}: chat ${c.cantidad}, pedido ${l.cantidad}`);
+    }
+    if (c.precio !== null && c.precio !== undefined) {
+      const unit = parsearPrecio(l.precio);
+      const total = unit !== null ? unit * (Number(l.cantidad) || 1) : null;
+      const cerca = (a, b) => a !== null && b !== null && b > 0 && Math.abs(a - b) / b <= 0.01;
+      if (!cerca(Number(c.precio), unit) && !cerca(Number(c.precio), total)) {
+        preciosMal.push(`${nombreLinea}: chat ${c.precio}, pedido ${unit ?? "sin precio"}${Number(l.cantidad) > 1 ? ` c/u (${total})` : ""}`);
+      }
+    }
+  }
+  const sobran = delChat.filter((_, j) => !usados.has(j)).map((c) => c.producto);
+  const sinLista = delChat.length === 0;
+  return {
+    productos: {
+      ok: !sinLista && !faltan.length && !sobran.length,
+      detalle: sinLista
+        ? "la IA no leyó la lista de productos del chat"
+        : faltan.length || sobran.length
+          ? [faltan.length ? `en el chat no aparece: ${faltan.join(", ")}` : "", sobran.length ? `el chat pide además: ${sobran.join(", ")}` : ""].filter(Boolean).join("; ")
+          : `todos coinciden: ${parejas.join(" · ")}`,
+    },
+    cantidades: {
+      ok: !sinLista && !faltan.length && !cantidadesMal.length,
+      detalle: cantidadesMal.length ? cantidadesMal.join("; ") : faltan.length || sinLista ? "no se pudo comparar" : "coinciden en todos los productos",
+    },
+    precios: {
+      ok: !sinLista && !faltan.length && !preciosMal.length,
+      detalle: preciosMal.length
+        ? `no coincide el precio de: ${preciosMal.join("; ")}`
+        : faltan.length || sinLista
+          ? "no se pudo comparar"
+          : "el precio de cada producto coincide (o el chat no lo dio por separado)",
+    },
+  };
 }
 
 /**
@@ -185,7 +327,7 @@ function coincideDireccion(chat, pedido) {
  * Devuelve {ok, checks:[{campo, ok, detalle}]} con TODO evaluado (no corta en
  * el primer fallo) para que el usuario vea el cuadro completo de una mirada.
  */
-function validarPedido(resumen, extraido, { oficina = null } = {}) {
+export function validarPedido(resumen, extraido, { oficina = null } = {}) {
   const checks = [];
   // direccion de ENVIO (la del pedido): formato colombiano; la IA solo la
   // descompone, las reglas y la verificacion de numeros son del codigo.
@@ -193,38 +335,62 @@ function validarPedido(resumen, extraido, { oficina = null } = {}) {
   const dirEnvio = oficina
     ? { ok: true, detalle: `recoge en oficina de ${oficina}: no lleva calle, la oficina se elige en Dropi`, normalizada: null }
     : validarDireccion(resumen?.direccion, extraido?.direccionEnvio ?? null, { referencias: resumen?.referencias ?? "" });
+  // numero pegado ("Cra 110AA #3021"): no se adivina aqui; el mapa decide
+  // como se separa en el paso siguiente (si no lo confirma, no se sube)
+  if (!oficina && !dirEnvio.ok) {
+    const cands = candidatosNumeroPegado(resumen?.direccion);
+    if (cands.length) {
+      dirEnvio.ok = true;
+      dirEnvio.numeroPegado = true;
+      dirEnvio.normalizada = null;
+      dirEnvio.detalle = `el número viene pegado: el mapa decide cómo se separa (se prueba ${cands.map((c) => `«${c}»`).join(" y ")})`;
+    }
+  }
 
   const lineas = Array.isArray(resumen?.productos) ? resumen.productos : [];
   const unaLinea = lineas.length === 1;
+  const varias = lineas.length > 1 && lineas.length <= MAX_LINEAS;
   checks.push({
     campo: "productos",
-    ok: unaLinea,
+    ok: unaLinea || varias,
     detalle: unaLinea
-      ? "el flujo del navegador admite una sola línea de producto"
-      : `el flujo del navegador admite una línea; el pedido trae ${lineas.length}`,
+      ? "un producto: una orden en Dropi"
+      : varias
+        ? `${lineas.length} productos: se sube una orden de Dropi por cada uno, uno después del otro`
+        : lineas.length
+          ? `el pedido trae ${lineas.length} productos (máximo ${MAX_LINEAS})`
+          : "el pedido no trae productos",
   });
 
-  const prod = coincideProducto(extraido?.producto, resumen?.productos ?? []);
-  checks.push({
-    campo: "producto",
-    ok: prod.ok,
-    detalle: prod.ok
-      ? `chat "${extraido?.producto}" -> pedido "${prod.nombre}"`
-      : prod.razon,
-  });
+  if (varias) {
+    // cada linea del pedido tiene que estar en el chat: producto, cantidad y precio
+    const r = compararLineas(lineas, extraido);
+    checks.push({ campo: "producto", ok: r.productos.ok, detalle: r.productos.detalle });
+    checks.push({ campo: "cantidad", ok: r.cantidades.ok, detalle: r.cantidades.detalle });
+    checks.push({ campo: "precioLineas", ok: r.precios.ok, detalle: r.precios.detalle });
+  } else {
+    const prod = coincideProducto(extraido?.producto, resumen?.productos ?? []);
+    checks.push({
+      campo: "producto",
+      ok: prod.ok,
+      detalle: prod.ok
+        ? `chat "${extraido?.producto}" -> pedido "${prod.nombre}"`
+        : prod.razon,
+    });
 
-  const cantidadPedido = unaLinea ? Number(lineas[0]?.cantidad) : NaN;
-  const cantidadChat = Number(extraido?.cantidad);
-  const cantidadOk =
-    unaLinea && Number.isInteger(cantidadPedido) && cantidadPedido > 0 &&
-    Number.isInteger(cantidadChat) && cantidadChat === cantidadPedido;
-  checks.push({
-    campo: "cantidad",
-    ok: cantidadOk,
-    detalle: cantidadOk
-      ? `coincide: ${cantidadPedido} unidad(es)`
-      : `chat: ${Number.isFinite(cantidadChat) ? cantidadChat : "sin dato"}; pedido: ${Number.isFinite(cantidadPedido) ? cantidadPedido : "sin dato"}`,
-  });
+    const cantidadPedido = unaLinea ? Number(lineas[0]?.cantidad) : NaN;
+    const cantidadChat = Number(extraido?.cantidad);
+    const cantidadOk =
+      unaLinea && Number.isInteger(cantidadPedido) && cantidadPedido > 0 &&
+      Number.isInteger(cantidadChat) && cantidadChat === cantidadPedido;
+    checks.push({
+      campo: "cantidad",
+      ok: cantidadOk,
+      detalle: cantidadOk
+        ? `coincide: ${cantidadPedido} unidad(es)`
+        : `chat: ${Number.isFinite(cantidadChat) ? cantidadChat : "sin dato"}; pedido: ${Number.isFinite(cantidadPedido) ? cantidadPedido : "sin dato"}`,
+    });
+  }
 
   const precio = coincidePrecio(extraido?.precioAcordado, resumen);
   checks.push({
@@ -239,7 +405,7 @@ function validarPedido(resumen, extraido, { oficina = null } = {}) {
     ? recogeEnOficina(extraido?.direccion) === oficina
       ? { ok: true, razon: "" }
       : { ok: false, razon: `el pedido dice recoger en oficina de ${oficina} pero en el chat la dirección es "${extraido?.direccion ?? "sin dato"}"` }
-    : coincideDireccion(extraido?.direccion, resumen?.direccion);
+    : coincideDireccion(extraido?.direccion, resumen?.direccion, { referencias: resumen?.referencias ?? "" });
   checks.push({
     campo: "direccion",
     ok: dir.ok,
@@ -286,7 +452,7 @@ function validarPedido(resumen, extraido, { oficina = null } = {}) {
  * Decision final: solo se sube si todo calza. Si algo falla se frena y se
  * avisa (regla acordada: nada sube sin visto bueno).
  */
-function decidir(validacion) {
+export function decidir(validacion) {
   const problemas = (validacion?.checks ?? []).filter((c) => !c.ok);
   return {
     ok: problemas.length === 0,
@@ -306,7 +472,7 @@ const FECHA_FUTURA_EN_CHAT = /\b(?:para\s+(?:(?:el\s+)?(?:dia\s+)?)|el\s+dia\s+|
  * Otros pedidos recientes del mismo cliente, en texto para la IA.
  * otros: [{ idPedido, producto, Total, fecha, estado, subido }]
  */
-function textoOtrosPedidos(otros = []) {
+export function textoOtrosPedidos(otros = []) {
   return otros
     .map(
       (o) =>
@@ -322,13 +488,22 @@ function textoOtrosPedidos(otros = []) {
  * una entrega programada (por la IA o a mano). Cuando ya toca enviarlo, que
  * el cliente haya pedido una fecha futura deja de frenar la subida.
  */
-async function ejecutarAgente({ resumen, mensajes, extraer, oficina = null, otrosPedidos = [], entregaProgramada = null, diasEntrega = null }) {
+export async function ejecutarAgente({ resumen, mensajes, extraer, oficina = null, otrosPedidos = [], entregaProgramada = null, diasEntrega = null }) {
   // la IA tambien descompone la direccion del pedido (la que se envia) y, si
   // el cliente tiene otro pedido reciente, dice si el chat muestra una
   // segunda compra (el codigo decide)
   const hayOtros = Array.isArray(otrosPedidos) && otrosPedidos.length > 0;
+  const lineasPedido = Array.isArray(resumen?.productos) ? resumen.productos : [];
   const extraido = await extraer(mensajes, {
     direccionPedido: resumen?.direccion ?? "",
+    // con varios productos la IA devuelve la lista de lo que pidio el cliente
+    ...(lineasPedido.length > 1
+      ? {
+          productosPedido: lineasPedido
+            .map((l) => `${l.cantidad} x ${l.nombre}${l.variante?.nombre ? ` (${l.variante.nombre})` : ""} a ${l.precio}`)
+            .join("; "),
+        }
+      : {}),
     ...(hayOtros ? { otrosPedidos: textoOtrosPedidos(otrosPedidos) } : {}),
   });
   const fechaSolicitadaEnChat = (Array.isArray(mensajes) ? mensajes : [])
@@ -452,7 +627,7 @@ function nombreDeLinea(it) {
 }
 
 /** "2 x Copa: Blanca; Tamaño: 150 cm" si el pedido trae productos con variantes; "" si no. */
-function textoVariantes(resumen) {
+export function textoVariantes(resumen) {
   return (resumen?.productos ?? [])
     .filter((x) => x.variante)
     .map((x) => `${x.cantidad} x ${x.variante.nombre || `variante ${x.variante.id}`}`)
@@ -512,7 +687,7 @@ function productosDeLineas(lineas, productoTop, observaciones = []) {
  * Los nombres de campo son los del update de LucidSales (ver
  * panel/src/api/pedidoBody.ts): Nombre, Movil, Direccion, Total, Json, etc.
  */
-function resumenDePedido(p) {
+export function resumenDePedido(p) {
   const lineas = aArreglo(p?.Json);
   const productoTop = String(p?.producto ?? "").trim();
   return {
@@ -539,5 +714,3 @@ function resumenDePedido(p) {
     productos: productosDeLineas(lineas, productoTop, aArreglo(p?.Observaciones)),
   };
 }
-
-module.exports = { ejecutarAgente, normalizarTexto, parsearPrecio, coincideProducto, coincidePrecio, coincideDireccion, validarPedido, decidir, textoOtrosPedidos, textoVariantes, resumenDePedido };

@@ -613,10 +613,366 @@ const NOMBRES_ESTADO_LS = {
   9: 'Novedad Solucionada'
 };
 
-// Lista de pedidos LLAMANDO DIRECTO a la API de LucidSales (estilo Zunto).
-// La tabla PedidoVinculado ya no es fuente de datos: solo aporta asignación,
-// etiquetas, notas y snapshot, unidos por lucidsalesPedidoId.
-async function listPedidosDirecto({ page = 1, itemsPerPage = 50, search = '', estados, fechaDesde, fechaHasta, producto, tiendaId = null } = {}) {
+// ---------------------------------------------------------------------------
+// Lista de pedidos LLAMANDO DIRECTO a la API de LucidSales (como ZuntoStore).
+//
+// La API manda en los datos del pedido (cliente, total, estado, productos).
+// La base de Pizdo es una capa propia unida por el id de LucidSales:
+// asignacion (asignaciones_pedido), etiquetas, notas, quien lo subio, y la
+// vinculacion (pedidos_vinculados) que usan Novedades, Oficina y las metricas.
+//
+// Dos caminos:
+//   * normal: la pagina sale de la API (filtros de estado/fecha/producto/
+//     busqueda los aplica LucidSales) y se le une lo local.
+//   * "asignados a X" / "con etiqueta Y": esos datos solo estan en Pizdo, asi
+//     que los ids salen de la base, se paginan aqui y cada pedido de la pagina
+//     se lee en vivo de la API. Asi un operador con "ver solo asignados" ve
+//     TODOS sus pedidos y el total cuadra (Zunto solo filtra la pagina cargada).
+// En ambos caminos se refresca la copia (estado/total) que guarda la base,
+// que es de donde leen las metricas.
+// ---------------------------------------------------------------------------
+
+const CONCURRENCIA_VIVO = 6;
+// estados que ya no cambian: su copia local siempre vale
+const ESTADOS_FINALES = new Set([1, 6, 7]);
+// una copia de estado mas nueva que esto vale para prefiltrar
+const COPIA_FRESCA_MS = 3 * 24 * 3600 * 1000;
+const calentando = new Set();
+// filtros que se miran en vivo: tandas y tope de lecturas por peticion
+const TANDA_ESCANEO = 24;
+const MAX_ESCANEO = 360;
+
+/** Refresca en segundo plano la copia de unos pedidos (de a 3, sin repetir). */
+function calentarCopias(ids, tiendaId) {
+  const nuevos = ids.filter(id => !calentando.has(id));
+  if (!nuevos.length) return;
+  nuevos.forEach(id => calentando.add(id));
+  (async () => {
+    const vivos = await mapLimitado(nuevos, 3, id => pedidoEnVivo(id, tiendaId));
+    const ok = vivos.filter(v => v && !v.__error && v.id);
+    if (ok.length) refrescarCopias(ok, await datosLocales(ok.map(v => Number(v.id))));
+  })()
+    .catch(e => console.warn('[LucidSales] refresco de copias:', e.message))
+    .finally(() => nuevos.forEach(id => calentando.delete(id)));
+}
+const CACHE_PEDIDO_MS = 45 * 1000;
+const cachePedidos = new Map(); // `${tienda}:${id}` -> {t, pedido}
+
+async function pedidoEnVivo(id, tiendaId) {
+  const k = `${tiendaId || 'default'}:${id}`;
+  const c = cachePedidos.get(k);
+  if (c && Date.now() - c.t < CACHE_PEDIDO_MS) return c.pedido;
+  const pedido = await getPedidoById(id, tiendaId);
+  cachePedidos.set(k, { t: Date.now(), pedido });
+  if (cachePedidos.size > 2000) {
+    for (const [kk, v] of cachePedidos) if (Date.now() - v.t > CACHE_PEDIDO_MS) cachePedidos.delete(kk);
+  }
+  return pedido;
+}
+
+/** map con concurrencia limitada (no le pega 50 llamadas juntas a LucidSales). */
+async function mapLimitado(items, limite, fn) {
+  const salida = new Array(items.length);
+  let i = 0;
+  const trabajadores = Array.from({ length: Math.min(limite, items.length) }, async () => {
+    while (i < items.length) {
+      const idx = i++;
+      try {
+        salida[idx] = await fn(items[idx], idx);
+      } catch (error) {
+        salida[idx] = { __error: error };
+      }
+    }
+  });
+  await Promise.all(trabajadores);
+  return salida;
+}
+
+function fechaDePedido(p) {
+  const v = p?.Fecha || p?.fecha || p?.CreatedAt || p?.createdAt || p?.created_at || null;
+  const d = v ? new Date(v) : null;
+  return d && !Number.isNaN(d.getTime()) ? d : null;
+}
+
+function normalizarBusqueda(v) {
+  return String(v ?? '').normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().trim();
+}
+
+/** Lo local de un lote de pedidos: asignacion, vinculacion y etiquetas. */
+async function datosLocales(ids) {
+  if (ids.length === 0) return { asignacionMap: new Map(), localPorId: new Map(), etiquetasPorId: new Map() };
+  const [asignacionMap, locales, etiquetasRegs] = await Promise.all([
+    asignacionPedidosService.getAsignaciones(ids),
+    prisma.pedidoVinculado.findMany({
+      where: { lucidsalesPedidoId: { in: ids } },
+      include: {
+        asignado: { select: { id: true, nombre: true } },
+        createdBy: { select: { id: true, nombre: true } },
+        subidoPor: { select: { id: true, nombre: true } }
+      }
+    }),
+    prisma.registroEtiqueta.findMany({
+      where: { tabla: 'pedidos_vinculados', registroId: { in: ids.map(String) } },
+      include: { etiqueta: { select: { id: true, nombre: true, color: true } } }
+    })
+  ]);
+  const localPorId = new Map(locales.map(l => [l.lucidsalesPedidoId, l]));
+  const etiquetasPorId = new Map();
+  etiquetasRegs.forEach(r => {
+    const arr = etiquetasPorId.get(r.registroId) || [];
+    arr.push(r.etiqueta);
+    etiquetasPorId.set(r.registroId, arr);
+  });
+  return { asignacionMap, localPorId, etiquetasPorId };
+}
+
+function filaDeLista(p, { asignacionMap, localPorId, etiquetasPorId }) {
+  const idNum = Number(p.id);
+  const loc = localPorId.get(idNum);
+  const asig = asignacionMap.get(idNum);
+  // Fallback a la vinculacion legacy: pedidos asignados antes de existir
+  // la tabla propia conservan su dueno hasta que se reasignen.
+  const asignado = asig ? asig.asignado : (loc?.asignado || null);
+  const json = p.Json !== undefined && p.Json !== null
+    ? (typeof p.Json === 'string' ? p.Json : JSON.stringify(p.Json))
+    : (loc?.jsonProductos || '[]');
+  return {
+    id: idNum,
+    idPedido: p.idPedido ?? idNum,
+    Nombre: p.Nombre || '',
+    Apellido: p.Apellido || '',
+    Movil: p.Movil || '',
+    Total: p.Total ?? '0',
+    EstadoPedido: p.EstadoPedido ?? 0,
+    EstadoFullfilment: p.EstadoFullfilment || null,
+    origen: p.source || null,
+    producto: p.producto || '',
+    Referencias: p.Referencias || loc?.referencias || '',
+    Json: json,
+    conversacionLink: loc?.conversacionLink || null,
+    notas: loc?.notas || null,
+    asignado,
+    creador: loc?.createdBy || null,
+    subidoPor: loc?.subidoPor || null,
+    createdAt: p.Fecha || p.CreatedAt || p.createdAt || loc?.createdAt || null,
+    _etiquetas: etiquetasPorId.get(String(idNum)) || [],
+    _vinculado: Boolean(loc)
+  };
+}
+
+/**
+ * Refresca en segundo plano la copia local (estado, total, cliente) de los
+ * pedidos que la API acaba de devolver. Solo toca filas que ya existen: no
+ * crea vinculaciones nuevas (eso cambiaria las metricas de "vinculados").
+ */
+function refrescarCopias(apiPedidos, { asignacionMap, localPorId }) {
+  const cambios = [];
+  for (const p of apiPedidos) {
+    const id = Number(p.id);
+    if (!Number.isFinite(id)) continue;
+    const estado = Number(p.EstadoPedido ?? 0);
+    const fecha = fechaDePedido(p);
+    const loc = localPorId.get(id);
+    if (loc) {
+      const data = {};
+      if (loc.estadoPedido !== estado) data.estadoPedido = estado;
+      if (p.Total !== undefined && String(loc.total ?? '') !== String(p.Total)) data.total = String(p.Total);
+      if (p.Nombre && loc.nombreCliente !== p.Nombre) data.nombreCliente = p.Nombre;
+      if (p.Apellido !== undefined && loc.apellidoCliente !== (p.Apellido || '')) data.apellidoCliente = p.Apellido || '';
+      if (p.Movil && loc.movil !== p.Movil) data.movil = p.Movil;
+      // copia vieja pero igual: se toca para que cuente como fresca
+      const vieja = !loc.updatedAt || Date.now() - new Date(loc.updatedAt).getTime() > COPIA_FRESCA_MS / 2;
+      if (!Object.keys(data).length && vieja) data.estadoPedido = estado;
+      if (Object.keys(data).length) {
+        cambios.push(prisma.pedidoVinculado.update({ where: { lucidsalesPedidoId: id }, data }));
+      }
+    }
+    if (asignacionMap.has(id)) {
+      const a = asignacionMap.get(id);
+      const vieja = !a.updatedAt || Date.now() - new Date(a.updatedAt).getTime() > COPIA_FRESCA_MS / 2;
+      if (a.estadoPedido !== estado || (fecha && !a.fechaPedido) || vieja) {
+        cambios.push(prisma.asignacionPedido.update({
+          where: { lucidsalesPedidoId: id },
+          data: { estadoPedido: estado, ...(fecha ? { fechaPedido: fecha } : {}) }
+        }));
+      }
+    }
+  }
+  if (cambios.length) {
+    Promise.allSettled(cambios).then(rs => {
+      const fallos = rs.filter(r => r.status === 'rejected');
+      if (fallos.length) console.warn(`[LucidSales] ${fallos.length} copia(s) local(es) sin refrescar:`, fallos[0].reason?.message);
+    });
+  }
+}
+
+/** ids (desc) de los pedidos asignados a un operador en la tienda. */
+async function idsAsignadosA(asignadoId, tiendaId) {
+  const propios = await prisma.asignacionPedido.findMany({
+    where: { asignadoId, ...(tiendaId ? { tiendaId } : {}) },
+    select: { lucidsalesPedidoId: true }
+  });
+  const legacy = await prisma.pedidoVinculado.findMany({
+    where: { asignadoId, ...(tiendaId ? { tiendaId } : {}) },
+    select: { lucidsalesPedidoId: true }
+  });
+  const legacyIds = legacy.map(l => l.lucidsalesPedidoId);
+  // un pedido reasignado en la tabla propia ya no es del dueno legacy
+  const reasignados = legacyIds.length
+    ? new Set((await prisma.asignacionPedido.findMany({
+        where: { lucidsalesPedidoId: { in: legacyIds } },
+        select: { lucidsalesPedidoId: true }
+      })).map(r => r.lucidsalesPedidoId))
+    : new Set();
+  const ids = new Set(propios.map(p => p.lucidsalesPedidoId));
+  for (const id of legacyIds) if (!reasignados.has(id)) ids.add(id);
+  return ids;
+}
+
+async function idsConEtiqueta(etiquetaId) {
+  const regs = await prisma.registroEtiqueta.findMany({
+    where: { etiquetaId, tabla: 'pedidos_vinculados' },
+    select: { registroId: true }
+  });
+  return new Set(regs.map(r => Number(r.registroId)).filter(Number.isFinite));
+}
+
+async function listPorIdsLocales({ page = 1, itemsPerPage = 50, search = '', estados, fechaDesde, fechaHasta, producto, asignadoId, etiquetaId, tiendaId = null }) {
+  let candidatos = null;
+  if (asignadoId) candidatos = await idsAsignadosA(asignadoId, tiendaId);
+  if (etiquetaId) {
+    const conEtiqueta = await idsConEtiqueta(etiquetaId);
+    candidatos = candidatos ? new Set([...candidatos].filter(id => conEtiqueta.has(id))) : conEtiqueta;
+  }
+  let ids = [...(candidatos || [])].sort((a, b) => b - a); // id de LucidSales crece con el tiempo
+
+  // prefiltro con la copia local. Solo se confia en ella si es reciente o si
+  // el estado ya no cambia (entregado, devuelto, cancelado); lo demas se mira
+  // en vivo, asi una copia vieja nunca deja fuera un pedido que si cumple.
+  const filtraEstado = Array.isArray(estados) && estados.length > 0;
+  const desde = fechaDesde ? new Date(`${fechaDesde}T00:00:00`) : null;
+  const hasta = fechaHasta ? new Date(`${fechaHasta}T23:59:59.999`) : null;
+  let sinCopiaFiable = 0;
+  const porVerificar = [];
+  if (ids.length && (filtraEstado || desde || hasta)) {
+    const [asigs, locs] = await Promise.all([
+      prisma.asignacionPedido.findMany({ where: { lucidsalesPedidoId: { in: ids } }, select: { lucidsalesPedidoId: true, estadoPedido: true, fechaPedido: true, updatedAt: true } }),
+      prisma.pedidoVinculado.findMany({ where: { lucidsalesPedidoId: { in: ids } }, select: { lucidsalesPedidoId: true, estadoPedido: true, updatedAt: true } })
+    ]);
+    const fiable = (estado, updatedAt) => estado !== null && estado !== undefined &&
+      (ESTADOS_FINALES.has(Number(estado)) || (updatedAt && Date.now() - new Date(updatedAt).getTime() < COPIA_FRESCA_MS));
+    const copia = new Map();
+    locs.forEach(l => {
+      if (fiable(l.estadoPedido, l.updatedAt)) copia.set(l.lucidsalesPedidoId, { estado: l.estadoPedido, fecha: null });
+    });
+    asigs.forEach(a => {
+      const prev = copia.get(a.lucidsalesPedidoId);
+      const estadoOk = fiable(a.estadoPedido, a.updatedAt);
+      if (!estadoOk && !prev && !a.fechaPedido) return;
+      copia.set(a.lucidsalesPedidoId, {
+        estado: estadoOk ? a.estadoPedido : (prev?.estado ?? null),
+        fecha: a.fechaPedido || null
+      });
+    });
+    ids = ids.filter(id => {
+      const c = copia.get(id);
+      if (!c || ((filtraEstado && (c.estado === null || c.estado === undefined)))) {
+        sinCopiaFiable++;
+        porVerificar.push(id);
+        return true;
+      }
+      if (filtraEstado && !estados.includes(Number(c.estado))) return false;
+      if (c.fecha && desde && c.fecha < desde) return false;
+      if (c.fecha && hasta && c.fecha > hasta) return false;
+      return true;
+    });
+  }
+
+  const q = normalizarBusqueda(search);
+  const cumpleEnVivo = p => {
+    if (filtraEstado && !estados.includes(Number(p.EstadoPedido ?? 0))) return false;
+    const f = fechaDePedido(p);
+    if (f && desde && f < desde) return false;
+    if (f && hasta && f > hasta) return false;
+    if (producto) {
+      const json = typeof p.Json === 'string' ? p.Json : JSON.stringify(p.Json || []);
+      if (!json.includes(String(producto))) return false;
+    }
+    if (q) {
+      const texto = normalizarBusqueda([p.Nombre, p.Apellido, p.Movil, p.idPedido, p.id, p.Referencias].join(' '));
+      if (!texto.includes(q)) return false;
+    }
+    return true;
+  };
+  // hay que mirar en vivo si algun filtro no se pudo resolver con la copia
+  const escanear = Boolean(q || producto || sinCopiaFiable);
+
+  let pagina;
+  let apiPedidos;
+  let total;
+  let aproximado = false;
+  let errores = 0;
+  if (!escanear) {
+    // todo resuelto con la base: se pagina directo y solo se lee la pagina
+    total = ids.length;
+    pagina = ids.slice((page - 1) * itemsPerPage, page * itemsPerPage);
+    const vivos = await mapLimitado(pagina, CONCURRENCIA_VIVO, id => pedidoEnVivo(id, tiendaId));
+    errores = vivos.filter(v => v && v.__error).length;
+    if (errores && errores === vivos.length) throw vivos[0].__error;
+    apiPedidos = vivos.filter(v => v && !v.__error && v.id && cumpleEnVivo(v));
+  } else {
+    // se recorren los candidatos en tandas hasta llenar la pagina pedida
+    // (con tope de lecturas); lo leido queda en cache y en la copia local
+    const necesarios = page * itemsPerPage;
+    const coinciden = [];
+    let i = 0;
+    let leidos = 0;
+    while (coinciden.length < necesarios && i < ids.length && leidos < MAX_ESCANEO) {
+      const tanda = ids.slice(i, i + TANDA_ESCANEO);
+      i += tanda.length;
+      leidos += tanda.length;
+      const vivos = await mapLimitado(tanda, CONCURRENCIA_VIVO, id => pedidoEnVivo(id, tiendaId));
+      const buenos = vivos.filter(v => v && !v.__error && v.id);
+      errores += vivos.length - buenos.length;
+      if (buenos.length) refrescarCopias(buenos, await datosLocales(buenos.map(v => Number(v.id))));
+      coinciden.push(...buenos.filter(cumpleEnVivo));
+    }
+    if (errores && !coinciden.length && errores >= leidos) throw new Error('No se pudieron leer los pedidos de LucidSales');
+    apiPedidos = coinciden.slice((page - 1) * itemsPerPage, page * itemsPerPage);
+    pagina = apiPedidos.map(p => Number(p.id));
+    const quedan = ids.length - i;
+    aproximado = quedan > 0;
+    // sin recorrer todo, el total es "al menos lo encontrado" + lo que falta mirar
+    total = coinciden.length + quedan;
+  }
+
+  const locales = await datosLocales(pagina);
+  if (!escanear) refrescarCopias(apiPedidos, locales);
+
+  // lo que no tenia copia fiable y no se alcanzo a leer se refresca en
+  // segundo plano: el siguiente filtro ya lo tiene al dia
+  if (porVerificar.length) {
+    const vistos = new Set(pagina);
+    calentarCopias(porVerificar.filter(id => !vistos.has(id)).slice(0, 120), tiendaId);
+  }
+
+  return {
+    ok: true,
+    pedidos: apiPedidos.map(p => filaDeLista(p, locales)),
+    totalRecords: total,
+    numPages: Math.max(1, Math.ceil(total / itemsPerPage)),
+    fuente: 'api-por-ids',
+    ...(aproximado ? { totalAproximado: true } : {}),
+    ...(errores ? { avisos: [`${errores} pedido(s) no se pudieron leer de LucidSales`] } : {})
+  };
+}
+
+async function listPedidosDirecto(opts = {}) {
+  const { page = 1, itemsPerPage = 50, search = '', estados, fechaDesde, fechaHasta, producto, tiendaId = null, asignadoId, etiquetaId } = opts;
+  if ((asignadoId && asignadoId !== '__sin__') || etiquetaId) {
+    return listPorIdsLocales(opts);
+  }
+
   const filtros = [{ name: 'date', searchValues: [], sortOrder: 'desc' }];
   if (fechaDesde || fechaHasta) {
     const desde = fechaDesde ? new Date(`${fechaDesde}T00:00:00`).toISOString() : '1970-01-01T00:00:00.000Z';
@@ -636,67 +992,21 @@ async function listPedidosDirecto({ page = 1, itemsPerPage = 50, search = '', es
   const totalRecords = Number(res.totalRecords || 0);
   const ids = apiPedidos.map(p => Number(p.id)).filter(n => Number.isFinite(n));
 
-  // Merge local: asignacion (tabla propia estilo Zunto), etiquetas, notas, snapshot
-  const asignacionMap = ids.length > 0 ? await asignacionPedidosService.getAsignaciones(ids) : new Map();
+  const locales = await datosLocales(ids);
+  refrescarCopias(apiPedidos, locales);
 
-  const locales = ids.length > 0 ? await prisma.pedidoVinculado.findMany({
-    where: { lucidsalesPedidoId: { in: ids } },
-    include: {
-      asignado: { select: { id: true, nombre: true } },
-      createdBy: { select: { id: true, nombre: true } },
-      subidoPor: { select: { id: true, nombre: true } }
-    }
-  }) : [];
-  const localPorId = new Map(locales.map(l => [l.lucidsalesPedidoId, l]));
-
-  const etiquetasRegs = ids.length > 0 ? await prisma.registroEtiqueta.findMany({
-    where: { tabla: 'pedidos_vinculados', registroId: { in: ids.map(String) } },
-    include: { etiqueta: { select: { id: true, nombre: true, color: true } } }
-  }) : [];
-  const etiquetasPorId = new Map();
-  etiquetasRegs.forEach(r => {
-    const arr = etiquetasPorId.get(r.registroId) || [];
-    arr.push(r.etiqueta);
-    etiquetasPorId.set(r.registroId, arr);
-  });
-
-  const pedidos = apiPedidos.map(p => {
-    const idNum = Number(p.id);
-    const loc = localPorId.get(idNum);
-    const asig = asignacionMap.get(idNum);
-    // Fallback a la vinculacion legacy: pedidos asignados antes de existir
-    // la tabla propia conservan su dueno hasta que se reasignen.
-    const asignado = asig ? asig.asignado : (loc?.asignado || null);
-    return {
-      id: idNum,
-      idPedido: p.idPedido ?? idNum,
-      Nombre: p.Nombre || '',
-      Apellido: p.Apellido || '',
-      Movil: p.Movil || '',
-      Total: p.Total ?? '0',
-      EstadoPedido: p.EstadoPedido ?? 0,
-      EstadoFullfilment: p.EstadoFullfilment || null,
-      origen: p.source || null,
-      producto: p.producto || '',
-      Referencias: p.Referencias || loc?.referencias || '',
-      Json: loc?.jsonProductos || '[]',
-      conversacionLink: loc?.conversacionLink || null,
-      notas: loc?.notas || null,
-      asignado,
-      creador: loc?.createdBy || null,
-      subidoPor: loc?.subidoPor || null,
-      createdAt: p.Fecha || p.CreatedAt || loc?.createdAt || null,
-      _etiquetas: etiquetasPorId.get(String(idNum)) || [],
-      _vinculado: Boolean(loc)
-    };
-  });
+  let pedidos = apiPedidos.map(p => filaDeLista(p, locales));
+  // "sin asignar" no se puede sacar de la base (es todo lo que NO esta en
+  // ella): como en Zunto, se filtra sobre la pagina que trajo la API
+  if (asignadoId === '__sin__') pedidos = pedidos.filter(p => !p.asignado);
 
   return {
     ok: true,
     pedidos,
     totalRecords,
     numPages: Math.max(1, Math.ceil(totalRecords / itemsPerPage)),
-    fuente: 'api'
+    fuente: 'api',
+    ...(asignadoId === '__sin__' ? { filtroEnPagina: true } : {})
   };
 }
 
@@ -723,5 +1033,6 @@ module.exports = {
   crearVinculacionDirecta,
   guardarVinculacionLocal,
   listVinculaciones,
-  listPedidosDirecto
+  listPedidosDirecto,
+  listPorIdsLocales
 };

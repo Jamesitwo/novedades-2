@@ -1,0 +1,6 @@
+{
+  "name": "motor-zunto",
+  "private": true,
+  "type": "module",
+  "description": "Motor de ZuntoStore (subida automatica a Dropi, agente, programados) embebido en Pizdo. Archivos copiados tal cual de ZuntoStore/server: no editar aqui sin replicar en Zunto."
+}

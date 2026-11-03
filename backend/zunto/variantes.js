@@ -1,7 +1,3 @@
-// CONVERTIDO desde ZuntoStore (variantes.js) ESM -> CommonJS.
-// Revision manual pendiente:
-//   - (ninguna)
-
 // Variantes de un producto de LucidSales (color, talla...).
 //
 // La linea del pedido trae `variation_id`, que es el `sku` de una combinacion
@@ -16,7 +12,7 @@ const mismosItems = (a = [], b = []) => a.length === b.length && a.every((x, i) 
  * producto: el de LucidSales (get-producto). variationId: el de la linea.
  * -> { id, items, nombre: "Copa: Blanca; Tamaño: 150 cm", idVarianteDropi, stock } | null
  */
-function varianteDeProducto(producto, variationId) {
+export function varianteDeProducto(producto, variationId) {
   const id = String(variationId ?? "").trim();
   if (!producto || !id) return null;
   const mixta = (Array.isArray(producto.mixedvariantes) ? producto.mixedvariantes : []).find((m) => String(m?.sku ?? "") === id);
@@ -38,5 +34,3 @@ function varianteDeProducto(producto, variationId) {
     stock: Number.isFinite(Number(enDropi?.stock)) ? Number(enDropi.stock) : null,
   };
 }
-
-module.exports = { varianteDeProducto };

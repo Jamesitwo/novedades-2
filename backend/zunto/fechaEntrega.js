@@ -1,14 +1,10 @@
-// CONVERTIDO desde ZuntoStore (fechaEntrega.js) ESM -> CommonJS.
-// Revision manual pendiente:
-//   - (ninguna)
-
 // Fechas de entrega pedidas por el cliente ("lo quiero para el 30").
 // Todo en hora de Colombia y como "AAAA-MM-DD" (sin horas: es un dia).
 
 const MESES = ["enero", "febrero", "marzo", "abril", "mayo", "junio", "julio", "agosto", "septiembre", "octubre", "noviembre", "diciembre"];
 const DIAS = ["domingo", "lunes", "martes", "miercoles", "jueves", "viernes", "sabado"];
 /** Mas alla de esto no es una fecha de entrega creible (o se leyo mal). */
-const MAX_DIAS = 180;
+export const MAX_DIAS = 180;
 
 const sinTildes = (t) =>
   String(t ?? "")
@@ -17,21 +13,21 @@ const sinTildes = (t) =>
     .replace(/[̀-ͯ]/g, "");
 
 /** Hoy en Colombia (UTC-5, sin horario de verano). */
-function hoyColombia(ahora = Date.now()) {
+export function hoyColombia(ahora = Date.now()) {
   return new Date(ahora - 5 * 3600_000).toISOString().slice(0, 10);
 }
 
 const aDia = (iso) => Date.UTC(+iso.slice(0, 4), +iso.slice(5, 7) - 1, +iso.slice(8, 10));
 const deDia = (ms) => new Date(ms).toISOString().slice(0, 10);
-const sumarDias = (iso, n) => deDia(aDia(iso) + n * 86400_000);
+export const sumarDias = (iso, n) => deDia(aDia(iso) + n * 86400_000);
 
 /** Dias que faltan de `hoy` a `fecha` (negativo si ya paso). */
-function diasHasta(fecha, hoy = hoyColombia()) {
+export function diasHasta(fecha, hoy = hoyColombia()) {
   return Math.round((aDia(fecha) - aDia(hoy)) / 86400_000);
 }
 
 /** "2026-10-30" valida, de hoy en adelante y no absurda; si no, null. */
-function fechaValida(v, hoy = hoyColombia(), { permitirPasada = false } = {}) {
+export function fechaValida(v, hoy = hoyColombia(), { permitirPasada = false } = {}) {
   const s = String(v ?? "").trim();
   if (!/^\d{4}-\d{2}-\d{2}$/.test(s)) return null;
   const d = new Date(`${s}T00:00:00Z`);
@@ -53,7 +49,7 @@ function construir(anio, mes, dia) {
  * Entiende: "mañana", "pasado mañana", "el viernes", "el 30", "30 de octubre",
  * "30/10" y "30/10/2026". "La próxima semana" no es un dia: null.
  */
-function interpretarFecha(texto, hoy = hoyColombia()) {
+export function interpretarFecha(texto, hoy = hoyColombia()) {
   const t = sinTildes(texto);
   if (!t.trim()) return null;
   const [a, m] = hoy.split("-").map(Number);
@@ -101,8 +97,6 @@ function interpretarFecha(texto, hoy = hoyColombia()) {
 }
 
 /** Fecha de entrega de lo que leyo la IA: la concreta si es valida, si no la del texto. */
-function fechaDeExtraccion(extraido, hoy = hoyColombia()) {
+export function fechaDeExtraccion(extraido, hoy = hoyColombia()) {
   return fechaValida(extraido?.fechaEntregaISO, hoy) ?? interpretarFecha(extraido?.fechaEntregaSolicitada, hoy);
 }
-
-module.exports = { hoyColombia, diasHasta, fechaValida, interpretarFecha, fechaDeExtraccion, MAX_DIAS, sumarDias };

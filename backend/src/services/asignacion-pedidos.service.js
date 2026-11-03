@@ -22,7 +22,13 @@ async function getAsignaciones(lucidsalesPedidoIds) {
     include: { asignado: { select: { id: true, nombre: true } } }
   });
 
-  return new Map(filas.map(f => [f.lucidsalesPedidoId, { asignado: f.asignado || null, origen: f.origen }]));
+  return new Map(filas.map(f => [f.lucidsalesPedidoId, {
+    asignado: f.asignado || null,
+    origen: f.origen,
+    estadoPedido: f.estadoPedido ?? null,
+    fechaPedido: f.fechaPedido || null,
+    updatedAt: f.updatedAt || null
+  }]));
 }
 
 /**

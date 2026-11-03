@@ -1,7 +1,3 @@
-// CONVERTIDO desde ZuntoStore (direccionColombia.js) ESM -> CommonJS.
-// Revision manual pendiente:
-//   - (ninguna)
-
 // Validacion y normalizacion de direcciones urbanas de Colombia.
 //
 // Formato (nomenclatura urbana): TIPO DE VIA + numero de la via
@@ -23,7 +19,7 @@
 // Lo descriptivo ("casa verde al lado de la panaderia") y lo rural (vereda,
 // finca, km) no es una direccion de nomenclatura: no se sube.
 
-function normalizarTextoDir(t) {
+export function normalizarTextoDir(t) {
   return String(t ?? "")
     .normalize("NFD")
     .replace(/[̀-ͯ]/g, "")
@@ -47,7 +43,7 @@ const TIPOS = [
 ];
 
 /** Nombre canonico de un tipo de via escrito de cualquier forma, o null. */
-function tipoViaCanonico(texto) {
+export function tipoViaCanonico(texto) {
   const t = normalizarTextoDir(texto).replace(/\.(?=\s|$)/g, "");
   for (const [re, nombre] of TIPOS) if (re.test(t)) return nombre;
   return null;
@@ -66,6 +62,11 @@ const RE_DIR = new RegExp(
 const RE_DIR_SIN_NUMERAL = new RegExp(
   String.raw`^(.+?)\.?\s*` + NUM + String.raw`\s*(?:,\s*|\s+)` + NUM + String.raw`\s*[-–]\s*(\d{1,3})(?:\s+(sur|este))?\b\s*[,.]?\s*(.*)$`,
 );
+// Solo espacios ("Calle 40 AA Sur 36 30"): TRES grupos de numeros despues
+// del tipo de via = via, cruce y placa (con dos grupos seria ambiguo)
+const RE_DIR_ESPACIOS = new RegExp(
+  String.raw`^(.+?)\.?\s*` + NUM + String.raw`\s+` + NUM + String.raw`\s+(\d{1,3})(?:\s+(sur|este))?\b(?![a-z\d])\s*[,.]?\s*(.*)$`,
+);
 const RE_DIR_SIN_GUION = new RegExp(
   String.raw`^(.+?)\.?\s*` + NUM + SEP_NUM + NUM + String.raw`\s+(\d{1,3})(?:\s+(sur|este))?\b(?![a-z\d])\s*[,.]?\s*(.*)$`,
 );
@@ -74,7 +75,8 @@ function armarNumero(n, letra, bis, letra2, cardinal) {
   let s = String(n);
   if (letra) s += letra.toUpperCase();
   if (bis) s += " Bis";
-  if (letra2) s += ` ${letra2.toUpperCase()}`;
+  // "4 Bis B" lleva espacio; dos letras seguidas ("40 AA") van juntas
+  if (letra2) s += bis ? ` ${letra2.toUpperCase()}` : letra2.toUpperCase();
   if (cardinal) s += ` ${cardinal[0].toUpperCase()}${cardinal.slice(1)}`;
   return s;
 }
@@ -88,7 +90,7 @@ function capitalizarResto(r) {
  * Reconoce la direccion con reglas fijas. Devuelve {tipoVia, via, cruce,
  * placa, resto, normalizada} o null si no tiene el formato.
  */
-function parsearDireccion(direccion) {
+export function parsearDireccion(direccion) {
   // La calle puede no estar al principio ("Etapa Tres, Calle KR 5 No. 19-105"):
   // se busca desde cada tipo de via y lo que va antes pasa al final (barrio,
   // etapa...). Con dos tipos seguidos que no forman uno compuesto ("Calle KR
@@ -112,7 +114,13 @@ function parsearDireccion(direccion) {
   return null;
 }
 
-function parsearDesdeElInicio(direccion) {
+function parsearDesdeElInicio(original) {
+  const direccion = String(original ?? "")
+    // "78Asur" = 78A Sur
+    .replace(/(\d\s*[a-zA-Z]?)(sur|este)\b/gi, "$1 $2")
+    // letra del cruce pegada a la placa tambien despues de "No"/"número":
+    // "número 50f34" = número 50F 34
+    .replace(/((?:\bn[o°º]\.?|\bnro\.?|\bn[uú]mero|\bnum\.?)\s*\d{1,3}\s*[a-zA-Z])(\d{1,3})\b/i, "$1 $2");
   const t = normalizarTextoDir(direccion)
     .replace(/\s*#\s*/g, " # ")
     // letra del cruce pegada a la placa: "# 82 C19" / "# 82c19" = cruce 82C, placa 19
@@ -123,6 +131,8 @@ function parsearDesdeElInicio(direccion) {
   // sin "#": ultimo recurso (y el resto sale del texto normalizado)
   const sinNumeral = !m;
   if (!m) m = t.match(RE_DIR_SIN_NUMERAL);
+  const soloEspacios = !m;
+  if (!m) m = t.match(RE_DIR_ESPACIOS);
   if (!m) return null;
   const tipoVia = tipoViaCanonico(m[1]);
   if (!tipoVia) return null;
@@ -137,7 +147,7 @@ function parsearDesdeElInicio(direccion) {
   // guion no hay donde cortar el original: se usa el del texto normalizado)
   const resto = capitalizarResto(
     sinGuion || sinNumeral
-      ? restoConMismaRegla(String(direccion ?? ""), sinNumeral ? RE_DIR_SIN_NUMERAL : RE_DIR_SIN_GUION) ?? m[14]
+      ? restoConMismaRegla(String(direccion ?? ""), soloEspacios ? RE_DIR_ESPACIOS : sinNumeral ? RE_DIR_SIN_NUMERAL : RE_DIR_SIN_GUION) ?? m[14]
       : restoOriginal(String(direccion ?? "")),
   );
   const normalizada = `${tipoVia} ${via} # ${cruce}-${placa}${resto ? `, ${resto}` : ""}`;
@@ -154,7 +164,9 @@ function restoConMismaRegla(original, re) {
     .trim()
     .replace(/\s*#\s*/g, " # ")
     .replace(/(#\s*\d{1,3}\s*[a-zA-Z])(\d{1,3})\b/, "$1 $2");
-  const bajo = orig.toLowerCase();
+  // minusculas y sin tildes, letra por letra (mismo largo que el original)
+  const SIN = { á: "a", é: "e", í: "i", ó: "o", ú: "u", ü: "u", ñ: "n", à: "a", è: "e", ì: "i", ò: "o", ù: "u" };
+  const bajo = orig.toLowerCase().replace(/[áéíóúüñàèìòù]/g, (c) => SIN[c] ?? c);
   if (bajo.length !== orig.length) return null;
   const m = bajo.match(re);
   if (!m) return null;
@@ -176,7 +188,7 @@ function restoOriginal(original) {
  * tenga cosas antes ("Bogotá Kennedy Calle 51B Sur #82 C19 ...") o despues.
  * Sirve para comparar dos direcciones escritas distinto. null si no hay.
  */
-function claveCalle(texto) {
+export function claveCalle(texto) {
   const palabras = String(texto ?? "").replace(/\s+/g, " ").trim().split(" ");
   for (let i = 0; i < palabras.length; i++) {
     if (!tipoViaCanonico(palabras[i])) continue;
@@ -189,7 +201,7 @@ function claveCalle(texto) {
 }
 
 /** Digitos de la parte numerica (via, cruce, placa) en orden, sin letras. */
-function digitosDireccion(texto) {
+export function digitosDireccion(texto) {
   return (String(texto ?? "").match(/\d+/g) ?? []).join("");
 }
 
@@ -231,7 +243,7 @@ function limpiarBarrio(t) {
  * Reconoce el formato manzana con reglas fijas. Devuelve
  * {partes, barrio, normalizada} o null si no lo es (necesita manzana y casa o lote).
  */
-function parsearManzana(direccion) {
+export function parsearManzana(direccion) {
   const original = String(direccion ?? "").replace(/\s+/g, " ").trim();
   const t = normalizarTextoDir(original);
   const partes = {};
@@ -260,7 +272,7 @@ function parsearManzana(direccion) {
  *   { esNomenclatura, tipoVia, via, cruce, placa, complemento, barrio, motivo }
  * Devuelve { ok, normalizada, corregida, origen, detalle }.
  */
-function validarDireccion(direccion, ia = null, { referencias = "" } = {}) {
+export function validarDireccion(direccion, ia = null, { referencias = "" } = {}) {
   const r = validarDireccionInterna(direccion, ia, true, referencias);
   // si se prefirio la IA para una direccion sin guion y no paso, vale la
   // lectura de las reglas (que ya era valida)
@@ -455,7 +467,7 @@ function validarManzanaIA(original, ia, motivoIA) {
  * la subida automatica no los toca. Se mira la direccion y las referencias.
  * Devuelve el nombre de la transportadora o null.
  */
-function recogeEnOficina(...textos) {
+export function recogeEnOficina(...textos) {
   const t = textos
     .map((x) => normalizarTextoDir(x).replace(/[^a-z0-9]+/g, " "))
     .join(" ")
@@ -478,7 +490,7 @@ function recogeEnOficina(...textos) {
  * pedido (ahi suelen venir el barrio y los puntos de referencia). No repite
  * las referencias si ya estan dentro de la direccion.
  */
-function direccionConReferencias(direccion, referencias, max = 250) {
+export function direccionConReferencias(direccion, referencias, max = 250) {
   const dir = String(direccion ?? "").replace(/\s+/g, " ").trim().replace(/[,\s]+$/, "");
   const ref = String(referencias ?? "").replace(/\s+/g, " ").trim().replace(/^[,.\s-]+|[,.\s-]+$/g, "");
   if (!ref || !/[a-z0-9]/i.test(normalizarTextoDir(ref))) return dir;
@@ -486,5 +498,3 @@ function direccionConReferencias(direccion, referencias, max = 250) {
   if (n(dir).includes(n(ref))) return dir;
   return `${dir}, ${ref}`.slice(0, max).trim();
 }
-
-module.exports = { normalizarTextoDir, tipoViaCanonico, parsearDireccion, claveCalle, digitosDireccion, parsearManzana, validarDireccion, recogeEnOficina, direccionConReferencias };

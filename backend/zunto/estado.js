@@ -1,13 +1,10 @@
-// CONVERTIDO desde ZuntoStore (estado.js) ESM -> CommonJS.
-// Revision manual pendiente:
-//   - (ninguna)
-
 // Logica del cambio de estado: validacion, cuerpo del update y orquestacion.
 // El cuerpo es una copia fiel de panel/src/api/pedidoBody.ts (el mismo que
 // envia el panel oficial), solo que aqui se aplica el override de estado.
-const {ErrorApi, validacion} = require('./errores.js');
+import { ErrorApi, validacion } from "./errores.js";
+
 /** Espejo de ESTADOS_PEDIDO (doc 2.5). */
-const ESTADOS_PEDIDO = {
+export const ESTADOS_PEDIDO = {
   0: "Por confirmar",
   1: "Cancelado",
   2: "Confirmado",
@@ -20,13 +17,13 @@ const ESTADOS_PEDIDO = {
   9: "Novedad Solucionada",
 };
 
-function num(v, fallback = 0) {
+export function num(v, fallback = 0) {
   const n = Number(v);
   return Number.isNaN(n) ? fallback : n;
 }
 
 /** Convierte los campos JSON-string del pedido en arreglos utiles. */
-function parseArray(v) {
+export function parseArray(v) {
   if (Array.isArray(v)) return v;
   if (typeof v === "string") {
     try {
@@ -40,7 +37,7 @@ function parseArray(v) {
 }
 
 /** Valida la peticion; lanza ErrorApi(400) si algo no cuadra. */
-function validarCambio({ estado, motivo } = {}) {
+export function validarCambio({ estado, motivo } = {}) {
   // ojo: Number("") y Number(null) dan 0, hay que descartarlos a mano
   let crudo;
   if (typeof estado === "number") {
@@ -66,7 +63,7 @@ function validarCambio({ estado, motivo } = {}) {
 }
 
 /** Cuerpo exacto de POST /pedidos/update (doc 2.7) con el estado aplicado. */
-function construirBody(p, { estado, motivo } = {}) {
+export function construirBody(p, { estado, motivo } = {}) {
   const obs = parseArray(p.Observaciones);
   const lineas = parseArray(p.Json);
 
@@ -103,7 +100,7 @@ function construirBody(p, { estado, motivo } = {}) {
  * Cambia el estado de un pedido en LucidSales.
  * Devuelve el resumen para responder y registrar.
  */
-async function cambiarEstado({ cliente, id, estado, motivo, soloDesde, tienda }) {
+export async function cambiarEstado({ cliente, id, estado, motivo, soloDesde, tienda }) {
   const { estado: nuevo, motivo: motivoLimpio } = validarCambio({ estado, motivo });
 
   const pedido = await cliente.obtenerPedido(id, tienda);
@@ -152,9 +149,7 @@ async function cambiarEstado({ cliente, id, estado, motivo, soloDesde, tienda })
 }
 
 /** Mensaje corto para errores de LucidSales. */
-function mensajeDeError(err) {
+export function mensajeDeError(err) {
   if (err instanceof ErrorApi) return err;
   return new ErrorApi(500, err?.message ?? "Error interno");
 }
-
-module.exports = { cambiarEstado, num, parseArray, validarCambio, construirBody, mensajeDeError, ESTADOS_PEDIDO };

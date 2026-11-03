@@ -1,0 +1,44 @@
+'use client';
+// Copiado de ZuntoStore/panel/src/components/AnalisisPedido.tsx (transpilado a JS para Pizdo).
+// Los cambios de fondo se hacen en Zunto y se vuelven a copiar (scripts/sincronizar-zunto.js).
+// Analisis de la IA de un pedido (lo guarda la subida automatica): cada
+// verificacion del sistema con la cita del chat en la que se apoyo la IA, y
+// lo que la IA leyo. Se usa en la tabla de la subida y en el detalle del pedido.
+export const NOMBRES_CHEQUEO = {
+    productos: "Productos del pedido",
+    precioLineas: "Precio por producto",
+    variante: "Variante",
+    producto: "Producto",
+    cantidad: "Cantidad",
+    precio: "Precio",
+    direccion: "Dirección (chat vs pedido)",
+    direccionValida: "Dirección válida (Colombia)",
+    direccionMapa: "Dirección en el mapa",
+    confirmacion: "Confirmó",
+    entregaFutura: "Entrega futura",
+    corregimiento: "Corregimiento",
+    forzado: "Sin validar",
+    duplicado: "Pedido repetido",
+};
+/** Lo que la IA leyó del chat y cada verificación del código, con su cita. */
+export function AnalisisPedido({ analisis, abierto = false }) {
+    const checks = Array.isArray(analisis?.checks) ? analisis.checks : [];
+    const e = analisis?.extraido ?? {};
+    const v = (x) => (x === true ? "sí" : x === false ? "no" : x === null || x === undefined || x === "" ? "—" : String(x));
+    return (<details className="analisis-pedido" open={abierto}>
+      <summary>Ver análisis</summary>
+      <ul className="analisis-lista">
+        {checks.map((c) => (<li key={c.campo}>
+            <span className={`badge${c.ok ? " ok" : " danger"}`}>{c.ok ? "✓" : "✕"}</span>{" "}
+            <strong>{NOMBRES_CHEQUEO[c.campo] ?? c.campo}:</strong> {c.detalle}
+            {c.evidencia ? <div className="evidencia-chat">«{c.evidencia}»</div> : null}
+          </li>))}
+      </ul>
+      <p className="muted small">
+        La IA leyó: producto {v(e.producto)} · cantidad {v(e.cantidad)} · precio {v(e.precioAcordado)} ·
+        dirección {v(e.direccion)} · confirmó {v(e.clienteConfirmo)} · entrega futura {v(e.entregaFutura)}
+        {e.fechaEntregaSolicitada ? ` (${e.fechaEntregaSolicitada})` : ""}
+      </p>
+      {Array.isArray(e.incertidumbre) && e.incertidumbre.length ? (<p className="muted small">Incógnitas: {e.incertidumbre.join(" · ")}</p>) : null}
+    </details>);
+}

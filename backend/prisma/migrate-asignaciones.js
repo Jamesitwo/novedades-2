@@ -9,7 +9,7 @@ async function main() {
 
   const vinculados = await prisma.pedidoVinculado.findMany({
     where: { asignadoId: { not: null } },
-    select: { lucidsalesPedidoId: true, asignadoId: true, tiendaId: true, createdById: true }
+    select: { lucidsalesPedidoId: true, asignadoId: true, tiendaId: true, createdById: true, estadoPedido: true }
   });
 
   if (vinculados.length === 0) {
@@ -27,7 +27,9 @@ async function main() {
       asignadoId: v.asignadoId,
       tiendaId: v.tiendaId || null,
       createdById: v.createdById || null,
-      origen: 'migracion'
+      origen: 'migracion',
+      // copia del estado: el filtro "asignados a X" pagina con ella
+      estadoPedido: v.estadoPedido ?? null
     }));
 
   if (nuevos.length === 0) {

@@ -43,6 +43,13 @@ function gracefulShutdown(signal) {
     // el timer puede no haber arrancado
   }
 
+  // motor de Zunto: para la subida automatica y guarda su estado en la base
+  try {
+    require('./src/services/zunto').detener().catch(() => {});
+  } catch {
+    // el motor puede no haber arrancado
+  }
+
   if (nextProcess && !nextProcess.killed) {
     nextProcess.kill('SIGTERM');
     setTimeout(() => {
@@ -137,6 +144,9 @@ async function main() {
       } catch (e) {
         console.warn('[reparto] No se pudo arrancar:', e.message);
       }
+
+      // Motor de ZuntoStore: subida automatica a Dropi y agente (ZUNTO_MOTOR=0 lo apaga)
+      require('./src/services/zunto').iniciar();
     });
 
     process.on('SIGTERM', () => gracefulShutdown('SIGTERM'));

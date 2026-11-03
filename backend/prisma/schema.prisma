@@ -308,6 +308,11 @@ model AsignacionPedido {
   createdBy          Usuario? @relation("AsignacionCreador", fields: [createdById], references: [id])
   // manual = boton en la lista | automatico = reparto round-robin | migracion = backfill
   origen             String   @default("manual")
+  // copia del estado y la fecha del pedido en LucidSales (se refresca al
+  // listar): con ella el filtro "asignados a X" pagina y cuenta sin pedirle
+  // a la API todos los pedidos del operador
+  estadoPedido       Int?     @map("estado_pedido")
+  fechaPedido        DateTime? @map("fecha_pedido")
   createdAt          DateTime @default(now())
   updatedAt          DateTime @updatedAt
 
@@ -317,105 +322,35 @@ model AsignacionPedido {
   @@map("asignaciones_pedido")
 }
 
-// Configuracion de la subida automatica a Dropi, una fila por tienda.
-// Todo opt-in: `automatico` arranca en false y `dryRun` en true.
-model ConfigSubidaDropi {
-  id                      String   @id @default(uuid())
-  tiendaId                String   @unique @map("tienda_id")
-  tienda                  Tienda   @relation(fields: [tiendaId], references: [id])
-  automatico              Boolean  @default(false)
-  cadaSegundos            Int      @default(120) @map("cada_segundos")
-  // estados de LucidSales a subir (JSON array, defecto [0] = Por confirmar)
-  estados                 String   @default("[0]")
-  // true = solo prepara, no sube (defecto); false = sube de verdad
-  dryRun                  Boolean  @default(true) @map("dry_run")
-  // orden de preferencia de transportadoras de Dropi (JSON array)
-  transportadoras         String   @default("[5]")
-  envioMaxPesos           Int?     @map("envio_max_pesos")
-  envioMaxPorcentaje      Int?     @map("envio_max_porcentaje")
-  // JSON: { "<idProductoLucidSales>": {transportadoras[], maxPesos, maxPorcentaje} }
-  reglasProducto          String   @default("{}") @map("reglas_producto")
-  // JSON: { "<idEmpresa>": "<nombre exacto de la tienda en Dropi>" }
-  tiendasDropi            String   @default("{}") @map("tiendas_dropi")
-  // pedidos que recogen en oficina Inter: se suben solo si Dropi ofrece una
-  oficinaInter            Boolean  @default(false) @map("oficina_inter")
-  detectarOficinaInter    Boolean  @default(true) @map("detectar_oficina_inter")
-  // nota minima (0-100) de la direccion en el mapa; 0 = no se mira
-  minCalificacionDireccion Int    @default(70) @map("min_calificacion_direccion")
-  // intentos fallidos antes de dejar el pedido para revision manual
-  maxIntentos            Int      @default(2) @map("max_intentos")
-  // estado de la sesion de Dropi (JSON): {estado, desde, detalle, avisado}
-  sesionDropi            String?  @map("sesion_dropi")
-  // JSON: { "<id>": {fecha, faltan, enviado, anulado, nota} }
-  programados            String   @default("{}")
-  // JSON: ids de pedidos que una persona aprobo subir pese a posible duplicado
-  duplicadosAprobados    String   @default("{}") @map("duplicados_aprobados")
-  // LLM que lee el chat antes de subir (la decision sigue siendo del codigo)
-  llmApiKey              String?  @map("llm_api_key")
-  llmBase                String?  @map("llm_base")
-  llmModelo              String?  @map("llm_modelo")
-  llmActivo              Boolean  @default(false) @map("llm_activo")
-  createdAt              DateTime @default(now())
-  updatedAt              DateTime @updatedAt
-
-  logs                   SubidaDropiLog[]
-  intentos               SubidaDropiIntento[]
-
-  @@index([automatico])
-  @@map("config_subida_dropi")
-}
-
-// Estado por pedido: lo que en ZuntoStore vivia en subidaAutomatica.json
-// dentro de `procesados`. Un registro por pedido y tienda.
-model SubidaDropiLog {
+// Estado del motor de ZuntoStore (subida automatica a Dropi, agente,
+// programados, intentos, sesion de Dropi...). El motor trabaja con sus
+// archivos de siempre en disco; aqui se guarda una copia de cada archivo
+// para que sobreviva a reinicios y redeploys. `ruta` es relativa a la
+// carpeta de datos del motor (ZUNTO_DATA_DIR), p. ej. "pizdo/subidaAutomatica.json".
+// Log del importador de pedidos (ya retirado). Se conserva la tabla para que
+// `prisma db push` no la borre en produccion.
+model ImportLogPedido {
   id                 String   @id @default(uuid())
   tiendaId           String   @map("tienda_id")
-  tienda             Tienda   @relation(fields: [tiendaId], references: [id])
-  configId           String?  @map("config_id")
-  config             ConfigSubidaDropi? @relation(fields: [configId], references: [id])
-  lucidsalesPedidoId Int      @map("lucidsales_pedido_id")
-  // subido | subido-pendiente-confirmacion | resultado-incierto | requiere-revision |
-  // requiere-humano | direccion-invalida | envio-caro | sin-transportadora |
-  // posible-duplicado | entrega-programada | resuelto-a-mano | frenado | error |
-  // sin-conversacion | sin-tienda-dropi | estado-incompatible | preparado | ...
-  accion             String
-  detalle            String?  @db.Text
-  intentos           Int      @default(0)
-  // ultimo resultado notificado a Lucid Bot (evita repetir el aviso)
-  notificado         String?
-  // JSON: {nombre, telefono}
-  cliente            String?
-  // JSON: resumen del analisis de la IA (checks que fallo)
-  analisis           String?
-  // JSON: {id, ganancia, envio} lo que devolvio Dropi
-  dropi              String?
-  estadoPedido       Int?     @map("estado_pedido")
-  createdAt          DateTime @default(now())
-  updatedAt          DateTime @updatedAt
-
-  @@unique([tiendaId, lucidsalesPedidoId])
-  @@index([accion])
-  @@index([tiendaId, updatedAt])
-  @@map("subida_dropi_logs")
-}
-
-// Historial de intentos individuales por pedido (lo que era intentos.jsonl).
-// Transparencia en el panel: por que se freno o fallo cada intento.
-model SubidaDropiIntento {
-  id                 String   @id @default(uuid())
-  tiendaId           String   @map("tienda_id")
-  tienda             Tienda   @relation(fields: [tiendaId], references: [id])
-  configId           String?  @map("config_id")
-  config             ConfigSubidaDropi? @relation(fields: [configId], references: [id])
-  lucidsalesPedidoId Int      @map("lucidsales_pedido_id")
-  numero             Int      @default(1)
-  accion             String
-  detalle            String?  @db.Text
+  tienda             Tienda   @relation(fields: [tiendaId], references: [id], onDelete: Cascade)
+  lucidsalesPedidoId String   @map("lucidsales_pedido_id")
+  cliente            String
+  estado             String   @default("ok")
+  detalle            String?
   createdAt          DateTime @default(now())
 
-  @@index([tiendaId, lucidsalesPedidoId])
   @@index([tiendaId, createdAt])
-  @@map("subida_dropi_intentos")
+  @@map("import_log_pedidos")
+}
+
+model ZuntoArchivo {
+  ruta      String   @id
+  contenido Bytes
+  hash      String
+  tamano    Int      @default(0)
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("zunto_archivos")
 }
 
 model Configuracion {
@@ -509,6 +444,10 @@ model Tienda {
   botFieldMensajes    String?  @map("bot_field_mensajes")
   botFieldMultimedia  String?  @map("bot_field_multimedia")
   botFieldPostventa   String?  @map("bot_field_postventa")
+  // Columnas del importador de pedidos (ya retirado). Se conservan para que
+  // `prisma db push` no intente borrarlas en produccion.
+  botFieldPedidos     String?  @map("bot_field_pedidos")
+  botFieldIntegracionPedidos String? @map("bot_field_integracion_pedidos")
   createdAt           DateTime @default(now())
   updatedAt           DateTime @updatedAt
 
@@ -517,13 +456,11 @@ model Tienda {
   resenas       Resena[]
   botFieldCache BotFieldCache[]
   importLogs    ImportLogProducto[]
+  importLogsPedidos ImportLogPedido[]
   novedades        PedidoNovedad[]
   oficinas         PedidoOficina[]
   vinculados       PedidoVinculado[]
   asignacionesPedido AsignacionPedido[]
-  configSubidaDropi ConfigSubidaDropi[]
-  subidaDropiLogs  SubidaDropiLog[]
-  subidaDropiIntentos SubidaDropiIntento[]
   etiquetas        Etiqueta[]
   registrosEtiqueta RegistroEtiqueta[]
   historiales      HistorialCambio[]

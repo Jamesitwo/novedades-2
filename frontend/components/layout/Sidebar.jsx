@@ -186,6 +186,7 @@ export default function Sidebar() {
           {!esZunto && isAdmin && <NavItem href="/admin/perfumes" icon="sanitizer" label="Perfumes" badge={counts.perfumesPendientes > 0 ? counts.perfumesPendientes : null} badgeColor="purple" />}
           {esZunto && <NavItem href="/admin/importador-productos" icon="cloud_download" label="Importar Productos" />}
           {showLucidsales && <NavItem href="/admin/lucidsales" icon="shopping_cart" label="LucidSales" />}
+          {isAdmin && showLucidsales && <NavItem href="/admin/subida-dropi" icon="cloud_upload" label="Subida a Dropi" />}
         </Section>
 
         <Section title="Sistema" sectionKey="system">

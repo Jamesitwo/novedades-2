@@ -5,6 +5,9 @@ import api from '@/lib/api';
 import Icon from '@/components/ui/Icon';
 import Button from '@/components/ui/Button';
 import Autocomplete from '@/components/ui/Autocomplete';
+import ZuntoUI from '@/components/zunto/ZuntoUI';
+import { SubirPedidoDropi } from '@/components/zunto/components/SubirPedidoDropi';
+import { EntregaProgramadaCard } from '@/components/zunto/components/EntregaProgramada';
 
 const ESTADOS = [
   { value: 0, label: 'Por confirmar' },
@@ -818,6 +821,31 @@ export default function LucidsalesDetailPanel({ id, ids, currentIndex, onClose, 
               </div>
             )}
           </div>
+
+          {/* AGENTE DE DROPI (motor de ZuntoStore): lee el chat, valida producto,
+              precio y direccion, y solo si todo calza sube a Dropi con seguro */}
+          {pedido?.id && (
+            <div style={{ marginTop: 12 }}>
+              <ZuntoUI>
+                <EntregaProgramadaCard
+                  key={`prog-${pedido.id}`}
+                  id={String(pedido.id)}
+                  numero={pedido.idPedido ?? null}
+                  tienda={pedido.idEmpresa ?? null}
+                  cliente={{ nombre: [pedido.Nombre, pedido.Apellido].filter(Boolean).join(' '), telefono: String(pedido.Movil ?? '') }}
+                />
+                <SubirPedidoDropi
+                  key={`subir-${pedido.id}`}
+                  id={pedido.id}
+                  onConfirmado={() => {
+                    setUploaded(true);
+                    setPedido(p => (p ? { ...p, EstadoPedido: 2, EstadoFullfilment: 'Creado' } : p));
+                    onUpdate?.();
+                  }}
+                />
+              </ZuntoUI>
+            </div>
+          )}
 
           {/* FORM GRID */}
           <div className="lsd-grid-2" style={{ gap: 12 }}>

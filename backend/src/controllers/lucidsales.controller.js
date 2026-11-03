@@ -715,9 +715,8 @@ const subirDividido = async (req, res) => {
 const listarVinculados = async (req, res) => {
   try {
     const { page = 1, itemsPerPage = 50, search = '', estadoFilter, etiquetaId, asignadoId, fechaDesde, fechaHasta, producto, estados, asignado_a_mi } = req.query;
-    // Modo directo (estilo Zunto): la lista viene de la API de LucidSales.
-    // Los filtros de estado/fechas/producto van contra la API;
-    // asignación y etiquetas se aplican sobre la página cargada (datos locales).
+    // Modo directo (como Zunto): la lista viene de la API de LucidSales y se
+    // le une lo de Pizdo (asignado, etiquetas, notas, quien subio) por id.
     const opts = { page: Number(page), itemsPerPage: Number(itemsPerPage), search, fechaDesde, fechaHasta, producto, tiendaId: req.tiendaId };
 
     let estadosArr = [];
@@ -753,20 +752,10 @@ const listarVinculados = async (req, res) => {
       opts.etiquetaId = etiquetaId;
     }
 
+    // asignado/etiqueta salen de la base y la pagina se lee en vivo de la API
+    // (ver listPedidosDirecto); el resto de filtros los aplica LucidSales
     const result = await lucidsalesService.listPedidosDirecto(opts);
-
-    // Filtros locales sobre la página cargada (igual que Zunto: la API no filtra por asignación/etiqueta)
-    let pedidos = result.pedidos;
-    if (opts.etiquetaId) {
-      pedidos = pedidos.filter(p => (p._etiquetas || []).some(e => String(e.id) === String(opts.etiquetaId)));
-    }
-    if (opts.asignadoId === '__sin__') {
-      pedidos = pedidos.filter(p => !p.asignado);
-    } else if (opts.asignadoId) {
-      pedidos = pedidos.filter(p => (p.asignado?.id || null) === opts.asignadoId);
-    }
-
-    res.json({ ...result, pedidos });
+    res.json(result);
   } catch (error) {
     console.error('LucidSales listarVinculados error:', error);
     res.status(500).json({ error: error.message || 'Error al listar pedidos' });
