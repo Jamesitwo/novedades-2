@@ -1,19 +1,19 @@
 /* Estilos del panel de ZuntoStore (panel/src/styles.css), prefijados con .zunto-ui
-   para no chocar con los de Pizdo. Generado con scripts/sincronizar-zunto.js: no editar a mano. */
+   para no chocar con los de Pizdo, y con los colores del tema de Pizdo (scripts/tema-zunto.js). Generado con scripts/sincronizar-zunto.js: no editar a mano. */
 .zunto-ui {
-  --bg: #f7f7f9;
-  --surface: #ffffff;
-  --border: #e7e7ec;
-  --text: #35343d;
-  --muted: #767681;
-  --primary: #7b22f3;
-  --primary-dark: #6815d7;
-  --ok: #16a34a;
-  --warn: #d97706;
-  --danger: #dc2626;
-  --sidebar: #ffffff;
-  --radius: 8px;
-  --shadow: 0 1px 2px rgba(26, 24, 32, 0.035);
+  --z-bg: var(--bg);
+  --surface: var(--bg2);
+  --z-border: var(--border);
+  --z-text: var(--text);
+  --muted: var(--text2);
+  --primary: var(--accent);
+  --primary-dark: var(--accent2);
+  --ok: var(--green);
+  --warn: var(--amber);
+  --danger: var(--red);
+  --sidebar: var(--bg2);
+  --z-radius: var(--radius, 8px);
+  --shadow: 0 1px 2px rgba(0, 0, 0, 0.25);
 }
 
 .zunto-ui * {
@@ -22,9 +22,9 @@
 
 .zunto-ui {
   margin: 0;
-  font-family: "Segoe UI", system-ui, -apple-system, Roboto, sans-serif;
-  background: var(--bg);
-  color: var(--text);
+  font-family: var(--font);
+  background: transparent;
+  color: var(--z-text);
   font-size: 14px;
 }
 
@@ -32,7 +32,7 @@
 .zunto-ui pre,
 .zunto-ui .code-input,
 .zunto-ui .json-view {
-  font-family: "Cascadia Code", Consolas, "Courier New", monospace;
+  font-family: var(--mono);
 }
 
 .zunto-ui a {
@@ -49,7 +49,7 @@
 
 .zunto-ui .sidebar {
   background: var(--sidebar);
-  color: var(--text);
+  color: var(--z-text);
   display: flex;
   flex-direction: column;
   padding: 14px 10px;
@@ -57,7 +57,7 @@
   position: sticky;
   top: 0;
   height: 100vh;
-  border-right: 1px solid var(--border);
+  border-right: 1px solid var(--z-border);
 }
 
 .zunto-ui .brand {
@@ -66,7 +66,7 @@
   gap: 10px;
   font-weight: 700;
   font-size: 15px;
-  color: var(--text);
+  color: var(--z-text);
   padding: 0 6px;
 }
 
@@ -94,17 +94,17 @@
   gap: 10px;
   padding: 8px 10px;
   border-radius: 6px;
-  color: #5f5e68;
+  color: var(--text2);
   font-weight: 500;
 }
 
 .zunto-ui .nav-link:hover {
-  background: #f8f6fc;
+  background: color-mix(in srgb, var(--text) 4%, var(--bg2));
   color: var(--primary);
 }
 
 .zunto-ui .nav-link.active {
-  background: #f2eaff;
+  background: color-mix(in srgb, var(--accent) 14%, transparent);
   color: var(--primary);
   font-weight: 650;
 }
@@ -116,7 +116,7 @@
 }
 
 .zunto-ui .sidebar-foot {
-  border-top: 1px solid var(--border);
+  border-top: 1px solid var(--z-border);
   padding-top: 12px;
 }
 
@@ -128,7 +128,7 @@
 
 .zunto-ui .topbar {
   background: var(--surface);
-  border-bottom: 1px solid var(--border);
+  border-bottom: 1px solid var(--z-border);
   padding: 10px 24px;
   display: flex;
   align-items: center;
@@ -149,10 +149,10 @@
 
 .zunto-ui .shop-switcher select {
   padding: 6px 8px;
-  border: 1px solid var(--border);
+  border: 1px solid var(--z-border);
   border-radius: 8px;
-  background: #fff;
-  color: var(--text);
+  background: var(--bg2);
+  color: var(--z-text);
 }
 
 .zunto-ui .user-chip {
@@ -211,8 +211,8 @@
 /* ---------- Tarjetas / tablas ---------- */
 .zunto-ui .card {
   background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
+  border: 1px solid var(--z-border);
+  border-radius: var(--z-radius);
   box-shadow: var(--shadow);
   padding: 16px;
   margin-bottom: 16px;
@@ -236,7 +236,7 @@
 .zunto-ui .table th,
 .zunto-ui .table td {
   padding: 10px 12px;
-  border-bottom: 1px solid var(--border);
+  border-bottom: 1px solid var(--z-border);
   text-align: left;
   white-space: nowrap;
 }
@@ -246,11 +246,11 @@
   text-transform: uppercase;
   letter-spacing: 0.04em;
   color: var(--muted);
-  background: #f8f8fa;
+  background: color-mix(in srgb, var(--text) 4%, var(--bg2));
 }
 
 .zunto-ui .table tbody tr:hover {
-  background: #fbf9ff;
+  background: color-mix(in srgb, var(--accent) 14%, transparent);
 }
 
 .zunto-ui .table td.wrap,
@@ -260,9 +260,9 @@
 
 /* ---------- Controles ---------- */
 .zunto-ui .btn {
-  border: 1px solid var(--border);
+  border: 1px solid var(--z-border);
   background: var(--surface);
-  color: var(--text);
+  color: var(--z-text);
   padding: 8px 14px;
   border-radius: 8px;
   font-size: 14px;
@@ -272,8 +272,8 @@
 }
 
 .zunto-ui .btn:hover:not(:disabled) {
-  border-color: #d8c5f5;
-  background: #faf7ff;
+  border-color: color-mix(in srgb, var(--accent) 45%, var(--border));
+  background: color-mix(in srgb, var(--accent) 14%, transparent);
 }
 
 .zunto-ui .btn:disabled {
@@ -315,18 +315,18 @@
 .zunto-ui textarea {
   font-family: inherit;
   font-size: 14px;
-  color: var(--text);
-  border: 1px solid var(--border);
+  color: var(--z-text);
+  border: 1px solid var(--z-border);
   border-radius: 8px;
   padding: 8px 10px;
-  background: #fff;
+  background: var(--bg2);
   width: 100%;
 }
 
 .zunto-ui input:focus,
 .zunto-ui select:focus,
 .zunto-ui textarea:focus {
-  outline: 2px solid rgba(123, 34, 243, 0.18);
+  outline: 2px solid var(--accent);
   border-color: var(--primary);
 }
 
@@ -376,9 +376,9 @@
 .zunto-ui .code-input,
 .zunto-ui .json-view {
   width: 100%;
-  background: #0f172a;
-  color: #d7e0f2;
-  border: 1px solid #1e293b;
+  background: var(--accent);
+  color: var(--accent);
+  border: 1px solid var(--accent);
   border-radius: 8px;
   padding: 12px;
   font-size: 13px;
@@ -399,29 +399,29 @@
   border-radius: 999px;
   font-size: 12px;
   font-weight: 600;
-  background: #eef1f7;
+  background: color-mix(in srgb, var(--accent) 14%, transparent);
   color: var(--muted);
 }
 
 .zunto-ui .badge.ok {
-  background: #dcfce7;
+  background: color-mix(in srgb, var(--green) 14%, transparent);
   color: var(--ok);
 }
 
 .zunto-ui .badge.warn {
-  background: #fef3c7;
+  background: color-mix(in srgb, var(--amber) 14%, transparent);
   color: var(--warn);
 }
 
 .zunto-ui .badge.danger {
-  background: #fee2e2;
+  background: color-mix(in srgb, var(--red) 14%, transparent);
   color: var(--danger);
 }
 
 /* Estado del envio (EstadoFullfilment): el panel oficial usa morado #8500ff */
 .zunto-ui .badge.envio {
-  background: #f3e8ff;
-  color: #7c3aed;
+  background: color-mix(in srgb, var(--accent) 14%, transparent);
+  color: var(--accent);
 }
 
 /* Valor de solo lectura alineado con los inputs del formulario */
@@ -441,27 +441,27 @@
 }
 
 .zunto-ui .banner.error {
-  background: #fee2e2;
-  color: #991b1b;
-  border: 1px solid #fecaca;
+  background: color-mix(in srgb, var(--red) 14%, transparent);
+  color: var(--red);
+  border: 1px solid color-mix(in srgb, var(--red) 45%, var(--border));
 }
 
 .zunto-ui .banner.info {
-  background: #e0e7ff;
-  color: #3730a3;
-  border: 1px solid #c7d2fe;
+  background: color-mix(in srgb, var(--accent) 14%, transparent);
+  color: var(--accent);
+  border: 1px solid color-mix(in srgb, var(--accent) 45%, var(--border));
 }
 
 .zunto-ui .banner.ok {
-  background: #dcfce7;
-  color: #166534;
-  border: 1px solid #bbf7d0;
+  background: color-mix(in srgb, var(--green) 14%, transparent);
+  color: var(--green);
+  border: 1px solid color-mix(in srgb, var(--green) 45%, var(--border));
 }
 
 .zunto-ui .banner.warn {
-  background: #fef3c7;
-  color: #92400e;
-  border: 1px solid #fde68a;
+  background: color-mix(in srgb, var(--amber) 14%, transparent);
+  color: var(--amber);
+  border: 1px solid var(--amber);
 }
 
 .zunto-ui .spinner {
@@ -475,7 +475,7 @@
 .zunto-ui .spinner .dot {
   width: 14px;
   height: 14px;
-  border: 2px solid var(--border);
+  border: 2px solid var(--z-border);
   border-top-color: var(--primary);
   border-radius: 50%;
   animation: zunto-spin 0.8s linear infinite;
@@ -509,12 +509,12 @@
   min-height: 100vh;
   display: grid;
   place-items: center;
-  background: linear-gradient(140deg, #111827 0%, #1f2b46 60%, #2f5bea 160%);
+  background: linear-gradient(140deg, var(--accent) 0%, var(--accent) 60%, var(--accent) 160%);
   padding: 20px;
 }
 
 .zunto-ui .login-card {
-  background: #fff;
+  background: var(--bg2);
   border-radius: 14px;
   padding: 30px;
   width: 100%;
@@ -531,19 +531,19 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  border: 1px solid var(--border);
+  border: 1px solid var(--z-border);
   border-radius: 8px;
   padding: 12px 14px;
   margin-bottom: 8px;
   cursor: pointer;
-  background: #fff;
+  background: var(--bg2);
   width: 100%;
   font-weight: 600;
 }
 
 .zunto-ui .shop-option:hover {
   border-color: var(--primary);
-  background: #f6f8ff;
+  background: color-mix(in srgb, var(--accent) 14%, transparent);
 }
 
 /* ---------- Varios ---------- */
@@ -559,7 +559,7 @@
 .zunto-ui .tabs {
   display: flex;
   gap: 4px;
-  border-bottom: 1px solid var(--border);
+  border-bottom: 1px solid var(--z-border);
   margin-bottom: 16px;
   flex-wrap: wrap;
 }
@@ -630,21 +630,21 @@
   flex-direction: column;
   gap: 6px;
   background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
+  border: 1px solid var(--z-border);
+  border-radius: var(--z-radius);
   padding: 14px 16px;
   box-shadow: var(--shadow);
-  color: var(--text);
+  color: var(--z-text);
   transition: transform 0.12s ease, box-shadow 0.12s ease;
 }
 
 .zunto-ui .stat-card:hover {
   transform: translateY(-2px);
-  box-shadow: 0 6px 18px rgba(16, 24, 40, 0.12);
+  box-shadow: 0 6px 18px color-mix(in srgb, var(--accent) 12%, transparent);
 }
 
 .zunto-ui .stat-card.hero {
-  background: linear-gradient(135deg, var(--primary), #9d55ff);
+  background: linear-gradient(135deg, var(--primary), var(--accent));
   border-color: transparent;
   color: #fff;
 }
@@ -683,7 +683,7 @@
   display: flex;
   align-items: center;
   gap: 10px;
-  background: #111827;
+  background: var(--accent);
   color: #fff;
   padding: 10px 14px;
   border-radius: 8px;
@@ -711,7 +711,7 @@
   height: 18px;
   border-radius: 50%;
   font-size: 11px;
-  background: rgba(255, 255, 255, 0.16);
+  background: var(--bg2);
 }
 
 .zunto-ui .toast.success .toast-icon { background: var(--ok); }
@@ -722,7 +722,7 @@
 .zunto-ui .modal-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(15, 23, 42, 0.55);
+  background: color-mix(in srgb, var(--accent) 55%, transparent);
   display: grid;
   place-items: center;
   padding: 16px;
@@ -730,7 +730,7 @@
 }
 
 .zunto-ui .modal {
-  background: #fff;
+  background: var(--bg2);
   border-radius: 12px;
   width: 100%;
   max-width: 440px;
@@ -751,7 +751,7 @@
   justify-content: space-between;
   gap: 12px;
   padding: 14px 16px;
-  border-bottom: 1px solid var(--border);
+  border-bottom: 1px solid var(--z-border);
 }
 
 .zunto-ui .modal-head h3 {
@@ -778,7 +778,7 @@
   justify-content: flex-end;
   gap: 8px;
   padding: 12px 16px;
-  border-top: 1px solid var(--border);
+  border-top: 1px solid var(--z-border);
 }
 
 /* ---------- Cambios sin guardar ---------- */
@@ -791,7 +791,7 @@
   justify-content: space-between;
   gap: 12px;
   flex-wrap: wrap;
-  background: #111827;
+  background: var(--accent);
   color: #fff;
   padding: 10px 14px;
   border-radius: 10px;
@@ -811,7 +811,7 @@
 
 .zunto-ui .dirty-bar .btn.ghost {
   color: #fff;
-  border-color: rgba(255, 255, 255, 0.35);
+  border-color: var(--border);
 }
 
 @keyframes zunto-pulse {
@@ -832,7 +832,7 @@
   border-left: 3px solid var(--primary);
   padding: 8px 10px;
   margin-bottom: 8px;
-  background: #f8faff;
+  background: color-mix(in srgb, var(--accent) 14%, transparent);
   border-radius: 0 8px 8px 0;
 }
 
@@ -875,10 +875,10 @@
   font: inherit;
   font-size: 13px;
   padding: 5px 8px;
-  border: 1px solid var(--border);
+  border: 1px solid var(--z-border);
   border-radius: 8px;
-  background: #fff;
-  color: var(--text);
+  background: var(--bg2);
+  color: var(--z-text);
   max-width: 165px;
 }
 
@@ -923,7 +923,7 @@
   width: 11px;
   height: 11px;
   border-radius: 50%;
-  border: 1px solid rgba(0, 0, 0, 0.15);
+  border: 1px solid var(--text3);
   flex: none;
 }
 
@@ -943,9 +943,9 @@
   border-radius: 999px;
   font-size: 11.5px;
   font-weight: 600;
-  background: #eef1f7;
-  border: 1px solid var(--border);
-  color: var(--text);
+  background: color-mix(in srgb, var(--accent) 14%, transparent);
+  border: 1px solid var(--z-border);
+  color: var(--z-text);
   white-space: nowrap;
   max-width: 100%;
 }
@@ -975,14 +975,14 @@
   display: inline-flex;
   align-items: center;
   gap: 7px;
-  border: 1px solid var(--border);
+  border: 1px solid var(--z-border);
   background: var(--surface);
   border-radius: 999px;
   padding: 5px 12px;
   font-size: 13px;
   font-weight: 600;
   cursor: pointer;
-  color: var(--text);
+  color: var(--z-text);
 }
 
 .zunto-ui .etiqueta-op .marca {
@@ -1015,7 +1015,7 @@
 }
 
 .zunto-ui .swatch.on {
-  border-color: var(--text);
+  border-color: var(--z-text);
   box-shadow: 0 0 0 2px var(--surface) inset;
 }
 
@@ -1032,8 +1032,8 @@
   gap: 10px;
   justify-content: space-between;
   flex-wrap: wrap;
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
+  border: 1px solid var(--z-border);
+  border-radius: var(--z-radius);
   padding: 8px 10px;
   background: var(--surface);
 }
@@ -1113,15 +1113,15 @@
   align-items: flex-start;
   justify-content: space-between;
   gap: 12px;
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
+  border: 1px solid var(--z-border);
+  border-radius: var(--z-radius);
   padding: 10px;
   background: var(--surface);
 }
 
 .zunto-ui .oficina-inter .ofi-fila.usada {
   border-color: var(--primary);
-  background: rgba(47, 91, 234, 0.06);
+  background: color-mix(in srgb, var(--accent) 6%, transparent);
 }
 
 .zunto-ui .oficina-inter .ofi-datos {
@@ -1214,7 +1214,7 @@
 
 .zunto-ui .combo-x:hover {
   color: var(--danger);
-  background: rgba(220, 38, 38, 0.08);
+  background: color-mix(in srgb, var(--red) 8%, transparent);
 }
 
 .zunto-ui .combo-lista {
@@ -1227,9 +1227,9 @@
   padding: 4px;
   list-style: none;
   background: var(--surface);
-  border: 1px solid var(--border);
+  border: 1px solid var(--z-border);
   border-radius: 8px;
-  box-shadow: 0 12px 30px rgba(16, 24, 40, 0.16);
+  box-shadow: 0 12px 30px color-mix(in srgb, var(--accent) 16%, transparent);
   max-height: 264px;
   overflow-y: auto;
 }
@@ -1238,7 +1238,7 @@
   font-size: 11.5px;
   color: var(--muted);
   padding: 5px 8px 7px;
-  border-bottom: 1px solid var(--border);
+  border-bottom: 1px solid var(--z-border);
   margin-bottom: 3px;
 }
 
@@ -1260,7 +1260,7 @@
 }
 
 .zunto-ui .combo-op.activo {
-  background: rgba(47, 91, 234, 0.1);
+  background: color-mix(in srgb, var(--accent) 10%, transparent);
 }
 
 .zunto-ui .combo-op.elegida .combo-nombre {
@@ -1327,8 +1327,8 @@
   height: 30px;
   object-fit: cover;
   border-radius: 6px;
-  border: 1px solid var(--border);
-  background: var(--bg);
+  border: 1px solid var(--z-border);
+  background: var(--z-bg);
   flex: none;
 }
 
@@ -1344,8 +1344,8 @@
   height: 40px;
   object-fit: cover;
   border-radius: 6px;
-  border: 1px solid var(--border);
-  background: var(--bg);
+  border: 1px solid var(--z-border);
+  background: var(--z-bg);
   display: block;
 }
 
@@ -1354,8 +1354,8 @@
   height: 72px;
   object-fit: cover;
   border-radius: 8px;
-  border: 1px solid var(--border);
-  background: var(--bg);
+  border: 1px solid var(--z-border);
+  background: var(--z-bg);
   flex: none;
 }
 
@@ -1383,8 +1383,8 @@
   word-break: break-word;
   font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
   font-size: 11.5px;
-  background: var(--bg);
-  border: 1px solid var(--border);
+  background: var(--z-bg);
+  border: 1px solid var(--z-border);
   border-radius: 6px;
   padding: 6px 8px;
   min-width: 220px;
@@ -1402,8 +1402,8 @@
   padding: 3px 9px;
   border-radius: 999px;
   font-size: 12px;
-  border: 1px solid var(--border);
-  background: var(--bg);
+  border: 1px solid var(--z-border);
+  background: var(--z-bg);
   color: var(--muted);
   white-space: nowrap;
   align-self: center;
@@ -1414,15 +1414,15 @@
 }
 
 .zunto-ui .stock-dropi.ok {
-  background: rgba(22, 163, 74, 0.1);
-  border-color: rgba(22, 163, 74, 0.4);
+  background: color-mix(in srgb, var(--green) 10%, transparent);
+  border-color: var(--green);
   color: var(--ok);
   font-weight: 600;
 }
 
 .zunto-ui .stock-dropi.no {
-  background: rgba(220, 38, 38, 0.08);
-  border-color: rgba(220, 38, 38, 0.35);
+  background: color-mix(in srgb, var(--red) 8%, transparent);
+  border-color: var(--red);
   color: var(--danger);
   font-weight: 600;
 }
@@ -1434,7 +1434,7 @@
   padding: 0;
   max-height: 46vh;
   overflow-y: auto;
-  border: 1px solid var(--border);
+  border: 1px solid var(--z-border);
   border-radius: 8px;
 }
 
@@ -1443,7 +1443,7 @@
   align-items: center;
   gap: 10px;
   padding: 8px 10px;
-  border-bottom: 1px solid var(--border);
+  border-bottom: 1px solid var(--z-border);
 }
 
 .zunto-ui .dropi-fila:last-child {
@@ -1451,11 +1451,11 @@
 }
 
 .zunto-ui .dropi-fila:hover {
-  background: #f8faff;
+  background: color-mix(in srgb, var(--accent) 14%, transparent);
 }
 
 .zunto-ui .dropi-fila.elegida {
-  background: rgba(47, 91, 234, 0.07);
+  background: color-mix(in srgb, var(--accent) 7%, transparent);
 }
 
 .zunto-ui .dropi-fila input[type="checkbox"] {
@@ -1500,10 +1500,10 @@
 }
 
 .zunto-ui .paso-inicial {
-  border: 1px solid var(--border);
+  border: 1px solid var(--z-border);
   border-radius: 8px;
   padding: 10px;
-  background: var(--bg);
+  background: var(--z-bg);
   display: flex;
   flex-direction: column;
   gap: 8px;
@@ -1543,7 +1543,7 @@
   display: flex;
   flex-direction: column;
   gap: 6px;
-  border: 1px dashed var(--border);
+  border: 1px dashed var(--z-border);
   border-radius: 8px;
   padding: 8px;
   background: var(--surface);
@@ -1560,8 +1560,8 @@
   max-height: 170px;
   object-fit: contain;
   border-radius: 6px;
-  border: 1px solid var(--border);
-  background: #fff;
+  border: 1px solid var(--z-border);
+  background: var(--bg2);
 }
 
 .zunto-ui video.url-fila-media {
@@ -1597,7 +1597,7 @@
 
 /* Campanas de Meta en el modal de producto */
 .zunto-ui .meta-detalle {
-  border: 1px solid var(--border);
+  border: 1px solid var(--z-border);
   border-radius: 8px;
   padding: 2px 10px 10px;
   background: var(--surface);
@@ -1612,9 +1612,9 @@
 .zunto-ui .camp-lista {
   max-height: 220px;
   overflow-y: auto;
-  border: 1px solid var(--border);
+  border: 1px solid var(--z-border);
   border-radius: 8px;
-  background: #fff;
+  background: var(--bg2);
 }
 
 .zunto-ui .camp-fila {
@@ -1622,7 +1622,7 @@
   align-items: center;
   gap: 8px;
   padding: 6px 10px;
-  border-bottom: 1px solid var(--border);
+  border-bottom: 1px solid var(--z-border);
   cursor: pointer;
   font-size: 13.5px;
 }
@@ -1632,7 +1632,7 @@
 }
 
 .zunto-ui .camp-fila:hover {
-  background: #f8faff;
+  background: color-mix(in srgb, var(--accent) 14%, transparent);
 }
 
 .zunto-ui .camp-fila input {
@@ -1666,7 +1666,7 @@
 
 /* Variantes, reglas y testimonios del producto */
 .zunto-ui .variante-atributo {
-  border: 1px solid var(--border);
+  border: 1px solid var(--z-border);
   border-radius: 8px;
   padding: 8px;
   background: var(--surface);
@@ -1686,7 +1686,7 @@
   flex-direction: column;
   gap: 6px;
   padding-left: 12px;
-  border-left: 2px solid var(--border);
+  border-left: 2px solid var(--z-border);
 }
 
 .zunto-ui .mixed-fila {
@@ -1694,7 +1694,7 @@
   align-items: center;
   gap: 8px;
   flex-wrap: wrap;
-  border: 1px solid var(--border);
+  border: 1px solid var(--z-border);
   border-radius: 8px;
   padding: 6px 8px;
   background: var(--surface);
@@ -1722,7 +1722,7 @@
 }
 
 .zunto-ui .bundle-fila {
-  border: 1px solid var(--border);
+  border: 1px solid var(--z-border);
   border-radius: 8px;
   padding: 8px;
   background: var(--surface);
@@ -1784,7 +1784,7 @@
   width: 36px;
   height: 20px;
   border-radius: 999px;
-  background: #d6dce7;
+  background: color-mix(in srgb, var(--accent) 14%, transparent);
   transition: background 0.15s;
 }
 
@@ -1796,8 +1796,8 @@
   width: 16px;
   height: 16px;
   border-radius: 50%;
-  background: #fff;
-  box-shadow: 0 1px 2px rgba(16, 24, 40, 0.3);
+  background: var(--bg2);
+  box-shadow: 0 1px 2px color-mix(in srgb, var(--accent) 30%, transparent);
   transition: transform 0.15s;
 }
 
@@ -1810,7 +1810,7 @@
 }
 
 .zunto-ui .switch input:focus-visible + .switch-pista {
-  outline: 2px solid rgba(47, 91, 234, 0.35);
+  outline: 2px solid var(--accent);
   outline-offset: 2px;
 }
 
@@ -1848,7 +1848,7 @@
 /* respuesta cruda, solo si la piden */
 .zunto-ui .ver-json {
   margin-top: 10px;
-  border: 1px dashed var(--border);
+  border: 1px dashed var(--z-border);
   border-radius: 8px;
   padding: 6px 10px;
 }
@@ -1870,7 +1870,7 @@
 }
 
 .zunto-ui .avanzado {
-  border: 1px solid var(--border);
+  border: 1px solid var(--z-border);
   border-radius: 8px;
   padding: 8px 12px;
 }
@@ -1892,10 +1892,10 @@
 .zunto-ui .logo-vista img {
   max-height: 48px;
   max-width: 170px;
-  border: 1px solid var(--border);
+  border: 1px solid var(--z-border);
   border-radius: 6px;
   padding: 4px;
-  background: #fff;
+  background: var(--bg2);
 }
 
 /* flujos del bot */
@@ -1912,14 +1912,14 @@
   align-items: center;
   justify-content: space-between;
   gap: 12px;
-  border: 1px solid var(--border);
+  border: 1px solid var(--z-border);
   border-radius: 8px;
   padding: 8px 12px;
 }
 
 .zunto-ui .flujo.activo {
   border-color: var(--primary);
-  background: rgba(47, 91, 234, 0.06);
+  background: color-mix(in srgb, var(--accent) 6%, transparent);
 }
 
 .zunto-ui .flujo-nombre {
@@ -1931,7 +1931,7 @@
   flex: none;
   font-size: 11.5px;
   color: var(--muted);
-  border: 1px solid var(--border);
+  border: 1px solid var(--z-border);
   border-radius: 999px;
   padding: 2px 8px;
 }
@@ -1984,16 +1984,16 @@
   display: inline-block;
   padding: 2px 8px;
   border-radius: 999px;
-  background: var(--bg);
-  border: 1px solid var(--border);
+  background: var(--z-bg);
+  border: 1px solid var(--z-border);
   font-size: 12px;
   color: var(--muted);
   white-space: nowrap;
 }
 
 .zunto-ui .chip.ok {
-  background: rgba(22, 163, 74, 0.1);
-  border-color: rgba(22, 163, 74, 0.4);
+  background: color-mix(in srgb, var(--green) 10%, transparent);
+  border-color: var(--green);
   color: var(--ok);
   font-weight: 600;
 }
@@ -2009,10 +2009,10 @@
 /* Tarjeta de testimonio: misma pinta que un paso, pero con su propia clase
    (así los contadores del mensaje inicial no las cuentan por error). */
 .zunto-ui .testi-paso {
-  border: 1px solid var(--border);
+  border: 1px solid var(--z-border);
   border-radius: 8px;
   padding: 10px;
-  background: var(--bg);
+  background: var(--z-bg);
   display: flex;
   flex-direction: column;
   gap: 8px;
@@ -2105,7 +2105,7 @@
 
 .zunto-ui .barra {
   height: 8px;
-  background: #eef1f7;
+  background: color-mix(in srgb, var(--accent) 14%, transparent);
   border-radius: 999px;
   overflow: hidden;
   margin-top: 5px;
@@ -2167,14 +2167,14 @@
 }
 
 .zunto-ui .grafica-svg .grid {
-  stroke: var(--border);
+  stroke: var(--z-border);
   stroke-width: 1;
   stroke-dasharray: 4 4;
   vector-effect: non-scaling-stroke;
 }
 
 .zunto-ui .grafica-area {
-  fill: rgba(47, 91, 234, 0.12);
+  fill: var(--accent);
 }
 
 .zunto-ui .grafica-act {
@@ -2239,7 +2239,7 @@
 .zunto-ui .donut-total {
   font-size: 21px;
   font-weight: 700;
-  fill: var(--text);
+  fill: var(--z-text);
 }
 
 .zunto-ui .donut-sub {
@@ -2317,8 +2317,8 @@
 }
 
 .zunto-ui .meta-destacado {
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
+  border: 1px solid var(--z-border);
+  border-radius: var(--z-radius);
   overflow: hidden;
   text-align: center;
   background: var(--surface);
@@ -2333,7 +2333,7 @@
 }
 
 .zunto-ui .meta-destacado.rojo .meta-destacado-titulo {
-  background: #dc2626;
+  background: var(--red);
 }
 
 .zunto-ui .meta-destacado.verde .meta-destacado-titulo {
@@ -2348,7 +2348,7 @@
 }
 
 .zunto-ui .meta-destacado.rojo .meta-destacado-valor {
-  color: #dc2626;
+  color: var(--red);
 }
 
 .zunto-ui .meta-destacado.verde .meta-destacado-valor {
@@ -2388,7 +2388,7 @@
 }
 
 .zunto-ui .fila-meta:hover {
-  background: #f6f8fc;
+  background: color-mix(in srgb, var(--text) 4%, var(--bg2));
 }
 
 .zunto-ui .meta-detalle-lista {
@@ -2501,7 +2501,7 @@
 .zunto-ui .ads-dona-centro strong {
   font-size: 24px;
   line-height: 1;
-  color: var(--text);
+  color: var(--z-text);
 }
 
 .zunto-ui .ads-leyenda {
@@ -2535,7 +2535,7 @@
   margin-top: 10px;
   padding: 8px 10px;
   border-radius: 8px;
-  background: #fef2f2;
+  background: color-mix(in srgb, var(--red) 14%, transparent);
   color: var(--danger);
 }
 
@@ -2571,7 +2571,7 @@
 .zunto-ui .barra {
   height: 8px;
   border-radius: 999px;
-  background: var(--border);
+  background: var(--z-border);
   overflow: hidden;
 }
 
@@ -2596,39 +2596,39 @@
   font-weight: 700;
   letter-spacing: 0.02em;
   text-transform: uppercase;
-  background: #eef2f7;
+  background: color-mix(in srgb, var(--accent) 14%, transparent);
   color: var(--muted);
   white-space: nowrap;
 }
 
 .zunto-ui .ads-clase.clase-rentable,
 .zunto-ui .ads-chip.clase-rentable {
-  background: #dcfce7;
-  color: #15803d;
+  background: color-mix(in srgb, var(--green) 14%, transparent);
+  color: var(--green);
 }
 
 .zunto-ui .ads-clase.clase-ajustada,
 .zunto-ui .ads-chip.clase-ajustada {
-  background: #dbeafe;
-  color: #1d4ed8;
+  background: color-mix(in srgb, var(--accent) 14%, transparent);
+  color: var(--accent);
 }
 
 .zunto-ui .ads-clase.clase-riesgo,
 .zunto-ui .ads-chip.clase-riesgo {
-  background: #fef3c7;
-  color: #b45309;
+  background: color-mix(in srgb, var(--amber) 14%, transparent);
+  color: var(--amber);
 }
 
 .zunto-ui .ads-clase.clase-perdida,
 .zunto-ui .ads-chip.clase-perdida {
-  background: #fee2e2;
-  color: #b91c1c;
+  background: color-mix(in srgb, var(--red) 14%, transparent);
+  color: var(--red);
 }
 
 .zunto-ui .ads-clase.clase-sindato,
 .zunto-ui .ads-chip.clase-sindato {
-  background: #eceff3;
-  color: #64748b;
+  background: color-mix(in srgb, var(--accent) 14%, transparent);
+  color: var(--text2);
 }
 
 /* --- filtros --- */
@@ -2651,7 +2651,7 @@
 }
 
 .zunto-ui button.ads-chip {
-  border: 1px solid var(--border);
+  border: 1px solid var(--z-border);
   background: var(--surface);
   color: var(--muted);
   cursor: pointer;
@@ -2666,38 +2666,38 @@
 
 .zunto-ui button.ads-chip.on {
   border-color: var(--primary);
-  background: #eef3ff;
+  background: color-mix(in srgb, var(--accent) 14%, transparent);
   color: var(--primary);
 }
 
 .zunto-ui button.ads-chip.clase-rentable.on {
-  background: #dcfce7;
-  border-color: #16a34a;
-  color: #15803d;
+  background: color-mix(in srgb, var(--green) 14%, transparent);
+  border-color: var(--green);
+  color: var(--green);
 }
 
 .zunto-ui button.ads-chip.clase-ajustada.on {
-  background: #dbeafe;
-  border-color: #2563eb;
-  color: #1d4ed8;
+  background: color-mix(in srgb, var(--accent) 14%, transparent);
+  border-color: var(--accent);
+  color: var(--accent);
 }
 
 .zunto-ui button.ads-chip.clase-riesgo.on {
-  background: #fef3c7;
-  border-color: #d97706;
-  color: #b45309;
+  background: color-mix(in srgb, var(--amber) 14%, transparent);
+  border-color: var(--amber);
+  color: var(--amber);
 }
 
 .zunto-ui button.ads-chip.clase-perdida.on {
-  background: #fee2e2;
-  border-color: #dc2626;
-  color: #b91c1c;
+  background: color-mix(in srgb, var(--red) 14%, transparent);
+  border-color: var(--red);
+  color: var(--red);
 }
 
 .zunto-ui button.ads-chip.clase-sindato.on {
-  background: #eceff3;
-  border-color: #94a3b8;
-  color: #475569;
+  background: color-mix(in srgb, var(--accent) 14%, transparent);
+  border-color: var(--accent);
+  color: var(--accent);
 }
 
 .zunto-ui .ads-tab-badge {
@@ -2705,7 +2705,7 @@
   margin-left: 6px;
   padding: 1px 7px;
   border-radius: 999px;
-  background: #eef2f7;
+  background: color-mix(in srgb, var(--accent) 14%, transparent);
   color: var(--muted);
   font-size: 11px;
   font-weight: 700;
@@ -2755,11 +2755,11 @@
 
 .zunto-ui .ads-punto.encendida {
   background: var(--ok);
-  box-shadow: 0 0 0 3px rgba(22, 163, 74, 0.16);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--green) 16%, transparent);
 }
 
 .zunto-ui .ads-punto.apagada {
-  background: #cbd5e1;
+  background: var(--accent);
 }
 
 .zunto-ui .ads-compartida {
@@ -2767,7 +2767,7 @@
   margin-left: 6px;
   padding: 1px 7px;
   border-radius: 999px;
-  background: #eef2f7;
+  background: color-mix(in srgb, var(--accent) 14%, transparent);
   color: var(--muted);
   font-size: 11px;
   font-weight: 600;
@@ -2800,7 +2800,7 @@
   gap: 12px;
   padding-bottom: 12px;
   margin-bottom: 4px;
-  border-bottom: 1px solid var(--border);
+  border-bottom: 1px solid var(--z-border);
 }
 
 .zunto-ui .ads-ganancias-acciones {
@@ -2877,7 +2877,7 @@
   margin-left: 6px;
   padding: 1px 7px;
   border-radius: 999px;
-  background: #e8f0fe;
+  background: color-mix(in srgb, var(--accent) 14%, transparent);
   color: var(--primary);
   font-size: 11px;
   font-weight: 600;
@@ -2900,9 +2900,9 @@
 
 .zunto-ui .ads-alerta {
   background: var(--surface);
-  border: 1px solid var(--border);
+  border: 1px solid var(--z-border);
   border-left: 4px solid var(--muted);
-  border-radius: var(--radius);
+  border-radius: var(--z-radius);
   padding: 12px 14px;
   box-shadow: var(--shadow);
 }
@@ -2916,7 +2916,7 @@
 }
 
 .zunto-ui .ads-alerta.clase-sindato {
-  border-left-color: #94a3b8;
+  border-left-color: var(--accent);
 }
 
 .zunto-ui .ads-alerta.clase-rentable {
@@ -2968,12 +2968,12 @@
   flex-wrap: wrap;
   font-size: 12.5px;
   color: var(--muted);
-  border-top: 1px dashed var(--border);
+  border-top: 1px dashed var(--z-border);
   padding-top: 8px;
 }
 
 .zunto-ui .ads-alerta-numeros strong {
-  color: var(--text);
+  color: var(--z-text);
   font-variant-numeric: tabular-nums;
 }
 
@@ -2984,8 +2984,8 @@
 .zunto-ui .ads-alerta-nota {
   margin-top: 8px;
   font-size: 12.5px;
-  background: #f8fafc;
-  border: 1px dashed var(--border);
+  background: color-mix(in srgb, var(--text) 4%, var(--bg2));
+  border: 1px dashed var(--z-border);
   border-radius: 8px;
   padding: 6px 8px;
 }
@@ -3039,7 +3039,7 @@
 .zunto-ui .ads-reporte-pie {
   margin-top: 22px;
   padding-top: 12px;
-  border-top: 1px solid var(--border);
+  border-top: 1px solid var(--z-border);
   font-size: 12px;
   color: var(--muted);
 }
@@ -3050,8 +3050,8 @@
 
 /* Anuncios: jerarquía clara, controles agrupados y superficies ligeras. */
 .zunto-ui .anuncios-page {
-  --ads-lilac: #f3eaff;
-  --ads-purple-border: #e7d7fb;
+  --ads-lilac: color-mix(in srgb, var(--accent) 14%, transparent);
+  --ads-purple-border: color-mix(in srgb, var(--accent) 14%, transparent);
 }
 
 .zunto-ui .page-header:has(.ads-acciones) {
@@ -3086,19 +3086,19 @@
   align-items: center;
   gap: 5px;
   padding: 3px;
-  border: 1px solid var(--border);
+  border: 1px solid var(--z-border);
   border-radius: 10px;
-  background: #fff;
+  background: var(--bg2);
 }
 
 .zunto-ui .ads-actions-group > .btn {
   border-color: transparent;
   background: transparent;
-  color: #5f5e68;
+  color: var(--text2);
 }
 
 .zunto-ui .ads-actions-group > .btn:hover:not(:disabled) {
-  background: #f8f4ff;
+  background: color-mix(in srgb, var(--accent) 14%, transparent);
   color: var(--primary);
 }
 
@@ -3190,9 +3190,9 @@
   gap: 3px;
   margin: 0 0 18px;
   padding: 5px;
-  border: 1px solid var(--border);
+  border: 1px solid var(--z-border);
   border-radius: 10px;
-  background: #fff;
+  background: var(--bg2);
   overflow-x: auto;
   flex-wrap: nowrap;
 }
@@ -3210,7 +3210,7 @@
 }
 
 .zunto-ui .ads-workspace > .tabs[aria-label="Secciones de rentabilidad"] .tab:hover {
-  background: #faf7ff;
+  background: color-mix(in srgb, var(--accent) 14%, transparent);
   color: var(--primary);
 }
 
@@ -3220,12 +3220,12 @@
 }
 
 .zunto-ui .ads-workspace > .tabs[aria-label="Secciones de rentabilidad"] .tab.active .ads-tab-badge {
-  background: #e8d5ff;
+  background: color-mix(in srgb, var(--accent) 14%, transparent);
   color: var(--primary);
 }
 
 .zunto-ui .anuncios-page .card {
-  border-color: var(--border);
+  border-color: var(--z-border);
   border-radius: 10px;
   box-shadow: 0 1px 2px rgba(26, 24, 32, 0.025);
 }
@@ -3241,9 +3241,9 @@
 }
 
 .zunto-ui .ads-vacio {
-  border: 1px dashed #dcd2e8;
+  border: 1px dashed color-mix(in srgb, var(--accent) 45%, var(--border));
   border-radius: 12px;
-  background: linear-gradient(135deg, #fff 35%, #faf7ff 100%);
+  background: linear-gradient(135deg, var(--bg2) 35%, color-mix(in srgb, var(--accent) 14%, transparent) 100%);
 }
 
 .zunto-ui .ads-kpis .stat-card {
@@ -3317,7 +3317,7 @@
 
 .zunto-ui .barra {
   height: 6px;
-  background: #efedf2;
+  background: color-mix(in srgb, var(--text) 4%, var(--bg2));
 }
 
 .zunto-ui .tabla-anuncios th,
@@ -3356,15 +3356,15 @@
 
 .zunto-ui .ads-hecho {
   padding: 6px 9px;
-  border: 1px solid var(--border);
+  border: 1px solid var(--z-border);
   border-radius: 7px;
-  background: #fff;
+  background: var(--bg2);
 }
 
 .zunto-ui .ads-hecho:has(input:checked) {
-  border-color: #c5efd5;
-  background: #f0fbf4;
-  color: #168044;
+  border-color: color-mix(in srgb, var(--green) 45%, var(--border));
+  background: color-mix(in srgb, var(--text) 4%, var(--bg2));
+  color: var(--green);
 }
 
 .zunto-ui .ads-hecho input,
@@ -3379,14 +3379,14 @@
 }
 
 .zunto-ui .ads-alerta-nota {
-  background: #faf8fd;
+  background: color-mix(in srgb, var(--text) 4%, var(--bg2));
 }
 
 .zunto-ui .ads-filtros {
   align-items: center;
   margin-bottom: 12px;
   padding-bottom: 12px;
-  border-bottom: 1px solid var(--border);
+  border-bottom: 1px solid var(--z-border);
 }
 
 .zunto-ui .ads-filtros .field {
@@ -3427,7 +3427,7 @@
 }
 
 .zunto-ui .ads-table-caption strong {
-  color: var(--text);
+  color: var(--z-text);
   font-variant-numeric: tabular-nums;
 }
 
@@ -3453,7 +3453,7 @@
 }
 
 .zunto-ui .tabla-anuncios tbody tr:hover {
-  background: #faf7ff;
+  background: color-mix(in srgb, var(--accent) 14%, transparent);
 }
 
 .zunto-ui .orden-cab {
@@ -3474,7 +3474,7 @@
 
 .zunto-ui .ads-origen {
   border-radius: 6px;
-  background: #f1eaff;
+  background: color-mix(in srgb, var(--accent) 14%, transparent);
   color: var(--primary);
 }
 
@@ -3489,10 +3489,10 @@
 
 .zunto-ui .ads-help {
   margin: 0 0 13px;
-  border: 1px solid #e8def5;
+  border: 1px solid color-mix(in srgb, var(--accent) 45%, var(--border));
   border-radius: 9px;
-  background: #fcfaff;
-  color: #615a6a;
+  background: color-mix(in srgb, var(--accent) 14%, transparent);
+  color: var(--text2);
   font-size: 12.5px;
 }
 
@@ -3513,7 +3513,7 @@
   margin-bottom: 14px;
   padding: 11px;
   border-radius: 9px;
-  background: #f8f8fa;
+  background: color-mix(in srgb, var(--text) 4%, var(--bg2));
 }
 
 .zunto-ui .ads-estados > .muted {
@@ -3524,16 +3524,16 @@
 
 .zunto-ui .ads-estado {
   padding: 6px 9px;
-  border: 1px solid var(--border);
+  border: 1px solid var(--z-border);
   border-radius: 7px;
-  background: #fff;
+  background: var(--bg2);
   font-size: 12px;
 }
 
 .zunto-ui .ads-estado:has(input:checked) {
-  border-color: #d9c4f5;
-  background: #f5edff;
-  color: #6120b9;
+  border-color: color-mix(in srgb, var(--accent) 45%, var(--border));
+  background: color-mix(in srgb, var(--accent) 14%, transparent);
+  color: var(--accent);
 }
 
 .zunto-ui .ads-product-summary {
@@ -3592,7 +3592,7 @@
 
 .zunto-ui .ads-reporte-cab {
   padding-bottom: 16px;
-  border-bottom: 1px solid var(--border);
+  border-bottom: 1px solid var(--z-border);
 }
 
 .zunto-ui .ads-reporte-cab h2 {
@@ -3616,11 +3616,11 @@
   margin: 0 0 20px;
   padding: 14px 16px 14px 34px;
   border-radius: 9px;
-  background: #f8f8fa;
+  background: color-mix(in srgb, var(--text) 4%, var(--bg2));
 }
 
 .zunto-ui .ads-reporte .table-wrap {
-  border: 1px solid var(--border);
+  border: 1px solid var(--z-border);
   border-radius: 9px;
 }
 
@@ -3644,15 +3644,15 @@
   gap: 10px;
   margin: 0;
   padding: 10px 12px;
-  border: 1px solid var(--border);
+  border: 1px solid var(--z-border);
   border-radius: 8px;
-  background: #fff;
-  color: var(--text);
+  background: var(--bg2);
+  color: var(--z-text);
 }
 
 .zunto-ui .ads-cuenta-op:has(input:checked) {
-  border-color: #d7c0f4;
-  background: #fbf8ff;
+  border-color: color-mix(in srgb, var(--accent) 45%, var(--border));
+  background: color-mix(in srgb, var(--accent) 14%, transparent);
 }
 
 .zunto-ui .ads-cuenta-op input {
@@ -3666,7 +3666,7 @@
   margin: 14px 0 18px;
   padding: 14px 16px 14px 34px;
   border-radius: 9px;
-  background: #f8f8fa;
+  background: color-mix(in srgb, var(--text) 4%, var(--bg2));
   line-height: 1.5;
 }
 
@@ -3691,9 +3691,9 @@
   align-items: center;
   gap: 3px;
   padding: 4px;
-  border: 1px solid var(--border);
+  border: 1px solid var(--z-border);
   border-radius: 10px;
-  background: #fff;
+  background: var(--bg2);
 }
 
 .zunto-ui .productos-origen .btn {
@@ -3706,13 +3706,13 @@
 }
 
 .zunto-ui .productos-origen .btn:hover:not(:disabled) {
-  background: #faf7ff;
+  background: color-mix(in srgb, var(--accent) 14%, transparent);
   color: var(--primary);
 }
 
 .zunto-ui .productos-origen .btn.primary {
-  border-color: #e7d7fb;
-  background: #f3eaff;
+  border-color: color-mix(in srgb, var(--accent) 45%, var(--border));
+  background: color-mix(in srgb, var(--accent) 14%, transparent);
   color: var(--primary);
 }
 
@@ -3758,9 +3758,9 @@
   align-items: center;
   gap: 5px;
   padding: 3px;
-  border: 1px solid var(--border);
+  border: 1px solid var(--z-border);
   border-radius: 9px;
-  background: #fff;
+  background: var(--bg2);
 }
 
 .zunto-ui .productos-search input {
@@ -3776,15 +3776,15 @@
 }
 
 .zunto-ui .productos-search:focus-within {
-  border-color: #c9a9f1;
-  box-shadow: 0 0 0 3px rgba(123, 34, 243, 0.08);
+  border-color: color-mix(in srgb, var(--accent) 45%, var(--border));
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 8%, transparent);
 }
 
 .zunto-ui .productos-search .btn {
   min-height: 32px;
   padding: 5px 10px;
   border-color: transparent;
-  background: #f4edfc;
+  background: color-mix(in srgb, var(--accent) 14%, transparent);
   color: var(--primary);
 }
 
@@ -3797,35 +3797,35 @@
   margin: 14px 0 12px;
   padding: 8px 10px;
   border-radius: 8px;
-  background: #f8f8fa;
+  background: color-mix(in srgb, var(--text) 4%, var(--bg2));
   color: var(--muted);
   font-size: 12px;
 }
 
 .zunto-ui .productos-meta strong {
-  color: var(--text);
+  color: var(--z-text);
 }
 
 .zunto-ui .productos-respaldo {
   padding: 3px 7px;
-  border: 1px solid #eadfba;
+  border: 1px solid color-mix(in srgb, var(--amber) 45%, var(--border));
   border-radius: 6px;
-  background: #fff9e8;
-  color: #8c6412;
+  background: color-mix(in srgb, var(--amber) 14%, transparent);
+  color: var(--amber);
   font-size: 11px;
   font-weight: 600;
 }
 
 .zunto-ui .productos-catalogo .table-wrap,
 .zunto-ui .productos-fuente-card .table-wrap {
-  border: 1px solid var(--border);
+  border: 1px solid var(--z-border);
   border-radius: 9px;
 }
 
 .zunto-ui .productos-tabla thead th {
   padding: 11px 12px;
-  background: #f8f8fa;
-  color: #666570;
+  background: color-mix(in srgb, var(--text) 4%, var(--bg2));
+  color: var(--text2);
   font-size: 11px;
   letter-spacing: 0.025em;
   text-transform: none;
@@ -3841,7 +3841,7 @@
 }
 
 .zunto-ui .productos-tabla tbody tr:hover {
-  background: #fbf9ff;
+  background: color-mix(in srgb, var(--accent) 14%, transparent);
 }
 
 .zunto-ui .productos-tabla td:nth-child(2) strong {
@@ -3870,9 +3870,9 @@
   justify-content: center;
   gap: 9px;
   padding: 25px;
-  border: 1px dashed #ded8e8;
+  border: 1px dashed color-mix(in srgb, var(--accent) 45%, var(--border));
   border-radius: 10px;
-  background: linear-gradient(145deg, #fff, #fbf9fe);
+  background: linear-gradient(145deg, var(--bg2), color-mix(in srgb, var(--accent) 14%, transparent));
   text-align: center;
 }
 
@@ -3890,7 +3890,7 @@
   height: 42px;
   place-items: center;
   border-radius: 12px;
-  background: #f1e8ff;
+  background: color-mix(in srgb, var(--accent) 14%, transparent);
   color: var(--primary);
   font-size: 24px;
 }
@@ -3898,7 +3898,7 @@
 .zunto-ui .productos-catalogo .pagination {
   margin-top: 13px;
   padding: 12px 2px 0;
-  border-top: 1px solid var(--border);
+  border-top: 1px solid var(--z-border);
 }
 
 .zunto-ui .productos-catalogo .pagination .pages {
@@ -3928,15 +3928,15 @@
 
 .zunto-ui .productos-avanzado > summary {
   padding: 14px 16px;
-  color: #5d5964;
+  color: var(--text2);
   font-size: 13px;
   font-weight: 650;
   cursor: pointer;
 }
 
 .zunto-ui .productos-avanzado[open] > summary {
-  border-bottom: 1px solid var(--border);
-  background: #faf9fc;
+  border-bottom: 1px solid var(--z-border);
+  background: color-mix(in srgb, var(--text) 4%, var(--bg2));
 }
 
 .zunto-ui .productos-avanzado > p {
@@ -3951,9 +3951,9 @@
 .zunto-ui .productos-respuesta {
   margin: 0 16px 16px;
   padding: 10px 12px;
-  border: 1px solid var(--border);
+  border: 1px solid var(--z-border);
   border-radius: 8px;
-  background: #fff;
+  background: var(--bg2);
 }
 
 .zunto-ui .productos-respuesta > summary {
@@ -4079,9 +4079,9 @@
 
 .zunto-ui .ads-pie {
   padding: 10px 12px;
-  border: 1px solid var(--border);
+  border: 1px solid var(--z-border);
   border-radius: 9px;
-  background: rgba(255, 255, 255, 0.7);
+  background: var(--bg2);
   line-height: 1.6;
 }
 
@@ -4153,14 +4153,14 @@
   align-items: center;
   gap: 10px;
   padding: 8px 10px;
-  border: 1px solid var(--border);
+  border: 1px solid var(--z-border);
   border-radius: 8px;
   cursor: pointer;
   font-size: 13.5px;
 }
 
 .zunto-ui .ads-cuenta-op:hover {
-  background: var(--bg);
+  background: var(--z-bg);
 }
 
 .zunto-ui .ads-cuenta-op span:last-child {
@@ -4205,7 +4205,7 @@
     border: none;
     box-shadow: none;
     padding: 0;
-    background: #fff;
+    background: var(--bg2);
   }
 
   .zunto-ui .ads-reporte .table-wrap {
@@ -4226,9 +4226,9 @@
   list-style: none;
   margin: 0;
   padding: 8px;
-  border: 1px solid var(--border);
+  border: 1px solid var(--z-border);
   border-radius: 8px;
-  background: var(--bg);
+  background: var(--z-bg);
   max-height: 260px;
   overflow: auto;
   display: flex;
@@ -4254,7 +4254,7 @@
 }
 
 .zunto-ui .chat-fila.cliente .chat-de {
-  color: var(--accent, #2563eb);
+  color: var(--accent, var(--accent));
 }
 
 .zunto-ui .chat-texto {
@@ -4272,10 +4272,10 @@
 .zunto-ui .ajustes-page > .page-header {
   align-items: flex-start;
   padding: 20px 22px;
-  border: 1px solid #eee8f7;
+  border: 1px solid color-mix(in srgb, var(--accent) 45%, var(--border));
   border-radius: 16px;
-  background: linear-gradient(115deg, #faf7ff, #fff 64%);
-  box-shadow: 0 8px 24px rgba(38, 24, 57, 0.045);
+  background: linear-gradient(115deg, color-mix(in srgb, var(--accent) 14%, transparent), var(--bg2) 64%);
+  box-shadow: 0 8px 24px color-mix(in srgb, var(--accent) 5%, transparent);
 }
 
 .zunto-ui .ajustes-page > .page-header h1 {
@@ -4288,10 +4288,10 @@
   align-items: center;
   gap: 12px;
   padding: 14px 16px;
-  border: 1px solid #eae4f3;
+  border: 1px solid color-mix(in srgb, var(--accent) 45%, var(--border));
   border-radius: 12px;
-  background: #fbf9fe;
-  color: #5d566b;
+  background: color-mix(in srgb, var(--accent) 14%, transparent);
+  color: var(--text2);
   font-size: 13px;
 }
 
@@ -4302,8 +4302,8 @@
   flex: 0 0 34px;
   place-items: center;
   border-radius: 10px;
-  background: #f0e7ff;
-  color: #7432d5;
+  background: color-mix(in srgb, var(--accent) 14%, transparent);
+  color: var(--accent);
   font-size: 18px;
 }
 
@@ -4314,9 +4314,9 @@
   gap: 5px;
   padding: 5px;
   overflow-x: auto;
-  border: 1px solid #e9e6ed;
+  border: 1px solid var(--border);
   border-radius: 12px;
-  background: #f7f6f9;
+  background: color-mix(in srgb, var(--text) 4%, var(--bg2));
 }
 
 .zunto-ui .ajustes-tabs .tab {
@@ -4324,15 +4324,15 @@
   padding: 9px 16px;
   border: 0;
   border-radius: 9px;
-  color: #666173;
+  color: var(--text2);
   font-weight: 650;
   white-space: nowrap;
 }
 
 .zunto-ui .ajustes-tabs .tab.active {
-  background: #fff;
-  color: #7135d6;
-  box-shadow: 0 2px 7px rgba(38, 24, 57, 0.09);
+  background: var(--bg2);
+  color: var(--accent);
+  box-shadow: 0 2px 7px color-mix(in srgb, var(--accent) 9%, transparent);
 }
 
 .zunto-ui .ajustes-page form {
@@ -4342,21 +4342,21 @@
 
 .zunto-ui .ajustes-page .card {
   padding: 20px;
-  border: 1px solid #e9e7ee;
+  border: 1px solid var(--border);
   border-radius: 14px;
-  box-shadow: 0 4px 16px rgba(38, 24, 57, 0.035);
+  box-shadow: 0 4px 16px color-mix(in srgb, var(--accent) 4%, transparent);
 }
 
 .zunto-ui .ajustes-page .card-title {
   margin-bottom: 16px;
-  color: #282334;
+  color: var(--accent);
   font-size: 16px;
   font-weight: 730;
   letter-spacing: -0.015em;
 }
 
 .zunto-ui .ajustes-page .field > label {
-  color: #676273;
+  color: var(--text2);
   font-size: 12px;
   font-weight: 650;
 }
@@ -4382,7 +4382,7 @@
 
 .zunto-ui .ajustes-page .ver-json,
 .zunto-ui .ajustes-page .avanzado {
-  border-color: #eae7ef;
+  border-color: color-mix(in srgb, var(--accent) 45%, var(--border));
   border-radius: 10px;
 }
 
@@ -4436,10 +4436,10 @@
   align-items: flex-start;
   gap: 16px;
   padding: 20px 22px;
-  border: 1px solid #eee8f7;
+  border: 1px solid color-mix(in srgb, var(--accent) 45%, var(--border));
   border-radius: 16px;
-  background: linear-gradient(120deg, #faf7ff 0%, #fff 60%);
-  box-shadow: 0 8px 24px rgba(38, 24, 57, 0.045);
+  background: linear-gradient(120deg, color-mix(in srgb, var(--accent) 14%, transparent) 0%, var(--bg2) 60%);
+  box-shadow: 0 8px 24px color-mix(in srgb, var(--accent) 5%, transparent);
 }
 
 .zunto-ui .pedido-detalle-page .page-header h1 {
@@ -4463,9 +4463,9 @@
 
 .zunto-ui .pedido-detalle-page .pedido-card {
   padding: 20px;
-  border: 1px solid #e9e7ee;
+  border: 1px solid var(--border);
   border-radius: 14px;
-  box-shadow: 0 4px 16px rgba(38, 24, 57, 0.035);
+  box-shadow: 0 4px 16px color-mix(in srgb, var(--accent) 4%, transparent);
 }
 
 .zunto-ui .pedido-detalle-page .pedido-card > .card-title,
@@ -4475,14 +4475,14 @@
   justify-content: space-between;
   gap: 10px;
   margin-bottom: 16px;
-  color: #282334;
+  color: var(--accent);
   font-size: 16px;
   font-weight: 730;
   letter-spacing: -0.015em;
 }
 
 .zunto-ui .pedido-detalle-page .field > label {
-  color: #676273;
+  color: var(--text2);
   font-size: 12px;
   font-weight: 650;
 }
@@ -4497,27 +4497,27 @@
 .zunto-ui .pedido-detalle-page .valor-solo {
   min-height: 40px;
   padding: 9px 11px;
-  border: 1px solid #ebe9f0;
+  border: 1px solid color-mix(in srgb, var(--accent) 45%, var(--border));
   border-radius: 9px;
-  background: #faf9fc;
+  background: color-mix(in srgb, var(--text) 4%, var(--bg2));
 }
 
 .zunto-ui .pedido-detalle-page .pedido-estado-card .table {
   overflow: hidden;
-  border: 1px solid #eeeaf3;
+  border: 1px solid color-mix(in srgb, var(--accent) 45%, var(--border));
   border-radius: 10px;
 }
 
 .zunto-ui .pedido-detalle-page .pedido-productos-card .table-wrap,
 .zunto-ui .pedido-detalle-page .pedido-otros-card .table-wrap {
-  border: 1px solid #eeeaf3;
+  border: 1px solid color-mix(in srgb, var(--accent) 45%, var(--border));
   border-radius: 10px;
 }
 
 .zunto-ui .pedido-detalle-page .pedido-productos-card .table th,
 .zunto-ui .pedido-detalle-page .pedido-otros-card .table th {
-  background: #faf9fc;
-  color: #666173;
+  background: color-mix(in srgb, var(--text) 4%, var(--bg2));
+  color: var(--text2);
   font-size: 11px;
   letter-spacing: 0.035em;
   text-transform: uppercase;
@@ -4534,7 +4534,7 @@
 
 .zunto-ui .pedido-detalle-page .pedido-json-card > summary::after {
   content: "Ver datos";
-  color: #7135d6;
+  color: var(--accent);
   font-size: 12px;
   font-weight: 650;
 }
@@ -4612,9 +4612,9 @@
   align-items: center !important;
   padding: 13px 15px;
   margin-bottom: 2px !important;
-  border: 1px solid var(--border);
+  border: 1px solid var(--z-border);
   border-radius: 12px;
-  background: linear-gradient(135deg, #faf7ff, #fff 72%);
+  background: linear-gradient(135deg, color-mix(in srgb, var(--accent) 14%, transparent), var(--bg2) 72%);
 }
 
 .zunto-ui .producto-editor-form > .row:first-child .chips {
@@ -4625,11 +4625,11 @@
 .zunto-ui .producto-editor-form .subtitulo-form {
   margin: 10px 0 -3px;
   padding: 13px 15px;
-  border: 1px solid #eee8f7;
-  border-left: 3px solid #8b3dff;
+  border: 1px solid color-mix(in srgb, var(--accent) 45%, var(--border));
+  border-left: 3px solid var(--accent);
   border-radius: 10px;
-  background: #faf8fd;
-  color: #302343;
+  background: color-mix(in srgb, var(--text) 4%, var(--bg2));
+  color: var(--accent);
   font-size: 14px;
   font-weight: 700;
 }
@@ -4644,7 +4644,7 @@
 }
 
 .zunto-ui .producto-editor-form .campo > label {
-  color: #555164;
+  color: var(--text2);
   font-size: 12px;
   font-weight: 650;
 }
@@ -4666,8 +4666,8 @@
   height: 54px;
   object-fit: cover;
   border-radius: 9px;
-  border: 1px solid var(--border);
-  background: #fff;
+  border: 1px solid var(--z-border);
+  background: var(--bg2);
 }
 
 @media (max-width: 700px) {
@@ -4685,28 +4685,28 @@
    LucidSales visual refresh — tokens adapted to ZuntoStore components
    ================================================================ */
 .zunto-ui {
-  --bg: #f7f7f8;
-  --surface: #fff;
-  --border: #e4e4e7;
-  --text: #3f3f46;
-  --muted: #71717a;
-  --primary: #8500ff;
-  --primary-dark: #7100db;
-  --ok: #16a34a;
-  --warn: #ca8a04;
-  --danger: #dc2626;
-  --sidebar: #fff;
-  --radius: 10px;
-  --shadow: 0 1px 2px rgba(0, 0, 0, .045);
-  --line-soft: #f1f1f3;
-  --focus-ring: 0 0 0 3px rgba(133, 0, 255, .13);
+  --z-bg: var(--bg);
+  --surface: var(--bg2);
+  --z-border: var(--border);
+  --z-text: var(--text);
+  --muted: var(--text2);
+  --primary: var(--accent);
+  --primary-dark: var(--accent2);
+  --ok: var(--green);
+  --warn: var(--amber);
+  --danger: var(--red);
+  --sidebar: var(--bg2);
+  --z-radius: var(--radius, 8px);
+  --shadow: 0 1px 2px rgba(0, 0, 0, 0.25);
+  --line-soft: color-mix(in srgb, var(--text) 4%, var(--bg2));
+  --focus-ring: 0 0 0 3px color-mix(in srgb, var(--accent) 13%, transparent);
 }
 
 .zunto-ui { scroll-behavior: smooth; }
 .zunto-ui {
-  background: var(--bg);
-  color: var(--text);
-  font-family: Inter, "Segoe UI", system-ui, sans-serif;
+  background: transparent;
+  color: var(--z-text);
+  font-family: var(--font);
   font-size: 13px;
   line-height: 1.5;
   -webkit-font-smoothing: antialiased;
@@ -4720,7 +4720,7 @@
 .zunto-ui .shell {
   grid-template-columns: 240px minmax(0, 1fr);
   min-height: 100dvh;
-  background: var(--bg);
+  background: var(--z-bg);
 }
 .zunto-ui .sidebar {
   position: sticky;
@@ -4729,7 +4729,7 @@
   height: 100dvh;
   padding: 16px 0 14px;
   gap: 20px;
-  border-right: 1px solid var(--border);
+  border-right: 1px solid var(--z-border);
   box-shadow: 1px 0 0 rgba(15, 15, 20, .012);
   z-index: 20;
 }
@@ -4746,13 +4746,13 @@
   border-radius: 8px;
   display: grid;
   place-items: center;
-  background: linear-gradient(145deg, #a540ff, #7200e8);
-  box-shadow: 0 3px 8px rgba(133, 0, 255, .22);
+  background: linear-gradient(145deg, var(--accent), var(--accent));
+  box-shadow: 0 3px 8px color-mix(in srgb, var(--accent) 22%, transparent);
   font-size: 14px;
 }
 .zunto-ui .brand-mark span { font-weight: 800; }
-.zunto-ui .brand-wordmark { color: #17151b; font-size: 17px; font-weight: 700; }
-.zunto-ui .brand-wordmark span { color: #85818c; font-weight: 500; margin-left: 2px; }
+.zunto-ui .brand-wordmark { color: var(--text); font-size: 17px; font-weight: 700; }
+.zunto-ui .brand-wordmark span { color: var(--text2); font-weight: 500; margin-left: 2px; }
 .zunto-ui .sidebar nav { gap: 2px; }
 .zunto-ui .nav-link {
   position: relative;
@@ -4762,14 +4762,14 @@
   margin: 0 16px 0 0;
   gap: 11px;
   border-radius: 0 8px 8px 0;
-  color: #4b4a52;
+  color: var(--text);
   font: 500 13px/1.4 Inter, sans-serif;
   transition: color .15s ease, background-color .15s ease;
 }
-.zunto-ui .nav-link:hover { background: #fafafa; color: #26232c; text-decoration: none; }
+.zunto-ui .nav-link:hover { background: color-mix(in srgb, var(--text) 4%, var(--bg2)); color: var(--text); text-decoration: none; }
 .zunto-ui .nav-link.active {
-  background: #f4ecff;
-  color: #7800e8;
+  background: color-mix(in srgb, var(--accent) 14%, transparent);
+  color: var(--accent);
   font-weight: 600;
 }
 .zunto-ui .nav-link.active::before {
@@ -4778,44 +4778,44 @@
   inset: 0 auto 0 0;
   width: 3px;
   border-radius: 0 4px 4px 0;
-  background: #8500ff;
+  background: var(--accent);
 }
 .zunto-ui .nav-icon { width: 17px; height: 17px; flex: 0 0 17px; }
 .zunto-ui .sidebar-foot { margin-top: auto; padding: 12px 12px 0; border-top: 1px solid var(--line-soft); }
 .zunto-ui .sidebar-foot .btn { width: 100%; justify-content: flex-start; }
 
-.zunto-ui .main { min-width: 0; background: var(--bg); }
+.zunto-ui .main { min-width: 0; background: var(--z-bg); }
 .zunto-ui .topbar {
   position: sticky;
   top: 0;
   min-height: 56px;
   padding: 8px 24px;
   justify-content: space-between;
-  border-bottom: 1px solid var(--border);
-  background: rgba(255, 255, 255, .96);
+  border-bottom: 1px solid var(--z-border);
+  background: var(--bg2);
   backdrop-filter: blur(12px);
   z-index: 15;
 }
 .zunto-ui .shop-switcher { gap: 8px; color: var(--muted); font-size: 12px; }
-.zunto-ui .shop-switcher label { color: #8b8992; font-size: 11px; font-weight: 600; }
+.zunto-ui .shop-switcher label { color: var(--text2); font-size: 11px; font-weight: 600; }
 .zunto-ui .shop-switcher select {
   min-width: 150px;
   min-height: 35px;
   padding: 6px 30px 6px 10px;
-  border: 1px solid var(--border);
+  border: 1px solid var(--z-border);
   border-radius: 8px;
-  color: #35343d;
+  color: var(--text);
   font-size: 12px;
   font-weight: 500;
   transition: border .15s ease, box-shadow .15s ease;
 }
-.zunto-ui .shop-switcher select:hover { border-color: #c7b3e4; }
-.zunto-ui .user-chip { gap: 9px; min-width: 0; color: #3f3f46; font-size: 13px; font-weight: 500; }
+.zunto-ui .shop-switcher select:hover { border-color: var(--accent); }
+.zunto-ui .user-chip { gap: 9px; min-width: 0; color: var(--text); font-size: 13px; font-weight: 500; }
 .zunto-ui .user-chip-name { max-width: min(230px, 24vw); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .zunto-ui .avatar {
   width: 31px; height: 31px;
-  background: #efe5ff;
-  color: #8500ff;
+  background: color-mix(in srgb, var(--accent) 14%, transparent);
+  color: var(--accent);
   font-size: 12px;
   font-weight: 650;
 }
@@ -4832,17 +4832,17 @@
 }
 .zunto-ui .page-header h1 {
   margin: 0;
-  color: #18171c;
+  color: var(--text);
   font: 700 clamp(21px, 2vw, 25px)/1.2 Inter, sans-serif;
   letter-spacing: -.035em;
 }
-.zunto-ui .page-header .muted { margin: 5px 0 0; color: #77747f; font-size: 12.5px; }
+.zunto-ui .page-header .muted { margin: 5px 0 0; color: var(--text2); font-size: 12.5px; }
 .zunto-ui .page-actions { gap: 8px; align-items: center; }
 
 .zunto-ui .card {
   padding: 18px;
   margin-bottom: 16px;
-  border: 1px solid var(--border);
+  border: 1px solid var(--z-border);
   border-radius: 10px;
   background: var(--surface);
   box-shadow: var(--shadow);
@@ -4850,10 +4850,10 @@
 }
 .zunto-ui .card-title {
   margin: 0 0 12px;
-  color: #24222a;
+  color: var(--text);
   font: 600 14px/1.4 Inter, sans-serif;
 }
-.zunto-ui .muted { color: #77747f; }
+.zunto-ui .muted { color: var(--text2); }
 .zunto-ui .small { font-size: 12px; }
 
 .zunto-ui .btn {
@@ -4863,68 +4863,68 @@
   justify-content: center;
   gap: 7px;
   padding: 7px 12px;
-  border: 1px solid var(--border);
+  border: 1px solid var(--z-border);
   border-radius: 7px;
-  background: #fff;
-  color: #41404a;
+  background: var(--bg2);
+  color: var(--text);
   font-size: 12.5px;
   font-weight: 550;
   line-height: 1.2;
   text-decoration: none;
   cursor: pointer;
 }
-.zunto-ui .btn:hover:not(:disabled) { border-color: #d0c2e3; background: #faf8fd; color: #5d22a0; text-decoration: none; }
+.zunto-ui .btn:hover:not(:disabled) { border-color: color-mix(in srgb, var(--accent) 45%, var(--border)); background: color-mix(in srgb, var(--text) 4%, var(--bg2)); color: var(--accent); text-decoration: none; }
 .zunto-ui .btn.primary, .zunto-ui .btn-primary {
-  border-color: #8500ff !important;
-  background: #8500ff !important;
+  border-color: var(--accent) !important;
+  background: var(--accent) !important;
   color: #fff !important;
-  box-shadow: 0 2px 5px rgba(133, 0, 255, .16);
+  box-shadow: 0 2px 5px color-mix(in srgb, var(--accent) 16%, transparent);
 }
-.zunto-ui .btn.primary:hover:not(:disabled), .zunto-ui .btn-primary:hover:not(:disabled) { border-color: #7100db !important; background: #7100db !important; }
-.zunto-ui .btn.ghost { border-color: transparent; background: transparent; color: #696672; }
-.zunto-ui .btn.ghost:hover:not(:disabled) { background: #f6f3fa; color: #5d22a0; }
-.zunto-ui .btn.danger { border-color: #fecaca; background: #fef2f2; color: #b91c1c; }
+.zunto-ui .btn.primary:hover:not(:disabled), .zunto-ui .btn-primary:hover:not(:disabled) { border-color: var(--accent) !important; background: var(--accent) !important; }
+.zunto-ui .btn.ghost { border-color: transparent; background: transparent; color: var(--text2); }
+.zunto-ui .btn.ghost:hover:not(:disabled) { background: color-mix(in srgb, var(--text) 4%, var(--bg2)); color: var(--accent); }
+.zunto-ui .btn.danger { border-color: color-mix(in srgb, var(--red) 45%, var(--border)); background: color-mix(in srgb, var(--red) 14%, transparent); color: var(--red); }
 .zunto-ui .btn:disabled { opacity: .55; cursor: not-allowed; box-shadow: none; }
 
 .zunto-ui input:not([type="checkbox"]):not([type="radio"]), .zunto-ui select, .zunto-ui textarea {
-  border-color: #dedde3;
+  border-color: var(--border);
   border-radius: 7px;
-  background-color: #fff;
-  color: #34323b;
+  background-color: var(--bg2);
+  color: var(--text);
   font-size: 13px;
   transition: border-color .15s ease, box-shadow .15s ease;
 }
 .zunto-ui input:not([type="checkbox"]):not([type="radio"]), .zunto-ui select { min-height: 37px; }
-.zunto-ui input:not([type="checkbox"]):not([type="radio"]):hover, .zunto-ui select:hover, .zunto-ui textarea:hover { border-color: #c8c3d0; }
+.zunto-ui input:not([type="checkbox"]):not([type="radio"]):hover, .zunto-ui select:hover, .zunto-ui textarea:hover { border-color: var(--border); }
 .zunto-ui input:not([type="checkbox"]):not([type="radio"]):focus, .zunto-ui select:focus, .zunto-ui textarea:focus {
-  border-color: #a759f2;
+  border-color: var(--accent);
   outline: 0;
   box-shadow: var(--focus-ring);
 }
-.zunto-ui input::placeholder, .zunto-ui textarea::placeholder { color: #a09da7; }
-.zunto-ui .field label, .zunto-ui .campo label { color: #4b4853; font-size: 12px; font-weight: 600; }
-.zunto-ui .campo-ayuda, .zunto-ui .field small { color: #898691; font-size: 11.5px; line-height: 1.45; }
+.zunto-ui input::placeholder, .zunto-ui textarea::placeholder { color: var(--text2); }
+.zunto-ui .field label, .zunto-ui .campo label { color: var(--text); font-size: 12px; font-weight: 600; }
+.zunto-ui .campo-ayuda, .zunto-ui .field small { color: var(--text2); font-size: 11.5px; line-height: 1.45; }
 
 .zunto-ui .table-wrap {
   overflow: auto;
-  border: 1px solid var(--border);
+  border: 1px solid var(--z-border);
   border-radius: 9px;
-  background: #fff;
+  background: var(--bg2);
 }
-.zunto-ui .table { border-collapse: separate; border-spacing: 0; color: #4b4a52; font-size: 12.5px; }
+.zunto-ui .table { border-collapse: separate; border-spacing: 0; color: var(--text); font-size: 12.5px; }
 .zunto-ui .table th {
   padding: 10px 12px;
-  border-bottom: 1px solid var(--border);
-  background: #fafafa;
-  color: #6c6974;
+  border-bottom: 1px solid var(--z-border);
+  background: color-mix(in srgb, var(--text) 4%, var(--bg2));
+  color: var(--text2);
   font-size: 11px;
   font-weight: 650;
   letter-spacing: .015em;
   text-transform: none;
 }
-.zunto-ui .table td { padding: 10px 12px; border-bottom: 1px solid #f1f1f3; vertical-align: middle; }
+.zunto-ui .table td { padding: 10px 12px; border-bottom: 1px solid var(--border); vertical-align: middle; }
 .zunto-ui .table tbody tr { transition: background-color .12s ease; }
-.zunto-ui .table tbody tr:hover { background: #fcfbfe; }
+.zunto-ui .table tbody tr:hover { background: color-mix(in srgb, var(--accent) 14%, transparent); }
 .zunto-ui .table tbody tr:last-child td { border-bottom: 0; }
 .zunto-ui .badge {
   display: inline-flex;
@@ -4932,36 +4932,36 @@
   width: fit-content;
   min-height: 22px;
   padding: 3px 8px;
-  border: 1px solid #e6e6ea;
+  border: 1px solid var(--border);
   border-radius: 999px;
-  background: #f5f5f6;
-  color: #696873;
+  background: color-mix(in srgb, var(--text) 4%, var(--bg2));
+  color: var(--text2);
   font-size: 11px;
   font-weight: 600;
   line-height: 1.2;
 }
-.zunto-ui .badge.ok { border-color: #c4f0d0; background: #effbf2; color: #16803a; }
-.zunto-ui .badge.warn { border-color: #f8e2a8; background: #fff9e9; color: #996800; }
-.zunto-ui .badge.danger { border-color: #f7cccc; background: #fff1f1; color: #c32828; }
-.zunto-ui .badge.envio { border-color: #e6dcff; background: #f6f2ff; color: #7040ba; }
+.zunto-ui .badge.ok { border-color: color-mix(in srgb, var(--green) 45%, var(--border)); background: color-mix(in srgb, var(--text) 4%, var(--bg2)); color: var(--green); }
+.zunto-ui .badge.warn { border-color: color-mix(in srgb, var(--amber) 45%, var(--border)); background: color-mix(in srgb, var(--amber) 14%, transparent); color: var(--amber); }
+.zunto-ui .badge.danger { border-color: color-mix(in srgb, var(--red) 45%, var(--border)); background: color-mix(in srgb, var(--red) 14%, transparent); color: var(--red); }
+.zunto-ui .badge.envio { border-color: color-mix(in srgb, var(--accent) 45%, var(--border)); background: color-mix(in srgb, var(--accent) 14%, transparent); color: var(--accent); }
 
 .zunto-ui .banner {
   padding: 12px 14px;
-  border: 1px solid #e3e0e9;
+  border: 1px solid var(--border);
   border-radius: 8px;
-  background: #fff;
+  background: var(--bg2);
   line-height: 1.5;
 }
-.zunto-ui .banner.info { border-color: #cfe2fb; background: #f3f8ff; color: #315a89; }
-.zunto-ui .banner.ok { border-color: #c7efd3; background: #f1fbf4; color: #246a3d; }
-.zunto-ui .banner.warn { border-color: #f4dfad; background: #fff9e9; color: #805d10; }
-.zunto-ui .banner.error { border-color: #f3c7c7; background: #fff4f4; color: #a52424; }
-.zunto-ui .spinner { color: #77747f; }
-.zunto-ui .spinner .dot { background: #8500ff; box-shadow: 0 0 0 4px #f4ecff; }
+.zunto-ui .banner.info { border-color: color-mix(in srgb, var(--accent) 45%, var(--border)); background: color-mix(in srgb, var(--accent) 14%, transparent); color: var(--accent); }
+.zunto-ui .banner.ok { border-color: color-mix(in srgb, var(--green) 45%, var(--border)); background: color-mix(in srgb, var(--text) 4%, var(--bg2)); color: var(--green); }
+.zunto-ui .banner.warn { border-color: color-mix(in srgb, var(--amber) 45%, var(--border)); background: color-mix(in srgb, var(--amber) 14%, transparent); color: var(--amber); }
+.zunto-ui .banner.error { border-color: color-mix(in srgb, var(--red) 45%, var(--border)); background: color-mix(in srgb, var(--red) 14%, transparent); color: var(--red); }
+.zunto-ui .spinner { color: var(--text2); }
+.zunto-ui .spinner .dot { background: var(--accent); box-shadow: 0 0 0 4px color-mix(in srgb, var(--accent) 30%, transparent); }
 .zunto-ui .list li { border-color: var(--line-soft); }
-.zunto-ui .json-view { border: 1px solid var(--border); border-radius: 8px; background: #fafafa; color: #514e5b; }
+.zunto-ui .json-view { border: 1px solid var(--z-border); border-radius: 8px; background: color-mix(in srgb, var(--text) 4%, var(--bg2)); color: var(--text); }
 .zunto-ui .modal-backdrop, .zunto-ui .modal-overlay { backdrop-filter: blur(3px); }
-.zunto-ui .modal, .zunto-ui .dialog, .zunto-ui .modal-content { border-color: var(--border); border-radius: 12px; box-shadow: 0 16px 48px rgba(25, 17, 39, .18); }
+.zunto-ui .modal, .zunto-ui .dialog, .zunto-ui .modal-content { border-color: var(--z-border); border-radius: 12px; box-shadow: 0 16px 48px color-mix(in srgb, var(--accent) 18%, transparent); }
 
 .zunto-ui .mobile-nav { display: none; }
 @media (max-width: 920px) {
@@ -5002,8 +5002,8 @@
     gap: 4px;
     overflow-x: auto;
     padding: 7px 8px max(7px, env(safe-area-inset-bottom));
-    border-top: 1px solid var(--border);
-    background: rgba(255, 255, 255, .97);
+    border-top: 1px solid var(--z-border);
+    background: var(--bg2);
     backdrop-filter: blur(12px);
     scrollbar-width: none;
   }
@@ -5018,13 +5018,13 @@
     gap: 3px;
     padding: 3px 5px;
     border-radius: 8px;
-    color: #77747f;
+    color: var(--text2);
     font-size: 9.5px;
     font-weight: 550;
     text-decoration: none;
     white-space: nowrap;
   }
-  .zunto-ui .mobile-nav a.active { background: #f4ecff; color: #7800e8; }
+  .zunto-ui .mobile-nav a.active { background: color-mix(in srgb, var(--accent) 14%, transparent); color: var(--accent); }
   .zunto-ui .mobile-nav .nav-icon { width: 17px; height: 17px; }
 }
 @media (prefers-reduced-motion: reduce) {
@@ -5054,24 +5054,24 @@
 }
 
 .zunto-ui .chip.alerta {
-  background: rgba(220, 38, 38, 0.08);
-  border-color: rgba(220, 38, 38, 0.4);
+  background: color-mix(in srgb, var(--red) 8%, transparent);
+  border-color: var(--red);
   color: var(--danger);
   font-weight: 600;
 }
 
 /* Veredicto de la subida automática en el detalle del pedido */
 .zunto-ui .veredicto-auto {
-  border: 1px solid var(--border);
+  border: 1px solid var(--z-border);
   border-left: 4px solid var(--muted);
   border-radius: 8px;
   padding: 10px 12px;
   margin: 0 0 12px;
-  background: var(--bg);
+  background: var(--z-bg);
 }
 .zunto-ui .veredicto-auto.ok { border-left-color: var(--ok); }
 .zunto-ui .veredicto-auto.warn { border-left-color: var(--warn); }
-.zunto-ui .veredicto-auto.alerta { border-left-color: var(--danger); background: rgba(220, 38, 38, 0.04); }
+.zunto-ui .veredicto-auto.alerta { border-left-color: var(--danger); background: color-mix(in srgb, var(--red) 4%, transparent); }
 
 /* Editor de las instrucciones (prompt) de la IA */
 .zunto-ui .prompt-ia > summary {
@@ -5143,7 +5143,7 @@
   .zunto-ui .pedidos-tabla { display: none; }
   .zunto-ui .pedidos-cards { display: grid; gap: 10px; }
   .zunto-ui .pedido-movil {
-    background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius);
+    background: var(--surface); border: 1px solid var(--z-border); border-radius: var(--z-radius);
     padding: 12px; display: grid; gap: 8px; min-width: 0;
   }
   .zunto-ui .pedido-movil-top { display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; }
@@ -5174,12 +5174,12 @@
 .zunto-ui .ads-pasos ol { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
 .zunto-ui .ads-pasos li {
   display: flex; align-items: center; gap: 10px; padding: 8px 10px;
-  border: 1px solid var(--border); border-radius: var(--radius);
+  border: 1px solid var(--z-border); border-radius: var(--z-radius);
 }
 .zunto-ui .ads-pasos li.listo { opacity: 0.6; }
 .zunto-ui .ads-paso-marca {
   width: 22px; height: 22px; flex: 0 0 22px; border-radius: 50%;
-  border: 2px solid var(--border); display: grid; place-items: center;
+  border: 2px solid var(--z-border); display: grid; place-items: center;
   font-size: 13px; color: #fff;
 }
 .zunto-ui .ads-pasos li.listo .ads-paso-marca { background: var(--ok); border-color: var(--ok); }
@@ -5199,7 +5199,7 @@
 /* ---------- Validador de direcciones ---------- */
 .zunto-ui .validar-direccion { margin-top: 6px; display: grid; gap: 8px; }
 .zunto-ui .validar-direccion-resultado {
-  border: 1px solid var(--border); border-left-width: 4px; border-radius: var(--radius);
+  border: 1px solid var(--z-border); border-left-width: 4px; border-radius: var(--z-radius);
   padding: 10px 12px; display: grid; gap: 6px;
 }
 .zunto-ui .validar-direccion-resultado.tono-ok { border-left-color: var(--ok); }
@@ -5209,7 +5209,7 @@
 .zunto-ui .validar-direccion-checks { list-style: none; margin: 0; padding: 0; display: grid; gap: 4px; font-size: 13px; }
 .zunto-ui .validar-direccion-checks li span[aria-hidden] { display: inline-block; width: 14px; font-weight: 700; }
 .zunto-ui .validar-direccion-sugerida { display: grid; gap: 6px; }
-.zunto-ui .validar-direccion-sugerida code { font-size: 14px; padding: 4px 8px; border-radius: 6px; background: var(--bg); width: fit-content; max-width: 100%; overflow-wrap: anywhere; }
+.zunto-ui .validar-direccion-sugerida code { font-size: 14px; padding: 4px 8px; border-radius: 6px; background: var(--z-bg); width: fit-content; max-width: 100%; overflow-wrap: anywhere; }
 
 /* estado del envio recibido de Lucid Bot */
 .zunto-ui .envio-bot { white-space: nowrap; }
@@ -5219,29 +5219,29 @@
 .zunto-ui .timeline li { position: relative; display: flex; gap: 10px; padding: 0 0 14px; }
 .zunto-ui .timeline li::before {
   content: ""; position: absolute; left: 5px; top: 14px; bottom: 0;
-  border-left: 2px solid var(--border);
+  border-left: 2px solid var(--z-border);
 }
 .zunto-ui .timeline li:last-child { padding-bottom: 0; }
 .zunto-ui .timeline li:last-child::before { display: none; }
 .zunto-ui .timeline-punto {
   flex: 0 0 12px; width: 12px; height: 12px; margin-top: 4px; border-radius: 50%;
-  background: var(--border); position: relative; z-index: 1;
+  background: var(--z-border); position: relative; z-index: 1;
 }
-.zunto-ui .timeline li.actual .timeline-punto { background: #8500ff; box-shadow: 0 0 0 3px #efe4ff; }
+.zunto-ui .timeline li.actual .timeline-punto { background: var(--accent); box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 30%, transparent); }
 .zunto-ui .timeline-cuerpo { min-width: 0; }
 .zunto-ui .timeline-linea { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
 
 /* ---------- Colores por estado del pedido ---------- */
-.zunto-ui .estado-c-0 { --estado-color: #d97706; --estado-fondo: #fffbeb; --estado-texto: #92400e; } /* Por confirmar */
-.zunto-ui .estado-c-1 { --estado-color: #dc2626; --estado-fondo: #fef2f2; --estado-texto: #991b1b; } /* Cancelado */
-.zunto-ui .estado-c-2 { --estado-color: #2563eb; --estado-fondo: #eff6ff; --estado-texto: #1e40af; } /* Confirmado */
-.zunto-ui .estado-c-3 { --estado-color: #ea580c; --estado-fondo: #fff7ed; --estado-texto: #9a3412; } /* Modificado */
-.zunto-ui .estado-c-4 { --estado-color: #7c3aed; --estado-fondo: #f5f3ff; --estado-texto: #5b21b6; } /* En transito */
-.zunto-ui .estado-c-5 { --estado-color: #0891b2; --estado-fondo: #ecfeff; --estado-texto: #155e75; } /* En reparto */
-.zunto-ui .estado-c-6 { --estado-color: #16a34a; --estado-fondo: #f0fdf4; --estado-texto: #166534; } /* Entregado */
-.zunto-ui .estado-c-7 { --estado-color: #9f1239; --estado-fondo: #fff1f2; --estado-texto: #881337; } /* Devuelto */
-.zunto-ui .estado-c-8 { --estado-color: #db2777; --estado-fondo: #fdf2f8; --estado-texto: #9d174d; } /* En novedad */
-.zunto-ui .estado-c-9 { --estado-color: #0d9488; --estado-fondo: #f0fdfa; --estado-texto: #115e59; } /* Novedad solucionada */
+.zunto-ui .estado-c-0 { --estado-color: var(--amber); --estado-fondo: color-mix(in srgb, var(--amber) 14%, transparent); --estado-texto: var(--amber); } /* Por confirmar */
+.zunto-ui .estado-c-1 { --estado-color: var(--red); --estado-fondo: color-mix(in srgb, var(--red) 14%, transparent); --estado-texto: var(--red); } /* Cancelado */
+.zunto-ui .estado-c-2 { --estado-color: var(--accent); --estado-fondo: color-mix(in srgb, var(--accent) 14%, transparent); --estado-texto: var(--accent); } /* Confirmado */
+.zunto-ui .estado-c-3 { --estado-color: var(--amber); --estado-fondo: color-mix(in srgb, var(--amber) 14%, transparent); --estado-texto: var(--red); } /* Modificado */
+.zunto-ui .estado-c-4 { --estado-color: var(--accent); --estado-fondo: color-mix(in srgb, var(--accent) 14%, transparent); --estado-texto: var(--accent); } /* En transito */
+.zunto-ui .estado-c-5 { --estado-color: var(--teal); --estado-fondo: color-mix(in srgb, var(--teal) 14%, transparent); --estado-texto: var(--teal); } /* En reparto */
+.zunto-ui .estado-c-6 { --estado-color: var(--green); --estado-fondo: color-mix(in srgb, var(--green) 14%, transparent); --estado-texto: var(--green); } /* Entregado */
+.zunto-ui .estado-c-7 { --estado-color: var(--red); --estado-fondo: color-mix(in srgb, var(--red) 14%, transparent); --estado-texto: var(--red); } /* Devuelto */
+.zunto-ui .estado-c-8 { --estado-color: var(--accent); --estado-fondo: color-mix(in srgb, var(--accent) 14%, transparent); --estado-texto: var(--accent); } /* En novedad */
+.zunto-ui .estado-c-9 { --estado-color: var(--teal); --estado-fondo: color-mix(in srgb, var(--green) 14%, transparent); --estado-texto: var(--teal); } /* Novedad solucionada */
 
 /* fila de la tabla: franja a la izquierda y fondo suave */
 .zunto-ui tr.fila-estado > td { background: var(--estado-fondo); }
@@ -5250,16 +5250,16 @@
 /* tarjeta del celular */
 .zunto-ui li.pedido-movil.fila-estado {
   border-left: 4px solid var(--estado-color);
-  background: linear-gradient(90deg, var(--estado-fondo), var(--surface, #fff) 60%);
+  background: linear-gradient(90deg, var(--estado-fondo), var(--surface, var(--bg2)) 60%);
 }
 /* selector de estado con el color del estado */
 .zunto-ui .estado-select[class*="estado-c-"] {
   border-color: var(--estado-color);
   color: var(--estado-texto);
-  background-color: #fff;
+  background-color: var(--bg2);
   font-weight: 600;
 }
-.zunto-ui .estado-select option { color: var(--text, #1d1d24); font-weight: 400; }
+.zunto-ui .estado-select option { color: var(--z-text, var(--text)); font-weight: 400; }
 /* badge */
 .zunto-ui .badge.badge-estado {
   background: var(--estado-fondo);
@@ -5273,51 +5273,51 @@
 
 /* historial de intentos de subida (detalle del pedido) */
 .zunto-ui .intentos-lista { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
-.zunto-ui .intento { border: 1px solid var(--border); border-left: 4px solid var(--border); border-radius: 8px; padding: 8px 12px; background: var(--surface, #fff); }
-.zunto-ui .intento-ok { border-left-color: #16a34a; }
-.zunto-ui .intento-warn { border-left-color: #d97706; }
-.zunto-ui .intento-mal { border-left-color: #dc2626; }
+.zunto-ui .intento { border: 1px solid var(--z-border); border-left: 4px solid var(--z-border); border-radius: 8px; padding: 8px 12px; background: var(--surface, var(--bg2)); }
+.zunto-ui .intento-ok { border-left-color: var(--green); }
+.zunto-ui .intento-warn { border-left-color: var(--amber); }
+.zunto-ui .intento-mal { border-left-color: var(--red); }
 .zunto-ui .intento summary { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 10px; cursor: pointer; }
-.zunto-ui .intento-chip-ok { background: #f0fdf4; color: #166534; border-color: #bbf7d0; }
-.zunto-ui .intento-chip-warn { background: #fffbeb; color: #92400e; border-color: #fde68a; }
-.zunto-ui .intento-chip-mal { background: #fef2f2; color: #991b1b; border-color: #fecaca; }
+.zunto-ui .intento-chip-ok { background: color-mix(in srgb, var(--green) 14%, transparent); color: var(--green); border-color: color-mix(in srgb, var(--green) 45%, var(--border)); }
+.zunto-ui .intento-chip-warn { background: color-mix(in srgb, var(--amber) 14%, transparent); color: var(--amber); border-color: var(--amber); }
+.zunto-ui .intento-chip-mal { background: color-mix(in srgb, var(--red) 14%, transparent); color: var(--red); border-color: color-mix(in srgb, var(--red) 45%, var(--border)); }
 .zunto-ui .intento-detalle { margin: 8px 0 0; }
-.zunto-ui .intento-seccion { margin-top: 10px; padding-top: 8px; border-top: 1px dashed var(--border); }
+.zunto-ui .intento-seccion { margin-top: 10px; padding-top: 8px; border-top: 1px dashed var(--z-border); }
 .zunto-ui .intento-seccion h4 { margin: 0 0 6px; font-size: 13px; }
-.zunto-ui .intento-razonamiento { margin: 0 0 6px; padding: 6px 10px; border-left: 3px solid #8500ff; background: #f6f2ff; border-radius: 4px; font-size: 13px; }
+.zunto-ui .intento-razonamiento { margin: 0 0 6px; padding: 6px 10px; border-left: 3px solid var(--accent); background: color-mix(in srgb, var(--accent) 14%, transparent); border-radius: 4px; font-size: 13px; }
 .zunto-ui .intento-puntos { max-width: 320px; margin: 0 0 6px; }
 
 /* lista de configuracion de la cuenta (Ajustes) */
 .zunto-ui .checklist-pasos { list-style: none; margin: 10px 0 0; padding: 0; display: grid; gap: 8px; }
 .zunto-ui .checklist-pasos li { display: flex; gap: 10px; align-items: flex-start; }
-.zunto-ui .checklist-marca { flex: 0 0 22px; height: 22px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700; border: 1px solid var(--border); }
-.zunto-ui .checklist-pasos li.ok .checklist-marca { background: #f0fdf4; color: #166534; border-color: #bbf7d0; }
-.zunto-ui .checklist-pasos li.falta .checklist-marca { background: #fffbeb; color: #92400e; border-color: #fde68a; }
+.zunto-ui .checklist-marca { flex: 0 0 22px; height: 22px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700; border: 1px solid var(--z-border); }
+.zunto-ui .checklist-pasos li.ok .checklist-marca { background: color-mix(in srgb, var(--green) 14%, transparent); color: var(--green); border-color: color-mix(in srgb, var(--green) 45%, var(--border)); }
+.zunto-ui .checklist-pasos li.falta .checklist-marca { background: color-mix(in srgb, var(--amber) 14%, transparent); color: var(--amber); border-color: var(--amber); }
 .zunto-ui .checklist-pasos li.opcional .checklist-marca { color: var(--muted); }
 
 /* resumen de Dropi en el veredicto del pedido */
-.zunto-ui .dropi-resumen { display: flex; flex-wrap: wrap; gap: 6px 14px; align-items: baseline; margin: 8px 0 0; padding: 8px 10px; border-radius: 8px; background: var(--surface-2, #f6f6f8); font-size: 13px; }
-.zunto-ui .dropi-ganancia strong { color: #166534; }
-.zunto-ui .dropi-perdida strong { color: #b91c1c; }
+.zunto-ui .dropi-resumen { display: flex; flex-wrap: wrap; gap: 6px 14px; align-items: baseline; margin: 8px 0 0; padding: 8px 10px; border-radius: 8px; background: var(--surface-2, color-mix(in srgb, var(--text) 4%, var(--bg2))); font-size: 13px; }
+.zunto-ui .dropi-ganancia strong { color: var(--green); }
+.zunto-ui .dropi-perdida strong { color: var(--red); }
 
 .zunto-ui .fuente-zunto { font-size: 11.5px; color: var(--muted); }
 
 /* temporizador de la subida automatica */
-.zunto-ui .reloj-subida { margin: 10px 0 4px; padding: 8px 12px; border: 1px solid var(--border); border-radius: 10px; font-size: 13.5px; }
+.zunto-ui .reloj-subida { margin: 10px 0 4px; padding: 8px 12px; border: 1px solid var(--z-border); border-radius: 10px; font-size: 13.5px; }
 .zunto-ui .reloj-subida.en-curso { display: flex; align-items: center; gap: 8px; }
-.zunto-ui .reloj-barra { height: 4px; border-radius: 4px; background: var(--border); overflow: hidden; }
-.zunto-ui .reloj-barra > div { height: 100%; background: var(--primary, #7c3aed); transition: width 1s linear; }
-.zunto-ui .reloj-punto { width: 8px; height: 8px; border-radius: 50%; background: var(--primary, #7c3aed); animation: zunto-reloj-pulso 1s ease-in-out infinite; }
+.zunto-ui .reloj-barra { height: 4px; border-radius: 4px; background: var(--z-border); overflow: hidden; }
+.zunto-ui .reloj-barra > div { height: 100%; background: var(--primary, var(--accent)); transition: width 1s linear; }
+.zunto-ui .reloj-punto { width: 8px; height: 8px; border-radius: 50%; background: var(--primary, var(--accent)); animation: zunto-reloj-pulso 1s ease-in-out infinite; }
 @keyframes zunto-reloj-pulso { 50% { opacity: .3; } }
 
 /* entregas programadas (pedidos para otra fecha) */
 .zunto-ui .check-linea { display: inline-flex; align-items: center; gap: 6px; font-size: 13px; }
-.zunto-ui .chip-entrega { display: inline-block; font-size: 11.5px; padding: 1px 8px; border-radius: 999px; border: 1px solid var(--border); background: var(--surface, transparent); white-space: nowrap; }
-.zunto-ui .chip-entrega.toca { border-color: var(--warn); background: color-mix(in srgb, var(--warn) 14%, transparent); color: var(--text); }
+.zunto-ui .chip-entrega { display: inline-block; font-size: 11.5px; padding: 1px 8px; border-radius: 999px; border: 1px solid var(--z-border); background: var(--surface, transparent); white-space: nowrap; }
+.zunto-ui .chip-entrega.toca { border-color: var(--warn); background: color-mix(in srgb, var(--warn) 14%, transparent); color: var(--z-text); }
 .zunto-ui tr.fila-programada-toca > td:first-child, .zunto-ui li.fila-programada-toca { box-shadow: inset 4px 0 0 var(--warn); }
 .zunto-ui tr.fila-programada-toca > td { background: color-mix(in srgb, var(--warn) 9%, transparent); }
 .zunto-ui li.fila-programada-toca { background: color-mix(in srgb, var(--warn) 9%, transparent); }
-.zunto-ui .aviso-entregas { margin: 0 0 12px; padding: 10px 14px; border: 1px solid var(--border); border-radius: 10px; font-size: 13.5px; }
+.zunto-ui .aviso-entregas { margin: 0 0 12px; padding: 10px 14px; border: 1px solid var(--z-border); border-radius: 10px; font-size: 13.5px; }
 .zunto-ui .aviso-entregas.toca { border-color: var(--warn); background: color-mix(in srgb, var(--warn) 10%, transparent); }
 .zunto-ui .aviso-entregas ul { margin: 6px 0 0; padding-left: 18px; }
 .zunto-ui .aviso-entregas li { margin: 2px 0; }
@@ -5349,10 +5349,10 @@
   .zunto-ui .modal-overlay { padding: 0; align-items: end; justify-items: stretch; }
   .zunto-ui .modal { max-width: 100%; max-height: 92dvh; border-radius: 16px 16px 0 0; }
   .zunto-ui .modal.wide { height: 100dvh; max-height: 100dvh; border-radius: 0; }
-  .zunto-ui .modal-head { position: sticky; top: 0; background: var(--surface, #fff); z-index: 1; padding: 12px 14px; }
+  .zunto-ui .modal-head { position: sticky; top: 0; background: var(--surface, var(--bg2)); z-index: 1; padding: 12px 14px; }
   .zunto-ui .modal-head h3 { font-size: 15px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .zunto-ui .modal-body { padding: 12px; flex: 1; }
-  .zunto-ui .modal-foot { padding: 10px 12px calc(10px + env(safe-area-inset-bottom)); background: var(--surface, #fff); }
+  .zunto-ui .modal-foot { padding: 10px 12px calc(10px + env(safe-area-inset-bottom)); background: var(--surface, var(--bg2)); }
   .zunto-ui .modal-foot .btn { flex: 1; }
 
   .zunto-ui .producto-editor-form { gap: 12px; }
@@ -5407,10 +5407,10 @@
     grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
     gap: 6px 8px;
     padding: 8px 0;
-    border-bottom: 1px solid var(--border);
+    border-bottom: 1px solid var(--z-border);
   }
   .zunto-ui .bundle-fila .table td { padding: 0; border: 0; }
-  .zunto-ui .bundle-fila .table td:first-child { grid-column: 1 / -1; font-weight: 600; color: var(--text); }
+  .zunto-ui .bundle-fila .table td:first-child { grid-column: 1 / -1; font-weight: 600; color: var(--z-text); }
   .zunto-ui .bundle-fila .table td:nth-child(2)::before { content: "Precio"; display: block; font-size: 11px; color: var(--muted); }
   .zunto-ui .bundle-fila .table td:nth-child(3)::before { content: "Variante en Dropi"; display: block; font-size: 11px; color: var(--muted); }
   .zunto-ui .bundle-fila .table td:nth-child(4) { grid-column: 1 / -1; }
@@ -5427,47 +5427,47 @@
 
 /* cambio de estado masivo en la lista de pedidos */
 .zunto-ui .col-marca { width: 34px; text-align: center; }
-.zunto-ui .col-marca input, .zunto-ui .pedido-movil-marca { width: 17px; height: 17px; cursor: pointer; accent-color: var(--primary, #7c3aed); }
+.zunto-ui .col-marca input, .zunto-ui .pedido-movil-marca { width: 17px; height: 17px; cursor: pointer; accent-color: var(--primary, var(--accent)); }
 .zunto-ui .pedido-movil-marca { flex: none; margin-right: 8px; }
-.zunto-ui tr.fila-marcada > td { background: color-mix(in srgb, var(--primary, #7c3aed) 9%, transparent) !important; }
+.zunto-ui tr.fila-marcada > td { background: color-mix(in srgb, var(--primary, var(--accent)) 9%, transparent) !important; }
 .zunto-ui .barra-masiva {
   position: sticky; top: 0; z-index: 3;
   display: flex; flex-wrap: wrap; align-items: center; gap: 8px;
   margin: 0 0 10px; padding: 10px 12px;
-  border: 1px solid var(--primary, #7c3aed); border-radius: 10px;
-  background: color-mix(in srgb, var(--primary, #7c3aed) 7%, var(--surface, #fff));
+  border: 1px solid var(--primary, var(--accent)); border-radius: 10px;
+  background: color-mix(in srgb, var(--primary, var(--accent)) 7%, var(--surface, var(--bg2)));
 }
 .zunto-ui .barra-masiva select, .zunto-ui .barra-masiva input { min-width: 0; flex: 1 1 160px; max-width: 260px; }
 
 /* confirmacion de "Subir sin validar" */
 .zunto-ui .forzado { display: grid; gap: 12px; }
 .zunto-ui .forzado-intro { margin: 0; font-size: 14px; line-height: 1.5; }
-.zunto-ui .forzado-bloque { border: 1px solid var(--border); border-radius: 10px; padding: 10px 12px; }
+.zunto-ui .forzado-bloque { border: 1px solid var(--z-border); border-radius: 10px; padding: 10px 12px; }
 .zunto-ui .forzado-titulo { font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: .04em; margin-bottom: 6px; }
 .zunto-ui .forzado-bloque ul { margin: 0; padding: 0; list-style: none; display: grid; gap: 4px; font-size: 13.5px; }
 .zunto-ui .forzado-bloque li { display: flex; gap: 8px; align-items: baseline; }
 .zunto-ui .forzado-bloque li::before { flex: none; font-weight: 700; width: 14px; text-align: center; }
-.zunto-ui .forzado-bloque.ok { background: color-mix(in srgb, #2563eb 6%, transparent); border-color: color-mix(in srgb, #2563eb 25%, transparent); }
-.zunto-ui .forzado-bloque.ok .forzado-titulo { color: #1d4ed8; }
-.zunto-ui .forzado-bloque.ok li::before { content: "→"; color: #2563eb; }
-.zunto-ui .forzado-bloque.no { background: color-mix(in srgb, var(--warn, #d97706) 8%, transparent); border-color: color-mix(in srgb, var(--warn, #d97706) 30%, transparent); }
-.zunto-ui .forzado-bloque.no .forzado-titulo { color: #b45309; }
-.zunto-ui .forzado-bloque.no li::before { content: "✕"; color: var(--warn, #d97706); }
-.zunto-ui .forzado-bloque.si { background: color-mix(in srgb, #16a34a 7%, transparent); border-color: color-mix(in srgb, #16a34a 28%, transparent); }
-.zunto-ui .forzado-bloque.si .forzado-titulo { color: #15803d; }
-.zunto-ui .forzado-bloque.si li::before { content: "✓"; color: #16a34a; }
+.zunto-ui .forzado-bloque.ok { background: color-mix(in srgb, var(--accent) 6%, transparent); border-color: color-mix(in srgb, var(--accent) 25%, transparent); }
+.zunto-ui .forzado-bloque.ok .forzado-titulo { color: var(--accent); }
+.zunto-ui .forzado-bloque.ok li::before { content: "→"; color: var(--accent); }
+.zunto-ui .forzado-bloque.no { background: color-mix(in srgb, var(--warn, var(--amber)) 8%, transparent); border-color: color-mix(in srgb, var(--warn, var(--amber)) 30%, transparent); }
+.zunto-ui .forzado-bloque.no .forzado-titulo { color: var(--amber); }
+.zunto-ui .forzado-bloque.no li::before { content: "✕"; color: var(--warn, var(--amber)); }
+.zunto-ui .forzado-bloque.si { background: color-mix(in srgb, var(--green) 7%, transparent); border-color: color-mix(in srgb, var(--green) 28%, transparent); }
+.zunto-ui .forzado-bloque.si .forzado-titulo { color: var(--green); }
+.zunto-ui .forzado-bloque.si li::before { content: "✓"; color: var(--green); }
 
 /* ---------- Creador IA ---------- */
 .zunto-ui .creador-page { display: flex; flex-direction: column; gap: 14px; }
 .zunto-ui .creador-page > .tabs { margin-bottom: 0; }
-.zunto-ui .btn.ok { border-color: #16a34a; background: #16a34a; color: #fff; }
-.zunto-ui .btn.ok:hover:not(:disabled) { background: #15803d; border-color: #15803d; }
+.zunto-ui .btn.ok { border-color: var(--green); background: var(--green); color: #fff; }
+.zunto-ui .btn.ok:hover:not(:disabled) { background: var(--green); border-color: var(--green); }
 .zunto-ui .creador-vacio { text-align: center; padding: 32px 20px; }
 .zunto-ui .creador-vacio p { max-width: 520px; margin: 8px auto 16px; }
 .zunto-ui .creador-lista { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 12px; }
 .zunto-ui .creador-item { display: flex; gap: 12px; align-items: center; color: inherit; padding: 10px; }
 .zunto-ui .creador-item:hover { border-color: var(--primary); }
-.zunto-ui .creador-item-img { width: 72px; height: 90px; flex: 0 0 72px; border-radius: 8px; background: #f1f1f3; overflow: hidden; }
+.zunto-ui .creador-item-img { width: 72px; height: 90px; flex: 0 0 72px; border-radius: 8px; background: color-mix(in srgb, var(--text) 4%, var(--bg2)); overflow: hidden; }
 .zunto-ui .creador-item-img img { width: 100%; height: 100%; object-fit: cover; }
 .zunto-ui .creador-item-info { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
 .zunto-ui .creador-item-info strong { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
@@ -5477,7 +5477,7 @@
 .zunto-ui .creador-nuevo .card-title { margin: 8px 0 0; }
 .zunto-ui .creador-nuevo textarea, .zunto-ui .creador-page textarea { width: 100%; resize: vertical; font: inherit; }
 .zunto-ui .creador-fotos { display: grid; grid-template-columns: repeat(auto-fill, minmax(96px, 1fr)); gap: 8px; }
-.zunto-ui .creador-foto { position: relative; aspect-ratio: 1; border: 2px solid var(--border); border-radius: 10px; overflow: hidden; padding: 0; background: #f6f6f8; cursor: pointer; }
+.zunto-ui .creador-foto { position: relative; aspect-ratio: 1; border: 2px solid var(--z-border); border-radius: 10px; overflow: hidden; padding: 0; background: color-mix(in srgb, var(--text) 4%, var(--bg2)); cursor: pointer; }
 .zunto-ui .creador-foto img { width: 100%; height: 100%; object-fit: cover; opacity: .55; transition: opacity .15s; }
 .zunto-ui .creador-foto.elegida { border-color: var(--primary); }
 .zunto-ui .creador-foto.elegida img { opacity: 1; }
@@ -5485,31 +5485,31 @@
 .zunto-ui .creador-foto.subir { display: grid; place-items: center; cursor: default; border-style: dashed; padding: 6px; }
 .zunto-ui .creador-acciones { align-items: center; flex-wrap: wrap; }
 .zunto-ui .creador-modelo { align-items: center; flex-wrap: wrap; }
-.zunto-ui .creador-modelo img, .zunto-ui .creador-modelo-vacia { width: 72px; height: 72px; border-radius: 50%; object-fit: cover; background: #f1f1f3; display: grid; place-items: center; font-size: 11px; color: var(--muted); }
+.zunto-ui .creador-modelo img, .zunto-ui .creador-modelo-vacia { width: 72px; height: 72px; border-radius: 50%; object-fit: cover; background: color-mix(in srgb, var(--text) 4%, var(--bg2)); display: grid; place-items: center; font-size: 11px; color: var(--muted); }
 .zunto-ui .creador-pasos { display: flex; gap: 8px; list-style: none; padding: 0; margin: 0; counter-reset: paso; flex-wrap: wrap; }
-.zunto-ui .creador-pasos li { counter-increment: paso; display: flex; align-items: center; gap: 8px; padding: 6px 12px 6px 6px; border-radius: 999px; background: #f1f1f3; color: var(--muted); font-size: 13px; font-weight: 600; }
-.zunto-ui .creador-pasos li::before { content: counter(paso); width: 22px; height: 22px; border-radius: 50%; background: #fff; display: grid; place-items: center; font-size: 12px; }
-.zunto-ui .creador-pasos li.actual { background: #f3e8ff; color: var(--primary); }
-.zunto-ui .creador-pasos li.hecho { background: #dcfce7; color: #15803d; }
+.zunto-ui .creador-pasos li { counter-increment: paso; display: flex; align-items: center; gap: 8px; padding: 6px 12px 6px 6px; border-radius: 999px; background: color-mix(in srgb, var(--text) 4%, var(--bg2)); color: var(--muted); font-size: 13px; font-weight: 600; }
+.zunto-ui .creador-pasos li::before { content: counter(paso); width: 22px; height: 22px; border-radius: 50%; background: var(--bg2); display: grid; place-items: center; font-size: 12px; }
+.zunto-ui .creador-pasos li.actual { background: color-mix(in srgb, var(--accent) 14%, transparent); color: var(--primary); }
+.zunto-ui .creador-pasos li.hecho { background: color-mix(in srgb, var(--green) 14%, transparent); color: var(--green); }
 .zunto-ui .creador-pasos li.hecho::before { content: "✓"; }
 .zunto-ui .creador-seccion-cab { display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap; }
 .zunto-ui .creador-seccion-cab .card-title { margin: 0; }
 .zunto-ui .creador-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 14px; margin: 12px 0; }
-.zunto-ui .creador-creativo { display: flex; flex-direction: column; gap: 8px; border: 1px solid var(--border); border-radius: 12px; padding: 10px; background: var(--surface); min-width: 0; }
+.zunto-ui .creador-creativo { display: flex; flex-direction: column; gap: 8px; border: 1px solid var(--z-border); border-radius: 12px; padding: 10px; background: var(--surface); min-width: 0; }
 .zunto-ui .creador-creativo.fuera { opacity: .55; }
 .zunto-ui .creador-creativo input:not([type=checkbox]), .zunto-ui .creador-creativo textarea { width: 100%; font-size: 13px; }
 .zunto-ui .creador-page .check-linea { display: inline-flex; width: auto; justify-content: flex-start; text-align: left; }
 .zunto-ui .creador-page .check-linea input[type=checkbox] { width: 16px; height: 16px; flex: 0 0 auto; margin: 0; }
 .zunto-ui .creador-creativo-cab .check-linea { min-width: 0; }
-.zunto-ui .creador-medio { border-radius: 8px; overflow: hidden; background: #f4f4f6; aspect-ratio: 4 / 5; }
+.zunto-ui .creador-medio { border-radius: 8px; overflow: hidden; background: color-mix(in srgb, var(--text) 4%, var(--bg2)); aspect-ratio: 4 / 5; }
 .zunto-ui .creador-medio.video { aspect-ratio: 9 / 16; max-height: 420px; margin: 0 auto; width: 100%; }
 .zunto-ui .creador-medio img, .zunto-ui .creador-medio video { width: 100%; height: 100%; object-fit: cover; display: block; background: #000; }
 .zunto-ui .creador-medio a { display: block; height: 100%; }
 .zunto-ui .creador-medio-estado { height: 100%; display: grid; place-items: center; padding: 14px; text-align: center; color: var(--muted); font-size: 13px; }
-.zunto-ui .creador-medio-estado.fallo { color: var(--danger); background: #fef2f2; }
+.zunto-ui .creador-medio-estado.fallo { color: var(--danger); background: color-mix(in srgb, var(--red) 14%, transparent); }
 .zunto-ui .creador-creativo-cab { display: flex; justify-content: space-between; align-items: center; gap: 6px; }
 .zunto-ui .creador-mini-acciones { flex-wrap: wrap; gap: 4px; }
-.zunto-ui .creador-texto { border-top: 1px solid var(--line-soft, #eee); padding: 8px 0; }
+.zunto-ui .creador-texto { border-top: 1px solid var(--line-soft, var(--border)); padding: 8px 0; }
 .zunto-ui .creador-texto summary { display: flex; justify-content: space-between; align-items: center; cursor: pointer; font-weight: 600; list-style: none; }
 .zunto-ui .creador-texto summary::-webkit-details-marker { display: none; }
 .zunto-ui .creador-texto summary > span::before { content: "▸ "; color: var(--muted); }
@@ -5519,7 +5519,7 @@
 .zunto-ui .creador-progreso { margin: 10px 0; padding-left: 0; list-style: none; display: flex; flex-direction: column; gap: 4px; font-size: 13px; }
 .zunto-ui .creador-progreso li::before { content: "• "; }
 .zunto-ui .creador-progreso li.ok::before { content: "✓ "; color: var(--ok); }
-.zunto-ui .creador-progreso li.mal { color: #b45309; }
+.zunto-ui .creador-progreso li.mal { color: var(--amber); }
 .zunto-ui .creador-progreso li.mal::before { content: "⚠ "; }
 @media (max-width: 640px) {
   .zunto-ui .creador-grid { grid-template-columns: 1fr; }
@@ -5527,25 +5527,25 @@
   .zunto-ui .creador-page .page-header { flex-direction: column; align-items: flex-start; }
 }
 .zunto-ui .creador-niveles { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
-.zunto-ui .creador-nivel { display: flex; flex-direction: column; gap: 2px; text-align: left; padding: 10px 12px; border: 1px solid var(--border); border-radius: 10px; background: var(--surface); cursor: pointer; font: inherit; }
+.zunto-ui .creador-nivel { display: flex; flex-direction: column; gap: 2px; text-align: left; padding: 10px 12px; border: 1px solid var(--z-border); border-radius: 10px; background: var(--surface); cursor: pointer; font: inherit; }
 .zunto-ui .creador-nivel span { font-size: 12px; color: var(--muted); }
-.zunto-ui .creador-nivel.activo { border-color: var(--primary); background: #faf5ff; box-shadow: var(--focus-ring, none); }
+.zunto-ui .creador-nivel.activo { border-color: var(--primary); background: color-mix(in srgb, var(--accent) 14%, transparent); box-shadow: var(--focus-ring, none); }
 .zunto-ui .creador-nivel.activo strong { color: var(--primary); }
 .zunto-ui .creador-concepto { border-left: 4px solid var(--primary); }
 .zunto-ui .creador-concepto p { margin: 4px 0 8px; font-size: 15px; line-height: 1.45; }
 .zunto-ui .creador-concepto-etiqueta { font-size: 11px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: var(--primary); }
 .zunto-ui .creador-concepto-pie { justify-content: space-between; align-items: center; flex-wrap: wrap; }
 .zunto-ui .creador-porque { margin: 0; font-size: 12px; line-height: 1.4; }
-.zunto-ui .creador-estilo { display: inline-block; padding: 1px 8px; border-radius: 999px; background: #f3e8ff; color: var(--primary); font-weight: 600; margin-right: 2px; }
+.zunto-ui .creador-estilo { display: inline-block; padding: 1px 8px; border-radius: 999px; background: color-mix(in srgb, var(--accent) 14%, transparent); color: var(--primary); font-weight: 600; margin-right: 2px; }
 @media (max-width: 640px) { .zunto-ui .creador-niveles { grid-template-columns: 1fr; } }
-.zunto-ui .creador-conexion { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; padding: 12px 14px; border: 1px solid var(--border); border-radius: 10px; background: #faf8ff; margin: 6px 0 10px; }
+.zunto-ui .creador-conexion { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; padding: 12px 14px; border: 1px solid var(--z-border); border-radius: 10px; background: color-mix(in srgb, var(--accent) 14%, transparent); margin: 6px 0 10px; }
 .zunto-ui .creador-conexion > div:first-child { display: flex; flex-direction: column; gap: 2px; min-width: 0; flex: 1 1 260px; }
-.zunto-ui .creador-conexion.ok { background: #f0fdf4; border-color: #bbf7d0; }
-.zunto-ui .creador-conexion.ok strong { color: #15803d; }
-.zunto-ui .creador-api { margin-top: 10px; border-top: 1px solid var(--line-soft, #eee); padding-top: 8px; }
+.zunto-ui .creador-conexion.ok { background: color-mix(in srgb, var(--green) 14%, transparent); border-color: color-mix(in srgb, var(--green) 45%, var(--border)); }
+.zunto-ui .creador-conexion.ok strong { color: var(--green); }
+.zunto-ui .creador-api { margin-top: 10px; border-top: 1px solid var(--line-soft, var(--border)); padding-top: 8px; }
 .zunto-ui .creador-api summary { cursor: pointer; font-size: 13px; color: var(--muted); }
 .zunto-ui .creador-api[open] summary { margin-bottom: 8px; }
-.zunto-ui .creador-pegar { border: 1px solid #fde68a; background: #fffbeb; border-radius: 10px; padding: 12px 14px; margin: 6px 0 10px; font-size: 13px; }
+.zunto-ui .creador-pegar { border: 1px solid var(--amber); background: color-mix(in srgb, var(--amber) 14%, transparent); border-radius: 10px; padding: 12px 14px; margin: 6px 0 10px; font-size: 13px; }
 .zunto-ui .creador-pegar ol { margin: 6px 0 10px; padding-left: 18px; display: flex; flex-direction: column; gap: 4px; }
 .zunto-ui .creador-pegar .row { flex-wrap: wrap; }
 .zunto-ui .creador-pegar input { flex: 1 1 280px; min-width: 0; }
@@ -5557,24 +5557,30 @@
 .zunto-ui .campo-modo-subida { grid-column: span 2; }
 @media (max-width: 900px) { .zunto-ui .campo-modo-subida { grid-column: auto; } }
 .zunto-ui .chips-fecha { display: flex; gap: 6px; }
-.zunto-ui .chip-fecha { padding: 7px 14px; border: 1px solid var(--border); border-radius: 999px; background: var(--surface); font: inherit; font-size: 13px; cursor: pointer; color: var(--text); }
+.zunto-ui .chip-fecha { padding: 7px 14px; border: 1px solid var(--z-border); border-radius: 999px; background: var(--surface); font: inherit; font-size: 13px; cursor: pointer; color: var(--z-text); }
 .zunto-ui .chip-fecha:hover { border-color: var(--primary); }
 .zunto-ui .chip-fecha.activo { background: var(--primary); border-color: var(--primary); color: #fff; font-weight: 600; }
 
 /* ---------- Confirmaciones (reemplazan window.confirm) ---------- */
 .zunto-ui .modal.confirmar { max-width: 420px; width: calc(100% - 32px); padding: 26px 24px 20px; text-align: center; animation: zunto-confirmar-entra .16s ease-out; }
 @keyframes zunto-confirmar-entra { from { transform: translateY(8px) scale(.98); opacity: 0; } to { transform: none; opacity: 1; } }
-.zunto-ui .confirmar-icono { width: 52px; height: 52px; margin: 0 auto 12px; border-radius: 50%; display: grid; place-items: center; font-size: 24px; font-weight: 800; background: #f3e8ff; color: var(--primary); }
-.zunto-ui .modal.confirmar.peligro .confirmar-icono { background: #fee2e2; color: #dc2626; }
-.zunto-ui .modal.confirmar h3 { margin: 0 0 8px; font-size: 18px; line-height: 1.3; color: #18181b; }
+.zunto-ui .confirmar-icono { width: 52px; height: 52px; margin: 0 auto 12px; border-radius: 50%; display: grid; place-items: center; font-size: 24px; font-weight: 800; background: color-mix(in srgb, var(--accent) 14%, transparent); color: var(--primary); }
+.zunto-ui .modal.confirmar.peligro .confirmar-icono { background: color-mix(in srgb, var(--red) 14%, transparent); color: var(--red); }
+.zunto-ui .modal.confirmar h3 { margin: 0 0 8px; font-size: 18px; line-height: 1.3; color: var(--text); }
 .zunto-ui .confirmar-mensaje { color: var(--muted); font-size: 14px; line-height: 1.5; }
 .zunto-ui .confirmar-mensaje p { margin: 6px 0; }
-.zunto-ui .confirmar-estado { color: var(--text); }
+.zunto-ui .confirmar-estado { color: var(--z-text); }
 .zunto-ui .confirmar-botones { display: flex; gap: 8px; margin-top: 20px; }
 .zunto-ui .confirmar-botones .btn { flex: 1; justify-content: center; padding-top: 10px; padding-bottom: 10px; }
-.zunto-ui .btn.danger-solido { border-color: #dc2626; background: #dc2626; color: #fff; }
-.zunto-ui .btn.danger-solido:hover:not(:disabled) { background: #b91c1c; border-color: #b91c1c; }
+.zunto-ui .btn.danger-solido { border-color: var(--red); background: var(--red); color: #fff; }
+.zunto-ui .btn.danger-solido:hover:not(:disabled) { background: var(--red); border-color: var(--red); }
 @media (max-width: 640px) {
   .zunto-ui .modal-overlay:has(.modal.confirmar) { align-items: center; }
   .zunto-ui .modal.confirmar { border-radius: 16px; margin: auto; width: calc(100% - 32px); max-width: 420px; }
 }
+
+/* --- ajustes al tema de Pizdo (scripts/tema-zunto.js) --- */
+.zunto-ui { color-scheme: dark; }
+[data-theme="light"] .zunto-ui { color-scheme: light; }
+.zunto-ui button { color: inherit; }
+.zunto-ui input[type="checkbox"], .zunto-ui input[type="radio"] { accent-color: var(--accent); }

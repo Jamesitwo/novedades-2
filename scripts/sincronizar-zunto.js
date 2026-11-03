@@ -71,5 +71,7 @@ const out = postcss([prefixer({
     return prefixed;
   },
 })]).process(css, { from: undefined }).css;
-fs.writeFileSync(path.join(DST, 'zunto.css'), '/* Estilos del panel de ZuntoStore (panel/src/styles.css), prefijados con .zunto-ui\n   para no chocar con los de Pizdo. Generado con scripts/sincronizar-zunto.js: no editar a mano. */\n' + out);
+const tema = require('./tema-zunto').aplicarTema(out);
+console.log(`tema de Pizdo: ${tema.cambios} colores/variables adaptados`);
+fs.writeFileSync(path.join(DST, 'zunto.css'), '/* Estilos del panel de ZuntoStore (panel/src/styles.css), prefijados con .zunto-ui\n   para no chocar con los de Pizdo, y con los colores del tema de Pizdo (scripts/tema-zunto.js). Generado con scripts/sincronizar-zunto.js: no editar a mano. */\n' + tema.css);
 console.log('keyframes renombradas:', [...new Set(nombres)].join(', '));
