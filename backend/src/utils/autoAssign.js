@@ -1,7 +1,7 @@
 const { prisma } = require('../prisma/client');
 
-const getNextOperador = async (tabla) => {
-  const config = await prisma.configuracion.findFirst();
+const getNextOperador = async (tabla, tiendaId) => {
+  const config = await prisma.configuracion.findFirst({ where: { tiendaId: tiendaId || undefined } });
   if (!config) {
     console.log('[autoAssign] sin configuracion');
     return null;
@@ -37,6 +37,7 @@ const getNextOperador = async (tabla) => {
       id: { in: operadoresIncluidos },
       activo: true,
       rol: { in: ['admin', 'operador', 'operador_asignado'] },
+      tiendaId: tiendaId || undefined,
       [permissionMap[tabla]]: true
     },
     select: { id: true, nombre: true, rol: true }
@@ -49,7 +50,18 @@ const getNextOperador = async (tabla) => {
   }
 
   if (config.metodo_asignacion === 'menor_carga') {
-    const modelMap = { novedades: 'pedidoNovedad', oficina: 'pedidoOficina', lucidsales: 'pedidoVinculado' };
+    // En LucidSales la carga se mide sobre la tabla propia de asignaciones,
+    // sumando los pedidos que aun solo estan en la vinculacion legacy.
+    if (tabla === 'lucidsales') {
+      const asignacionPedidosService = require('../services/asignacion-pedidos.service');
+      const carga = await asignacionPedidosService.cargaPorOperador(activos.map(o => o.id), tiendaId || null);
+      const orden = activos
+        .map(op => ({ op, count: carga.get(op.id) || 0 }))
+        .sort((a, b) => a.count - b.count);
+      return orden[0].op.id;
+    }
+
+    const modelMap = { novedades: 'pedidoNovedad', oficina: 'pedidoOficina' };
     const model = modelMap[tabla];
     const counts = await Promise.all(activos.map(async (op) => {
       const count = await prisma[model].count({ where: { asignadoId: op.id } });

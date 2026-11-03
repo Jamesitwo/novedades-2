@@ -10,10 +10,16 @@ const ESTADOS = [
   { value: 0, label: 'Por confirmar' },
   { value: 1, label: 'Cancelado' },
   { value: 2, label: 'Confirmado' },
-  { value: 3, label: 'Modificado' }
+  { value: 3, label: 'Modificado' },
+  { value: 4, label: 'En Tránsito' },
+  { value: 5, label: 'En Reparto' },
+  { value: 6, label: 'Entregado' },
+  { value: 7, label: 'Devuelto' },
+  { value: 8, label: 'En Novedad' },
+  { value: 9, label: 'Novedad Solucionada' }
 ];
 
-const ESTADOS_BADGE = { 0: 'pendiente', 1: 'red', 2: 'entregado', 3: 'purple' };
+const ESTADOS_BADGE = { 0: 'pendiente', 1: 'red', 2: 'confirmado', 3: 'purple', 4: 'transito', 5: 'transito', 6: 'entregado', 7: 'red', 8: 'pendiente', 9: 'confirmado' };
 
 const GEOFIX_BADGE = {
   exact: { label: 'Direccion exacta', bg: 'rgba(34,200,122,0.12)', color: '#22c87a', border: 'rgba(34,200,122,0.3)' },
@@ -600,7 +606,7 @@ export default function LucidsalesDetailPanel({ id, ids, currentIndex, onClose, 
     return stock !== undefined && stock !== null && stock <= 20;
   }).map(prod => ({ ...prod, _stock: productosStock[String(prod.product_id)] }));
 
-  const estadoColor = { 0: 'var(--amber)', 1: 'var(--red)', 2: 'var(--green)', 3: 'var(--purple)' }[pedido.EstadoPedido] || 'var(--text2)';
+  const estadoColor = { 0: 'var(--amber)', 1: 'var(--red)', 2: 'var(--green)', 3: 'var(--purple)', 4: 'var(--accent2)', 5: 'var(--accent2)', 6: 'var(--teal)', 7: 'var(--red)', 8: 'var(--amber)', 9: 'var(--green)' }[pedido.EstadoPedido] || 'var(--text2)';
 
   const LBL = { fontSize: 11, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em', color: 'var(--text3)', fontFamily: 'var(--label-font)', display: 'block', marginBottom: 4 };
 

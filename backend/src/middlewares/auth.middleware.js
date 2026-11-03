@@ -2,6 +2,7 @@ const jwt = require('jsonwebtoken');
 const { validateKey } = require('../controllers/apikey.controller');
 const { prisma } = require('../prisma/client');
 const { sendError } = require('../utils/response');
+const { verMultiTienda } = require('./multi-tienda.middleware');
 
 const authMiddleware = async (req, res, next) => {
   try {
@@ -35,7 +36,8 @@ const authMiddleware = async (req, res, next) => {
           gestionaNovedades: true,
           gestionaOficina: true,
           gestionaPedidos: true,
-          puedeModificarTodo: true
+          puedeModificarTodo: true,
+          tiendaId: true
         }
       });
       if (!usuario || !usuario.activo) {
@@ -44,6 +46,9 @@ const authMiddleware = async (req, res, next) => {
 
       req.usuario = usuario;
       req.authType = 'jwt';
+      if (!verMultiTienda(usuario) && usuario.tiendaId) {
+        req.tiendaId = usuario.tiendaId;
+      }
       return next();
     }
 

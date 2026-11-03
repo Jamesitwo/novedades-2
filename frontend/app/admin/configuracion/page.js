@@ -257,10 +257,11 @@ export default function ConfiguracionPage() {
                 transition: 'left 0.2s', boxShadow: '0 1px 3px rgba(0,0,0,0.3)'
               }} />
             </div>
-            <span style={{ fontSize: 14 }}>Auto-asignar pedidos de LucidSales al vincular</span>
+            <span style={{ fontSize: 14 }}>Reparto automático de pedidos de LucidSales</span>
           </label>
           <p style={{ color: 'var(--text3)', fontSize: 12, marginTop: 8, marginLeft: 60 }}>
-            Los pedidos vinculados desde LucidSales se asignarán automáticamente según el método seleccionado.
+            Los pedidos nuevos de LucidSales que aparezcan en la lista se asignarán solos según el método
+            seleccionado, sin necesidad de vincularlos. Se revisa cada minuto.
           </p>
         </div>
       </div>

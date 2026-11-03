@@ -409,7 +409,9 @@ const procesarCompra = async (req, res) => {
 
     // Meta CAPI - Purchase
     try {
-      const config = await prisma.configuracion.findFirst();
+      const { resolveTiendaId } = require('../utils/tienda');
+      const pizdoId = await resolveTiendaId('pizdo');
+      const config = await prisma.configuracion.findFirst({ where: { tiendaId: pizdoId } });
       if (config?.metaPixelId && config?.metaAccessToken) {
         const metaService = require('../services/meta-conversions.service');
         metaService.sendEvent(
@@ -445,7 +447,9 @@ const procesarCompra = async (req, res) => {
     }
 
     try {
-      const config = await prisma.configuracion.findFirst();
+      const { resolveTiendaId } = require('../utils/tienda');
+      const pizdoId = await resolveTiendaId('pizdo');
+      const config = await prisma.configuracion.findFirst({ where: { tiendaId: pizdoId } });
       if (config?.lucidbot_activo && config?.lucidbot_api_key) {
 
         const actions = [

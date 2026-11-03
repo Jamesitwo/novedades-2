@@ -134,6 +134,15 @@ const BOT_FIELDS = [
       videos: safeParseArray(p.videos),
       testimonios: safeParseArray(p.Testimonios)
     })
+  },
+  {
+    key: 'postventa',
+    configKey: 'botFieldPostventa',
+    rootKey: 'preguntas_frecuentes_post_venta',
+    build: (p) => ({
+      nombre_del_producto: p.Nombre || '',
+      preguntas_frecuentes_post_venta: safeParseArray(p.PreguntasFrecuentesPostVenta || p.PreguntasPostventa || p.PreguntasFrecuentesPostventa)
+    })
   }
 ];
 
@@ -238,9 +247,10 @@ async function guardarCatalogoLocal(tienda, producto, usuarioId) {
   return prisma.productoTienda.create({ data: { tiendaId: tienda.id, ...data, slug: await slugUnico(baseSlug) } });
 }
 
-async function importarProductos(tienda, productoIds, usuarioId) {
+async function importarProductos(tienda, productoIds, usuarioId, opciones = {}) {
+  const { conCatalogoLocal = true } = opciones;
   const lucidsalesService = require('./lucidsales.service');
-  const lsProductos = await lucidsalesService.getProductos();
+  const lsProductos = await lucidsalesService.getProductos(tienda.id);
   const todos = Array.isArray(lsProductos) ? lsProductos : (lsProductos?.productos || lsProductos?.data || []);
 
   const seleccionados = (productoIds && productoIds.length > 0)
@@ -269,12 +279,15 @@ async function importarProductos(tienda, productoIds, usuarioId) {
       errores.push(`Config incompleta: ${camposFaltantes.join(', ')}`);
     }
 
-    let catalogoOk = false;
-    try {
-      await guardarCatalogoLocal(tienda, producto, usuarioId);
-      catalogoOk = true;
-    } catch (err) {
-      errores.push(`catalogo_local: ${err.message}`);
+    let catalogoOk = true;
+    if (conCatalogoLocal) {
+      catalogoOk = false;
+      try {
+        await guardarCatalogoLocal(tienda, producto, usuarioId);
+        catalogoOk = true;
+      } catch (err) {
+        errores.push(`catalogo_local: ${err.message}`);
+      }
     }
 
     const estado = errores.length === 0 && catalogoOk ? 'ok' : 'error';

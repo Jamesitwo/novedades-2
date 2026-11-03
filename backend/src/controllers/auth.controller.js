@@ -22,7 +22,7 @@ const login = async (req, res) => {
 
     const usuario = await prisma.usuario.findUnique({
       where: { email },
-      select: { id: true, nombre: true, email: true, password: true, rol: true, activo: true, accesoLucidsales: true, gestionaNovedades: true, gestionaOficina: true }
+      select: { id: true, nombre: true, email: true, password: true, rol: true, activo: true, accesoLucidsales: true, gestionaNovedades: true, gestionaOficina: true, tiendaId: true }
     });
 
     if (!usuario || !usuario.activo) {
@@ -32,6 +32,11 @@ const login = async (req, res) => {
     const validPassword = await bcrypt.compare(password, usuario.password);
     if (!validPassword) {
       return res.status(401).json({ error: 'Credenciales inválidas' });
+    }
+
+    let tienda = null;
+    if (usuario.tiendaId) {
+      tienda = await prisma.tienda.findUnique({ where: { id: usuario.tiendaId }, select: { id: true, nombre: true, slug: true } });
     }
 
     const expiresIn = process.env.JWT_EXPIRES_IN || '8h';
@@ -55,7 +60,15 @@ const login = async (req, res) => {
 
     const { password: _, ...usuarioSinPass } = usuario;
 
-    res.json({ token, usuario: { ...usuarioSinPass, verMultiTienda: verMultiTienda(usuario) } });
+    res.json({
+      token,
+      usuario: {
+        ...usuarioSinPass,
+        tiendaSlug: tienda?.slug || null,
+        tiendaNombre: tienda?.nombre || null,
+        verMultiTienda: verMultiTienda(usuario)
+      }
+    });
   } catch (error) {
     console.error('Login error:', error);
     res.status(500).json({ error: 'Error en el servidor' });
@@ -83,14 +96,24 @@ const me = async (req, res) => {
   try {
     const usuario = await prisma.usuario.findUnique({
       where: { id: req.usuario.id },
-      select: { id: true, nombre: true, email: true, rol: true, activo: true, createdAt: true }
+      select: { id: true, nombre: true, email: true, rol: true, activo: true, createdAt: true, tiendaId: true }
     });
 
     if (!usuario) {
       return res.status(404).json({ error: 'Usuario no encontrado' });
     }
 
-    res.json({ ...usuario, verMultiTienda: verMultiTienda(usuario) });
+    let tienda = null;
+    if (usuario.tiendaId) {
+      tienda = await prisma.tienda.findUnique({ where: { id: usuario.tiendaId }, select: { id: true, nombre: true, slug: true } });
+    }
+
+    res.json({
+      ...usuario,
+      tiendaSlug: tienda?.slug || null,
+      tiendaNombre: tienda?.nombre || null,
+      verMultiTienda: verMultiTienda(usuario)
+    });
   } catch (error) {
     res.status(500).json({ error: 'Error en el servidor' });
   }

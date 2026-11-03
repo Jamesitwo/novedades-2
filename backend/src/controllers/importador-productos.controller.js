@@ -1,7 +1,7 @@
 const { prisma } = require('../prisma/client');
-const { importarPedidos, desimportarPedido } = require('../services/importador-pedidos.service');
+const { importarProductos, desimportarProducto } = require('../services/importador-perfumes.service');
 
-const CONFIG_KEYS = ['lucidbotApiKey', 'botFieldPedidos', 'botFieldIntegracionPedidos'];
+const CONFIG_KEYS = ['lucidbotApiKey', 'botFieldAdIds', 'botFieldCatalogo', 'botFieldIntegracion', 'botFieldMensajes', 'botFieldMultimedia', 'botFieldPostventa'];
 
 async function getTiendaZunto() {
   const tienda = await prisma.tienda.findUnique({ where: { slug: 'zunto' } });
@@ -40,50 +40,43 @@ const updateConfig = async (req, res) => {
   }
 };
 
-const listarLucidsalesPedidos = async (req, res) => {
+const listarLucidsalesProductos = async (req, res) => {
   try {
-    const { page = 1, itemsPerPage = 50, search = '', estado = '' } = req.query;
+    const tienda = await getTiendaZunto();
     const lucidsalesService = require('../services/lucidsales.service');
-    const result = await lucidsalesService.getPedidos({
-      page: Number(page),
-      itemsPerPage: Number(itemsPerPage),
-      search: String(search),
-      filters: '[]'
-    });
+    const lsProductos = await lucidsalesService.getProductos(tienda.id);
+    const todos = Array.isArray(lsProductos) ? lsProductos : (lsProductos?.productos || lsProductos?.data || []);
 
-    const todos = Array.isArray(result) ? result : (result?.pedidos || result?.data || []);
-    const totalRecords = result?.totalRecords ?? todos.length;
-    const numPages = result?.numPages ?? Math.max(1, Math.ceil(totalRecords / Number(itemsPerPage)));
+    const productos = todos.map(p => {
+      const imagenes = [];
+      if (Array.isArray(p.imagenes)) {
+        p.imagenes.forEach(i => { if (typeof i === 'string' && i.startsWith('http')) imagenes.push(i); else if (i?.image) imagenes.push(i.image); });
+      }
+      const precio = p.precioMin ?? p.precioSugerido ?? p.precio ?? p.Precio ?? null;
+      return {
+        id: String(p.id ?? p.Id ?? ''),
+        nombre: p.Nombre || p.nombre || 'Sin nombre',
+        descripcion: (p.Descripcion || '').substring(0, 160),
+        precio: precio != null ? Number(precio) : null,
+        imagen: imagenes[0] || null
+      };
+    }).filter(p => p.id);
 
-    const estadoNum = estado === '' || estado === null || estado === undefined ? null : Number(estado);
-
-    const pedidos = todos
-      .map(p => ({
-        id: String(p.id ?? p.Id ?? p.idPedido ?? ''),
-        idPedido: String(p.idPedido ?? p.id ?? ''),
-        cliente: `${p.Nombre || ''} ${p.Apellido || ''}`.trim() || 'Sin nombre',
-        movil: p.Movil || p.movil || '',
-        total: Number(p.Total || 0) || 0,
-        estadoPedido: Number(p.EstadoPedido ?? p.estadoPedido ?? 0),
-        referencias: p.Referencias || p.referencias || ''
-      }))
-      .filter(p => p.id && (estadoNum === null || p.estadoPedido === estadoNum));
-
-    res.json({ total: pedidos.length, totalRecords, numPages, pedidos });
+    res.json({ total: productos.length, productos });
   } catch (error) {
-    console.error('[Zunto] listarLucidsalesPedidos error:', error.message);
-    res.status(error.status || 500).json({ error: error.message || 'Error al listar pedidos de LucidSales' });
+    console.error('[Zunto] listarLucidsalesProductos error:', error.message);
+    res.status(500).json({ error: error.message || 'Error al listar productos de LucidSales' });
   }
 };
 
 const importar = async (req, res) => {
   try {
     const tienda = await getTiendaZunto();
-    const { pedidoIds } = req.body;
-    if (!pedidoIds || !Array.isArray(pedidoIds) || pedidoIds.length === 0) {
-      return res.status(400).json({ error: 'pedidoIds debe ser un array con al menos un pedido' });
+    const { productoIds } = req.body;
+    if (!productoIds || !Array.isArray(productoIds) || productoIds.length === 0) {
+      return res.status(400).json({ error: 'productoIds debe ser un array con al menos un producto' });
     }
-    const resumen = await importarPedidos(tienda, pedidoIds.map(String), req.usuario.id);
+    const resumen = await importarProductos(tienda, productoIds.map(String), req.usuario.id, { conCatalogoLocal: false });
     res.json({ ok: true, ...resumen });
   } catch (error) {
     console.error('[Zunto] importar error:', error.message);
@@ -94,7 +87,7 @@ const importar = async (req, res) => {
 const importaciones = async (req, res) => {
   try {
     const tienda = await getTiendaZunto();
-    const logs = await prisma.importLogPedido.findMany({
+    const logs = await prisma.importLogProducto.findMany({
       where: { tiendaId: tienda.id },
       orderBy: { createdAt: 'desc' },
       take: 200
@@ -108,11 +101,11 @@ const importaciones = async (req, res) => {
 const reintentar = async (req, res) => {
   try {
     const tienda = await getTiendaZunto();
-    const log = await prisma.importLogPedido.findFirst({
+    const log = await prisma.importLogProducto.findFirst({
       where: { id: req.params.logId, tiendaId: tienda.id }
     });
     if (!log) return res.status(404).json({ error: 'Registro no encontrado' });
-    const resumen = await importarPedidos(tienda, [log.lucidsalesPedidoId], req.usuario.id);
+    const resumen = await importarProductos(tienda, [log.lucidsalesProductoId], req.usuario.id, { conCatalogoLocal: false });
     res.json({ ok: true, ...resumen });
   } catch (error) {
     console.error('[Zunto] reintentar error:', error.message);
@@ -123,12 +116,13 @@ const reintentar = async (req, res) => {
 const desimportar = async (req, res) => {
   try {
     const tienda = await getTiendaZunto();
-    const log = await prisma.importLogPedido.findFirst({
+    const log = await prisma.importLogProducto.findFirst({
       where: { id: req.params.logId, tiendaId: tienda.id }
     });
     if (!log) return res.status(404).json({ error: 'Registro no encontrado' });
 
-    const errores = await desimportarPedido(tienda, log);
+    const productoLocal = { nombre: log.nombre, lucidsalesId: log.lucidsalesProductoId };
+    const errores = await desimportarProducto(tienda, productoLocal);
     if (errores.length > 0) {
       return res.status(502).json({
         ok: false,
@@ -137,9 +131,11 @@ const desimportar = async (req, res) => {
       });
     }
 
-    await prisma.importLogPedido.delete({ where: { id: log.id } });
+    await prisma.importLogProducto.deleteMany({
+      where: { tiendaId: tienda.id, lucidsalesProductoId: log.lucidsalesProductoId }
+    });
 
-    res.json({ ok: true, message: 'Pedido desimportado y eliminado de los bot fields' });
+    res.json({ ok: true, message: 'Producto desimportado y eliminado de los bot fields' });
   } catch (error) {
     console.error('[Zunto] desimportar error:', error.message);
     res.status(error.status || 500).json({ error: error.message || 'Error al desimportar' });
@@ -149,7 +145,7 @@ const desimportar = async (req, res) => {
 module.exports = {
   getConfig,
   updateConfig,
-  listarLucidsalesPedidos,
+  listarLucidsalesProductos,
   importar,
   importaciones,
   reintentar,

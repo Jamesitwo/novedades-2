@@ -5,6 +5,7 @@ const addressValidator = require('../services/address-validator.service');
 const googleGeocoding = require('../services/google-geocoding.service');
 const hereGeocoding = require('../services/here-geocoding.service');
 const { getNextOperador } = require('../utils/autoAssign');
+const asignacionPedidosService = require('../services/asignacion-pedidos.service');
 const bitacoraService = require('../services/bitacora.service');
 const path = require('path');
 const fs = require('fs');
@@ -20,7 +21,7 @@ function readJsonWithBOM(filePath) {
 const getPedidos = async (req, res) => {
   try {
     const { page, itemsPerPage, search, filters } = req.query;
-    const result = await lucidsalesService.getPedidos({ page, itemsPerPage, search, filters });
+    const result = await lucidsalesService.getPedidos({ page, itemsPerPage, search, filters, tiendaId: req.tiendaId });
     res.json(result);
   } catch (error) {
     console.error('LucidSales getPedidos error:', error);
@@ -31,7 +32,7 @@ const getPedidos = async (req, res) => {
 const getPedidoById = async (req, res) => {
   try {
     const { id } = req.params;
-    const result = await lucidsalesService.getPedidoById(id);
+    const result = await lucidsalesService.getPedidoById(id, req.tiendaId);
     try {
       const local = await prisma.pedidoVinculado.findUnique({
         where: { lucidsalesPedidoId: Number(id) },
@@ -55,11 +56,16 @@ const getPedidoById = async (req, res) => {
   }
 };
 
-const ESTADOS_LS = { 0: 'Por confirmar', 1: 'Cancelado', 2: 'Confirmado', 3: 'Modificado' };
+const ESTADOS_LS = {
+  0: 'Por confirmar', 1: 'Cancelado', 2: 'Confirmado', 3: 'Modificado',
+  4: 'En Tránsito', 5: 'En Reparto', 6: 'Entregado', 7: 'Devuelto',
+  8: 'En Novedad', 9: 'Novedad Solucionada'
+};
+const ESTADOS_DISPONIBLES = new Set([0, 1, 2, 3, 4, 5, 6, 7, 8, 9]);
 
 const updatePedido = async (req, res) => {
   try {
-    const result = await lucidsalesService.updatePedido(req.body);
+    const result = await lucidsalesService.updatePedido(req.body, req.tiendaId);
     if (result && result.ok === false) {
       return res.status(400).json({ error: result.msg || result.error || 'Error al actualizar en LucidSales' });
     }
@@ -69,7 +75,11 @@ const updatePedido = async (req, res) => {
         const vinculado = await prisma.pedidoVinculado.findUnique({ where: { lucidsalesPedidoId: idPedido } });
         const estadoNuevo = Number(req.body.EstadoPedido);
         if (vinculado && vinculado.estadoPedido !== estadoNuevo) {
-          const descripciones = { 1: 'Pedido cancelado', 2: 'Pedido confirmado', 3: 'Pedido modificado' };
+          const descripciones = {
+            1: 'Pedido cancelado', 2: 'Pedido confirmado', 3: 'Pedido modificado',
+            4: 'Pedido en tránsito', 5: 'Pedido en reparto', 6: 'Pedido entregado',
+            7: 'Pedido devuelto', 8: 'Pedido en novedad', 9: 'Novedad solucionada'
+          };
           await bitacoraService.registrar({
             tipo: 'pedido_estado',
             entidad: 'pedido_lucidsales',
@@ -96,7 +106,7 @@ const updatePedido = async (req, res) => {
 
 const createPedido = async (req, res) => {
   try {
-    const result = await lucidsalesService.createPedido(req.body);
+    const result = await lucidsalesService.createPedido(req.body, req.tiendaId);
     if (result && result.ok === false) {
       return res.status(400).json({ error: result.msg || result.error || 'Error al crear en LucidSales' });
     }
@@ -110,7 +120,7 @@ const createPedido = async (req, res) => {
 const cotizarEnvio = async (req, res) => {
   try {
     const { pedidoId, carrier } = req.body;
-    const result = await lucidsalesService.cotizarEnvio(pedidoId, carrier || 'dropi');
+    const result = await lucidsalesService.cotizarEnvio(pedidoId, carrier || 'dropi', req.tiendaId);
     res.json(result);
   } catch (error) {
     console.error('LucidSales cotizarEnvio error:', error);
@@ -122,7 +132,7 @@ const confirmarEnvio = async (req, res) => {
   try {
     const { pedidoId, transportadora_id } = req.body;
     if (!pedidoId) return res.status(400).json({ error: 'pedidoId es requerido' });
-    const result = await lucidsalesService.confirmarIntegracion(pedidoId, transportadora_id);
+    const result = await lucidsalesService.confirmarIntegracion(pedidoId, transportadora_id, {}, req.tiendaId);
     if (result && result.ok === false) {
       return res.status(400).json({ error: result.msg || result.error || 'Error al confirmar envío en LucidSales', detalle: result });
     }
@@ -131,7 +141,7 @@ const confirmarEnvio = async (req, res) => {
         where: { lucidsalesPedidoId: Number(pedidoId) },
         data: { subidoPorId: req.authType === 'apikey' ? null : req.usuario.id, subidoAt: new Date() }
       });
-      const pedidoActualizado = await lucidsalesService.getPedidoById(pedidoId);
+      const pedidoActualizado = await lucidsalesService.getPedidoById(pedidoId, req.tiendaId);
       if (pedidoActualizado && pedidoActualizado.id) {
         await lucidsalesService.guardarVinculacionLocal(Number(pedidoId), pedidoActualizado, req.usuario.id);
       }
@@ -160,7 +170,7 @@ const confirmarEnvio = async (req, res) => {
 const validateAddress = async (req, res) => {
   try {
     const { direccion, ciudad, departamento, pais } = req.body;
-    const result = await lucidsalesService.validateAddress(direccion, ciudad, departamento, pais || 47);
+    const result = await lucidsalesService.validateAddress(direccion, ciudad, departamento, pais || 47, req.tiendaId);
     res.json(result);
   } catch (error) {
     console.error('LucidSales validateAddress error:', error);
@@ -204,7 +214,7 @@ const validarDireccion = async (req, res) => {
 
 const getProductos = async (req, res) => {
   try {
-    const result = await lucidsalesService.getProductos();
+    const result = await lucidsalesService.getProductos(req.tiendaId);
     res.json(result);
   } catch (error) {
     console.error('LucidSales getProductos error:', error);
@@ -221,7 +231,7 @@ const productosStock = async (req, res) => {
 
     const stockMap = {};
     const errorsMap = {};
-    const productosList = await lucidsalesService.getProductos();
+    const productosList = await lucidsalesService.getProductos(req.tiendaId);
     const todos = Array.isArray(productosList) ? productosList : (productosList?.productos || productosList?.data || []);
 
     const idToDropi = {};
@@ -239,7 +249,7 @@ const productosStock = async (req, res) => {
       const results = await Promise.all(batch.map(async (productoId) => {
         try {
           const dropiId = idToDropi[productoId];
-          const result = await lucidsalesService.validateDropiId(dropiId);
+          const result = await lucidsalesService.validateDropiId(dropiId, req.tiendaId);
           if (result?.error) {
             return { productoId, ok: false, error: result.error };
           }
@@ -273,7 +283,7 @@ const productosStock = async (req, res) => {
 
 const getFiltersData = async (req, res) => {
   try {
-    const result = await lucidsalesService.getFiltersData();
+    const result = await lucidsalesService.getFiltersData(req.tiendaId);
     res.json(result);
   } catch (error) {
     console.error('LucidSales getFiltersData error:', error);
@@ -336,7 +346,7 @@ const getDepartamentosLocales = async (req, res) => {
 
 const verificarConexion = async (req, res) => {
   try {
-    const result = await lucidsalesService.verificarConexion();
+    const result = await lucidsalesService.verificarConexion(req.tiendaId);
     res.json(result);
   } catch (error) {
     console.error('LucidSales verificarConexion error:', error);
@@ -350,7 +360,7 @@ const vincularPedido = async (req, res) => {
     if (!lucidsalesPedidoId) {
       return res.status(400).json({ error: 'lucidsalesPedidoId es requerido' });
     }
-    const asignadoId = await getNextOperador('lucidsales');
+    const asignadoId = await getNextOperador('lucidsales', req.tiendaId);
     const result = await lucidsalesService.crearVinculacion(lucidsalesPedidoId, notas, req.usuario.id, asignadoId, req.tiendaId);
     res.json({ ok: true, pedido: result });
   } catch (error) {
@@ -385,9 +395,9 @@ const vincularYActualizar = async (req, res) => {
       }
     }
 
-    let asignadoId = await getNextOperador('lucidsales');
+    let asignadoId = await getNextOperador('lucidsales', req.tiendaId);
     if (!asignadoId) {
-      const admin = await prisma.usuario.findFirst({ where: { rol: 'admin', activo: true, gestionaPedidos: true }, select: { id: true } });
+      const admin = await prisma.usuario.findFirst({ where: { rol: 'admin', activo: true, gestionaPedidos: true, tiendaId: req.tiendaId }, select: { id: true } });
       asignadoId = admin?.id || null;
     }
 
@@ -401,7 +411,7 @@ const vincularYActualizar = async (req, res) => {
 
     let pedidoCompleto;
     try {
-      pedidoCompleto = await lucidsalesService.getPedidoById(lucidsalesPedidoId);
+      pedidoCompleto = await lucidsalesService.getPedidoById(lucidsalesPedidoId, req.tiendaId);
     } catch (err) {
       console.error('[LucidSales] vincularYActualizar getPedidoById FAIL:', err.message);
       return res.status(500).json({ error: 'Error al obtener pedido de LucidSales: ' + err.message });
@@ -442,7 +452,7 @@ const vincularYActualizar = async (req, res) => {
 
     let updateResult;
     try {
-      updateResult = await lucidsalesService.updatePedido(pedidoActualizado);
+      updateResult = await lucidsalesService.updatePedido(pedidoActualizado, req.tiendaId);
     } catch (err) {
       console.error('[LucidSales] vincularYActualizar updatePedido FAIL:', err.message);
       return res.status(500).json({ error: 'Error al actualizar pedido en LucidSales: ' + err.message });
@@ -462,7 +472,7 @@ const vincularYActualizar = async (req, res) => {
     let pedidoVerificado = null;
     let totalVerificado = null;
     try {
-      pedidoVerificado = await lucidsalesService.getPedidoById(lucidsalesPedidoId);
+      pedidoVerificado = await lucidsalesService.getPedidoById(lucidsalesPedidoId, req.tiendaId);
       totalVerificado = pedidoVerificado?.Total;
     } catch {
       // si la verificación falla, se responde sin total verificado
@@ -495,7 +505,7 @@ const duplicarPedido = async (req, res) => {
   try {
     const { id } = req.params;
 
-    const original = await lucidsalesService.getPedidoById(id);
+    const original = await lucidsalesService.getPedidoById(id, req.tiendaId);
     if (!original || !original.id) {
       return res.status(404).json({ error: 'Pedido original no encontrado en LucidSales' });
     }
@@ -520,7 +530,7 @@ const duplicarPedido = async (req, res) => {
       Referencias: refUnica
     };
 
-    const result = await lucidsalesService.createPedido(nuevoPedido);
+    const result = await lucidsalesService.createPedido(nuevoPedido, req.tiendaId);
     if (result && result.ok === false) {
       return res.status(400).json({ error: result.msg || result.error || 'Error al crear pedido duplicado en LucidSales' });
     }
@@ -531,7 +541,7 @@ const duplicarPedido = async (req, res) => {
     }
 
     if (!nuevoId) {
-      const pedidos = await lucidsalesService.getPedidos({ search: refUnica, itemsPerPage: 3 });
+      const pedidos = await lucidsalesService.getPedidos({ search: refUnica, itemsPerPage: 3, tiendaId: req.tiendaId });
       const match = pedidos?.pedidos?.[0];
       if (match?.id) nuevoId = match.id;
     }
@@ -548,7 +558,7 @@ const duplicarPedido = async (req, res) => {
     });
 
     try {
-      const asignadoId = await getNextOperador('lucidsales');
+      const asignadoId = await getNextOperador('lucidsales', req.tiendaId);
       await lucidsalesService.crearVinculacionDirecta(nuevoId, original, `Duplicado del pedido #${original.idPedido || id}`, req.usuario.id, asignadoId, req.tiendaId);
       if (vinculacionOriginal?.conversacionLink) {
         await prisma.pedidoVinculado.update({
@@ -577,9 +587,9 @@ const subirDividido = async (req, res) => {
     const { id } = req.params;
     const { transportadora_id } = req.body;
 
-    const original = await lucidsalesService.getPedidoById(id);
+    const original = await lucidsalesService.getPedidoById(id, req.tiendaId);
     if (!original || !original.id) {
-      return res.status(404).json({ error: 'Pedido original no encontrado en LucidSales' });
+      return res.status(404).json({ error: 'Pedido no encontrado' });
     }
 
     let productos = [];
@@ -591,7 +601,7 @@ const subirDividido = async (req, res) => {
       return res.status(400).json({ error: 'El pedido debe tener al menos 2 productos para dividir' });
     }
 
-    const asignadoId = await getNextOperador('lucidsales');
+    const asignadoId = await getNextOperador('lucidsales', req.tiendaId);
 
     const resultados = [];
     for (let i = 0; i < productos.length; i++) {
@@ -618,7 +628,7 @@ const subirDividido = async (req, res) => {
           Referencias: refUnica
         };
 
-        const createResult = await lucidsalesService.createPedido(nuevoPedido);
+        const createResult = await lucidsalesService.createPedido(nuevoPedido, req.tiendaId);
         if (createResult && createResult.ok === false) {
           resultados.push({ producto: prod.product_id, error: createResult.msg || createResult.error || 'Error al crear', detalle: createResult });
           continue;
@@ -626,7 +636,7 @@ const subirDividido = async (req, res) => {
 
         let nuevoId = createResult?.pedido?.id || createResult?.id || createResult?.pedidoId || createResult?.data?.id;
         if (!nuevoId) {
-          const pedidos = await lucidsalesService.getPedidos({ search: refUnica, itemsPerPage: 3 });
+          const pedidos = await lucidsalesService.getPedidos({ search: refUnica, itemsPerPage: 3, tiendaId: req.tiendaId });
           const match = pedidos?.pedidos?.[0];
           if (match?.id) nuevoId = match.id;
         }
@@ -636,7 +646,7 @@ const subirDividido = async (req, res) => {
           continue;
         }
 
-        const uploadResult = await lucidsalesService.confirmarIntegracion(nuevoId, 'dropi', { transportadora_id });
+        const uploadResult = await lucidsalesService.confirmarIntegracion(nuevoId, 'dropi', { transportadora_id }, req.tiendaId);
         if (uploadResult && uploadResult.ok === false) {
           resultados.push({ producto: prod.product_id, pedidoId: nuevoId, error: uploadResult.msg || uploadResult.error || 'Error al subir', detalle: uploadResult });
           continue;
@@ -662,7 +672,7 @@ const subirDividido = async (req, res) => {
             where: { lucidsalesPedidoId: Number(nuevoId) },
             data: { subidoPorId: req.authType === 'apikey' ? null : req.usuario.id, subidoAt: new Date() }
           });
-          const pedidoActualizado = await lucidsalesService.getPedidoById(nuevoId);
+          const pedidoActualizado = await lucidsalesService.getPedidoById(nuevoId, req.tiendaId);
           if (pedidoActualizado && pedidoActualizado.id) {
             await lucidsalesService.guardarVinculacionLocal(Number(nuevoId), pedidoActualizado, req.usuario.id);
           }
@@ -681,7 +691,7 @@ const subirDividido = async (req, res) => {
 
     if (exitos > 0) {
       try {
-        const pedidoActualizado = await lucidsalesService.getPedidoById(id);
+        const pedidoActualizado = await lucidsalesService.getPedidoById(id, req.tiendaId);
         if (pedidoActualizado && pedidoActualizado.id) {
           await lucidsalesService.guardarVinculacionLocal(Number(id), pedidoActualizado, req.usuario.id, undefined, req.tiendaId);
         }
@@ -705,7 +715,18 @@ const subirDividido = async (req, res) => {
 const listarVinculados = async (req, res) => {
   try {
     const { page = 1, itemsPerPage = 50, search = '', estadoFilter, etiquetaId, asignadoId, fechaDesde, fechaHasta, producto, estados, asignado_a_mi } = req.query;
-    const opts = { page: Number(page), itemsPerPage: Number(itemsPerPage), search, estadoFilter, etiquetaId, asignadoId, fechaDesde, fechaHasta, producto, tiendaId: req.tiendaId };
+    // Modo directo (estilo Zunto): la lista viene de la API de LucidSales.
+    // Los filtros de estado/fechas/producto van contra la API;
+    // asignación y etiquetas se aplican sobre la página cargada (datos locales).
+    const opts = { page: Number(page), itemsPerPage: Number(itemsPerPage), search, fechaDesde, fechaHasta, producto, tiendaId: req.tiendaId };
+
+    let estadosArr = [];
+    if (estados) {
+      estadosArr = String(estados).split(',').map(s => Number(s)).filter(n => !Number.isNaN(n));
+    } else if (estadoFilter !== undefined && estadoFilter !== '' && estadoFilter !== null && !Number.isNaN(Number(estadoFilter))) {
+      estadosArr = [Number(estadoFilter)];
+    }
+    if (estadosArr.length > 0) opts.estados = estadosArr;
 
     if (req.usuario.rol !== 'admin') {
       const usuario = await prisma.usuario.findUnique({
@@ -714,39 +735,41 @@ const listarVinculados = async (req, res) => {
       });
       if (usuario?.rol === 'operador_asignado' || usuario?.verSoloAsignados) {
         opts.asignadoId = req.usuario.id;
-        opts.estadoFilter = undefined;
+        opts.estados = [];
       }
     }
 
     if (asignado_a_mi === 'true') {
       opts.asignadoId = req.usuario.id;
     }
-
-    if (estados) {
-      const arr = String(estados).split(',').map(s => Number(s)).filter(n => !Number.isNaN(n));
-      if (arr.length > 0) opts.estados = arr;
-    }
-
     if (estadoFilter === 'asignados') {
       opts.asignadoId = req.usuario.id;
-      opts.estadoFilter = undefined;
+      opts.estados = [];
     }
     if (asignadoId && req.usuario.rol === 'admin') {
       opts.asignadoId = asignadoId;
     }
     if (etiquetaId) {
-      const registrosConEtiqueta = await prisma.registroEtiqueta.findMany({
-        where: { etiquetaId, tabla: 'pedidos_vinculados' },
-        select: { registroId: true }
-      });
-      const ids = registrosConEtiqueta.map(r => Number(r.registroId));
-      opts.lucidsalesPedidoIds = ids.length > 0 ? ids : [-1];
+      opts.etiquetaId = etiquetaId;
     }
-    const result = await lucidsalesService.listVinculaciones(opts);
-    res.json(result);
+
+    const result = await lucidsalesService.listPedidosDirecto(opts);
+
+    // Filtros locales sobre la página cargada (igual que Zunto: la API no filtra por asignación/etiqueta)
+    let pedidos = result.pedidos;
+    if (opts.etiquetaId) {
+      pedidos = pedidos.filter(p => (p._etiquetas || []).some(e => String(e.id) === String(opts.etiquetaId)));
+    }
+    if (opts.asignadoId === '__sin__') {
+      pedidos = pedidos.filter(p => !p.asignado);
+    } else if (opts.asignadoId) {
+      pedidos = pedidos.filter(p => (p.asignado?.id || null) === opts.asignadoId);
+    }
+
+    res.json({ ...result, pedidos });
   } catch (error) {
     console.error('LucidSales listarVinculados error:', error);
-    res.status(500).json({ error: error.message || 'Error al listar vinculados' });
+    res.status(500).json({ error: error.message || 'Error al listar pedidos' });
   }
 };
 
@@ -762,7 +785,7 @@ const syncPedidos = async (req, res) => {
 
     for (const id of ids) {
       try {
-        const pedido = await lucidsalesService.getPedidoById(id);
+        const pedido = await lucidsalesService.getPedidoById(id, req.tiendaId);
         if (pedido && pedido.id) {
           await lucidsalesService.guardarVinculacionLocal(Number(id), pedido, req.usuario.id, undefined, req.tiendaId);
           actualizados++;
@@ -913,6 +936,209 @@ const desvincularPedido = async (req, res) => {
   }
 };
 
+function parsearObservaciones(raw) {
+  if (Array.isArray(raw)) return raw;
+  if (typeof raw === 'string' && raw.trim()) {
+    try {
+      const parsed = JSON.parse(raw);
+      return Array.isArray(parsed) ? parsed : [];
+    } catch { return []; }
+  }
+  return [];
+}
+
+const cambiarEstadoPedido = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const idNum = Number(id);
+    const estado = Number(req.body?.estado);
+    const motivo = typeof req.body?.motivo === 'string' ? req.body.motivo.trim() : '';
+
+    if (!Number.isInteger(estado) || !ESTADOS_DISPONIBLES.has(estado)) {
+      return res.status(400).json({ error: 'Estado inválido. Debe ser un número entre 0 y 9.' });
+    }
+    if (estado === 1 && !motivo) {
+      return res.status(400).json({ error: 'Al cancelar un pedido el motivo es obligatorio.' });
+    }
+
+    const pedido = await lucidsalesService.getPedidoById(idNum, req.tiendaId);
+    const estadoAnterior = Number(pedido.EstadoPedido ?? 0);
+    if (estadoAnterior === estado) {
+      return res.json({ ok: true, estado, sinCambios: true });
+    }
+
+    if (motivo) {
+      const obs = parsearObservaciones(pedido.Observaciones);
+      obs.push({
+        desc: motivo,
+        update: new Date().toISOString(),
+        user: req.usuario?.nombre || req.usuario?.email || 'Sistema'
+      });
+      pedido.Observaciones = JSON.stringify(obs);
+    }
+    pedido.EstadoPedido = estado;
+
+    const result = await lucidsalesService.updatePedido(pedido, req.tiendaId);
+    if (result && result.ok === false) {
+      return res.status(400).json({ error: result.msg || result.error || 'Error al actualizar en LucidSales' });
+    }
+
+    try {
+      await lucidsalesService.guardarVinculacionLocal(idNum, pedido, req.usuario.id, undefined, req.tiendaId);
+    } catch (e) {
+      console.error('[LucidSales] No se pudo actualizar el snapshot local tras cambio de estado:', e.message);
+    }
+
+    try {
+      await bitacoraService.registrar({
+        tipo: 'pedido_estado',
+        entidad: 'pedido_lucidsales',
+        registroId: String(idNum),
+        operadorId: req.usuario.id,
+        cliente: pedido.Nombre ? `${pedido.Nombre} ${pedido.Apellido || ''}`.trim() : null,
+        valorAnterior: ESTADOS_LS[estadoAnterior] || String(estadoAnterior),
+        valorNuevo: ESTADOS_LS[estado] || String(estado),
+        descripcion: estado === 1 ? 'Pedido cancelado' : (estado === 2 ? 'Pedido confirmado' : 'Cambio de estado del pedido'),
+        detalle: { pedidoVinculadoId: idNum, estadoPedido: estado, motivo: motivo || null },
+        tiendaId: req.tiendaId
+      });
+    } catch (e) {
+      console.error('[Bitacora] Error registrando cambio de estado LucidSales:', e.message);
+    }
+
+    res.json({ ok: true, estado });
+  } catch (error) {
+    console.error('LucidSales cambiarEstadoPedido error:', error);
+    res.status(error.status || 500).json({ error: error.message || 'Error al cambiar el estado del pedido' });
+  }
+};
+
+const asignarPedido = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const idNum = Number(id);
+    const asignadoId = req.body?.asignadoId || null;
+
+    let nuevoNombre = null;
+    if (asignadoId) {
+      const operador = await prisma.usuario.findUnique({ where: { id: asignadoId }, select: { id: true, nombre: true } });
+      if (!operador) return res.status(404).json({ error: 'Operador no encontrado' });
+      nuevoNombre = operador.nombre;
+    }
+
+    // La asignacion vive en su propia tabla; la vinculacion ya no es requisito.
+    const previa = await prisma.asignacionPedido.findUnique({
+      where: { lucidsalesPedidoId: idNum },
+      include: { asignado: { select: { id: true, nombre: true } } }
+    });
+
+    // Fallback legacy: pedidos asignados antes de la tabla propia.
+    const anterior = previa
+      ? (previa.asignado || null)
+      : ((await prisma.pedidoVinculado.findUnique({
+          where: { lucidsalesPedidoId: idNum },
+          select: { asignado: { select: { id: true, nombre: true } } }
+        }))?.asignado || null);
+
+    if ((anterior?.id || null) === (asignadoId || null)) {
+      return res.json({ ok: true, asignado: anterior, sinCambios: true });
+    }
+
+    try {
+      await prisma.historialCambio.create({
+        data: {
+          tabla: 'pedidos_vinculados',
+          registroId: String(idNum),
+          campo: 'asignado',
+          valorAnterior: anterior?.nombre || null,
+          valorNuevo: nuevoNombre,
+          usuarioId: req.usuario.id,
+          tiendaId: req.tiendaId
+        }
+      });
+    } catch (e) {
+      console.error('[Historial] Error registrando asignación LucidSales:', e.message);
+    }
+
+    const fila = await asignacionPedidosService.asignar(idNum, asignadoId, {
+      tiendaId: req.tiendaId || null,
+      createdById: req.usuario.id,
+      origen: 'manual'
+    });
+
+    res.json({ ok: true, asignado: fila.asignado || null });
+  } catch (error) {
+    console.error('LucidSales asignarPedido error:', error);
+    res.status(500).json({ error: error.message || 'Error al asignar el pedido' });
+  }
+};
+
+const bulkAsignarPedidos = async (req, res) => {
+  try {
+    const { ids, asignadoId } = req.body;
+    if (!Array.isArray(ids) || ids.length === 0) {
+      return res.status(400).json({ error: 'Se requiere una lista de IDs' });
+    }
+    const idNums = ids.map(Number).filter(n => !Number.isNaN(n));
+    if (idNums.length === 0) {
+      return res.status(400).json({ error: 'Lista de IDs inválida' });
+    }
+
+    let operador = null;
+    if (asignadoId) {
+      operador = await prisma.usuario.findUnique({ where: { id: asignadoId }, select: { id: true, nombre: true } });
+      if (!operador) return res.status(404).json({ error: 'Operador no encontrado' });
+    }
+
+    // Historial: registra solo los que cambian de dueno (tabla nueva + fallback legacy)
+    const previas = await asignacionPedidosService.getAsignaciones(idNums);
+    const legacy = await prisma.pedidoVinculado.findMany({
+      where: { lucidsalesPedidoId: { in: idNums } },
+      select: { lucidsalesPedidoId: true, asignadoId: true, nombreCliente: true, apellidoCliente: true, tiendaId: true }
+    });
+    const legacyPorId = new Map(legacy.map(r => [r.lucidsalesPedidoId, r]));
+
+    const anteriores = new Map();
+    idNums.forEach(idNum => {
+      const nueva = previas.get(idNum);
+      anteriores.set(idNum, nueva
+        ? (nueva.asignado || null)
+        : (legacyPorId.get(idNum)?.asignadoId ? { id: legacyPorId.get(idNum).asignadoId } : null));
+    });
+
+    const historialOps = idNums
+      .filter(idNum => (anteriores.get(idNum)?.id || null) !== (asignadoId || null))
+      .map(idNum => {
+        const actual = legacyPorId.get(idNum);
+        return prisma.historialCambio.create({
+          data: {
+            tabla: 'pedidos_vinculados',
+            registroId: String(idNum),
+            campo: 'asignado',
+            valorAnterior: anteriores.get(idNum)?.nombre || null,
+            valorNuevo: operador?.nombre || null,
+            usuarioId: req.usuario.id,
+            clienteNombre: actual ? `${actual.nombreCliente || ''} ${actual.apellidoCliente || ''}`.trim() || null : null,
+            tiendaId: actual?.tiendaId || req.tiendaId
+          }
+        });
+      });
+
+    const { afectados } = await asignacionPedidosService.asignarBulk(idNums, asignadoId, {
+      tiendaId: req.tiendaId || null,
+      createdById: req.usuario.id,
+      origen: 'manual'
+    });
+
+    if (historialOps.length > 0) await prisma.$transaction(historialOps);
+
+    res.json({ ok: true, actualizados: afectados, message: `Asignados ${idNums.length} pedidos${operador ? ` a ${operador.nombre}` : ''}` });
+  } catch (error) {
+    console.error('LucidSales bulkAsignar error:', error);
+    res.status(500).json({ error: error.message || 'Error al asignar pedidos' });
+  }
+};
+
 module.exports = {
   getPedidos,
   getPedidoById,
@@ -942,5 +1168,8 @@ module.exports = {
   asignarEtiqueta,
   removerEtiqueta,
   buscarOficinaIR,
-  desvincularPedido
+  desvincularPedido,
+  cambiarEstadoPedido,
+  asignarPedido,
+  bulkAsignarPedidos
 };

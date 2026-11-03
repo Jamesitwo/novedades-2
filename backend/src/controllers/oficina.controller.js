@@ -199,9 +199,9 @@ const create = async (req, res) => {
       ? new Date(new Date(fechaLlegada).getTime() + 7 * 24 * 60 * 60 * 1000)
       : new Date(new Date().getTime() + 7 * 24 * 60 * 60 * 1000);
 
-    let asignadoId = await getNextOperador('oficina');
+    let asignadoId = await getNextOperador('oficina', req.tiendaId);
     if (!asignadoId) {
-      const admin = await prisma.usuario.findFirst({ where: { rol: 'admin', activo: true, gestionaOficina: true }, select: { id: true } });
+      const admin = await prisma.usuario.findFirst({ where: { rol: 'admin', activo: true, gestionaOficina: true, tiendaId: req.tiendaId }, select: { id: true } });
       asignadoId = admin?.id || req.usuario.id;
     }
 
@@ -715,7 +715,7 @@ const duplicar = async (req, res) => {
         favorito: false,
         tiendaId: original.tiendaId || req.tiendaId,
         createdById: req.usuario.id,
-        asignadoId: await getNextOperador('oficina') || null
+        asignadoId: await getNextOperador('oficina', req.tiendaId) || null
       },
       include: {
         createdBy: { select: { id: true, nombre: true } },

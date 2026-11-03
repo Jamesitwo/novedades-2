@@ -36,6 +36,13 @@ async function waitForNextReady(port, maxWaitMs = 30_000) {
 function gracefulShutdown(signal) {
   console.log(`\n[${signal}] Iniciando apagado controlado...`);
 
+  try {
+    const reparto = require('./src/services/reparto-automatico.service');
+    reparto.detener();
+  } catch {
+    // el timer puede no haber arrancado
+  }
+
   if (nextProcess && !nextProcess.killed) {
     nextProcess.kill('SIGTERM');
     setTimeout(() => {
@@ -122,6 +129,14 @@ async function main() {
       console.log(`WebSocket ready on ws://localhost:${PORT}`);
       if (isProduction) console.log('   Mode: production (API + Frontend + WebSocket)');
       else console.log('   Mode: development (API + WebSocket)');
+
+      // Reparto automatico de pedidos LucidSales (opt-in por tienda)
+      try {
+        const reparto = require('./src/services/reparto-automatico.service');
+        reparto.arrancar();
+      } catch (e) {
+        console.warn('[reparto] No se pudo arrancar:', e.message);
+      }
     });
 
     process.on('SIGTERM', () => gracefulShutdown('SIGTERM'));

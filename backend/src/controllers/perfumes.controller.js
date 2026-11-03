@@ -42,8 +42,9 @@ const updateConfig = async (req, res) => {
 
 const listarLucidsalesProductos = async (req, res) => {
   try {
+    const tienda = await getTiendaPerfumes();
     const lucidsalesService = require('../services/lucidsales.service');
-    const lsProductos = await lucidsalesService.getProductos();
+    const lsProductos = await lucidsalesService.getProductos(tienda.id);
     const todos = Array.isArray(lsProductos) ? lsProductos : (lsProductos?.productos || lsProductos?.data || []);
 
     const productos = todos.map(p => {

@@ -10,24 +10,13 @@ import { toast } from '@/components/ui/Toaster';
 
 const FIELD_DEFS = [
   { key: 'lucidbotApiKey', label: 'Token LucidBot (X-ACCESS-TOKEN) — Zunto', ph: 'Token de acceso...' },
-  { key: 'botFieldPedidos', label: 'bot_field_id — pedidos_lucidsales', ph: 'ID del campo' },
-  { key: 'botFieldIntegracionPedidos', label: 'bot_field_id — Integracion_pedidos_LucidSales', ph: 'ID del campo' }
+  { key: 'botFieldAdIds', label: 'bot_field_id — ad_id_lucidsales', ph: 'ID del campo' },
+  { key: 'botFieldCatalogo', label: 'bot_field_id — Catalogo_productos_LucidSales', ph: 'ID del campo' },
+  { key: 'botFieldIntegracion', label: 'bot_field_id — Integracion_LucidSales', ph: 'ID del campo' },
+  { key: 'botFieldMensajes', label: 'bot_field_id — mensajes_iniciales_lucidsales', ph: 'ID del campo' },
+  { key: 'botFieldMultimedia', label: 'bot_field_id — Multimedia_productos_LucidSales', ph: 'ID del campo' },
+  { key: 'botFieldPostventa', label: 'bot_field_id — Preguntas_Postventa_Productos_LucidSales', ph: 'ID del campo' }
 ];
-
-const ESTADOS = [
-  { value: '', label: 'Todos los estados' },
-  { value: '0', label: 'Por confirmar' },
-  { value: '1', label: 'Cancelado' },
-  { value: '2', label: 'Confirmado' },
-  { value: '3', label: 'Modificado' }
-];
-
-const ESTADO_BADGE = {
-  0: { label: 'Por confirmar', color: 'var(--amber)' },
-  1: { label: 'Cancelado', color: 'var(--red)' },
-  2: { label: 'Confirmado', color: 'var(--green)' },
-  3: { label: 'Modificado', color: 'var(--purple)' }
-};
 
 const inputStyle = {
   background: 'var(--bg)',
@@ -50,18 +39,15 @@ const cardStyle = {
 
 const formatMoney = (v) => new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 }).format(v);
 
-export default function ImportadorPedidosPage() {
+export default function ImportadorProductosPage() {
   const [config, setConfig] = useState({});
   const [savingConfig, setSavingConfig] = useState(false);
 
-  const [lsPedidos, setLsPedidos] = useState([]);
+  const [lsProductos, setLsProductos] = useState([]);
   const [lsCargando, setLsCargando] = useState(false);
-  const [lsPage, setLsPage] = useState(1);
-  const [lsNumPages, setLsNumPages] = useState(1);
   const [showImportModal, setShowImportModal] = useState(false);
   const [selectedIds, setSelectedIds] = useState(new Set());
   const [busqueda, setBusqueda] = useState('');
-  const [estadoFilter, setEstadoFilter] = useState('');
 
   const [importando, setImportando] = useState(false);
   const [resumen, setResumen] = useState(null);
@@ -71,7 +57,7 @@ export default function ImportadorPedidosPage() {
 
   const fetchConfig = useCallback(async () => {
     try {
-      const { data } = await api.get('/api/importador-pedidos/config');
+      const { data } = await api.get('/api/importador-productos/config');
       setConfig(data.config || {});
     } catch {
       toast.error('No se pudo cargar la configuración');
@@ -80,7 +66,7 @@ export default function ImportadorPedidosPage() {
 
   const fetchImportaciones = useCallback(async () => {
     try {
-      const { data } = await api.get('/api/importador-pedidos/importaciones');
+      const { data } = await api.get('/api/importador-productos/importaciones');
       setImportaciones(data.logs || []);
     } catch { /* historial vacío */ }
   }, []);
@@ -93,7 +79,7 @@ export default function ImportadorPedidosPage() {
   const guardarConfig = async () => {
     setSavingConfig(true);
     try {
-      await api.put('/api/importador-pedidos/config', config);
+      await api.put('/api/importador-productos/config', config);
       toast.success('Configuración guardada');
     } catch (err) {
       toast.error(err.response?.data?.error || 'Error al guardar');
@@ -102,30 +88,20 @@ export default function ImportadorPedidosPage() {
     }
   };
 
-  const cargarPedidosLS = useCallback(async (pageNum) => {
-    setLsCargando(true);
-    try {
-      const params = new URLSearchParams({ page: String(pageNum), itemsPerPage: '50' });
-      if (busqueda) params.set('search', busqueda);
-      if (estadoFilter !== '') params.set('estado', estadoFilter);
-      const { data } = await api.get(`/api/importador-pedidos/lucidsales-pedidos?${params}`);
-      setLsPedidos(data.pedidos || []);
-      setLsNumPages(data.numPages || 1);
-    } catch (err) {
-      toast.error(err.response?.data?.error || 'Error al cargar pedidos de LucidSales');
-    } finally {
-      setLsCargando(false);
-    }
-  }, [busqueda, estadoFilter]);
-
   const abrirImportador = async () => {
     setShowImportModal(true);
     setResumen(null);
     setSelectedIds(new Set());
     setBusqueda('');
-    setEstadoFilter('');
-    setLsPage(1);
-    cargarPedidosLS(1);
+    setLsCargando(true);
+    try {
+      const { data } = await api.get('/api/importador-productos/lucidsales-productos');
+      setLsProductos(data.productos || []);
+    } catch (err) {
+      toast.error(err.response?.data?.error || 'Error al cargar productos de LucidSales');
+    } finally {
+      setLsCargando(false);
+    }
   };
 
   const toggleSeleccion = (id) => {
@@ -137,19 +113,20 @@ export default function ImportadorPedidosPage() {
   };
 
   const seleccionarTodos = () => {
-    const todosYa = lsPedidos.length > 0 && lsPedidos.every(p => selectedIds.has(p.id));
+    const filtrados = lsProductos.filter(p => p.nombre.toLowerCase().includes(busqueda.toLowerCase()));
+    const todosYa = filtrados.length > 0 && filtrados.every(p => selectedIds.has(p.id));
     setSelectedIds(prev => {
       const next = new Set(prev);
-      lsPedidos.forEach(p => todosYa ? next.delete(p.id) : next.add(p.id));
+      filtrados.forEach(p => todosYa ? next.delete(p.id) : next.add(p.id));
       return next;
     });
   };
 
   const importar = async () => {
-    if (selectedIds.size === 0) { toast.error('Selecciona al menos un pedido'); return; }
+    if (selectedIds.size === 0) { toast.error('Selecciona al menos un producto'); return; }
     setImportando(true);
     try {
-      const { data } = await api.post('/api/importador-pedidos/importar', { pedidoIds: Array.from(selectedIds) });
+      const { data } = await api.post('/api/importador-productos/importar', { productoIds: Array.from(selectedIds) });
       setResumen(data);
       toast.success(`Importación: ${data.ok} ok, ${data.error} con error`);
       fetchImportaciones();
@@ -163,10 +140,10 @@ export default function ImportadorPedidosPage() {
   const reintentar = async (log) => {
     setReintentando(log.id);
     try {
-      const { data } = await api.post(`/api/importador-pedidos/importaciones/${log.id}/reintentar`);
+      const { data } = await api.post(`/api/importador-productos/importaciones/${log.id}/reintentar`);
       setResumen(data);
-      if (data.error === 0) toast.success(`${log.cliente} importado correctamente`);
-      else toast.error(`${log.cliente}: ${data.detalle?.[0]?.errores?.join(' | ') || 'error'}`);
+      if (data.error === 0) toast.success(`${log.nombre} importado correctamente`);
+      else toast.error(`${log.nombre}: ${data.detalle?.[0]?.errores?.join(' | ') || 'error'}`);
       fetchImportaciones();
     } catch (err) {
       toast.error(err.response?.data?.error || 'Error al reintentar');
@@ -176,11 +153,11 @@ export default function ImportadorPedidosPage() {
   };
 
   const desimportar = async (log) => {
-    if (!window.confirm(`¿Desimportar el pedido de "${log.cliente}"?\n\nSe eliminará de los bot fields del bot (LucidBot) de Zunto.`)) return;
+    if (!window.confirm(`¿Desimportar "${log.nombre}"?\n\nSe eliminará de los bot fields del bot (LucidBot) de Zunto.`)) return;
     setDesimportando(log.id);
     try {
-      await api.delete(`/api/importador-pedidos/importaciones/${log.id}`);
-      toast.success('Pedido desimportado');
+      await api.delete(`/api/importador-productos/importaciones/${log.id}`);
+      toast.success('Producto desimportado');
       fetchImportaciones();
     } catch (err) {
       toast.error(err.response?.data?.error || 'Error al desimportar');
@@ -189,17 +166,19 @@ export default function ImportadorPedidosPage() {
     }
   };
 
+  const filtrados = lsProductos.filter(p => p.nombre.toLowerCase().includes(busqueda.toLowerCase()));
+
   return (
     <div className="content">
       <div className="page-header">
         <div>
-          <h2 className="page-title">Zunto · Importar Pedidos</h2>
+          <h2 className="page-title">Zunto · Importar Productos</h2>
           <p style={{ color: 'var(--text3)', fontSize: 13, marginTop: 4 }}>
-            Tienda Zunto · importación de pedidos de LucidSales hacia LucidBot
+            Tienda Zunto · importación de productos de LucidSales hacia LucidBot (JSON en bot fields)
           </p>
         </div>
         <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
-          <Button icon="cloud_download" onClick={abrirImportador}>Importar pedidos desde Lucid Sales</Button>
+          <Button icon="cloud_download" onClick={abrirImportador}>Importar productos desde Lucid Sales</Button>
         </div>
       </div>
 
@@ -245,9 +224,7 @@ export default function ImportadorPedidosPage() {
                 <div key={log.id} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '8px 12px', background: 'var(--bg3)', borderRadius: 8, border: '1px solid var(--border)' }}>
                   <span style={{ width: 8, height: 8, borderRadius: '50%', background: log.estado === 'ok' ? 'var(--green)' : 'var(--red)', flexShrink: 0 }} />
                   <div style={{ flex: 1, minWidth: 0 }}>
-                    <div style={{ fontSize: 13, fontWeight: 600, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                      Pedido #{log.lucidsalesPedidoId} · {log.cliente}
-                    </div>
+                    <div style={{ fontSize: 13, fontWeight: 600, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{log.nombre}</div>
                     {log.detalle && <div style={{ fontSize: 11, color: 'var(--red)' }}>{log.detalle.substring(0, 160)}</div>}
                   </div>
                   <span style={{ fontSize: 11, color: 'var(--text3)', fontFamily: 'var(--mono)', flexShrink: 0 }}>
@@ -278,8 +255,8 @@ export default function ImportadorPedidosPage() {
       <Modal
         open={showImportModal}
         onClose={() => setShowImportModal(false)}
-        title="Importar pedidos desde Lucid Sales"
-        subtitle={`${selectedIds.size} seleccionado(s) · cada pedido se sincroniza a los bot fields de pedidos de Zunto`}
+        title="Importar productos desde Lucid Sales"
+        subtitle={`${selectedIds.size} seleccionado(s) · cada producto se sincroniza a los 6 bot fields de Zunto`}
         size="lg"
       >
         {resumen ? (
@@ -316,75 +293,38 @@ export default function ImportadorPedidosPage() {
           </div>
         ) : (
           <div>
-            <div style={{ display: 'flex', gap: 10, alignItems: 'center', marginBottom: 12, flexWrap: 'wrap' }}>
+            <div style={{ display: 'flex', gap: 10, alignItems: 'center', marginBottom: 12 }}>
               <input
-                placeholder="Buscar cliente o referencia..."
+                placeholder="Buscar producto..."
                 value={busqueda}
                 onChange={e => setBusqueda(e.target.value)}
-                onKeyDown={e => { if (e.key === 'Enter') { setLsPage(1); cargarPedidosLS(1); } }}
-                style={{ ...inputStyle, flex: 1, minWidth: 180 }}
+                style={{ ...inputStyle, flex: 1 }}
               />
-              <select
-                value={estadoFilter}
-                onChange={e => { setEstadoFilter(e.target.value); setLsPage(1); cargarPedidosLS(1); }}
-                style={{ ...inputStyle, width: 'auto', minWidth: 150, cursor: 'pointer' }}
-              >
-                {ESTADOS.map(e => <option key={e.value} value={e.value}>{e.label}</option>)}
-              </select>
-              <Button variant="ghost" onClick={() => { setLsPage(1); cargarPedidosLS(1); }} style={{ whiteSpace: 'nowrap' }}>
-                Buscar
-              </Button>
               <Button variant="ghost" onClick={seleccionarTodos} style={{ whiteSpace: 'nowrap' }}>
-                {lsPedidos.length > 0 && lsPedidos.every(p => selectedIds.has(p.id)) ? 'Quitar todos' : 'Seleccionar todos'}
+                {filtrados.length > 0 && filtrados.every(p => selectedIds.has(p.id)) ? 'Quitar todos' : 'Seleccionar todos'}
               </Button>
             </div>
             {lsCargando ? (
-              <div style={{ textAlign: 'center', padding: 40, color: 'var(--text3)' }}>Cargando pedidos de LucidSales...</div>
-            ) : lsPedidos.length === 0 ? (
-              <EmptyState icon="search_off" title="Sin resultados" text="No se encontraron pedidos." />
+              <div style={{ textAlign: 'center', padding: 40, color: 'var(--text3)' }}>Cargando productos de LucidSales...</div>
+            ) : filtrados.length === 0 ? (
+              <EmptyState icon="search_off" title="Sin resultados" text="No se encontraron productos." />
             ) : (
               <div style={{ display: 'flex', flexDirection: 'column', gap: 6, maxHeight: 380, overflowY: 'auto', paddingRight: 4 }}>
-                {lsPedidos.map(p => {
-                  const badge = ESTADO_BADGE[p.estadoPedido] || { label: `Estado ${p.estadoPedido}`, color: 'var(--text3)' };
-                  return (
-                    <label key={p.id} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '8px 12px', background: selectedIds.has(p.id) ? 'color-mix(in srgb, var(--accent) 10%, var(--bg3))' : 'var(--bg3)', borderRadius: 8, border: selectedIds.has(p.id) ? '1px solid var(--accent)' : '1px solid var(--border)', cursor: 'pointer' }}>
-                      <input type="checkbox" checked={selectedIds.has(p.id)} onChange={() => toggleSeleccion(p.id)} style={{ width: 16, height: 16, cursor: 'pointer', accentColor: 'var(--accent)' }} />
-                      <div style={{ flex: 1, minWidth: 0 }}>
-                        <div style={{ fontSize: 13, fontWeight: 600, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                          #{p.id} · {p.cliente}
-                        </div>
-                        <div style={{ fontSize: 11, color: 'var(--text3)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                          {p.movil || 'Sin teléfono'}{p.referencias ? ` · ${p.referencias}` : ''}
-                        </div>
-                      </div>
-                      <span style={{ fontSize: 10, fontWeight: 600, padding: '2px 8px', borderRadius: 10, color: badge.color, background: 'var(--bg2)', border: `1px solid ${badge.color}44`, flexShrink: 0 }}>
-                        {badge.label}
-                      </span>
-                      <span style={{ fontSize: 12, fontFamily: 'var(--mono)', color: 'var(--accent2)', flexShrink: 0 }}>{formatMoney(p.total)}</span>
-                    </label>
-                  );
-                })}
-              </div>
-            )}
-            {lsNumPages > 1 && (
-              <div style={{ display: 'flex', gap: 8, alignItems: 'center', justifyContent: 'flex-end', marginTop: 12 }}>
-                <button
-                  onClick={() => { setLsPage(lsPage - 1); cargarPedidosLS(lsPage - 1); }}
-                  disabled={lsPage <= 1 || lsCargando}
-                  className="btn btn-ghost"
-                  style={{ fontSize: 11, padding: '4px 12px', opacity: lsPage <= 1 ? 0.4 : 1 }}
-                >
-                  ← Anterior
-                </button>
-                <span style={{ fontSize: 11, color: 'var(--text3)', fontFamily: 'var(--mono)' }}>Página {lsPage} de {lsNumPages}</span>
-                <button
-                  onClick={() => { setLsPage(lsPage + 1); cargarPedidosLS(lsPage + 1); }}
-                  disabled={lsPage >= lsNumPages || lsCargando}
-                  className="btn btn-ghost"
-                  style={{ fontSize: 11, padding: '4px 12px', opacity: lsPage >= lsNumPages ? 0.4 : 1 }}
-                >
-                  Siguiente →
-                </button>
+                {filtrados.map(p => (
+                  <label key={p.id} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '8px 12px', background: selectedIds.has(p.id) ? 'color-mix(in srgb, var(--accent) 10%, var(--bg3))' : 'var(--bg3)', borderRadius: 8, border: selectedIds.has(p.id) ? '1px solid var(--accent)' : '1px solid var(--border)', cursor: 'pointer' }}>
+                    <input type="checkbox" checked={selectedIds.has(p.id)} onChange={() => toggleSeleccion(p.id)} style={{ width: 16, height: 16, cursor: 'pointer', accentColor: 'var(--accent)' }} />
+                    {p.imagen ? (
+                      <img src={p.imagen} alt="" style={{ width: 36, height: 36, borderRadius: 6, objectFit: 'cover', background: 'var(--bg2)', flexShrink: 0 }} onError={e => { e.target.style.display = 'none'; }} />
+                    ) : (
+                      <div style={{ width: 36, height: 36, borderRadius: 6, background: 'var(--bg2)', flexShrink: 0 }} />
+                    )}
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div style={{ fontSize: 13, fontWeight: 600, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{p.nombre}</div>
+                      {p.descripcion && <div style={{ fontSize: 11, color: 'var(--text3)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{p.descripcion}</div>}
+                    </div>
+                    {p.precio != null && <span style={{ fontSize: 12, fontFamily: 'var(--mono)', color: 'var(--accent2)', flexShrink: 0 }}>{formatMoney(p.precio)}</span>}
+                  </label>
+                ))}
               </div>
             )}
             <div style={{ display: 'flex', gap: 10, justifyContent: 'flex-end', marginTop: 16 }}>

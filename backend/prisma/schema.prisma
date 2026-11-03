@@ -20,6 +20,8 @@ model Usuario {
   gestionaOficina   Boolean  @default(true) @map("gestiona_oficina")
   gestionaPedidos   Boolean  @default(false) @map("gestiona_pedidos")
   puedeModificarTodo Boolean  @default(false) @map("puede_modificar_todo")
+  tiendaId           String?  @map("tienda_id")
+  tienda             Tienda?  @relation(fields: [tiendaId], references: [id])
   createdAt         DateTime @default(now())
   updatedAt         DateTime @updatedAt
 
@@ -44,6 +46,8 @@ model Usuario {
   pedidosVinculados     PedidoVinculado[] @relation("VinculadoCreador")
   pedidosVinculadosAsig PedidoVinculado[] @relation("VinculadoAsignado")
   pedidosSubidos        PedidoVinculado[] @relation("SubidoPor")
+  asignacionesPedido    AsignacionPedido[] @relation("AsignacionAsignado")
+  asignacionesPedidoCreadas AsignacionPedido[] @relation("AsignacionCreador")
   alertasProducto      AlertaProducto[]
   historialPedidosTienda HistorialPedidoTienda[]
   pedidosTiendaSubidos  PedidoTienda[]
@@ -290,6 +294,130 @@ model PedidoVinculado {
   @@map("pedidos_vinculados")
 }
 
+// Asignacion de pedidos LucidSales estilo ZuntoStore: una fila por pedido,
+// independiente de la vinculacion. El pedido aparece en la lista solo por
+// pertenecer a la tienda; aqui se registra unicamente el dueno.
+model AsignacionPedido {
+  id                 String   @id @default(uuid())
+  lucidsalesPedidoId Int      @unique @map("lucidsales_pedido_id")
+  tiendaId           String?  @map("tienda_id")
+  tienda             Tienda?  @relation(fields: [tiendaId], references: [id])
+  asignadoId         String?  @map("asignado_id")
+  asignado           Usuario? @relation("AsignacionAsignado", fields: [asignadoId], references: [id])
+  createdById        String?  @map("created_by")
+  createdBy          Usuario? @relation("AsignacionCreador", fields: [createdById], references: [id])
+  // manual = boton en la lista | automatico = reparto round-robin | migracion = backfill
+  origen             String   @default("manual")
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+
+  @@index([asignadoId])
+  @@index([tiendaId])
+  @@index([createdAt])
+  @@map("asignaciones_pedido")
+}
+
+// Configuracion de la subida automatica a Dropi, una fila por tienda.
+// Todo opt-in: `automatico` arranca en false y `dryRun` en true.
+model ConfigSubidaDropi {
+  id                      String   @id @default(uuid())
+  tiendaId                String   @unique @map("tienda_id")
+  tienda                  Tienda   @relation(fields: [tiendaId], references: [id])
+  automatico              Boolean  @default(false)
+  cadaSegundos            Int      @default(120) @map("cada_segundos")
+  // estados de LucidSales a subir (JSON array, defecto [0] = Por confirmar)
+  estados                 String   @default("[0]")
+  // true = solo prepara, no sube (defecto); false = sube de verdad
+  dryRun                  Boolean  @default(true) @map("dry_run")
+  // orden de preferencia de transportadoras de Dropi (JSON array)
+  transportadoras         String   @default("[5]")
+  envioMaxPesos           Int?     @map("envio_max_pesos")
+  envioMaxPorcentaje      Int?     @map("envio_max_porcentaje")
+  // JSON: { "<idProductoLucidSales>": {transportadoras[], maxPesos, maxPorcentaje} }
+  reglasProducto          String   @default("{}") @map("reglas_producto")
+  // JSON: { "<idEmpresa>": "<nombre exacto de la tienda en Dropi>" }
+  tiendasDropi            String   @default("{}") @map("tiendas_dropi")
+  // pedidos que recogen en oficina Inter: se suben solo si Dropi ofrece una
+  oficinaInter            Boolean  @default(false) @map("oficina_inter")
+  detectarOficinaInter    Boolean  @default(true) @map("detectar_oficina_inter")
+  // nota minima (0-100) de la direccion en el mapa; 0 = no se mira
+  minCalificacionDireccion Int    @default(70) @map("min_calificacion_direccion")
+  // intentos fallidos antes de dejar el pedido para revision manual
+  maxIntentos            Int      @default(2) @map("max_intentos")
+  // estado de la sesion de Dropi (JSON): {estado, desde, detalle, avisado}
+  sesionDropi            String?  @map("sesion_dropi")
+  // JSON: { "<id>": {fecha, faltan, enviado, anulado, nota} }
+  programados            String   @default("{}")
+  // JSON: ids de pedidos que una persona aprobo subir pese a posible duplicado
+  duplicadosAprobados    String   @default("{}") @map("duplicados_aprobados")
+  // LLM que lee el chat antes de subir (la decision sigue siendo del codigo)
+  llmApiKey              String?  @map("llm_api_key")
+  llmBase                String?  @map("llm_base")
+  llmModelo              String?  @map("llm_modelo")
+  llmActivo              Boolean  @default(false) @map("llm_activo")
+  createdAt              DateTime @default(now())
+  updatedAt              DateTime @updatedAt
+
+  logs                   SubidaDropiLog[]
+  intentos               SubidaDropiIntento[]
+
+  @@index([automatico])
+  @@map("config_subida_dropi")
+}
+
+// Estado por pedido: lo que en ZuntoStore vivia en subidaAutomatica.json
+// dentro de `procesados`. Un registro por pedido y tienda.
+model SubidaDropiLog {
+  id                 String   @id @default(uuid())
+  tiendaId           String   @map("tienda_id")
+  tienda             Tienda   @relation(fields: [tiendaId], references: [id])
+  configId           String?  @map("config_id")
+  config             ConfigSubidaDropi? @relation(fields: [configId], references: [id])
+  lucidsalesPedidoId Int      @map("lucidsales_pedido_id")
+  // subido | subido-pendiente-confirmacion | resultado-incierto | requiere-revision |
+  // requiere-humano | direccion-invalida | envio-caro | sin-transportadora |
+  // posible-duplicado | entrega-programada | resuelto-a-mano | frenado | error |
+  // sin-conversacion | sin-tienda-dropi | estado-incompatible | preparado | ...
+  accion             String
+  detalle            String?  @db.Text
+  intentos           Int      @default(0)
+  // ultimo resultado notificado a Lucid Bot (evita repetir el aviso)
+  notificado         String?
+  // JSON: {nombre, telefono}
+  cliente            String?
+  // JSON: resumen del analisis de la IA (checks que fallo)
+  analisis           String?
+  // JSON: {id, ganancia, envio} lo que devolvio Dropi
+  dropi              String?
+  estadoPedido       Int?     @map("estado_pedido")
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+
+  @@unique([tiendaId, lucidsalesPedidoId])
+  @@index([accion])
+  @@index([tiendaId, updatedAt])
+  @@map("subida_dropi_logs")
+}
+
+// Historial de intentos individuales por pedido (lo que era intentos.jsonl).
+// Transparencia en el panel: por que se freno o fallo cada intento.
+model SubidaDropiIntento {
+  id                 String   @id @default(uuid())
+  tiendaId           String   @map("tienda_id")
+  tienda             Tienda   @relation(fields: [tiendaId], references: [id])
+  configId           String?  @map("config_id")
+  config             ConfigSubidaDropi? @relation(fields: [configId], references: [id])
+  lucidsalesPedidoId Int      @map("lucidsales_pedido_id")
+  numero             Int      @default(1)
+  accion             String
+  detalle            String?  @db.Text
+  createdAt          DateTime @default(now())
+
+  @@index([tiendaId, lucidsalesPedidoId])
+  @@index([tiendaId, createdAt])
+  @@map("subida_dropi_intentos")
+}
+
 model Configuracion {
   id                        String    @id @default(uuid())
   auto_asignar_novedades    Boolean   @default(false) @map("auto_asignar_novedades")
@@ -354,6 +482,10 @@ model Configuracion {
   coupon_descuento          Int?      @map("coupon_descuento")
   whatsapp_numero           String?   @map("whatsapp_numero")
   promo_bar_texto           String?   @map("promo_bar_texto")
+  tiendaId                  String?   @map("tienda_id")
+  tienda                    Tienda?   @relation(fields: [tiendaId], references: [id])
+
+  @@index([tiendaId])
 }
 
 model ApiKey {
@@ -376,8 +508,7 @@ model Tienda {
   botFieldIntegracion String?  @map("bot_field_integracion")
   botFieldMensajes    String?  @map("bot_field_mensajes")
   botFieldMultimedia  String?  @map("bot_field_multimedia")
-  botFieldPedidos     String?  @map("bot_field_pedidos")
-  botFieldIntegracionPedidos String? @map("bot_field_integracion_pedidos")
+  botFieldPostventa   String?  @map("bot_field_postventa")
   createdAt           DateTime @default(now())
   updatedAt           DateTime @updatedAt
 
@@ -386,10 +517,13 @@ model Tienda {
   resenas       Resena[]
   botFieldCache BotFieldCache[]
   importLogs    ImportLogProducto[]
-  importLogsPedidos ImportLogPedido[]
   novedades        PedidoNovedad[]
   oficinas         PedidoOficina[]
   vinculados       PedidoVinculado[]
+  asignacionesPedido AsignacionPedido[]
+  configSubidaDropi ConfigSubidaDropi[]
+  subidaDropiLogs  SubidaDropiLog[]
+  subidaDropiIntentos SubidaDropiIntento[]
   etiquetas        Etiqueta[]
   registrosEtiqueta RegistroEtiqueta[]
   historiales      HistorialCambio[]
@@ -399,6 +533,8 @@ model Tienda {
   facturas         Factura[]
   garantias        Garantia[]
   tareas           Tarea[]
+  usuarios         Usuario[]
+  configuraciones  Configuracion[]
 
   @@map("tiendas")
 }
@@ -427,20 +563,6 @@ model ImportLogProducto {
 
   @@index([tiendaId, createdAt])
   @@map("import_log_productos")
-}
-
-model ImportLogPedido {
-  id                 String   @id @default(uuid())
-  tiendaId           String   @map("tienda_id")
-  tienda             Tienda   @relation(fields: [tiendaId], references: [id], onDelete: Cascade)
-  lucidsalesPedidoId String   @map("lucidsales_pedido_id")
-  cliente            String
-  estado             String   @default("ok")
-  detalle            String?
-  createdAt          DateTime @default(now())
-
-  @@index([tiendaId, createdAt])
-  @@map("import_log_pedidos")
 }
 
 model ProductoGanador {

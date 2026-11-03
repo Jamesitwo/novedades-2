@@ -3,7 +3,7 @@ const { cached, clearByPrefix } = require('../utils/cache');
 
 const getConfiguracion = async (req, res) => {
   try {
-    let config = await prisma.configuracion.findFirst();
+    let config = await prisma.configuracion.findFirst({ where: { tiendaId: req.tiendaId } });
 
     if (!config) {
       config = await prisma.configuracion.create({
@@ -12,7 +12,8 @@ const getConfiguracion = async (req, res) => {
           auto_asignar_oficina: false,
           metodo_asignacion: 'round_robin',
           operadores_incluidos: '[]',
-          ultimo_indice_round_robin: 0
+          ultimo_indice_round_robin: 0,
+          tiendaId: req.tiendaId
         }
       });
     }
@@ -47,7 +48,7 @@ const updateConfiguracion = async (req, res) => {
       envio_texto, envio_dias, garantia_titulo, garantia_texto, redesSociales,
       meta_pixel_id, meta_access_token, meta_test_code, favicon_url } = req.body;
 
-    let config = await prisma.configuracion.findFirst();
+    let config = await prisma.configuracion.findFirst({ where: { tiendaId: req.tiendaId } });
 
     const extraData = {};
     if (empresa_nombre !== undefined) extraData.empresa_nombre = empresa_nombre;
@@ -120,6 +121,7 @@ const updateConfiguracion = async (req, res) => {
           auto_asignar_lucidsales: auto_asignar_lucidsales ?? false,
           metodo_asignacion: metodo_asignacion ?? 'round_robin',
           operadores_incluidos: JSON.stringify(Array.isArray(operadores_incluidos) ? operadores_incluidos : []),
+          tiendaId: req.tiendaId,
           ...extraData
         }
       });
@@ -156,7 +158,9 @@ const updateConfiguracion = async (req, res) => {
 const getPublicConfig = async (req, res) => {
   try {
     const payload = await cached(async () => {
-      const config = await prisma.configuracion.findFirst();
+      const { resolveTiendaId } = require('../utils/tienda');
+      const pizdoId = await resolveTiendaId('pizdo');
+      const config = await prisma.configuracion.findFirst({ where: { tiendaId: pizdoId } });
       if (!config) return {};
       return {
         hero_titulo: config.hero_titulo || null,
@@ -201,7 +205,7 @@ const getPublicConfig = async (req, res) => {
 
 const testMeta = async (req, res) => {
   try {
-    const config = await prisma.configuracion.findFirst();
+    const config = await prisma.configuracion.findFirst({ where: { tiendaId: req.tiendaId } });
     if (!config?.metaPixelId || !config?.metaAccessToken) {
       return res.status(400).json({ ok: false, error: 'Configura primero el Pixel ID y el Access Token de Meta' });
     }

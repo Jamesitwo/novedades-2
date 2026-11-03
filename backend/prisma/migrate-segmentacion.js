@@ -19,8 +19,37 @@ async function main() {
   const fac = await prisma.factura.updateMany({ where: { tiendaId: null }, data: { tiendaId: pid } });
   const gar = await prisma.garantia.updateMany({ where: { tiendaId: null }, data: { tiendaId: pid } });
   const tar = await prisma.tarea.updateMany({ where: { tiendaId: null }, data: { tiendaId: pid } });
+  const usu = await prisma.usuario.updateMany({ where: { tiendaId: null }, data: { tiendaId: pid } });
+  const cfg = await prisma.configuracion.updateMany({ where: { tiendaId: null }, data: { tiendaId: pid } });
 
-  console.log(`   ✅ Base: nov ${nov.count}, ofi ${ofi.count}, vin ${vin.count}, etq ${etq.count}, reg ${reg.count}, his ${his.count}, int ${int.count}, trf ${trf.count}, fac ${fac.count}, gar ${gar.count}, tar ${tar.count}`);
+  console.log(`   ✅ Base: nov ${nov.count}, ofi ${ofi.count}, vin ${vin.count}, etq ${etq.count}, reg ${reg.count}, his ${his.count}, int ${int.count}, trf ${trf.count}, fac ${fac.count}, gar ${gar.count}, tar ${tar.count}, usu ${usu.count}, cfg ${cfg.count}`);
+
+  // Configuracion de Zunto: crear fila con credenciales LucidSales copiadas de Pizdo
+  const zunto = await prisma.tienda.findUnique({ where: { slug: 'zunto' } });
+  if (zunto) {
+    const existenteZunto = await prisma.configuracion.findFirst({ where: { tiendaId: zunto.id } });
+    if (!existenteZunto) {
+      const configPizdo = await prisma.configuracion.findFirst({ where: { tiendaId: pid } });
+      await prisma.configuracion.create({
+        data: {
+          tiendaId: zunto.id,
+          lucidsales_email: configPizdo?.lucidsales_email || null,
+          lucidsales_password: configPizdo?.lucidsales_password || null,
+          lucidsales_shop_id: configPizdo?.lucidsales_shop_id || null,
+          lucidsales_activo: configPizdo?.lucidsales_activo || false,
+          auto_asignar_novedades: false,
+          auto_asignar_oficina: false,
+          auto_asignar_lucidsales: false,
+          metodo_asignacion: 'round_robin',
+          operadores_incluidos: '[]',
+          ultimo_indice_round_robin: 0
+        }
+      });
+      console.log('   ✅ Configuracion de Zunto creada (credenciales LucidSales copiadas de Pizdo)');
+    } else {
+      console.log('   ✅ Configuracion de Zunto ya existe');
+    }
+  }
 
   // ActividadLog: heredar tienda del registro padre; el resto -> pizdo
   const logsSinTienda = await prisma.actividadLog.findMany({

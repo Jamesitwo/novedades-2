@@ -198,9 +198,9 @@ const create = async (req, res) => {
   try {
     const { nombre, apellido, celular, celular2, producto, totalAPagar, transportadora, guia, motivoNovedad, notas, conversacionLink, chatActivo, fechaUltimoMsjCliente, pedidoVinculadoId } = req.body;
 
-    let asignadoId = await getNextOperador('novedades');
+    let asignadoId = await getNextOperador('novedades', req.tiendaId);
     if (!asignadoId) {
-      const admin = await prisma.usuario.findFirst({ where: { rol: 'admin', activo: true, gestionaNovedades: true }, select: { id: true } });
+      const admin = await prisma.usuario.findFirst({ where: { rol: 'admin', activo: true, gestionaNovedades: true, tiendaId: req.tiendaId }, select: { id: true } });
       asignadoId = admin?.id || req.usuario.id;
     }
 
@@ -727,7 +727,7 @@ const duplicar = async (req, res) => {
         favorito: false,
         tiendaId: original.tiendaId || req.tiendaId,
         createdById: req.usuario.id,
-        asignadoId: await getNextOperador('novedades') || null
+        asignadoId: await getNextOperador('novedades', req.tiendaId) || null
       },
       include: {
         createdBy: { select: { id: true, nombre: true } },

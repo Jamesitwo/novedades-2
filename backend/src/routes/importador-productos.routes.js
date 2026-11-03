@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const ctrl = require('../controllers/importador-pedidos.controller');
+const ctrl = require('../controllers/importador-productos.controller');
 const { authMiddleware } = require('../middlewares/auth.middleware');
 const { multiTiendaOnly } = require('../middlewares/multi-tienda.middleware');
 
@@ -9,7 +9,7 @@ router.use(multiTiendaOnly);
 
 router.get('/config', ctrl.getConfig);
 router.put('/config', ctrl.updateConfig);
-router.get('/lucidsales-pedidos', ctrl.listarLucidsalesPedidos);
+router.get('/lucidsales-productos', ctrl.listarLucidsalesProductos);
 router.post('/importar', ctrl.importar);
 router.get('/importaciones', ctrl.importaciones);
 router.post('/importaciones/:logId/reintentar', ctrl.reintentar);

@@ -167,8 +167,8 @@ app.use('/api/alertas', alertasRoutes);
 const perfumesRoutes = require('./src/routes/perfumes.routes');
 app.use('/api/perfumes', perfumesRoutes);
 
-const importadorPedidosRoutes = require('./src/routes/importador-pedidos.routes');
-app.use('/api/importador-pedidos', importadorPedidosRoutes);
+const importadorProductosRoutes = require('./src/routes/importador-productos.routes');
+app.use('/api/importador-productos', importadorProductosRoutes);
 
 app.get('/api/health', (req, res) => {
   const wsService = require('./src/services/websocket.service');

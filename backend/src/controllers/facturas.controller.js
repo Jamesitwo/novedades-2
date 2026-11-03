@@ -254,7 +254,7 @@ const getPdf = async (req, res) => {
       return res.status(404).json({ error: 'Factura no encontrada' });
     }
 
-    const config = await prisma.configuracion.findFirst();
+    const config = await prisma.configuracion.findFirst({ where: { tiendaId: req.tiendaId } });
     const empresaNombre = config?.empresa_nombre || 'GestiónNovedades';
     const empresaNit = config?.empresa_nit || '900.123.456-7';
     const empresaDireccion = config?.empresa_direccion || 'Calle 123 #45-67, Bogotá';

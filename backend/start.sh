@@ -53,5 +53,12 @@ else
   echo "⚠️  Segmentacion por tienda fallo, continuando arranque..."
 fi
 
+echo "Ejecutando backfill de asignaciones de pedidos..."
+if node prisma/migrate-asignaciones.js 2>/dev/null; then
+  echo "✅ Asignaciones migradas"
+else
+  echo "⚠️  Migracion de asignaciones fallo, continuando arranque..."
+fi
+
 echo "🚀 Iniciando servidor..."
 exec node server.js

@@ -234,7 +234,7 @@ const cotizarDropi = async (req, res) => {
         costoEnvio: pedido.envio || 0,
         total: pedido.total,
         Referencias: refUnica + (pedido.notas ? ' - ' + pedido.notas : '')
-      });
+      }, req.tiendaId);
 
       if (creado && creado.ok === false) {
         return res.status(400).json({ error: creado.msg || creado.error || 'LucidSales rechazó la creación del pedido', detalle: creado });
@@ -247,7 +247,7 @@ const cotizarDropi = async (req, res) => {
 
       if (!lucidsalesPedidoId) {
         try {
-          const pedidosLS = await lucidsalesService.getPedidos({ search: refUnica, itemsPerPage: 3 });
+          const pedidosLS = await lucidsalesService.getPedidos({ search: refUnica, itemsPerPage: 3, tiendaId: req.tiendaId });
           const match = pedidosLS?.pedidos?.[0];
           if (match?.id) lucidsalesPedidoId = match.id;
         } catch (e) {
@@ -266,7 +266,7 @@ const cotizarDropi = async (req, res) => {
       });
     }
 
-    const cotizacion = await lucidsalesService.cotizarEnvio(lucidsalesPedidoId, 'dropi');
+    const cotizacion = await lucidsalesService.cotizarEnvio(lucidsalesPedidoId, 'dropi', req.tiendaId);
     if (cotizacion && cotizacion.ok === false) {
       return res.status(400).json({ error: cotizacion.msg || cotizacion.error || 'Error al cotizar envío Dropi', detalle: cotizacion });
     }
@@ -294,7 +294,7 @@ const confirmarDropi = async (req, res) => {
       return res.status(400).json({ error: 'Selecciona una transportadora' });
     }
 
-    const resultado = await lucidsalesService.confirmarIntegracion(pedido.lucidsalesPedidoId, transportadora_id);
+    const resultado = await lucidsalesService.confirmarIntegracion(pedido.lucidsalesPedidoId, transportadora_id, {}, req.tiendaId);
     if (resultado && resultado.ok === false) {
       return res.status(400).json({ error: resultado.msg || resultado.error || 'Error al subir a Dropi', detalle: resultado });
     }

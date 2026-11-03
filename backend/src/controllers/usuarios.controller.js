@@ -10,6 +10,7 @@ const getAll = async (req, res) => {
 
     const [usuarios, total] = await Promise.all([
       prisma.usuario.findMany({
+        where: { tiendaId: req.tiendaId },
         skip,
         take: parseInt(limit),
         select: {
@@ -28,7 +29,7 @@ const getAll = async (req, res) => {
         },
         orderBy: { createdAt: 'desc' }
       }),
-      prisma.usuario.count()
+      prisma.usuario.count({ where: { tiendaId: req.tiendaId } })
     ]);
 
     res.json(paginate(usuarios, total, parseInt(page), parseInt(limit)));
@@ -65,7 +66,8 @@ const create = async (req, res) => {
         nombre,
         email,
         password: hashedPassword,
-        rol: rol || 'operador'
+        rol: rol || 'operador',
+        tiendaId: req.tiendaId
       },
       select: {
         id: true,
@@ -92,6 +94,10 @@ const update = async (req, res) => {
     if (rol && !['admin', 'operador', 'operador_asignado'].includes(rol)) {
       return res.status(400).json({ error: 'Rol no válido' });
     }
+
+    const existente = await prisma.usuario.findUnique({ where: { id } });
+    if (!existente) return res.status(404).json({ error: 'Usuario no encontrado' });
+    if (existente.tiendaId && existente.tiendaId !== req.tiendaId) return res.status(404).json({ error: 'Usuario no encontrado' });
 
     const data = { nombre, email, rol, activo };
     if (password) data.password = await bcrypt.hash(password, 10);
@@ -137,6 +143,10 @@ const remove = async (req, res) => {
   try {
     const { id } = req.params;
 
+    const existente = await prisma.usuario.findUnique({ where: { id } });
+    if (!existente) return res.status(404).json({ error: 'Usuario no encontrado' });
+    if (existente.tiendaId && existente.tiendaId !== req.tiendaId) return res.status(404).json({ error: 'Usuario no encontrado' });
+
     await prisma.usuario.update({
       where: { id },
       data: { activo: false }
@@ -152,7 +162,7 @@ const remove = async (req, res) => {
 const getOperadores = async (req, res) => {
   try {
     const operadores = await prisma.usuario.findMany({
-      where: { activo: true, rol: { in: ['admin', 'operador'] } },
+      where: { activo: true, rol: { in: ['admin', 'operador'] }, tiendaId: req.tiendaId },
       select: {
         id: true,
         nombre: true,

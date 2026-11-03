@@ -33,10 +33,23 @@ export default function Sidebar() {
   useEffect(() => {
     if (usuario?.id) {
       api.get('/api/auth/me').then(({ data }) => {
-        if (data && data.id === usuario.id && (data.verMultiTienda ?? false) !== (usuario.verMultiTienda ?? false)) {
-          const actualizado = { ...usuario, verMultiTienda: !!data.verMultiTienda };
+        if (!data || data.id !== usuario.id) return;
+        const verMulti = !!data.verMultiTienda;
+        const actualizado = {
+          ...usuario,
+          verMultiTienda: verMulti,
+          tiendaSlug: data.tiendaSlug || usuario.tiendaSlug || null
+        };
+        if (actualizado.verMultiTienda !== (usuario.verMultiTienda ?? false) || (data.tiendaSlug && data.tiendaSlug !== usuario.tiendaSlug)) {
           useAuthStore.setState({ usuario: actualizado });
           localStorage.setItem('usuario', JSON.stringify(actualizado));
+        }
+        if (data.tiendaSlug && !verMulti) {
+          localStorage.setItem('tiendaActiva', data.tiendaSlug);
+          const guardada = localStorage.getItem('tiendaActiva');
+          if (guardada !== tiendaActiva && (guardada === 'zunto' || guardada === 'pizdo')) {
+            setTiendaActiva(guardada);
+          }
         }
       }).catch(() => {});
     }
@@ -171,7 +184,7 @@ export default function Sidebar() {
         <Section title="Canales" sectionKey="channels">
           {!esZunto && (showLucidsales || isAdmin) && <NavItem href="/" icon="storefront" label="Pizdo · Tienda" exact />}
           {!esZunto && isAdmin && <NavItem href="/admin/perfumes" icon="sanitizer" label="Perfumes" badge={counts.perfumesPendientes > 0 ? counts.perfumesPendientes : null} badgeColor="purple" />}
-          {esZunto && <NavItem href="/admin/importador-pedidos" icon="cloud_download" label="Importar Pedidos" />}
+          {esZunto && <NavItem href="/admin/importador-productos" icon="cloud_download" label="Importar Productos" />}
           {showLucidsales && <NavItem href="/admin/lucidsales" icon="shopping_cart" label="LucidSales" />}
         </Section>
 

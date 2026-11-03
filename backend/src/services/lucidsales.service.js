@@ -1,5 +1,6 @@
 const { prisma } = require('../prisma/client');
 const { cached } = require('../utils/cache');
+const asignacionPedidosService = require('./asignacion-pedidos.service');
 
 const BASE_URL = 'https://panel.lucidsales.co/b';
 const FETCH_TIMEOUT_MS = 30_000;
@@ -7,10 +8,7 @@ const FETCH_TIMEOUT_MS = 30_000;
 const CACHE_PRODUCTOS_MS = 5 * 60 * 1000;
 const CACHE_DROPI_MS = 15 * 60 * 1000;
 
-let tokenCache = null;
-let tokenExpires = null;
-let shopIdCache = null;
-let authPromise = null;
+const authByTienda = new Map();
 
 function fetchWithTimeout(url, options = {}) {
   const ms = options.timeout || FETCH_TIMEOUT_MS;
@@ -23,10 +21,15 @@ function fetchWithTimeout(url, options = {}) {
   }
 }
 
-async function getConfig() {
-  const config = await prisma.configuracion.findFirst();
+async function getConfig(tiendaId) {
+  let tid = tiendaId;
+  if (!tid) {
+    const { resolveTiendaId } = require('../utils/tienda');
+    tid = await resolveTiendaId('pizdo');
+  }
+  const config = await prisma.configuracion.findFirst({ where: { tiendaId: tid } });
   if (!config || !config.lucidsales_activo) {
-    throw new Error('LucidSales no esta configurado o activo');
+    throw new Error('LucidSales no esta configurado o activo para esta tienda');
   }
   if (!config.lucidsales_email || !config.lucidsales_password || !config.lucidsales_shop_id) {
     throw new Error('Faltan credenciales de LucidSales (email, password, shop_id)');
@@ -35,22 +38,27 @@ async function getConfig() {
 }
 
 async function authenticate(config) {
-  if (tokenCache && tokenExpires && Date.now() < tokenExpires.getTime()) {
-    return { token: tokenCache, shopId: shopIdCache };
+  const tid = config.tiendaId || config.id;
+  const entry = authByTienda.get(tid);
+
+  if (entry && entry.tokenExpires && Date.now() < entry.tokenExpires.getTime()) {
+    return { token: entry.token, shopId: entry.shopId };
   }
 
   if (config.lucidsales_token && config.lucidsales_token_expires && new Date(config.lucidsales_token_expires) > new Date()) {
-    tokenCache = config.lucidsales_token;
-    tokenExpires = new Date(config.lucidsales_token_expires);
-    shopIdCache = config.lucidsales_shop_id;
-    return { token: tokenCache, shopId: shopIdCache };
+    authByTienda.set(tid, {
+      token: config.lucidsales_token,
+      tokenExpires: new Date(config.lucidsales_token_expires),
+      shopId: config.lucidsales_shop_id
+    });
+    return { token: config.lucidsales_token, shopId: config.lucidsales_shop_id };
   }
 
-  if (authPromise) {
-    return authPromise;
+  if (entry?.promise) {
+    return entry.promise;
   }
 
-  authPromise = (async () => {
+  const promise = (async () => {
     try {
       const loginResp = await fetchWithTimeout(`${BASE_URL}/auth/login`, {
         method: 'POST',
@@ -91,17 +99,20 @@ async function authenticate(config) {
         }
       });
 
-      tokenCache = shopData.token;
-      tokenExpires = expiresAt;
-      shopIdCache = config.lucidsales_shop_id;
+      authByTienda.set(tid, { token: shopData.token, tokenExpires: expiresAt, shopId: config.lucidsales_shop_id });
 
       return { token: shopData.token, shopId: config.lucidsales_shop_id };
     } finally {
-      authPromise = null;
+      const current = authByTienda.get(tid);
+      if (current) {
+        current.promise = null;
+        authByTienda.set(tid, current);
+      }
     }
   })();
 
-  return authPromise;
+  authByTienda.set(tid, { ...(entry || {}), promise });
+  return promise;
 }
 
 function extraerMensajeError(data, fallback) {
@@ -187,8 +198,8 @@ async function apiPost(path, body, token) {
   }
 }
 
-async function getPedidos({ page = 1, itemsPerPage = 50, search = '', filters = '[]' } = {}) {
-  const config = await getConfig();
+async function getPedidos({ page = 1, itemsPerPage = 50, search = '', filters = '[]', tiendaId = null } = {}) {
+  const config = await getConfig(tiendaId);
   const { token, shopId } = await authenticate(config);
   const params = new URLSearchParams({
     idEmpresa: String(shopId),
@@ -200,8 +211,8 @@ async function getPedidos({ page = 1, itemsPerPage = 50, search = '', filters = 
   return apiGet(`/pedidos/get-pedidos-light-data?${params.toString()}`, token);
 }
 
-async function getPedidoById(id) {
-  const config = await getConfig();
+async function getPedidoById(id, tiendaId = null) {
+  const config = await getConfig(tiendaId);
   const { token } = await authenticate(config);
   const result = await apiGet(`/pedidos/get-pedido-by-id/${id}`, token);
   const pedido = result.pedido || result;
@@ -211,8 +222,8 @@ async function getPedidoById(id) {
   return pedido;
 }
 
-async function updatePedido(pedido) {
-  const config = await getConfig();
+async function updatePedido(pedido, tiendaId = null) {
+  const config = await getConfig(tiendaId);
   const { token, shopId } = await authenticate(config);
 
   const body = {
@@ -245,8 +256,8 @@ async function updatePedido(pedido) {
   return apiPost('/pedidos/update', body, token);
 }
 
-async function createPedido(pedido) {
-  const config = await getConfig();
+async function createPedido(pedido, tiendaId = null) {
+  const config = await getConfig(tiendaId);
   const { token, shopId } = await authenticate(config);
 
   const body = {
@@ -271,11 +282,11 @@ async function createPedido(pedido) {
   return apiPost('/pedidos/create', body, token);
 }
 
-async function cotizarEnvio(pedidoId, carrier = 'dropi') {
-  const config = await getConfig();
+async function cotizarEnvio(pedidoId, carrier = 'dropi', tiendaId = null) {
+  const config = await getConfig(tiendaId);
   const { token } = await authenticate(config);
 
-  const pedido = await getPedidoById(pedidoId);
+  const pedido = await getPedidoById(pedidoId, tiendaId);
 
   return apiPost(`/pedidos/quote/${carrier}`, {
     id: pedido.id,
@@ -287,8 +298,8 @@ async function cotizarEnvio(pedidoId, carrier = 'dropi') {
   }, token);
 }
 
-async function confirmarIntegracion(pedidoId, transportadora_id) {
-  const config = await getConfig();
+async function confirmarIntegracion(pedidoId, transportadora_id, _extra = {}, tiendaId = null) {
+  const config = await getConfig(tiendaId);
   const { token } = await authenticate(config);
 
   const body = { id: pedidoId };
@@ -305,8 +316,8 @@ async function confirmarIntegracion(pedidoId, transportadora_id) {
   }
 }
 
-async function validateAddress(direccion, ciudad, departamento, pais = 47) {
-  const config = await getConfig();
+async function validateAddress(direccion, ciudad, departamento, pais = 47, tiendaId = null) {
+  const config = await getConfig(tiendaId);
   const { token } = await authenticate(config);
   return apiPost('/pedidos/validate-address', {
     direccion,
@@ -316,20 +327,31 @@ async function validateAddress(direccion, ciudad, departamento, pais = 47) {
   }, token);
 }
 
-const getProductos = cached(async () => {
-  const config = await getConfig();
+const getProductos = cached(async (tiendaId) => {
+  const config = await getConfig(tiendaId);
   const { token, shopId } = await authenticate(config);
   return apiPost('/productos/getproductos', { idEmpresa: shopId }, token);
-}, CACHE_PRODUCTOS_MS);
+}, CACHE_PRODUCTOS_MS, (id) => `prod_${id || 'default'}`);
 
-const validateDropiId = cached(async (dropiProductId) => {
-  const config = await getConfig();
+// Producto individual (lo que el agente de Dropi llama `obtenerProducto`).
+// Devuelve el objeto producto ya desenvuelto, igual que el cliente de Zunto.
+const getProducto = cached(async (productoId, tiendaId) => {
+  const config = await getConfig(tiendaId);
+  const { token } = await authenticate(config);
+  const r = await apiGet(`/productos/getproducto/${productoId}`, token);
+  const p = r?.datos?.product ?? r?.datos?.producto ?? r?.datos?.data?.product ?? r?.datos?.data ?? r?.datos ?? r;
+  if (!p || !p.id) throw new Error('Producto no encontrado o respuesta inválida de LucidSales');
+  return p;
+}, CACHE_PRODUCTOS_MS, (id, tienda) => `prod1_${id}_${tienda || 'default'}`);
+
+const validateDropiId = cached(async (dropiProductId, tiendaId) => {
+  const config = await getConfig(tiendaId);
   const { token } = await authenticate(config);
   return apiGet(`/productos/validateDropiId/${dropiProductId}`, token);
 }, CACHE_DROPI_MS, (id) => `dropi_${id}`);
 
-async function getFiltersData() {
-  const config = await getConfig();
+async function getFiltersData(tiendaId = null) {
+  const config = await getConfig(tiendaId);
   const { token, shopId } = await authenticate(config);
   return apiGet(`/pedidos/get-filters-data?idEmpresa=${shopId}`, token);
 }
@@ -355,9 +377,9 @@ async function getCiudades(deptoId) {
   return data;
 }
 
-async function verificarConexion() {
+async function verificarConexion(tiendaId = null) {
   try {
-    const config = await getConfig();
+    const config = await getConfig(tiendaId);
     const { token, shopId } = await authenticate(config);
     await apiGet('/pedidos/get-filters-data?idEmpresa=' + shopId, token);
     return { conectado: true, mensaje: 'Conexión exitosa con LucidSales' };
@@ -367,9 +389,7 @@ async function verificarConexion() {
 }
 
 function clearTokenCache() {
-  tokenCache = null;
-  tokenExpires = null;
-  shopIdCache = null;
+  authByTienda.clear();
   const { clearCache } = require('../utils/cache');
   clearCache();
 }
@@ -396,6 +416,22 @@ function getDepartamentosLocales() {
   }
 }
 
+// Mantiene la tabla propia de asignaciones al dia cuando un camino legacy
+// (vincular, duplicar, subir-dividido) fija el dueno en pedidos_vinculados.
+// Si asignadoId es undefined no se toca nada (el caller no esta asignando).
+async function _syncAsignacionPropia(lucidsalesPedidoId, asignadoId, tiendaId, usuarioId, origen = 'legacy') {
+  if (asignadoId === undefined || asignadoId === null) return;
+  try {
+    await asignacionPedidosService.asignar(Number(lucidsalesPedidoId), asignadoId, {
+      tiendaId: tiendaId || null,
+      createdById: usuarioId || null,
+      origen
+    });
+  } catch (e) {
+    console.warn('[Asignacion] No se pudo sincronizar tabla propia:', e.message);
+  }
+}
+
 async function crearVinculacionDirecta(lucidsalesPedidoId, pedidoData, notas, usuarioId, asignadoId, tiendaId = null) {
   const baseData = {
     lucidsalesIdPedido: pedidoData.idPedido || null,
@@ -413,15 +449,17 @@ async function crearVinculacionDirecta(lucidsalesPedidoId, pedidoData, notas, us
   };
   const updateData = asignadoId ? { ...baseData, asignadoId } : { ...baseData };
   const createData = { ...baseData, asignadoId: asignadoId || null };
-  return prisma.pedidoVinculado.upsert({
+  const resultado = await prisma.pedidoVinculado.upsert({
     where: { lucidsalesPedidoId: Number(lucidsalesPedidoId) },
     update: updateData,
     create: { lucidsalesPedidoId: Number(lucidsalesPedidoId), ...createData }
   });
+  await _syncAsignacionPropia(lucidsalesPedidoId, asignadoId, tiendaId, usuarioId);
+  return resultado;
 }
 
 async function crearVinculacion(lucidsalesPedidoId, notas, usuarioId, asignadoId, tiendaId = null) {
-  const pedido = await getPedidoById(lucidsalesPedidoId);
+  const pedido = await getPedidoById(lucidsalesPedidoId, tiendaId);
   const baseData = {
     lucidsalesIdPedido: pedido.idPedido || null,
     nombreCliente: pedido.Nombre || '',
@@ -438,11 +476,13 @@ async function crearVinculacion(lucidsalesPedidoId, notas, usuarioId, asignadoId
   };
   const updateData = asignadoId ? { ...baseData, asignadoId } : { ...baseData };
   const createData = { ...baseData, asignadoId: asignadoId || null };
-  return prisma.pedidoVinculado.upsert({
+  const resultado = await prisma.pedidoVinculado.upsert({
     where: { lucidsalesPedidoId: Number(lucidsalesPedidoId) },
     update: updateData,
     create: { lucidsalesPedidoId: Number(lucidsalesPedidoId), ...createData }
   });
+  await _syncAsignacionPropia(lucidsalesPedidoId, asignadoId, tiendaId, usuarioId);
+  return resultado;
 }
 
 async function guardarVinculacionLocal(lucidsalesPedidoId, pedido, usuarioId, asignadoId, tiendaId = null) {
@@ -466,11 +506,13 @@ async function guardarVinculacionLocal(lucidsalesPedidoId, pedido, usuarioId, as
   }
   const updateData = asignadoId ? { ...baseData, asignadoId } : { ...baseData };
   const createData = { ...baseData, asignadoId: asignadoId || null };
-  return prisma.pedidoVinculado.upsert({
+  const resultado = await prisma.pedidoVinculado.upsert({
     where: { lucidsalesPedidoId: Number(lucidsalesPedidoId) },
     update: updateData,
     create: { lucidsalesPedidoId: Number(lucidsalesPedidoId), ...createData }
   });
+  await _syncAsignacionPropia(lucidsalesPedidoId, asignadoId, baseData.tiendaId || tiendaId, usuarioId);
+  return resultado;
 }
 
 async function listVinculaciones({ page = 1, itemsPerPage = 50, search = '', estadoFilter, estados, asignadoId, lucidsalesPedidoIds, fechaDesde, fechaHasta, producto, tiendaId } = {}) {
@@ -557,6 +599,107 @@ async function listVinculaciones({ page = 1, itemsPerPage = 50, search = '', est
   };
 }
 
+// Nombres de estado que acepta el filtro orderStatus de LucidSales (sin acentos, como en el panel oficial)
+const NOMBRES_ESTADO_LS = {
+  0: 'Por confirmar',
+  1: 'Cancelado',
+  2: 'Confirmado',
+  3: 'Modificado',
+  4: 'En Transito',
+  5: 'En Reparto',
+  6: 'Entregado',
+  7: 'Devuelto',
+  8: 'En Novedad',
+  9: 'Novedad Solucionada'
+};
+
+// Lista de pedidos LLAMANDO DIRECTO a la API de LucidSales (estilo Zunto).
+// La tabla PedidoVinculado ya no es fuente de datos: solo aporta asignación,
+// etiquetas, notas y snapshot, unidos por lucidsalesPedidoId.
+async function listPedidosDirecto({ page = 1, itemsPerPage = 50, search = '', estados, fechaDesde, fechaHasta, producto, tiendaId = null } = {}) {
+  const filtros = [{ name: 'date', searchValues: [], sortOrder: 'desc' }];
+  if (fechaDesde || fechaHasta) {
+    const desde = fechaDesde ? new Date(`${fechaDesde}T00:00:00`).toISOString() : '1970-01-01T00:00:00.000Z';
+    const hasta = fechaHasta ? new Date(`${fechaHasta}T23:59:59.999`).toISOString() : new Date(Date.now() + 864e5).toISOString();
+    filtros[0].searchValues = [`${desde}|${hasta}`];
+  }
+  if (Array.isArray(estados) && estados.length > 0) {
+    const nombres = estados.map(e => NOMBRES_ESTADO_LS[e]).filter(Boolean);
+    if (nombres.length > 0) filtros.push({ name: 'orderStatus', searchValues: nombres, sortOrder: null });
+  }
+  if (producto) {
+    filtros.push({ name: 'product', searchValues: [String(producto)], sortOrder: null });
+  }
+
+  const res = await getPedidos({ page, itemsPerPage, search, filters: JSON.stringify(filtros), tiendaId });
+  const apiPedidos = Array.isArray(res.pedidos) ? res.pedidos : [];
+  const totalRecords = Number(res.totalRecords || 0);
+  const ids = apiPedidos.map(p => Number(p.id)).filter(n => Number.isFinite(n));
+
+  // Merge local: asignacion (tabla propia estilo Zunto), etiquetas, notas, snapshot
+  const asignacionMap = ids.length > 0 ? await asignacionPedidosService.getAsignaciones(ids) : new Map();
+
+  const locales = ids.length > 0 ? await prisma.pedidoVinculado.findMany({
+    where: { lucidsalesPedidoId: { in: ids } },
+    include: {
+      asignado: { select: { id: true, nombre: true } },
+      createdBy: { select: { id: true, nombre: true } },
+      subidoPor: { select: { id: true, nombre: true } }
+    }
+  }) : [];
+  const localPorId = new Map(locales.map(l => [l.lucidsalesPedidoId, l]));
+
+  const etiquetasRegs = ids.length > 0 ? await prisma.registroEtiqueta.findMany({
+    where: { tabla: 'pedidos_vinculados', registroId: { in: ids.map(String) } },
+    include: { etiqueta: { select: { id: true, nombre: true, color: true } } }
+  }) : [];
+  const etiquetasPorId = new Map();
+  etiquetasRegs.forEach(r => {
+    const arr = etiquetasPorId.get(r.registroId) || [];
+    arr.push(r.etiqueta);
+    etiquetasPorId.set(r.registroId, arr);
+  });
+
+  const pedidos = apiPedidos.map(p => {
+    const idNum = Number(p.id);
+    const loc = localPorId.get(idNum);
+    const asig = asignacionMap.get(idNum);
+    // Fallback a la vinculacion legacy: pedidos asignados antes de existir
+    // la tabla propia conservan su dueno hasta que se reasignen.
+    const asignado = asig ? asig.asignado : (loc?.asignado || null);
+    return {
+      id: idNum,
+      idPedido: p.idPedido ?? idNum,
+      Nombre: p.Nombre || '',
+      Apellido: p.Apellido || '',
+      Movil: p.Movil || '',
+      Total: p.Total ?? '0',
+      EstadoPedido: p.EstadoPedido ?? 0,
+      EstadoFullfilment: p.EstadoFullfilment || null,
+      origen: p.source || null,
+      producto: p.producto || '',
+      Referencias: p.Referencias || loc?.referencias || '',
+      Json: loc?.jsonProductos || '[]',
+      conversacionLink: loc?.conversacionLink || null,
+      notas: loc?.notas || null,
+      asignado,
+      creador: loc?.createdBy || null,
+      subidoPor: loc?.subidoPor || null,
+      createdAt: p.Fecha || p.CreatedAt || loc?.createdAt || null,
+      _etiquetas: etiquetasPorId.get(String(idNum)) || [],
+      _vinculado: Boolean(loc)
+    };
+  });
+
+  return {
+    ok: true,
+    pedidos,
+    totalRecords,
+    numPages: Math.max(1, Math.ceil(totalRecords / itemsPerPage)),
+    fuente: 'api'
+  };
+}
+
 module.exports = {
   getPedidos,
   getPedidoById,
@@ -572,11 +715,13 @@ module.exports = {
   verificarConexion,
   clearTokenCache,
   getProductos,
+  getProducto,
   validateDropiId,
   getCiudadesLocales,
   getDepartamentosLocales,
   crearVinculacion,
   crearVinculacionDirecta,
   guardarVinculacionLocal,
-  listVinculaciones
+  listVinculaciones,
+  listPedidosDirecto
 };

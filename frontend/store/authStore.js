@@ -10,6 +10,9 @@ export const useAuthStore = create((set) => ({
   login: (token, usuario) => {
     localStorage.setItem('token', token);
     localStorage.setItem('usuario', JSON.stringify(usuario));
+    if (usuario?.tiendaSlug && !usuario?.verMultiTienda) {
+      localStorage.setItem('tiendaActiva', usuario.tiendaSlug);
+    }
     set({ token, usuario, isAuthenticated: true, initialized: true });
     connect(token);
   },

@@ -282,7 +282,7 @@ const getRendimientoOperadores = async (req, res) => {
     const whereOficina = { tiendaId: req.tiendaId, ...(start ? { createdAt: { gte: start, lte: end } } : {}) };
 
     const operadores = await prisma.usuario.findMany({
-      where: { rol: { in: ['admin', 'operador', 'operador_asignado'] }, activo: true },
+      where: { rol: { in: ['admin', 'operador', 'operador_asignado'] }, activo: true, tiendaId: req.tiendaId },
       select: { id: true, nombre: true }
     });
 
@@ -345,7 +345,7 @@ const getMetricasOperadores = async (req, res) => {
     });
 
     const operadores = await prisma.usuario.findMany({
-      where: { rol: { in: ['admin', 'operador'] }, activo: true },
+      where: { rol: { in: ['admin', 'operador'] }, activo: true, tiendaId: req.tiendaId },
       select: { id: true, nombre: true, email: true, rol: true }
     });
 
@@ -536,7 +536,11 @@ const getTiempoActivo = async (req, res) => {
     const where = start ? { ultimaAct: { gte: start, lte: end } } : {};
 
     const sesiones = await prisma.sesion.findMany({
-      where: { ...where, minutosActivos: { gt: 0 } },
+      where: {
+        ...where,
+        minutosActivos: { gt: 0 },
+        usuario: { tiendaId: req.tiendaId }
+      },
       include: {
         usuario: { select: { id: true, nombre: true, email: true, rol: true } }
       },
@@ -744,16 +748,26 @@ const getMetricasLucidsales = async (req, res) => {
     const whereDate = start ? { createdAt: { gte: start, lte: end }, tiendaId: req.tiendaId } : { tiendaId: req.tiendaId };
 
     const operadores = await prisma.usuario.findMany({
-      where: { activo: true },
+      where: { activo: true, tiendaId: req.tiendaId },
       select: { id: true, nombre: true, rol: true }
     });
 
+    // Pedidos ya migrados a la tabla de asignaciones (se cachean una sola vez
+    // para no contarlos dos veces contra la vinculacion legacy)
+    const migrados = await prisma.asignacionPedido.findMany({ select: { lucidsalesPedidoId: true } });
+    const migradosSet = new Set(migrados.map(m => m.lucidsalesPedidoId));
+
     const metricas = await Promise.all(operadores.map(async (op) => {
-      const [vinculadosCreados, vinculadosAsignados] = await Promise.all([
+      const [vinculadosCreados, asignacionesNuevas, legacyRows] = await Promise.all([
         prisma.pedidoVinculado.count({ where: { ...whereDate, createdById: op.id } }),
-        prisma.pedidoVinculado.count({ where: { ...whereDate, asignadoId: op.id } }),
-        prisma.pedidoVinculado.count({ where: { ...whereDate, createdById: op.id, notas: { contains: 'Producto' } } })
+        prisma.asignacionPedido.count({ where: { ...whereDate, asignadoId: op.id } }),
+        prisma.pedidoVinculado.findMany({
+          where: { ...whereDate, asignadoId: op.id },
+          select: { lucidsalesPedidoId: true }
+        })
       ]);
+      const vinculadosAsignados = asignacionesNuevas +
+        legacyRows.filter(r => !migradosSet.has(r.lucidsalesPedidoId)).length;
 
       const totales = await prisma.pedidoVinculado.aggregate({
         where: { ...whereDate, createdById: op.id },
@@ -785,7 +799,7 @@ const getPedidosSubidos = async (req, res) => {
     let operadores;
     if (req.usuario.rol === 'admin') {
       operadores = await prisma.usuario.findMany({
-        where: { activo: true },
+        where: { activo: true, tiendaId: req.tiendaId },
         select: { id: true, nombre: true, rol: true }
       });
     } else {
