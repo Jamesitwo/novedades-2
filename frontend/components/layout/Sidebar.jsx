@@ -10,8 +10,11 @@ import api from '../../lib/api';
 import PasswordChangeModal from './PasswordChangeModal';
 import Toaster from '../ui/Toaster';
 import Icon from '../ui/Icon';
+import { useMotorDropiActivo } from '../motor-dropi/useMotorDropi';
 
 export default function Sidebar() {
+  // la subida a Dropi solo aparece si el motor esta encendido (MOTOR_DROPI=1)
+  const motorDropiActivo = useMotorDropiActivo();
   const pathname = usePathname();
   const router = useRouter();
   const { usuario, logout } = useAuthStore();
@@ -186,7 +189,7 @@ export default function Sidebar() {
           {!esZunto && isAdmin && <NavItem href="/admin/perfumes" icon="sanitizer" label="Perfumes" badge={counts.perfumesPendientes > 0 ? counts.perfumesPendientes : null} badgeColor="purple" />}
           {esZunto && <NavItem href="/admin/importador-productos" icon="cloud_download" label="Importar Productos" />}
           {showLucidsales && <NavItem href="/admin/lucidsales" icon="shopping_cart" label="LucidSales" />}
-          {isAdmin && showLucidsales && <NavItem href="/admin/subida-dropi" icon="cloud_upload" label="Subida a Dropi" />}
+          {isAdmin && showLucidsales && motorDropiActivo && <NavItem href="/admin/subida-dropi" icon="cloud_upload" label="Subida a Dropi" />}
           {isAdmin && showLucidsales && <NavItem href="/admin/reasignar" icon="swap_horiz" label="Reasignar pedidos" />}
         </Section>
 

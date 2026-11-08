@@ -8,6 +8,7 @@ const motor = require('../services/motor-dropi');
 
 router.use(authMiddleware);
 
+// el panel pregunta aqui si muestra lo del motor (apagado salvo MOTOR_DROPI=1)
 router.get('/_estado', (req, res) => res.json({ ok: true, ...motor.estado() }));
 
 // lo que los paneles del motor necesitan saber de la sesion de Pizdo

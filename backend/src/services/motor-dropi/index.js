@@ -21,6 +21,11 @@ let arranque = null;
 let timers = [];
 let ultimoError = null;
 
+/** El motor esta en pausa salvo que se encienda con MOTOR_DROPI=1. */
+function activo() {
+  return String(process.env.MOTOR_DROPI || '0') === '1';
+}
+
 function dataDir() {
   return path.resolve(process.env.MOTOR_DROPI_DATA_DIR || path.join(os.tmpdir(), 'pizdo-motor-dropi'));
 }
@@ -152,8 +157,8 @@ async function vuelta() {
 function iniciar() {
   if (arranque) return arranque;
   arranque = (async () => {
-    if (String(process.env.MOTOR_DROPI || '1') === '0') {
-      console.log('[motor-dropi] motor desactivado (MOTOR_DROPI=0)');
+    if (!activo()) {
+      console.log('[motor-dropi] motor apagado (para usarlo: MOTOR_DROPI=1)');
       return null;
     }
     const dir = dataDir();
@@ -220,6 +225,9 @@ function limpiarRespuesta(res) {
  * como un stream nuevo con el mismo JSON.
  */
 async function atender(req, res) {
+  if (!activo()) {
+    return res.status(503).json({ ok: false, activo: false, msg: 'La subida a Dropi no está activa' });
+  }
   const m = await iniciar();
   if (!m) {
     return res.status(503).json({ ok: false, msg: `El motor de subida a Dropi no está disponible${ultimoError ? `: ${ultimoError.message}` : ''}` });
@@ -282,8 +290,10 @@ async function atender(req, res) {
 }
 
 function estado() {
-  if (!motor) return { listo: false, error: ultimoError?.message ?? null };
+  if (!activo()) return { activo: false, listo: false };
+  if (!motor) return { activo: true, listo: false, error: ultimoError?.message ?? null };
   return {
+    activo: true,
     listo: true,
     dir: dataDir(),
     tiendas: [...motor.activas.values()].map((x) => ({
@@ -298,4 +308,4 @@ function estado() {
   };
 }
 
-module.exports = { iniciar, detener, atender, estado, registrarSubido, reconciliarSubidos, tiendasConLucid, sinNombreDeOrigen, _vuelta: vuelta };
+module.exports = { activo, iniciar, detener, atender, estado, registrarSubido, reconciliarSubidos, tiendasConLucid, sinNombreDeOrigen, _vuelta: vuelta };

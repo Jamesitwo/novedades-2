@@ -1,5 +1,7 @@
 # Motor de subida a Dropi
 
+**Está apagado por defecto.** Para usarlo, pon `MOTOR_DROPI=1` en las variables del backend. Mientras esté apagado no arranca el motor, y el menú "Subida a Dropi" y el agente del detalle del pedido no se muestran.
+
 Esta carpeta es el motor de subida, copiado **sin cambios** desde su app de origen. Incluye el agente que lee el chat, la subida automática a Dropi con seguro, las entregas programadas, el historial de intentos, la sesión de Dropi, la IA, Lucid Bot y Google Maps. Para traer mejoras desde el origen:
 
 ```
@@ -32,7 +34,7 @@ El script copia el motor y los paneles y los pasa al tema de Pizdo. Además revi
 | `MOTOR_DROPI_DATA_DIR` | Carpeta de datos (en la imagen: `/data/motor-dropi`) |
 | `MOTOR_DROPI_CLAVE_MAESTRA` | Cifra las claves guardadas (IA, Lucid Bot, Maps). Si vienes de una instalación anterior, usa su misma `CLAVE_MAESTRA` |
 | `MOTOR_DROPI_LLM_API_KEY`, `MOTOR_DROPI_GOOGLE_MAPS_KEY`... | Cualquier variable del motor con prefijo `MOTOR_DROPI_` (también se pueden poner desde la pantalla) |
-| `MOTOR_DROPI=0` | Apaga el motor |
+| `MOTOR_DROPI=1` | Enciende el motor y muestra sus pantallas (por defecto está apagado) |
 
 ## Pasar el estado de una instalación anterior (una sola vez)
 

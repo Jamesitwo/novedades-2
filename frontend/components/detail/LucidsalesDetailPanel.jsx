@@ -8,6 +8,7 @@ import Autocomplete from '@/components/ui/Autocomplete';
 import PanelDropi from '@/components/motor-dropi/PanelDropi';
 import { SubirPedidoDropi } from '@/components/motor-dropi/components/SubirPedidoDropi';
 import { EntregaProgramadaCard } from '@/components/motor-dropi/components/EntregaProgramada';
+import { useMotorDropiActivo } from '@/components/motor-dropi/useMotorDropi';
 
 const ESTADOS = [
   { value: 0, label: 'Por confirmar' },
@@ -89,6 +90,8 @@ function ErrorCard({ mensaje, detalle }) {
 
 export default function LucidsalesDetailPanel({ id, ids, currentIndex, onClose, onNavigate, onUpdate }) {
   const [pedido, setPedido] = useState(null);
+  // agente de subida a Dropi: solo si el motor esta encendido (MOTOR_DROPI=1)
+  const motorDropiActivo = useMotorDropiActivo();
   const [originalPedido, setOriginalPedido] = useState(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -824,7 +827,7 @@ export default function LucidsalesDetailPanel({ id, ids, currentIndex, onClose, 
 
           {/* AGENTE DE DROPI: lee el chat, valida producto,
               precio y direccion, y solo si todo calza sube a Dropi con seguro */}
-          {pedido?.id && (
+          {motorDropiActivo && pedido?.id && (
             <div style={{ marginTop: 12 }}>
               <PanelDropi>
                 <EntregaProgramadaCard
