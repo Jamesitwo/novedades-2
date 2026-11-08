@@ -967,12 +967,8 @@ async function listPorIdsLocales({ page = 1, itemsPerPage = 50, search = '', est
   };
 }
 
-async function listPedidosDirecto(opts = {}) {
-  const { page = 1, itemsPerPage = 50, search = '', estados, fechaDesde, fechaHasta, producto, tiendaId = null, asignadoId, etiquetaId } = opts;
-  if ((asignadoId && asignadoId !== '__sin__') || etiquetaId) {
-    return listPorIdsLocales(opts);
-  }
-
+/** Filtros de get-pedidos-light-data (fecha desc + estados + producto). */
+function filtrosApi({ estados, fechaDesde, fechaHasta, producto } = {}) {
   const filtros = [{ name: 'date', searchValues: [], sortOrder: 'desc' }];
   if (fechaDesde || fechaHasta) {
     const desde = fechaDesde ? new Date(`${fechaDesde}T00:00:00`).toISOString() : '1970-01-01T00:00:00.000Z';
@@ -986,8 +982,16 @@ async function listPedidosDirecto(opts = {}) {
   if (producto) {
     filtros.push({ name: 'product', searchValues: [String(producto)], sortOrder: null });
   }
+  return JSON.stringify(filtros);
+}
 
-  const res = await getPedidos({ page, itemsPerPage, search, filters: JSON.stringify(filtros), tiendaId });
+async function listPedidosDirecto(opts = {}) {
+  const { page = 1, itemsPerPage = 50, search = '', estados, fechaDesde, fechaHasta, producto, tiendaId = null, asignadoId, etiquetaId } = opts;
+  if ((asignadoId && asignadoId !== '__sin__') || etiquetaId) {
+    return listPorIdsLocales(opts);
+  }
+
+  const res = await getPedidos({ page, itemsPerPage, search, filters: filtrosApi({ estados, fechaDesde, fechaHasta, producto }), tiendaId });
   const apiPedidos = Array.isArray(res.pedidos) ? res.pedidos : [];
   const totalRecords = Number(res.totalRecords || 0);
   const ids = apiPedidos.map(p => Number(p.id)).filter(n => Number.isFinite(n));
@@ -1034,5 +1038,9 @@ module.exports = {
   guardarVinculacionLocal,
   listVinculaciones,
   listPedidosDirecto,
-  listPorIdsLocales
+  listPorIdsLocales,
+  filtrosApi,
+  idsAsignadosA,
+  ESTADOS_FINALES,
+  COPIA_FRESCA_MS
 };

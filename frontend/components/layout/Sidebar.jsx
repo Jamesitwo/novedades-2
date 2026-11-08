@@ -187,6 +187,7 @@ export default function Sidebar() {
           {esZunto && <NavItem href="/admin/importador-productos" icon="cloud_download" label="Importar Productos" />}
           {showLucidsales && <NavItem href="/admin/lucidsales" icon="shopping_cart" label="LucidSales" />}
           {isAdmin && showLucidsales && <NavItem href="/admin/subida-dropi" icon="cloud_upload" label="Subida a Dropi" />}
+          {isAdmin && showLucidsales && <NavItem href="/admin/reasignar" icon="swap_horiz" label="Reasignar pedidos" />}
         </Section>
 
         <Section title="Sistema" sectionKey="system">

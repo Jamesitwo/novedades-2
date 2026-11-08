@@ -16,6 +16,13 @@ router.post('/pedidos/:id', ctrl.updatePedido);
 router.patch('/pedidos/:id/estado', ctrl.cambiarEstadoPedido);
 router.patch('/pedidos/:id/asignar', ctrl.asignarPedido);
 router.patch('/bulk-asignar', adminOnly, ctrl.bulkAsignarPedidos);
+// reasignacion masiva (pasar la cartera de un operador a otros, con deshacer)
+const reasignacion = require('../controllers/reasignacion.controller');
+router.get('/reasignacion/operadores', adminOnly, reasignacion.operadores);
+router.post('/reasignacion/previsualizar', adminOnly, reasignacion.previsualizar);
+router.post('/reasignacion/ejecutar', adminOnly, reasignacion.ejecutar);
+router.get('/reasignacion/lotes', adminOnly, reasignacion.lotes);
+router.post('/reasignacion/lotes/:lote/deshacer', adminOnly, reasignacion.deshacer);
 router.post('/pedidos/:id/duplicar', ctrl.duplicarPedido);
 router.post('/pedidos/:id/subir-dividido', ctrl.subirDividido);
 router.post('/productos', ctrl.getProductos);
