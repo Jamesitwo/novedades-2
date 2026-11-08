@@ -5,8 +5,10 @@ const lucidsalesService = require('./lucidsales.service');
 /**
  * Reparto automatico de pedidos LucidSales.
  *
- * Cada N segundos revisa los pedidos recientes de cada tienda y asigna
- * round-robin por menor carga a los que no tienen dueno.
+ * Cada N segundos revisa los pedidos recientes de cada tienda y asigna los
+ * que no tienen dueno, con el metodo de la configuracion de la tienda:
+ * round_robin (por turnos, parejo) o menor_carga (al que menos recibio en
+ * los ultimos dias). Nunca le quita un pedido a nadie.
  *
  * Opt-in por tienda: solo corre si Configuracion.auto_asignar_lucidsales
  * esta activo y hay operadores en operadores_incluidos.
@@ -38,7 +40,8 @@ async function operadoresElegibles(config) {
       tiendaId: config.tiendaId || undefined,
       gestionaPedidos: true
     },
-    select: { id: true, nombre: true }
+    select: { id: true, nombre: true },
+    orderBy: { nombre: 'asc' }
   });
 }
 
@@ -49,7 +52,7 @@ async function operadoresElegibles(config) {
 async function vuelta() {
   const configs = await prisma.configuracion.findMany({
     where: { auto_asignar_lucidsales: true },
-    select: { tiendaId: true, operadores_incluidos: true, metodo_asignacion: true }
+    select: { id: true, tiendaId: true, operadores_incluidos: true, metodo_asignacion: true }
   });
 
   if (configs.length === 0) return 0;
@@ -90,8 +93,12 @@ async function vuelta() {
 
       if (sinDueno.length === 0) continue;
 
+      // de los mas viejos a los mas nuevos: el turno sigue el orden de llegada
+      sinDueno.sort((a, b) => a - b);
       const asignadas = await asignacionPedidosService.repartir(sinDueno, {
         operadores,
+        metodo: config.metodo_asignacion === 'menor_carga' ? 'menor_carga' : 'round_robin',
+        configId: config.id,
         tiendaId: config.tiendaId || null,
         origen: 'automatico'
       });
@@ -122,11 +129,13 @@ async function tick() {
 
 /**
  * Arranca el timer. Idempotente: si ya corre, no hace nada.
- * El intervalo se puede fijar con REPARTO_CADA_SEGUNDOS (por defecto 60).
+ * El intervalo se puede fijar con REPARTO_CADA_SEGUNDOS (por defecto 60;
+ * minimo 10 para no saturar LucidSales).
  */
 function arrancar() {
   if (timer) return;
-  const cada = Number(process.env.REPARTO_CADA_SEGUNDOS) || INTERVALO_DEFECTO_MS;
+  const seg = Number(process.env.REPARTO_CADA_SEGUNDOS);
+  const cada = Number.isFinite(seg) && seg > 0 ? Math.max(10, seg) * 1000 : INTERVALO_DEFECTO_MS;
   timer = setInterval(tick, cada);
   if (timer.unref) timer.unref();
   console.log(`[reparto] Automatico cada ${Math.round(cada / 1000)}s`);

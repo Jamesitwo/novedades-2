@@ -281,12 +281,12 @@ export default function ConfiguracionPage() {
             }}
           >
             <option value="round_robin">Round Robin (ciclar operadores)</option>
-            <option value="menor_carga">Menor Carga (al que tiene menos asignados)</option>
+            <option value="menor_carga">Menor Carga (al que menos ha recibido últimamente)</option>
           </select>
           <p style={{ color: 'var(--text3)', fontSize: 12, marginTop: 8 }}>
             {config.metodo_asignacion === 'round_robin'
               ? 'Los pedidos se asignan cíclicamente en orden.'
-              : 'Los pedidos se asignan al operador con menos pedidos asignados.'}
+              : 'Los pedidos se asignan al operador con menos pedidos asignados. En LucidSales cuenta lo recibido en los últimos 7 días, no todo el historial.'}
           </p>
         </div>
       </div>

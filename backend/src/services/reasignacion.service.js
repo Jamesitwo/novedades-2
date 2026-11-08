@@ -136,7 +136,7 @@ async function candidatos({ tiendaId, origenIds, estados, fechaDesde, fechaHasta
  * A quien va cada pedido.
  *   modo 'uno'         -> destinoIds[0]
  *   modo 'equitativo'  -> por turnos entre los destinos
- *   modo 'menor_carga' -> siempre al que menos pedidos tenga (contando los que va recibiendo)
+ *   modo 'menor_carga' -> al que menos pedidos recibio en los ultimos dias (contando los que va recibiendo)
  *   modo 'sin_asignar' -> null
  */
 async function planDeReparto(ids, { modo, destinoIds, tiendaId }) {
@@ -155,7 +155,7 @@ async function planDeReparto(ids, { modo, destinoIds, tiendaId }) {
     return plan;
   }
   if (modo === 'menor_carga') {
-    const cargas = await asignacionPedidosService.cargaPorOperador(destinoIds, tiendaId);
+    const cargas = await asignacionPedidosService.cargaReciente(destinoIds, tiendaId);
     for (const id of ids) {
       let mejor = destinoIds[0];
       for (const d of destinoIds) if ((cargas.get(d) ?? 0) < (cargas.get(mejor) ?? 0)) mejor = d;

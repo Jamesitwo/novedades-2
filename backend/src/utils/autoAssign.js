@@ -40,7 +40,9 @@ const getNextOperador = async (tabla, tiendaId) => {
       tiendaId: tiendaId || undefined,
       [permissionMap[tabla]]: true
     },
-    select: { id: true, nombre: true, rol: true }
+    select: { id: true, nombre: true, rol: true },
+    // mismo orden que el reparto automatico (comparten el turno)
+    orderBy: [{ nombre: 'asc' }, { id: 'asc' }]
   });
 
   console.log(`[autoAssign] ${tabla}: ${activos.length} elegibles de ${operadoresIncluidos.length} incluidos`);
@@ -50,11 +52,11 @@ const getNextOperador = async (tabla, tiendaId) => {
   }
 
   if (config.metodo_asignacion === 'menor_carga') {
-    // En LucidSales la carga se mide sobre la tabla propia de asignaciones,
-    // sumando los pedidos que aun solo estan en la vinculacion legacy.
+    // En LucidSales la carga es la RECIENTE (lo recibido en los ultimos dias),
+    // no el historial: si no, el de menos antiguedad se lleva todo lo nuevo.
     if (tabla === 'lucidsales') {
       const asignacionPedidosService = require('../services/asignacion-pedidos.service');
-      const carga = await asignacionPedidosService.cargaPorOperador(activos.map(o => o.id), tiendaId || null);
+      const carga = await asignacionPedidosService.cargaReciente(activos.map(o => o.id), tiendaId || null);
       const orden = activos
         .map(op => ({ op, count: carga.get(op.id) || 0 }))
         .sort((a, b) => a.count - b.count);

@@ -123,43 +123,125 @@ async function cargaPorOperador(operadorIds, tiendaId = null) {
   return mapa;
 }
 
+// Ventana para medir la carga "de ahora" (no el historial completo)
+const VENTANA_CARGA_DIAS = Number(process.env.REPARTO_VENTANA_DIAS) || 7;
+
 /**
- * Reparto round-robin por menor carga: asigna cada pedido al operador
- * con menos pedidos asignados. Desempate por nombre para que sea estable.
+ * Carga RECIENTE por operador: pedidos que recibio en los ultimos N dias y
+ * que todavia son suyos. Es la que se usa para repartir "al de menor carga":
+ * con el total historico, un operador con menos antiguedad se llevaria todos
+ * los pedidos nuevos hasta alcanzar a los demas.
+ *
+ * - Tabla propia: asignaciones creadas en la ventana (las copiadas desde la
+ *   vinculacion vieja tienen la fecha de la copia, asi que esas no cuentan aca)
+ * - Vinculacion vieja: pedidos vinculados en la ventana, si siguen con el mismo dueno
+ * @returns {Promise<Map<string, number>>}
+ */
+async function cargaReciente(operadorIds, tiendaId = null, dias = VENTANA_CARGA_DIAS) {
+  if (!Array.isArray(operadorIds) || operadorIds.length === 0) return new Map();
+  const desde = new Date(Date.now() - dias * 24 * 3600 * 1000);
+  const enTienda = tiendaId ? { tiendaId } : {};
+
+  const [propias, legacy] = await Promise.all([
+    prisma.asignacionPedido.findMany({
+      where: { asignadoId: { in: operadorIds }, origen: { not: 'migracion' }, createdAt: { gte: desde }, ...enTienda },
+      select: { lucidsalesPedidoId: true, asignadoId: true }
+    }),
+    prisma.pedidoVinculado.findMany({
+      where: { asignadoId: { in: operadorIds }, createdAt: { gte: desde }, ...enTienda },
+      select: { lucidsalesPedidoId: true, asignadoId: true }
+    })
+  ]);
+
+  const idsLegacy = legacy.map(l => l.lucidsalesPedidoId);
+  const actuales = idsLegacy.length
+    ? await prisma.asignacionPedido.findMany({
+        where: { lucidsalesPedidoId: { in: idsLegacy } },
+        select: { lucidsalesPedidoId: true, asignadoId: true }
+      })
+    : [];
+  const duenoActual = new Map(actuales.map(a => [a.lucidsalesPedidoId, a.asignadoId]));
+
+  const mapa = new Map(operadorIds.map(id => [id, 0]));
+  const contados = new Set();
+  propias.forEach(p => {
+    contados.add(p.lucidsalesPedidoId);
+    mapa.set(p.asignadoId, (mapa.get(p.asignadoId) || 0) + 1);
+  });
+  legacy.forEach(l => {
+    if (contados.has(l.lucidsalesPedidoId)) return;
+    // si en la tabla propia ya es de otro, no cuenta para el dueno viejo
+    if (duenoActual.has(l.lucidsalesPedidoId) && duenoActual.get(l.lucidsalesPedidoId) !== l.asignadoId) return;
+    contados.add(l.lucidsalesPedidoId);
+    mapa.set(l.asignadoId, (mapa.get(l.asignadoId) || 0) + 1);
+  });
+  return mapa;
+}
+
+/**
+ * Reserva `cantidad` turnos del round-robin de la configuracion (el mismo
+ * ultimo_indice_round_robin que usa la asignacion al vincular): devuelve el
+ * indice del primero y deja guardado el siguiente. Con bloqueo de fila, asi
+ * dos procesos no reparten el mismo turno.
+ */
+async function reservarTurnos(configId, cantidadOperadores, cantidad) {
+  return prisma.$transaction(async (tx) => {
+    const [fila] = await tx.$queryRawUnsafe(
+      'SELECT "ultimo_indice_round_robin" FROM "Configuracion" WHERE "id" = $1 FOR UPDATE',
+      configId
+    );
+    const actual = ((fila?.ultimo_indice_round_robin || 0) % cantidadOperadores + cantidadOperadores) % cantidadOperadores;
+    await tx.configuracion.update({
+      where: { id: configId },
+      data: { ultimo_indice_round_robin: (actual + cantidad) % cantidadOperadores }
+    });
+    return actual;
+  });
+}
+
+/**
+ * Reparte pedidos sin dueno entre operadores, segun el metodo configurado:
+ *   round_robin (por defecto): por turnos, siguiendo el turno guardado en la
+ *                configuracion -> todos reciben parejo
+ *   menor_carga: cada pedido al que menos pedidos recibio en los ultimos dias
  *
  * @param {number[]} lucidsalesPedidoIds - pedidos sin dueno, en orden
- * @param {{ operadores: Array<{id: string, nombre: string}>, tiendaId?: string|null, createdById?: string|null, origen?: string }} opts
+ * @param {{ operadores: Array<{id: string, nombre: string}>, metodo?: string, configId?: string|null,
+ *           tiendaId?: string|null, createdById?: string|null, origen?: string }} opts
  * @returns {Promise<Array<{pedidoId: number, asignadoId: string}>>}
  */
 async function repartir(lucidsalesPedidoIds, opts = {}) {
-  const { operadores = [], tiendaId = null, createdById = null, origen = 'automatico' } = opts;
+  const { operadores = [], metodo = 'round_robin', configId = null, tiendaId = null, createdById = null, origen = 'automatico' } = opts;
   if (!Array.isArray(operadores) || operadores.length === 0) return [];
   if (!Array.isArray(lucidsalesPedidoIds) || lucidsalesPedidoIds.length === 0) return [];
 
+  // orden estable (el mismo que usa la asignacion al vincular)
   const orden = [...operadores].sort((a, b) =>
-    String(a.nombre || '').localeCompare(String(b.nombre || ''))
+    String(a.nombre || '').localeCompare(String(b.nombre || '')) || String(a.id).localeCompare(String(b.id))
   );
-
-  const cargas = await cargaPorOperador(orden.map(o => o.id), tiendaId);
   const asignaciones = [];
 
-  for (const pedidoId of lucidsalesPedidoIds) {
-    let mejor = orden[0];
-    let mejorCarga = cargas.get(mejor.id) ?? 0;
-
-    for (const op of orden.slice(1)) {
-      const carga = cargas.get(op.id) ?? 0;
-      if (carga < mejorCarga) {
-        mejor = op;
-        mejorCarga = carga;
+  if (metodo === 'menor_carga') {
+    const cargas = await cargaReciente(orden.map(o => o.id), tiendaId);
+    for (const pedidoId of lucidsalesPedidoIds) {
+      let mejor = orden[0];
+      for (const op of orden.slice(1)) {
+        if ((cargas.get(op.id) ?? 0) < (cargas.get(mejor.id) ?? 0)) mejor = op;
       }
+      await asignar(pedidoId, mejor.id, { tiendaId, createdById, origen });
+      cargas.set(mejor.id, (cargas.get(mejor.id) ?? 0) + 1);
+      asignaciones.push({ pedidoId: Number(pedidoId), asignadoId: mejor.id });
     }
-
-    await asignar(pedidoId, mejor.id, { tiendaId, createdById, origen });
-    cargas.set(mejor.id, mejorCarga + 1);
-    asignaciones.push({ pedidoId: Number(pedidoId), asignadoId: mejor.id });
+    return asignaciones;
   }
 
+  // round_robin: se reservan los turnos de una vez y luego se asigna
+  const inicio = configId ? await reservarTurnos(configId, orden.length, lucidsalesPedidoIds.length) : 0;
+  for (let i = 0; i < lucidsalesPedidoIds.length; i++) {
+    const op = orden[(inicio + i) % orden.length];
+    await asignar(lucidsalesPedidoIds[i], op.id, { tiendaId, createdById, origen });
+    asignaciones.push({ pedidoId: Number(lucidsalesPedidoIds[i]), asignadoId: op.id });
+  }
   return asignaciones;
 }
 
@@ -168,5 +250,7 @@ module.exports = {
   asignar,
   asignarBulk,
   cargaPorOperador,
+  cargaReciente,
+  reservarTurnos,
   repartir
 };

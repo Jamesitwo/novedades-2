@@ -31,7 +31,7 @@ const ACTIVOS = [0, 2, 3, 4, 5, 8, 9];
 const MODOS = [
   { id: 'uno', nombre: 'A un operador', ayuda: 'Todos los pedidos pasan a la misma persona.' },
   { id: 'equitativo', nombre: 'Por partes iguales', ayuda: 'Se reparten por turnos entre los elegidos.' },
-  { id: 'menor_carga', nombre: 'Al de menor carga', ayuda: 'Cada pedido va a quien menos pedidos tenga en ese momento.' },
+  { id: 'menor_carga', nombre: 'Al de menor carga', ayuda: 'Cada pedido va a quien menos pedidos haya recibido en los últimos 7 días.' },
   { id: 'sin_asignar', nombre: 'Dejar sin asignar', ayuda: 'Quedan libres para que los tome el reparto o alguien a mano.' }
 ];
 
