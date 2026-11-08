@@ -3,6 +3,9 @@
   "version": "1.0.0",
   "description": "API para gestión de novedades y pedidos en oficina",
   "main": "server.js",
+  "engines": {
+    "node": ">=22.15.0"
+  },
   "scripts": {
     "dev": "nodemon server.js",
     "start": "node server.js",
