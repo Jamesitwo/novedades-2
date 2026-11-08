@@ -5,9 +5,9 @@ import api from '@/lib/api';
 import Icon from '@/components/ui/Icon';
 import Button from '@/components/ui/Button';
 import Autocomplete from '@/components/ui/Autocomplete';
-import ZuntoUI from '@/components/zunto/ZuntoUI';
-import { SubirPedidoDropi } from '@/components/zunto/components/SubirPedidoDropi';
-import { EntregaProgramadaCard } from '@/components/zunto/components/EntregaProgramada';
+import PanelDropi from '@/components/motor-dropi/PanelDropi';
+import { SubirPedidoDropi } from '@/components/motor-dropi/components/SubirPedidoDropi';
+import { EntregaProgramadaCard } from '@/components/motor-dropi/components/EntregaProgramada';
 
 const ESTADOS = [
   { value: 0, label: 'Por confirmar' },
@@ -822,11 +822,11 @@ export default function LucidsalesDetailPanel({ id, ids, currentIndex, onClose, 
             )}
           </div>
 
-          {/* AGENTE DE DROPI (motor de ZuntoStore): lee el chat, valida producto,
+          {/* AGENTE DE DROPI: lee el chat, valida producto,
               precio y direccion, y solo si todo calza sube a Dropi con seguro */}
           {pedido?.id && (
             <div style={{ marginTop: 12 }}>
-              <ZuntoUI>
+              <PanelDropi>
                 <EntregaProgramadaCard
                   key={`prog-${pedido.id}`}
                   id={String(pedido.id)}
@@ -843,7 +843,7 @@ export default function LucidsalesDetailPanel({ id, ids, currentIndex, onClose, 
                     onUpdate?.();
                   }}
                 />
-              </ZuntoUI>
+              </PanelDropi>
             </div>
           )}
 

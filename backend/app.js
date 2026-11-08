@@ -148,8 +148,8 @@ app.use('/api/etiquetas', etiquetasRoutes);
 app.use('/api/facturas', facturasRoutes);
 app.use('/api/garantias', garantiasRoutes);
 app.use('/api/tareas', tareasRoutes);
-// motor de ZuntoStore (subida a Dropi, agente, programados)
-app.use('/api/zunto', require('./src/routes/zunto.routes'));
+// motor de subida a Dropi (agente, subida automatica, programados)
+app.use('/api/motor-dropi', require('./src/routes/motor-dropi.routes'));
 
 const cloudinaryRoutes = require('./src/routes/cloudinary.routes');
 app.use('/api/cloudinary', cloudinaryRoutes);

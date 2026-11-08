@@ -1,0 +1,6 @@
+{
+  "name": "motor-dropi",
+  "private": true,
+  "type": "module",
+  "description": "Motor de subida a Dropi (agente, subida automatica, entregas programadas) embebido en Pizdo. Archivos copiados tal cual de la app de origen con scripts/sincronizar-motor-dropi.js: no editar aqui."
+}

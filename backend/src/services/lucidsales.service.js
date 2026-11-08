@@ -334,7 +334,7 @@ const getProductos = cached(async (tiendaId) => {
 }, CACHE_PRODUCTOS_MS, (id) => `prod_${id || 'default'}`);
 
 // Producto individual (lo que el agente de Dropi llama `obtenerProducto`).
-// Devuelve el objeto producto ya desenvuelto, igual que el cliente de Zunto.
+// Devuelve el objeto producto ya desenvuelto.
 const getProducto = cached(async (productoId, tiendaId) => {
   const config = await getConfig(tiendaId);
   const { token } = await authenticate(config);
@@ -614,7 +614,7 @@ const NOMBRES_ESTADO_LS = {
 };
 
 // ---------------------------------------------------------------------------
-// Lista de pedidos LLAMANDO DIRECTO a la API de LucidSales (como ZuntoStore).
+// Lista de pedidos LLAMANDO DIRECTO a la API de LucidSales.
 //
 // La API manda en los datos del pedido (cliente, total, estado, productos).
 // La base de Pizdo es una capa propia unida por el id de LucidSales:
@@ -627,7 +627,7 @@ const NOMBRES_ESTADO_LS = {
 //   * "asignados a X" / "con etiqueta Y": esos datos solo estan en Pizdo, asi
 //     que los ids salen de la base, se paginan aqui y cada pedido de la pagina
 //     se lee en vivo de la API. Asi un operador con "ver solo asignados" ve
-//     TODOS sus pedidos y el total cuadra (Zunto solo filtra la pagina cargada).
+//     TODOS sus pedidos y el total cuadra (no solo los de la pagina cargada).
 // En ambos caminos se refresca la copia (estado/total) que guarda la base,
 // que es de donde leen las metricas.
 // ---------------------------------------------------------------------------
@@ -1001,7 +1001,7 @@ async function listPedidosDirecto(opts = {}) {
 
   let pedidos = apiPedidos.map(p => filaDeLista(p, locales));
   // "sin asignar" no se puede sacar de la base (es todo lo que NO esta en
-  // ella): como en Zunto, se filtra sobre la pagina que trajo la API
+  // ella): se filtra sobre la pagina que trajo la API
   if (asignadoId === '__sin__') pedidos = pedidos.filter(p => !p.asignado);
 
   return {

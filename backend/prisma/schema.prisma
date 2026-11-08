@@ -294,7 +294,7 @@ model PedidoVinculado {
   @@map("pedidos_vinculados")
 }
 
-// Asignacion de pedidos LucidSales estilo ZuntoStore: una fila por pedido,
+// Asignacion de pedidos LucidSales: una fila por pedido,
 // independiente de la vinculacion. El pedido aparece en la lista solo por
 // pertenecer a la tienda; aqui se registra unicamente el dueno.
 model AsignacionPedido {
@@ -322,11 +322,11 @@ model AsignacionPedido {
   @@map("asignaciones_pedido")
 }
 
-// Estado del motor de ZuntoStore (subida automatica a Dropi, agente,
+// Estado del motor de subida a Dropi (subida automatica, agente,
 // programados, intentos, sesion de Dropi...). El motor trabaja con sus
 // archivos de siempre en disco; aqui se guarda una copia de cada archivo
 // para que sobreviva a reinicios y redeploys. `ruta` es relativa a la
-// carpeta de datos del motor (ZUNTO_DATA_DIR), p. ej. "pizdo/subidaAutomatica.json".
+// carpeta de datos del motor (MOTOR_DROPI_DATA_DIR), p. ej. "pizdo/subidaAutomatica.json".
 // Log del importador de pedidos (ya retirado). Se conserva la tabla para que
 // `prisma db push` no la borre en produccion.
 model ImportLogPedido {
@@ -343,14 +343,14 @@ model ImportLogPedido {
   @@map("import_log_pedidos")
 }
 
-model ZuntoArchivo {
+model MotorArchivo {
   ruta      String   @id
   contenido Bytes
   hash      String
   tamano    Int      @default(0)
   updatedAt DateTime @updatedAt @map("updated_at")
 
-  @@map("zunto_archivos")
+  @@map("motor_archivos")
 }
 
 model Configuracion {

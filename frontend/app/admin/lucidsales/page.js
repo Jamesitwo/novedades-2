@@ -89,7 +89,7 @@ export default function LucidSalesPage() {
   const [fechaHasta, setFechaHasta] = useState('');
   const [filtroProducto, setFiltroProducto] = useState('');
 
-  // Cambio de estado (estilo Zunto)
+  // Cambio de estado directo en LucidSales
   const [cambio, setCambio] = useState(null); // { pedido, nuevo, motivo }
   const [guardandoId, setGuardandoId] = useState(null);
   // Asignación inline
@@ -152,7 +152,7 @@ export default function LucidSalesPage() {
     }
   }, [page, search, itemsPerPage, estados, asignadoAMi, etiquetaId, asignadoId, fechaDesde, fechaHasta, filtroProducto]);
 
-  // Búsqueda con debounce (estilo Zunto)
+  // Búsqueda con debounce
   useEffect(() => {
     const t = setTimeout(() => {
       setSearch(prev => (prev === searchInput.trim() ? prev : searchInput.trim()));

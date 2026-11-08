@@ -715,7 +715,7 @@ const subirDividido = async (req, res) => {
 const listarVinculados = async (req, res) => {
   try {
     const { page = 1, itemsPerPage = 50, search = '', estadoFilter, etiquetaId, asignadoId, fechaDesde, fechaHasta, producto, estados, asignado_a_mi } = req.query;
-    // Modo directo (como Zunto): la lista viene de la API de LucidSales y se
+    // Modo directo: la lista viene de la API de LucidSales y se
     // le une lo de Pizdo (asignado, etiquetas, notas, quien subio) por id.
     const opts = { page: Number(page), itemsPerPage: Number(itemsPerPage), search, fechaDesde, fechaHasta, producto, tiendaId: req.tiendaId };
 

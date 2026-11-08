@@ -3,7 +3,7 @@ const asignacionPedidosService = require('./asignacion-pedidos.service');
 const lucidsalesService = require('./lucidsales.service');
 
 /**
- * Reparto automatico de pedidos LucidSales (estilo ZuntoStore/repartoAutomatico).
+ * Reparto automatico de pedidos LucidSales.
  *
  * Cada N segundos revisa los pedidos recientes de cada tienda y asigna
  * round-robin por menor carga a los que no tienen dueno.

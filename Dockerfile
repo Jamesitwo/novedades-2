@@ -19,7 +19,7 @@ COPY backend/ .
 FROM node:20-alpine
 ARG CACHEBUST=11
 WORKDIR /app
-# Chromium: el motor de Zunto sube los pedidos a Dropi por el navegador
+# Chromium: el motor de subida a Dropi trabaja por el navegador
 RUN apk add --no-cache openssl chromium nss freetype harfbuzz ttf-freefont font-noto-emoji
 RUN addgroup -S appgroup && adduser -S appuser -G appgroup
 
@@ -30,7 +30,7 @@ COPY --from=backend-builder /build/backend/app.js /app/backend/
 COPY --from=backend-builder /build/backend/src /app/backend/src
 COPY --from=backend-builder /build/backend/prisma /app/backend/prisma
 COPY --from=backend-builder /build/backend/start.sh /app/backend/
-COPY --from=backend-builder /build/backend/zunto /app/backend/zunto
+COPY --from=backend-builder /build/backend/motor-dropi /app/backend/motor-dropi
 
 COPY --from=frontend-builder /build/frontend/package.json /app/frontend/
 COPY --from=frontend-builder /build/frontend/node_modules /app/frontend/node_modules
@@ -41,13 +41,13 @@ COPY --from=frontend-builder /build/frontend/.next /app/frontend/.next
 RUN chown -R appuser:appgroup /app
 RUN chmod +x /app/backend/start.sh
 
-# Motor de Zunto: navegador sin ventana y carpeta de datos (su estado
-# tambien se guarda en la base: zunto_archivos). Con un volumen montado en
-# /data/zunto la sesion de Dropi y los archivos sobreviven sin restaurar.
-ENV ZUNTO_DROPI_CHROME=/usr/bin/chromium-browser \
-    ZUNTO_DROPI_HEADLESS=1 \
-    ZUNTO_DATA_DIR=/data/zunto
-RUN mkdir -p /data/zunto && chown -R appuser:appgroup /data
+# Motor de subida a Dropi: navegador sin ventana y carpeta de datos (su
+# estado tambien se guarda en la base: motor_archivos). Con un volumen en
+# /data/motor-dropi la sesion de Dropi y los archivos sobreviven sin restaurar.
+ENV MOTOR_DROPI_CHROME=/usr/bin/chromium-browser \
+    MOTOR_DROPI_DROPI_HEADLESS=1 \
+    MOTOR_DROPI_DATA_DIR=/data/motor-dropi
+RUN mkdir -p /data/motor-dropi && chown -R appuser:appgroup /data
 
 USER appuser
 EXPOSE 3001

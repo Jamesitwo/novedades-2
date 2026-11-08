@@ -1,7 +1,7 @@
 const prisma = require('../prisma/client').prisma;
 
 /**
- * Asignacion de pedidos LucidSales (estilo ZuntoStore).
+ * Asignacion de pedidos LucidSales (tabla propia, independiente de la vinculacion).
  *
  * Tabla propia `asignaciones_pedido`, separada de la vinculacion:
  * un pedido aparece en la lista solo por pertenecer a la tienda y
