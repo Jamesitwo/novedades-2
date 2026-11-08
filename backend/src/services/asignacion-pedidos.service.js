@@ -123,6 +123,26 @@ async function cargaPorOperador(operadorIds, tiendaId = null) {
   return mapa;
 }
 
+/**
+ * Dueno actual de un pedido: el de la tabla propia y, si el pedido no esta
+ * ahi, el de la vinculacion vieja. null = sin dueno.
+ * @returns {Promise<string|null>}
+ */
+async function duenoActual(lucidsalesPedidoId) {
+  const id = Number(lucidsalesPedidoId);
+  if (!Number.isFinite(id)) return null;
+  const propia = await prisma.asignacionPedido.findUnique({
+    where: { lucidsalesPedidoId: id },
+    select: { asignadoId: true }
+  });
+  if (propia) return propia.asignadoId || null;
+  const legacy = await prisma.pedidoVinculado.findUnique({
+    where: { lucidsalesPedidoId: id },
+    select: { asignadoId: true }
+  });
+  return legacy?.asignadoId || null;
+}
+
 // Ventana para medir la carga "de ahora" (no el historial completo)
 const VENTANA_CARGA_DIAS = Number(process.env.REPARTO_VENTANA_DIAS) || 7;
 
@@ -252,5 +272,6 @@ module.exports = {
   cargaPorOperador,
   cargaReciente,
   reservarTurnos,
+  duenoActual,
   repartir
 };

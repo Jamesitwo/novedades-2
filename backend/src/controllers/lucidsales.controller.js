@@ -360,7 +360,9 @@ const vincularPedido = async (req, res) => {
     if (!lucidsalesPedidoId) {
       return res.status(400).json({ error: 'lucidsalesPedidoId es requerido' });
     }
-    const asignadoId = await getNextOperador('lucidsales', req.tiendaId);
+    // si ya tiene dueno (reparto automatico, asignacion a mano...) se respeta
+    const asignadoId = (await asignacionPedidosService.duenoActual(lucidsalesPedidoId))
+      || await getNextOperador('lucidsales', req.tiendaId);
     const result = await lucidsalesService.crearVinculacion(lucidsalesPedidoId, notas, req.usuario.id, asignadoId, req.tiendaId);
     res.json({ ok: true, pedido: result });
   } catch (error) {
@@ -395,7 +397,13 @@ const vincularYActualizar = async (req, res) => {
       }
     }
 
-    let asignadoId = await getNextOperador('lucidsales', req.tiendaId);
+    // Si el pedido ya tiene dueno (el reparto automatico pudo llegar antes, o
+    // alguien lo asigno a mano), se respeta: no se gasta turno ni se le quita.
+    // Solo si no tiene a nadie se pide el siguiente turno.
+    let asignadoId = await asignacionPedidosService.duenoActual(lucidsalesPedidoId);
+    if (!asignadoId) {
+      asignadoId = await getNextOperador('lucidsales', req.tiendaId);
+    }
     if (!asignadoId) {
       const admin = await prisma.usuario.findFirst({ where: { rol: 'admin', activo: true, gestionaPedidos: true, tiendaId: req.tiendaId }, select: { id: true } });
       asignadoId = admin?.id || null;
