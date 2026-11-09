@@ -21,6 +21,13 @@ const ESTADOS = {
   9: { label: 'Novedad Solucionada', class: 'confirmado' }
 };
 
+// fecha en numero, hora de Colombia: 8/11/2026
+const fechaCorta = (fecha) => {
+  const d = new Date(fecha);
+  if (Number.isNaN(d.getTime())) return '';
+  return d.toLocaleDateString('es-CO', { timeZone: 'America/Bogota', day: 'numeric', month: 'numeric', year: 'numeric' });
+};
+
 const haceCuanto = (fecha) => {
   if (!fecha) return '—';
   const pasada = new Date(fecha).getTime();
@@ -634,7 +641,10 @@ export default function LucidSalesPage() {
                       )}
                     </td>
                     <td data-label="Total" className="td-mono">{formatMoney(p.Total)}</td>
-                    <td data-label="Fecha" style={{ fontSize: 11, whiteSpace: 'nowrap', color: 'var(--text3)' }} title={p.createdAt ? new Date(p.createdAt).toLocaleString('es-CO') : ''}>
+                    <td data-label="Fecha" style={{ fontSize: 11, whiteSpace: 'nowrap', color: 'var(--text3)' }} title={p.createdAt ? new Date(p.createdAt).toLocaleString('es-CO', { timeZone: 'America/Bogota' }) : ''}>
+                      {p.createdAt && (
+                        <div style={{ fontSize: 12, color: 'var(--text2)', fontFamily: 'var(--mono)' }}>{fechaCorta(p.createdAt)}</div>
+                      )}
                       {haceCuanto(p.createdAt)}
                     </td>
                     <td data-label="Etiquetas" style={{ maxWidth: 120 }}>
