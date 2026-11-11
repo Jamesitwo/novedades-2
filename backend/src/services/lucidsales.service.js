@@ -837,6 +837,51 @@ async function idsConEtiqueta(etiquetaId) {
   return new Set(regs.map(r => Number(r.registroId)).filter(Number.isFinite));
 }
 
+/**
+ * Todos los pedidos de LucidSales que cumplen estos filtros (filas ligeras,
+ * en el orden de la API: mas nuevos primero), si no pasan de `max`. Si son
+ * mas, devuelve null (quien llama decide otro camino). Cache corto, asi
+ * pasar de pagina no vuelve a pedirlo todo.
+ */
+const cacheListas = new Map(); // clave -> { t, filas }
+const CACHE_LISTA_MS = 60 * 1000;
+const MAX_LISTA_API = 6000;
+
+async function listaCompletaApi({ estados, fechaDesde, fechaHasta, producto, search = '', tiendaId = null, max = MAX_LISTA_API }) {
+  const filters = filtrosApi({ estados, fechaDesde, fechaHasta, producto });
+  const clave = JSON.stringify([tiendaId || '', filters, search || '']);
+  const c = cacheListas.get(clave);
+  if (c && Date.now() - c.t < CACHE_LISTA_MS) return c.filas;
+
+  const POR_PAGINA = 100;
+  const primera = await getPedidos({ page: 1, itemsPerPage: POR_PAGINA, search, filters, tiendaId });
+  const total = Number(primera.totalRecords || 0);
+  if (total > max) return null;
+  const paginas = [Array.isArray(primera.pedidos) ? primera.pedidos : []];
+  const resto = [];
+  for (let page = 2; page <= Math.ceil(total / POR_PAGINA); page++) resto.push(page);
+  const leidas = await mapLimitado(resto, CONCURRENCIA_VIVO, page => getPedidos({ page, itemsPerPage: POR_PAGINA, search, filters, tiendaId }));
+  for (const r of leidas) {
+    if (r && r.__error) throw r.__error;
+    paginas.push(Array.isArray(r?.pedidos) ? r.pedidos : []);
+  }
+  const vistos = new Set();
+  const filas = [];
+  for (const lista of paginas) {
+    for (const p of lista) {
+      const id = Number(p.id);
+      if (!Number.isFinite(id) || vistos.has(id)) continue;
+      vistos.add(id);
+      filas.push(p);
+    }
+  }
+  cacheListas.set(clave, { t: Date.now(), filas });
+  if (cacheListas.size > 200) {
+    for (const [k, v] of cacheListas) if (Date.now() - v.t > CACHE_LISTA_MS) cacheListas.delete(k);
+  }
+  return filas;
+}
+
 async function listPorIdsLocales({ page = 1, itemsPerPage = 50, search = '', estados, fechaDesde, fechaHasta, producto, asignadoId, etiquetaId, tiendaId = null }) {
   let candidatos = null;
   if (asignadoId) candidatos = await idsAsignadosA(asignadoId, tiendaId);
@@ -845,6 +890,32 @@ async function listPorIdsLocales({ page = 1, itemsPerPage = 50, search = '', est
     candidatos = candidatos ? new Set([...candidatos].filter(id => conEtiqueta.has(id))) : conEtiqueta;
   }
   let ids = [...(candidatos || [])].sort((a, b) => b - a); // id de LucidSales crece con el tiempo
+
+  // Camino exacto: si hay filtros de LucidSales (estado, fecha, producto,
+  // busqueda), se le pide a LucidSales la lista completa con esos filtros y
+  // se cruza con los pedidos del asesor/etiqueta. Total y paginas exactos, y
+  // las filas salen ya de esa lista (sin leer pedido por pedido).
+  const conFiltrosApi = (Array.isArray(estados) && estados.length > 0) || fechaDesde || fechaHasta || producto || (search && String(search).trim());
+  if (ids.length && conFiltrosApi) {
+    const filasApi = await listaCompletaApi({ estados, fechaDesde, fechaHasta, producto, search, tiendaId });
+    if (filasApi) {
+      const deEstos = new Set(ids);
+      const filas = filasApi.filter(p => deEstos.has(Number(p.id)));
+      const total = filas.length;
+      const enPagina = filas.slice((page - 1) * itemsPerPage, page * itemsPerPage);
+      const locales = await datosLocales(enPagina.map(p => Number(p.id)));
+      refrescarCopias(enPagina, locales);
+      return {
+        ok: true,
+        pedidos: enPagina.map(p => filaDeLista(p, locales)),
+        totalRecords: total,
+        numPages: Math.max(1, Math.ceil(total / itemsPerPage)),
+        fuente: 'api-filtrada'
+      };
+    }
+    // demasiados pedidos en LucidSales con esos filtros: se revisan los del
+    // asesor en vivo por tandas (abajo)
+  }
 
   // prefiltro con la copia local. Solo se confia en ella si es reciente o si
   // el estado ya no cambia (entregado, devuelto, cancelado); lo demas se mira
@@ -911,6 +982,7 @@ async function listPorIdsLocales({ page = 1, itemsPerPage = 50, search = '', est
   let apiPedidos;
   let total;
   let aproximado = false;
+  let paginasExtra = 0;
   let errores = 0;
   if (!escanear) {
     // todo resuelto con la base: se pagina directo y solo se lee la pagina
@@ -942,8 +1014,10 @@ async function listPorIdsLocales({ page = 1, itemsPerPage = 50, search = '', est
     pagina = apiPedidos.map(p => Number(p.id));
     const quedan = ids.length - i;
     aproximado = quedan > 0;
-    // sin recorrer todo, el total es "al menos lo encontrado" + lo que falta mirar
-    total = coinciden.length + quedan;
+    // sin recorrer todo, el total es "al menos lo encontrado"; si quedan por
+    // revisar se ofrece una pagina mas (no una por cada pedido sin revisar)
+    total = coinciden.length;
+    if (aproximado) paginasExtra = 1;
   }
 
   const locales = await datosLocales(pagina);
@@ -960,7 +1034,7 @@ async function listPorIdsLocales({ page = 1, itemsPerPage = 50, search = '', est
     ok: true,
     pedidos: apiPedidos.map(p => filaDeLista(p, locales)),
     totalRecords: total,
-    numPages: Math.max(1, Math.ceil(total / itemsPerPage)),
+    numPages: Math.max(1, Math.ceil(total / itemsPerPage) + paginasExtra),
     fuente: 'api-por-ids',
     ...(aproximado ? { totalAproximado: true } : {}),
     ...(errores ? { avisos: [`${errores} pedido(s) no se pudieron leer de LucidSales`] } : {})
@@ -1039,6 +1113,7 @@ module.exports = {
   listVinculaciones,
   listPedidosDirecto,
   listPorIdsLocales,
+  listaCompletaApi,
   filtrosApi,
   idsAsignadosA,
   ESTADOS_FINALES,
