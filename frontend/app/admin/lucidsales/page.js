@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import Link from 'next/link';
 import api from '@/lib/api';
 import { useAuthStore } from '@/store/authStore';
@@ -20,6 +20,72 @@ const ESTADOS = {
   8: { label: 'En Novedad', class: 'pendiente' },
   9: { label: 'Novedad Solucionada', class: 'confirmado' }
 };
+
+// Filtro de estado con varias opciones a la vez (p. ej. Por confirmar + Modificado)
+function FiltroEstados({ valor, onCambiar }) {
+  const [abierto, setAbierto] = useState(false);
+  const caja = useRef(null);
+  useEffect(() => {
+    if (!abierto) return undefined;
+    const fuera = e => { if (caja.current && !caja.current.contains(e.target)) setAbierto(false); };
+    const esc = e => { if (e.key === 'Escape') setAbierto(false); };
+    document.addEventListener('mousedown', fuera);
+    document.addEventListener('keydown', esc);
+    return () => { document.removeEventListener('mousedown', fuera); document.removeEventListener('keydown', esc); };
+  }, [abierto]);
+
+  const nombres = valor.map(v => ESTADOS[v]?.label).filter(Boolean);
+  const texto = nombres.length === 0
+    ? 'Estado: todos'
+    : nombres.length <= 2 ? `Estado: ${nombres.join(' + ')}` : `Estado: ${nombres.length} elegidos`;
+  const alternar = k => {
+    const n = Number(k);
+    onCambiar(valor.includes(n) ? valor.filter(v => v !== n) : [...valor, n].sort((a, b) => a - b));
+  };
+
+  return (
+    <div ref={caja} style={{ position: 'relative' }}>
+      <button
+        type="button"
+        onClick={() => setAbierto(a => !a)}
+        className={`filter-tab ${valor.length ? 'active' : ''}`}
+        title={nombres.length > 2 ? nombres.join(', ') : undefined}
+        aria-expanded={abierto}
+      >
+        📅 {texto} ▾
+      </button>
+      {abierto && (
+        <div
+          style={{
+            position: 'absolute', top: 'calc(100% + 4px)', left: 0, zIndex: 50, minWidth: 220,
+            background: 'var(--bg2)', border: '1px solid var(--border)', borderRadius: 8,
+            boxShadow: '0 8px 24px rgba(0,0,0,0.35)', padding: 6
+          }}
+        >
+          {Object.entries(ESTADOS).map(([k, v]) => (
+            <label
+              key={k}
+              style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '6px 8px', borderRadius: 6, cursor: 'pointer', fontSize: 13, color: 'var(--text)' }}
+              onMouseEnter={e => { e.currentTarget.style.background = 'var(--bg3)'; }}
+              onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; }}
+            >
+              <input type="checkbox" checked={valor.includes(Number(k))} onChange={() => alternar(k)} style={{ accentColor: 'var(--accent)' }} />
+              {v.label}
+            </label>
+          ))}
+          <div style={{ display: 'flex', justifyContent: 'space-between', gap: 6, borderTop: '1px solid var(--border)', marginTop: 4, paddingTop: 6 }}>
+            <button type="button" className="btn btn-ghost" style={{ fontSize: 12 }} onClick={() => onCambiar([])} disabled={!valor.length}>
+              Todos
+            </button>
+            <button type="button" className="btn btn-primary" style={{ fontSize: 12 }} onClick={() => setAbierto(false)}>
+              Listo
+            </button>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
 
 // fecha en numero, hora de Colombia: 8/11/2026
 const fechaCorta = (fecha) => {
@@ -444,17 +510,7 @@ export default function LucidSalesPage() {
 
       <div className="filters">
         <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
-          <select
-            value={estados.length === 1 ? String(estados[0]) : ''}
-            onChange={e => { const v = e.target.value; setEstados(v === '' ? [] : [Number(v)]); setPage(1); }}
-            className={`filter-tab ${estados.length ? 'active' : ''}`}
-            style={{ appearance: 'auto', cursor: 'pointer', paddingRight: 26 }}
-          >
-            <option value="">📅 Estado: todos</option>
-            {Object.entries(ESTADOS).map(([k, v]) => (
-              <option key={k} value={k}>{v.label}</option>
-            ))}
-          </select>
+          <FiltroEstados valor={estados} onCambiar={v => { setEstados(v); setPage(1); }} />
           <button
             onClick={() => { setAsignadoAMi(v => !v); setAsignadoId(''); setPage(1); }}
             className={`filter-tab ${asignadoAMi ? 'active' : ''}`}
