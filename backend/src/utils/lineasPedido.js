@@ -60,21 +60,32 @@ const arreglo = v => {
   return [];
 };
 
+const igual = (a, b) => String(a ?? '').trim().toLowerCase() === String(b ?? '').trim().toLowerCase();
+
 /**
- * Variantes de la ficha de un producto: [{sku, nombre, corto}]. El `sku` de
- * cada combinacion es el `variation_id` que va en la linea del pedido.
+ * Variantes de la ficha de un producto: [{sku, nombre, corto, precio, stock}].
+ * El `sku` de cada combinacion es el `variation_id` que va en la linea.
  *   nombre: "Copa: Blanca; Tamaño: 150 cm"   corto: "Blanca / 150 cm"
+ * Precio y stock salen de `bundleVariantes[].variantes[]` (misma combinacion).
  */
 function opcionesVariantes(prod) {
   const atributos = arreglo(prod?.variantes).map(v => String(v?.nombre ?? '').trim());
+  const bundle = arreglo(prod?.bundleVariantes).flatMap(b => arreglo(b?.variantes));
   return arreglo(prod?.mixedvariantes)
     .filter(m => m?.sku)
     .map(m => {
       const items = arreglo(m.items).map(x => String(x ?? '').trim());
+      const b = bundle.find(v => {
+        const its = arreglo(v?.items);
+        return its.length === items.length && its.every((x, i) => igual(x, items[i]));
+      });
+      const stock = b?.stock;
       return {
         sku: String(m.sku),
         nombre: items.map((x, i) => (atributos[i] ? `${atributos[i]}: ${x}` : x)).join('; '),
-        corto: items.join(' / ')
+        corto: items.join(' / '),
+        precio: num(b?.precioSugerido) || num(m?.precioSugerido) || null,
+        stock: stock !== undefined && stock !== null && stock !== '' && Number.isFinite(Number(stock)) ? Number(stock) : null
       };
     });
 }

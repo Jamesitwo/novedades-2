@@ -5,6 +5,7 @@ import api from '@/lib/api';
 import Icon from '@/components/ui/Icon';
 import Button from '@/components/ui/Button';
 import Autocomplete from '@/components/ui/Autocomplete';
+import SelectorProducto from '@/components/ui/SelectorProducto';
 import PanelDropi from '@/components/motor-dropi/PanelDropi';
 import { SubirPedidoDropi } from '@/components/motor-dropi/components/SubirPedidoDropi';
 import { EntregaProgramadaCard } from '@/components/motor-dropi/components/EntregaProgramada';
@@ -104,27 +105,29 @@ export default function LucidsalesDetailPanel({ id, ids, currentIndex, onClose, 
 
   const [productosMap, setProductosMap] = useState({});
   const [productosStock, setProductosStock] = useState({});
-  // nombre de cada variante por producto: { [product_id]: { [variation_id]: 'Blanca / 150 cm' } }
+  // variantes de cada producto (ficha): { [product_id]: [{sku, corto, nombre, precio, stock}] }
   const [variantesMap, setVariantesMap] = useState({});
+  const variantesCargando = useRef({});
 
-  // nombres de las variantes de los productos del pedido (ficha del producto)
+  // trae (una vez) las variantes de un producto; [] si no tiene
+  const cargarVariantes = useCallback((id) => {
+    const clave = String(id ?? '');
+    if (!clave) return Promise.resolve([]);
+    if (!variantesCargando.current[clave]) {
+      variantesCargando.current[clave] = api.get(`/api/lucidsales/productos/${clave}/variantes`)
+        .then(({ data }) => (Array.isArray(data?.variantes) ? data.variantes : []))
+        .catch(() => { delete variantesCargando.current[clave]; return []; })
+        .then(lista => { setVariantesMap(prev => ({ ...prev, [clave]: lista })); return lista; });
+    }
+    return variantesCargando.current[clave];
+  }, []);
+
+  // variantes de los productos del pedido
   useEffect(() => {
     let items = [];
     try { items = typeof pedido?.Json === 'string' ? JSON.parse(pedido.Json) : (pedido?.Json || []); } catch { items = []; }
-    const faltan = [...new Set(items.filter(tieneVariantes).map(it => String(it.product_id)))].filter(id => !(id in variantesMap));
-    if (!faltan.length) return;
-    let vivo = true;
-    faltan.forEach(id => {
-      api.get(`/api/lucidsales/productos/${id}/variantes`)
-        .then(({ data }) => {
-          const m = {};
-          (data?.variantes || []).forEach(v => { m[String(v.sku)] = v.corto || v.nombre; });
-          if (vivo) setVariantesMap(prev => ({ ...prev, [id]: m }));
-        })
-        .catch(() => { if (vivo) setVariantesMap(prev => ({ ...prev, [id]: {} })); });
-    });
-    return () => { vivo = false; };
-  }, [pedido?.Json]); // eslint-disable-line react-hooks/exhaustive-deps
+    [...new Set(items.filter(tieneVariantes).map(it => String(it.product_id)))].forEach(id => { cargarVariantes(id); });
+  }, [pedido?.Json, cargarVariantes]);
   const [quotes, setQuotes] = useState(null);
   const [quoting, setQuoting] = useState(false);
   const [selectedQuoteIdx, setSelectedQuoteIdx] = useState(null);
@@ -135,6 +138,15 @@ export default function LucidsalesDetailPanel({ id, ids, currentIndex, onClose, 
   const [editProdPrice, setEditProdPrice] = useState(null);
   const [irConfirm, setIrConfirm] = useState(null);
   const [editProdMode, setEditProdMode] = useState(null);
+  // variantes del producto que se esta editando (para cambiarla o agregar otra)
+  useEffect(() => {
+    if (editProdMode == null) return;
+    let items = [];
+    try { items = typeof pedido?.Json === 'string' ? JSON.parse(pedido.Json) : (pedido?.Json || []); } catch { items = []; }
+    const id = items[editProdMode]?.product_id;
+    if (id) cargarVariantes(id);
+  }, [editProdMode, pedido?.Json, cargarVariantes]);
+
   const [stockErrors, setStockErrors] = useState({});
   const [refreshingStock, setRefreshingStock] = useState({});
   const [etiquetas, setEtiquetas] = useState([]);
@@ -207,13 +219,61 @@ export default function LucidsalesDetailPanel({ id, ids, currentIndex, onClose, 
     markModified('Json');
   };
 
-  const handleProductChange = (i, newProductId) => {
-    const items = parseJson(pedido.Json);
-    items[i] = { ...items[i], product_id: newProductId };
-    const newJson = JSON.stringify(items);
-    const totals = recalcTotalsFromProducts(newJson);
-    setPedido(prev => ({ ...prev, Json: newJson, ...totals }));
+  // cambia las lineas sobre el estado mas reciente (sirve tras un await)
+  const actualizarLineas = (cambiar) => {
+    setPedido(prev => {
+      const items = parseJson(prev.Json);
+      cambiar(items);
+      const subTotal = items.reduce((sum, p) => sum + totalLinea(p), 0);
+      const costoEnvio = Number(prev?.CostoEnvio || 0);
+      return { ...prev, Json: JSON.stringify(items), SubTotal: String(subTotal), CostoEnvio: String(costoEnvio), Total: String(subTotal + costoEnvio) };
+    });
     markModified('Json');
+  };
+
+  // elegir otro producto: si tiene variantes la linea pasa a llevarlas (hay que elegir cual)
+  const handleProductChange = async (i, newProductId) => {
+    const id = String(newProductId ?? '');
+    const anterior = parseJson(pedido.Json)[i];
+    const cantidad = anterior ? cantidadLinea(anterior) : 1;
+    actualizarLineas(items => { if (items[i]) items[i] = { product_id: id, price: 0, quantity: cantidad, variations: [] }; });
+    if (!id) return;
+    const opciones = await cargarVariantes(id);
+    if (opciones.length) {
+      const unica = opciones.length === 1 ? opciones[0] : null;
+      actualizarLineas(items => {
+        if (!items[i] || String(items[i].product_id) !== id) return;
+        items[i] = { product_id: id, price: null, quantity: null, variations: [{ variation_id: unica ? String(unica.sku) : '', price: Number(unica?.precio || 0), quantity: cantidad }] };
+      });
+    } else {
+      const precio = Number(productosMap[id]?.price || 0);
+      if (precio) actualizarLineas(items => { if (items[i] && String(items[i].product_id) === id) items[i] = { ...items[i], price: precio }; });
+    }
+  };
+
+  // elegir la combinacion (variation_id) de una variante; trae su precio si la ficha lo tiene
+  const handleVarianteSku = (i, j, sku) => {
+    const opcion = (variantesMap[String(parseJson(pedido.Json)[i]?.product_id)] || []).find(o => String(o.sku) === String(sku));
+    actualizarLineas(items => {
+      const linea = items[i];
+      if (!linea || !Array.isArray(linea.variations) || !linea.variations[j]) return;
+      const variations = linea.variations.map((v, k) => (k === j ? { ...v, variation_id: String(sku), ...(opcion?.precio ? { price: Number(opcion.precio) } : {}) } : v));
+      items[i] = { ...linea, variations };
+    });
+  };
+
+  const handleAddVariante = (i) => {
+    const linea = parseJson(pedido.Json)[i];
+    if (!linea) return;
+    const usadas = new Set((linea.variations || []).map(v => String(v?.variation_id)));
+    const libres = (variantesMap[String(linea.product_id)] || []).filter(o => !usadas.has(String(o.sku)));
+    const siguiente = libres.length === 1 ? libres[0] : null;
+    actualizarLineas(items => {
+      const l = items[i];
+      if (!l) return;
+      const variations = tieneVariantes(l) ? l.variations : [];
+      items[i] = { ...l, price: null, quantity: null, variations: [...variations, { variation_id: siguiente ? String(siguiente.sku) : '', price: Number(siguiente?.precio || 0), quantity: 1 }] };
+    });
   };
 
   const handleQuantityChange = (i, newQty) => {
@@ -262,8 +322,7 @@ export default function LucidsalesDetailPanel({ id, ids, currentIndex, onClose, 
 
   const handleAddProduct = () => {
     const items = parseJson(pedido.Json);
-    const firstEntry = Object.keys(productosMap)[0];
-    items.push({ product_id: firstEntry || '0', price: 0, quantity: 1, variations: [] });
+    items.push({ product_id: '', price: 0, quantity: 1, variations: [] });
     const newJson = JSON.stringify(items);
     const totals = recalcTotalsFromProducts(newJson);
     setPedido(prev => ({ ...prev, Json: newJson, ...totals }));
@@ -373,7 +432,8 @@ export default function LucidsalesDetailPanel({ id, ids, currentIndex, onClose, 
                 }
               }
               if (img && !(img.startsWith('http://') || img.startsWith('https://'))) img = null;
-              if (key != null) map[String(key)] = { name, image: img };
+              const precioCat = Number(p.precio ?? p.price ?? p.Precio ?? p.precioSugerido ?? p.valor ?? 0) || 0;
+              if (key != null) map[String(key)] = { name, image: img, price: precioCat };
             });
             setProductosMap(map);
           }
@@ -428,6 +488,15 @@ export default function LucidsalesDetailPanel({ id, ids, currentIndex, onClose, 
   };
 
   const handleSave = async () => {
+    const lineasPedido = parseJson(pedido.Json);
+    if (lineasPedido.some(l => !String(l?.product_id ?? '').trim() || l.product_id === '0')) {
+      setOpenSections(prev => ({ ...prev, productos: true }));
+      return showToast('Hay un producto sin elegir: seleccionalo o quitalo antes de guardar', 'error');
+    }
+    if (lineasPedido.some(l => tieneVariantes(l) && l.variations.some(v => !String(v?.variation_id ?? '').trim()))) {
+      setOpenSections(prev => ({ ...prev, productos: true }));
+      return showToast('Elige la variante de cada producto antes de guardar', 'error');
+    }
     setSaving(true);
     setError('');
     try {
@@ -661,7 +730,7 @@ export default function LucidsalesDetailPanel({ id, ids, currentIndex, onClose, 
     if (tieneVariantes(p)) p.variations.forEach((v, j) => ordenVariante.set(`${i}-${j}`, ordenVariante.size));
   });
   const nombreVariante = (prod, v, i, j) =>
-    variantesMap[String(prod.product_id)]?.[String(v?.variation_id)] ||
+    (variantesMap[String(prod.product_id)] || []).find(o => String(o.sku) === String(v?.variation_id))?.corto ||
     nombresObs[ordenVariante.get(`${i}-${j}`)] ||
     (v?.variation_id ? `Variante ${v.variation_id}` : 'Variante');
 
@@ -959,20 +1028,30 @@ export default function LucidsalesDetailPanel({ id, ids, currentIndex, onClose, 
                       return editProdMode === i ? (
                         <div key={i} style={{ padding: '10px 12px', background: 'var(--bg2)', borderRadius: 8, border: '1px solid var(--border)' }}>
                           <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
-                            {(() => {
-                              const pi = productosMap[String(prod.product_id)];
-                              return pi?.image ? <img src={pi.image} alt="" style={{ width: 32, height: 32, borderRadius: 6, objectFit: 'cover', border: '1px solid var(--border)', flexShrink: 0 }} onError={e => { e.target.style.display = 'none'; }} /> : null;
-                            })()}
-                            <select value={prod.product_id || ''} onChange={e => handleProductChange(i, e.target.value)} disabled={tieneVariantes(prod)} title={tieneVariantes(prod) ? 'Producto con variantes: cambia cantidad y precio en cada variante' : undefined} style={{ ...fieldStyle(`prod-${i}`), flex: 1, fontSize: 12, appearance: 'auto', cursor: tieneVariantes(prod) ? 'not-allowed' : 'pointer', opacity: tieneVariantes(prod) ? 0.7 : 1 }}>
-                              <option value="">Seleccionar producto</option>
-                              {Object.entries(productosMap).map(([id, info]) => (<option key={id} value={id}>{info.name || `#${id}`}</option>))}
-                            </select>
+                            <SelectorProducto productos={productosMap} value={prod.product_id} onSelect={id => handleProductChange(i, id)} autoFocus={!prod.product_id} />
                           </div>
                           {tieneVariantes(prod) ? (
                             <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
                               {prod.variations.map((v, j) => (
                                 <div key={j} style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'nowrap', padding: '6px 8px', background: 'var(--bg3)', borderRadius: 6 }}>
-                                  <span style={{ fontSize: 12, color: 'var(--text)', flex: '1 1 auto', minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }} title={nombreVariante(prod, v, i, j)}>{nombreVariante(prod, v, i, j)}</span>
+                                  {(() => {
+                                    const opciones = variantesMap[String(prod.product_id)] || [];
+                                    const actualId = String(v?.variation_id ?? '');
+                                    const conocida = opciones.some(o => String(o.sku) === actualId);
+                                    const usadas = new Set(prod.variations.filter((_, k) => k !== j).map(x => String(x?.variation_id)));
+                                    return (
+                                      <select value={actualId} onChange={e => handleVarianteSku(i, j, e.target.value)} title={nombreVariante(prod, v, i, j)}
+                                        style={{ ...fieldStyle(`var-${i}-${j}`), flex: '1 1 auto', minWidth: 0, fontSize: 12, appearance: 'auto', cursor: 'pointer', borderColor: actualId ? undefined : 'var(--amber)' }}>
+                                        {!actualId && <option value="">— Elegir variante —</option>}
+                                        {actualId && !conocida && <option value={actualId}>{nombreVariante(prod, v, i, j)}</option>}
+                                        {opciones.map(o => (
+                                          <option key={o.sku} value={String(o.sku)} disabled={usadas.has(String(o.sku))}>
+                                            {o.corto || o.nombre}{o.precio ? ` · ${formatMoneyShort(o.precio)}` : ''}{o.stock !== null && o.stock !== undefined ? ` · stock ${o.stock}` : ''}{usadas.has(String(o.sku)) ? ' (ya agregada)' : ''}
+                                          </option>
+                                        ))}
+                                      </select>
+                                    );
+                                  })()}
                                   <span style={{ fontSize: 11, color: 'var(--text3)' }}>Cant:</span>
                                   <input type="number" min="1" value={v.quantity ?? 1} onChange={e => handleVarianteChange(i, j, 'quantity', e.target.value)} style={{ ...fieldStyle(`qty-${i}-${j}`), width: 64, flex: '0 0 64px', fontSize: 12, textAlign: 'center' }} />
                                   <span style={{ fontSize: 11, color: 'var(--text3)' }}>Precio:</span>
@@ -982,7 +1061,10 @@ export default function LucidsalesDetailPanel({ id, ids, currentIndex, onClose, 
                                   )}
                                 </div>
                               ))}
-                              <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
+                              <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end', alignItems: 'center' }}>
+                                {(variantesMap[String(prod.product_id)] || []).length > prod.variations.length && (
+                                  <Button variant="ghost" size="sm" onClick={() => handleAddVariante(i)} style={{ marginRight: 'auto' }}>+ Agregar variante</Button>
+                                )}
                                 <Button size="sm" onClick={() => setEditProdMode(null)}>✓ Listo</Button>
                                 <Button variant="dangerGhost" size="sm" onClick={() => handleRemoveProduct(i)}>Quitar producto</Button>
                               </div>
@@ -993,7 +1075,10 @@ export default function LucidsalesDetailPanel({ id, ids, currentIndex, onClose, 
                             <input type="number" min="1" value={prod.quantity || 1} onChange={e => handleQuantityChange(i, e.target.value)} style={{ width: 56, ...fieldStyle(`qty-${i}`), fontSize: 12, textAlign: 'center' }} />
                             <span style={{ fontSize: 11, color: 'var(--text3)' }}>Precio:</span>
                             <input type="number" value={prod.price} onChange={e => handleProductPriceChange(i, e.target.value)} style={{ width: 100, ...fieldStyle(`price-${i}`), fontSize: 12, textAlign: 'right', fontFamily: 'var(--mono)' }} />
-                            <Button size="sm" onClick={() => setEditProdMode(null)}>✓ Listo</Button>
+                            {(variantesMap[String(prod.product_id)] || []).length > 0 && (
+                              <Button variant="ghost" size="sm" onClick={() => handleAddVariante(i)}>Elegir variante</Button>
+                            )}
+                            <Button size="sm" onClick={() => (prod.product_id ? setEditProdMode(null) : handleRemoveProduct(i))}>✓ Listo</Button>
                             <Button variant="dangerGhost" size="sm" onClick={() => handleRemoveProduct(i)}>✕</Button>
                           </div>
                           )}
