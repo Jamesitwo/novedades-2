@@ -7,6 +7,7 @@ const hereGeocoding = require('../services/here-geocoding.service');
 const { getNextOperador } = require('../utils/autoAssign');
 const asignacionPedidosService = require('../services/asignacion-pedidos.service');
 const bitacoraService = require('../services/bitacora.service');
+const lineas = require('../utils/lineasPedido');
 const path = require('path');
 const fs = require('fs');
 
@@ -281,6 +282,17 @@ const productosStock = async (req, res) => {
   }
 };
 
+// Variantes (color, talla...) de un producto: para poner nombre a cada
+// variation_id de las lineas del pedido
+const getVariantesProducto = async (req, res) => {
+  try {
+    const producto = await lucidsalesService.getProducto(req.params.id, req.tiendaId);
+    res.json({ ok: true, variantes: lineas.opcionesVariantes(producto) });
+  } catch (error) {
+    res.status(502).json({ ok: false, error: error.message || 'No se pudieron leer las variantes del producto' });
+  }
+};
+
 const getFiltersData = async (req, res) => {
   try {
     const result = await lucidsalesService.getFiltersData(req.tiendaId);
@@ -434,11 +446,12 @@ const vincularYActualizar = async (req, res) => {
       const costoEnvio = Number(pedidoCompleto.CostoEnvio || 0);
       const totalNuevo = Number(camposFiltrados.Total);
       const subTotalNuevo = Math.max(0, totalNuevo - costoEnvio);
-      const subTotalAnterior = items.reduce((sum, p) => sum + Number(p.price || 0) * Number(p.quantity || 1), 0);
+      // con variantes el precio va en cada variante, no en la linea
+      const subTotalAnterior = lineas.subtotalLineas(items);
 
       if (subTotalAnterior > 0 && items.length > 0) {
         const ratio = subTotalNuevo / subTotalAnterior;
-        items.forEach(p => { p.price = Math.round(Number(p.price || 0) * ratio); });
+        items = lineas.escalarPrecios(items, ratio);
         camposFiltrados.Json = JSON.stringify(items);
         camposFiltrados.SubTotal = String(subTotalNuevo);
         camposFiltrados.CostoEnvio = String(costoEnvio);
@@ -630,9 +643,10 @@ const subirDividido = async (req, res) => {
           codigoPostal: original.codigoPostal || null,
           nitCliente: original.NIT || '',
           json: jsonSingle,
-          subTotal: Number(prod.price || 0) * Number(prod.quantity || 1),
+          // con variantes el valor sale de cada variante (si no, el pedido nuevo quedaria en $0)
+          subTotal: lineas.totalLinea(prod),
           costoEnvio: 0,
-          total: Number(prod.price || 0) * Number(prod.quantity || 1),
+          total: lineas.totalLinea(prod),
           Referencias: refUnica
         };
 
@@ -1137,6 +1151,7 @@ const bulkAsignarPedidos = async (req, res) => {
 };
 
 module.exports = {
+  getVariantesProducto,
   getPedidos,
   getPedidoById,
   updatePedido,

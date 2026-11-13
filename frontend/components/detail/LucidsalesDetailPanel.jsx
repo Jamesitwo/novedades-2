@@ -9,6 +9,7 @@ import PanelDropi from '@/components/motor-dropi/PanelDropi';
 import { SubirPedidoDropi } from '@/components/motor-dropi/components/SubirPedidoDropi';
 import { EntregaProgramadaCard } from '@/components/motor-dropi/components/EntregaProgramada';
 import { useMotorDropiActivo } from '@/components/motor-dropi/useMotorDropi';
+import { tieneVariantes, cantidadLinea, totalLinea, nombresDeVariantes } from '@/lib/lineasPedido';
 
 const ESTADOS = [
   { value: 0, label: 'Por confirmar' },
@@ -103,6 +104,27 @@ export default function LucidsalesDetailPanel({ id, ids, currentIndex, onClose, 
 
   const [productosMap, setProductosMap] = useState({});
   const [productosStock, setProductosStock] = useState({});
+  // nombre de cada variante por producto: { [product_id]: { [variation_id]: 'Blanca / 150 cm' } }
+  const [variantesMap, setVariantesMap] = useState({});
+
+  // nombres de las variantes de los productos del pedido (ficha del producto)
+  useEffect(() => {
+    let items = [];
+    try { items = typeof pedido?.Json === 'string' ? JSON.parse(pedido.Json) : (pedido?.Json || []); } catch { items = []; }
+    const faltan = [...new Set(items.filter(tieneVariantes).map(it => String(it.product_id)))].filter(id => !(id in variantesMap));
+    if (!faltan.length) return;
+    let vivo = true;
+    faltan.forEach(id => {
+      api.get(`/api/lucidsales/productos/${id}/variantes`)
+        .then(({ data }) => {
+          const m = {};
+          (data?.variantes || []).forEach(v => { m[String(v.sku)] = v.corto || v.nombre; });
+          if (vivo) setVariantesMap(prev => ({ ...prev, [id]: m }));
+        })
+        .catch(() => { if (vivo) setVariantesMap(prev => ({ ...prev, [id]: {} })); });
+    });
+    return () => { vivo = false; };
+  }, [pedido?.Json]); // eslint-disable-line react-hooks/exhaustive-deps
   const [quotes, setQuotes] = useState(null);
   const [quoting, setQuoting] = useState(false);
   const [selectedQuoteIdx, setSelectedQuoteIdx] = useState(null);
@@ -170,7 +192,8 @@ export default function LucidsalesDetailPanel({ id, ids, currentIndex, onClose, 
 
   const recalcTotalsFromProducts = (jsonStr) => {
     const items = parseJson(jsonStr);
-    const subTotal = items.reduce((sum, p) => sum + Number(p.price || 0) * Number(p.quantity || 1), 0);
+    // con variantes el precio y la cantidad van en cada variante
+    const subTotal = items.reduce((sum, p) => sum + totalLinea(p), 0);
     const costoEnvio = Number(pedido?.CostoEnvio || 0);
     return { SubTotal: String(subTotal), CostoEnvio: String(costoEnvio), Total: String(subTotal + costoEnvio) };
   };
@@ -196,6 +219,31 @@ export default function LucidsalesDetailPanel({ id, ids, currentIndex, onClose, 
   const handleQuantityChange = (i, newQty) => {
     const items = parseJson(pedido.Json);
     items[i] = { ...items[i], quantity: Number(newQty) || 1 };
+    const newJson = JSON.stringify(items);
+    const totals = recalcTotalsFromProducts(newJson);
+    setPedido(prev => ({ ...prev, Json: newJson, ...totals }));
+    markModified('Json');
+  };
+
+  // producto con variantes: cantidad y precio se cambian en cada variante
+  const handleVarianteChange = (i, j, campo, valor) => {
+    const items = parseJson(pedido.Json);
+    const linea = items[i];
+    if (!linea || !Array.isArray(linea.variations) || !linea.variations[j]) return;
+    const n = campo === 'quantity' ? Math.max(1, Number(valor) || 1) : Number(valor) || 0;
+    const variations = linea.variations.map((v, k) => (k === j ? { ...v, [campo]: n } : v));
+    items[i] = { ...linea, variations };
+    const newJson = JSON.stringify(items);
+    const totals = recalcTotalsFromProducts(newJson);
+    setPedido(prev => ({ ...prev, Json: newJson, ...totals }));
+    markModified('Json');
+  };
+
+  const handleRemoveVariante = (i, j) => {
+    const items = parseJson(pedido.Json);
+    const linea = items[i];
+    if (!linea || !Array.isArray(linea.variations) || linea.variations.length <= 1) return;
+    items[i] = { ...linea, variations: linea.variations.filter((_, k) => k !== j) };
     const newJson = JSON.stringify(items);
     const totals = recalcTotalsFromProducts(newJson);
     setPedido(prev => ({ ...prev, Json: newJson, ...totals }));
@@ -606,6 +654,16 @@ export default function LucidsalesDetailPanel({ id, ids, currentIndex, onClose, 
   const estadoActual = ESTADOS.find(e => e.value === pedido.EstadoPedido) || ESTADOS[0];
   const obs = parseObservaciones(pedido.Observaciones);
   const productos = parseJson(pedido.Json);
+  // nombre de una variante: ficha del producto, si no las observaciones del pedido, si no su id
+  const nombresObs = nombresDeVariantes(pedido.Observaciones);
+  const ordenVariante = new Map();
+  productos.forEach((p, i) => {
+    if (tieneVariantes(p)) p.variations.forEach((v, j) => ordenVariante.set(`${i}-${j}`, ordenVariante.size));
+  });
+  const nombreVariante = (prod, v, i, j) =>
+    variantesMap[String(prod.product_id)]?.[String(v?.variation_id)] ||
+    nombresObs[ordenVariante.get(`${i}-${j}`)] ||
+    (v?.variation_id ? `Variante ${v.variation_id}` : 'Variante');
 
   const bajoStock = productos.filter(prod => {
     const stock = productosStock[String(prod.product_id)];
@@ -905,11 +963,31 @@ export default function LucidsalesDetailPanel({ id, ids, currentIndex, onClose, 
                               const pi = productosMap[String(prod.product_id)];
                               return pi?.image ? <img src={pi.image} alt="" style={{ width: 32, height: 32, borderRadius: 6, objectFit: 'cover', border: '1px solid var(--border)', flexShrink: 0 }} onError={e => { e.target.style.display = 'none'; }} /> : null;
                             })()}
-                            <select value={prod.product_id || ''} onChange={e => handleProductChange(i, e.target.value)} style={{ ...fieldStyle(`prod-${i}`), flex: 1, fontSize: 12, appearance: 'auto', cursor: 'pointer' }}>
+                            <select value={prod.product_id || ''} onChange={e => handleProductChange(i, e.target.value)} disabled={tieneVariantes(prod)} title={tieneVariantes(prod) ? 'Producto con variantes: cambia cantidad y precio en cada variante' : undefined} style={{ ...fieldStyle(`prod-${i}`), flex: 1, fontSize: 12, appearance: 'auto', cursor: tieneVariantes(prod) ? 'not-allowed' : 'pointer', opacity: tieneVariantes(prod) ? 0.7 : 1 }}>
                               <option value="">Seleccionar producto</option>
                               {Object.entries(productosMap).map(([id, info]) => (<option key={id} value={id}>{info.name || `#${id}`}</option>))}
                             </select>
                           </div>
+                          {tieneVariantes(prod) ? (
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                              {prod.variations.map((v, j) => (
+                                <div key={j} style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'nowrap', padding: '6px 8px', background: 'var(--bg3)', borderRadius: 6 }}>
+                                  <span style={{ fontSize: 12, color: 'var(--text)', flex: '1 1 auto', minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }} title={nombreVariante(prod, v, i, j)}>{nombreVariante(prod, v, i, j)}</span>
+                                  <span style={{ fontSize: 11, color: 'var(--text3)' }}>Cant:</span>
+                                  <input type="number" min="1" value={v.quantity ?? 1} onChange={e => handleVarianteChange(i, j, 'quantity', e.target.value)} style={{ ...fieldStyle(`qty-${i}-${j}`), width: 64, flex: '0 0 64px', fontSize: 12, textAlign: 'center' }} />
+                                  <span style={{ fontSize: 11, color: 'var(--text3)' }}>Precio:</span>
+                                  <input type="number" value={v.price ?? 0} onChange={e => handleVarianteChange(i, j, 'price', e.target.value)} style={{ ...fieldStyle(`price-${i}-${j}`), width: 110, flex: '0 0 110px', fontSize: 12, textAlign: 'right', fontFamily: 'var(--mono)' }} />
+                                  {prod.variations.length > 1 && (
+                                    <Button variant="dangerGhost" size="sm" onClick={() => handleRemoveVariante(i, j)} title="Quitar esta variante">✕</Button>
+                                  )}
+                                </div>
+                              ))}
+                              <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
+                                <Button size="sm" onClick={() => setEditProdMode(null)}>✓ Listo</Button>
+                                <Button variant="dangerGhost" size="sm" onClick={() => handleRemoveProduct(i)}>Quitar producto</Button>
+                              </div>
+                            </div>
+                          ) : (
                           <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
                             <span style={{ fontSize: 11, color: 'var(--text3)' }}>Cant:</span>
                             <input type="number" min="1" value={prod.quantity || 1} onChange={e => handleQuantityChange(i, e.target.value)} style={{ width: 56, ...fieldStyle(`qty-${i}`), fontSize: 12, textAlign: 'center' }} />
@@ -918,6 +996,7 @@ export default function LucidsalesDetailPanel({ id, ids, currentIndex, onClose, 
                             <Button size="sm" onClick={() => setEditProdMode(null)}>✓ Listo</Button>
                             <Button variant="dangerGhost" size="sm" onClick={() => handleRemoveProduct(i)}>✕</Button>
                           </div>
+                          )}
                         </div>
                       ) : (
                         <div key={i} style={{ padding: '8px 12px', background: 'var(--bg2)', borderRadius: 8, border: '1px solid var(--border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 10, cursor: 'pointer' }}
@@ -933,13 +1012,27 @@ export default function LucidsalesDetailPanel({ id, ids, currentIndex, onClose, 
                                   </>
                                 );
                               })()}
-                              <span style={{ color: 'var(--text2)', fontSize: 11, fontFamily: 'var(--mono)' }}>x{prod.quantity || 1}</span>
-                              {prod.variations?.length > 0 && <span style={{ color: 'var(--text3)', fontSize: 10 }}>({prod.variations.join(', ')})</span>}
+                              <span style={{ color: 'var(--text2)', fontSize: 11, fontFamily: 'var(--mono)' }}>x{cantidadLinea(prod)}</span>
                               {stockBadge}
                             </div>
+                            {tieneVariantes(prod) && (
+                              <div style={{ display: 'flex', flexDirection: 'column', gap: 2, marginTop: 6 }}>
+                                {prod.variations.map((v, j) => (
+                                  <div key={j} style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 11 }}>
+                                    <span style={{ color: 'var(--text2)' }}>• {nombreVariante(prod, v, i, j)}</span>
+                                    <span style={{ color: 'var(--text3)', fontFamily: 'var(--mono)' }}>x{v.quantity ?? 1}</span>
+                                    <span style={{ color: 'var(--text3)', fontFamily: 'var(--mono)' }}>{formatMoneyShort(Number(v.price || 0))}</span>
+                                  </div>
+                                ))}
+                              </div>
+                            )}
                           </div>
                           <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexShrink: 0 }}>
-                            {editProdPrice === i ? (
+                            {tieneVariantes(prod) ? (
+                              <div title="Total de las variantes (se edita en cada variante)" style={{ color: 'var(--accent2)', fontFamily: 'var(--mono)', fontWeight: 600, padding: '2px 6px', fontSize: 13 }}>
+                                {formatMoneyShort(totalLinea(prod))}
+                              </div>
+                            ) : editProdPrice === i ? (
                               <input type="number" autoFocus value={prod.price} onChange={e => handleProductPriceChange(i, e.target.value)}
                                 onClick={e => e.stopPropagation()} onBlur={() => setEditProdPrice(null)} onKeyDown={e => e.key === 'Enter' && setEditProdPrice(null)}
                                 style={{ width: 100, ...fieldStyle(`inline-price-${i}`), textAlign: 'right', fontFamily: 'var(--mono)', fontSize: 12 }} />
@@ -1246,8 +1339,8 @@ export default function LucidsalesDetailPanel({ id, ids, currentIndex, onClose, 
               <div style={{ display: 'flex', flexDirection: 'column', gap: 4, marginBottom: 16 }}>
                 {productos.map((p, i) => (
                   <div key={i} style={{ display: 'flex', justifyContent: 'space-between', padding: '5px 8px', background: 'var(--bg3)', borderRadius: 4, fontSize: 12 }}>
-                    <span>{productosMap[String(p.product_id)]?.name || `#${p.product_id}`} x{p.quantity || 1}</span>
-                    <span style={{ color: 'var(--accent2)', fontFamily: 'var(--mono)' }}>{formatMoneyShort(p.price * (p.quantity || 1))}</span>
+                    <span>{productosMap[String(p.product_id)]?.name || `#${p.product_id}`} x{cantidadLinea(p)}</span>
+                    <span style={{ color: 'var(--accent2)', fontFamily: 'var(--mono)' }}>{formatMoneyShort(totalLinea(p))}</span>
                   </div>
                 ))}
               </div>
