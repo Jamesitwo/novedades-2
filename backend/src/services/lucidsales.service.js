@@ -339,8 +339,11 @@ const getProducto = cached(async (productoId, tiendaId) => {
   const config = await getConfig(tiendaId);
   const { token } = await authenticate(config);
   const r = await apiGet(`/productos/getproducto/${productoId}`, token);
-  const p = r?.datos?.product ?? r?.datos?.producto ?? r?.datos?.data?.product ?? r?.datos?.data ?? r?.datos ?? r;
-  if (!p || !p.id) throw new Error('Producto no encontrado o respuesta inválida de LucidSales');
+  // apiGet ya devuelve el cuerpo: {ok, product|producto, ...}
+  const sobre = r?.datos ?? r;
+  const p = [sobre?.product, sobre?.producto, sobre?.data?.product, sobre?.data?.producto, sobre?.data, sobre]
+    .find(x => x && typeof x === 'object' && !Array.isArray(x) && (x.id != null || x.Id != null || x.mixedvariantes || x.nombre));
+  if (!p) throw new Error('Producto no encontrado o respuesta inválida de LucidSales');
   return p;
 }, CACHE_PRODUCTOS_MS, (id, tienda) => `prod1_${id}_${tienda || 'default'}`);
 
