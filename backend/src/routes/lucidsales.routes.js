@@ -16,6 +16,10 @@ router.post('/pedidos/:id', ctrl.updatePedido);
 router.patch('/pedidos/:id/estado', ctrl.cambiarEstadoPedido);
 router.patch('/pedidos/:id/asignar', ctrl.asignarPedido);
 router.patch('/bulk-asignar', adminOnly, ctrl.bulkAsignarPedidos);
+// cambio de estado masivo (en segundo plano, se consulta el progreso)
+const cambioEstado = require('../controllers/cambio-estado-masivo.controller');
+router.post('/bulk-estado', adminOnly, cambioEstado.iniciar);
+router.get('/bulk-estado/:id', adminOnly, cambioEstado.progreso);
 // reasignacion masiva (pasar la cartera de un operador a otros, con deshacer)
 const reasignacion = require('../controllers/reasignacion.controller');
 router.get('/reasignacion/operadores', adminOnly, reasignacion.operadores);

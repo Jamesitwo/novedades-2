@@ -172,6 +172,8 @@ export default function LucidSalesPage() {
   const [bulkAbierto, setBulkAbierto] = useState(false);
   const [bulkOperadorId, setBulkOperadorId] = useState('');
   const [repartiendo, setRepartiendo] = useState(false);
+  // cambio de estado masivo: { estado, motivo, trabajo, error }
+  const [bulkEstado, setBulkEstado] = useState(null);
 
   const showToast = useCallback((message, type = 'success') => {
     setToast({ message, type });
@@ -439,6 +441,40 @@ export default function LucidSalesPage() {
     }
   };
 
+  // cambio de estado masivo: corre en el servidor y aqui se sigue el progreso
+  const MAX_BULK_ESTADO = 500;
+  const iniciarBulkEstado = async () => {
+    if (!bulkEstado || bulkEstado.estado === '') return;
+    const estado = Number(bulkEstado.estado);
+    if (estado === 1 && !bulkEstado.motivo?.trim()) return setBulkEstado(b => ({ ...b, error: 'Al cancelar el motivo es obligatorio' }));
+    try {
+      const { data } = await api.post('/api/lucidsales/bulk-estado', { ids: seleccion, estado, motivo: bulkEstado.motivo || '' });
+      setBulkEstado(b => ({ ...b, error: null, trabajo: data.trabajo }));
+    } catch (err) {
+      setBulkEstado(b => ({ ...b, error: err.response?.data?.error || err.message || 'No se pudo iniciar el cambio' }));
+    }
+  };
+
+  const trabajoId = bulkEstado?.trabajo?.id;
+  const trabajoCorriendo = bulkEstado?.trabajo?.estado === 'corriendo';
+  useEffect(() => {
+    if (!trabajoId || !trabajoCorriendo) return;
+    let vivo = true;
+    const t = setInterval(async () => {
+      try {
+        const { data } = await api.get(`/api/lucidsales/bulk-estado/${trabajoId}`);
+        if (!vivo) return;
+        setBulkEstado(b => (b ? { ...b, trabajo: data.trabajo } : b));
+        if (data.trabajo.estado === 'terminado') {
+          const fallidos = data.trabajo.fallidos.map(f => f.id);
+          setSeleccion(fallidos); // quedan seleccionados los que fallaron, para reintentar
+          fetchPedidos();
+        }
+      } catch { /* se reintenta en el siguiente tick */ }
+    }, 1200);
+    return () => { vivo = false; clearInterval(t); };
+  }, [trabajoId, trabajoCorriendo]); // eslint-disable-line react-hooks/exhaustive-deps
+
   const todosSelPagina = pedidos.length > 0 && pedidos.every(p => seleccion.includes(p.id));
 
   return (
@@ -503,6 +539,12 @@ export default function LucidSalesPage() {
             className="btn btn-primary" style={{ fontSize: 12 }}
           >
             👤 Asignar →
+          </button>
+          <button
+            onClick={() => setBulkEstado({ estado: '', motivo: '', trabajo: null, error: null })}
+            className="btn btn-primary" style={{ fontSize: 12 }}
+          >
+            🔄 Cambiar estado →
           </button>
           <button onClick={() => setSeleccion([])} className="btn btn-ghost" style={{ fontSize: 12 }}>Limpiar</button>
         </div>
@@ -881,6 +923,81 @@ export default function LucidSalesPage() {
           </div>
         </div>
       )}
+
+      {/* Modal: cambio de estado masivo */}
+      {bulkEstado && (() => {
+        const t = bulkEstado.trabajo;
+        const corriendo = t?.estado === 'corriendo';
+        const terminado = t?.estado === 'terminado';
+        const pct = t ? Math.round((t.procesados / Math.max(1, t.total)) * 100) : 0;
+        const cerrar = () => { if (!corriendo) setBulkEstado(null); };
+        const caja = { width: '100%', padding: '8px 10px', borderRadius: 6, border: '1px solid var(--border)', background: 'var(--bg3)', color: 'var(--text)', fontSize: 13, fontFamily: 'var(--font)', boxSizing: 'border-box' };
+        return (
+          <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.6)', zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }} onClick={cerrar}>
+            <div style={{ background: 'var(--bg)', border: '1px solid var(--border)', borderRadius: 12, width: 'min(460px, 92vw)', padding: 24, maxHeight: '88vh', overflowY: 'auto' }} onClick={e => e.stopPropagation()}>
+              {!t ? (
+                <>
+                  <div style={{ fontSize: 16, fontWeight: 700, marginBottom: 8 }}>Cambiar estado de {seleccion.length} pedido(s)</div>
+                  <p style={{ fontSize: 13, color: 'var(--text2)', marginBottom: 16 }}>
+                    Se cambia en LucidSales pedido por pedido. Los que ya estén en ese estado se dejan igual.
+                  </p>
+                  {seleccion.length > MAX_BULK_ESTADO && (
+                    <div style={{ fontSize: 12, color: 'var(--red)', marginBottom: 12 }}>Máximo {MAX_BULK_ESTADO} pedidos por vez: quita algunos de la selección.</div>
+                  )}
+                  <label style={{ fontSize: 11, color: 'var(--text3)', textTransform: 'uppercase', letterSpacing: '.04em' }}>Nuevo estado</label>
+                  <select value={bulkEstado.estado} onChange={e => setBulkEstado(b => ({ ...b, estado: e.target.value, error: null }))} style={{ ...caja, marginTop: 4, appearance: 'auto' }}>
+                    <option value="">Elegir estado…</option>
+                    {Object.entries(ESTADOS).map(([k, v]) => (<option key={k} value={k}>{v.label}</option>))}
+                  </select>
+                  {Number(bulkEstado.estado) === 1 && bulkEstado.estado !== '' && (
+                    <div style={{ marginTop: 12 }}>
+                      <label style={{ fontSize: 11, color: 'var(--text3)', textTransform: 'uppercase', letterSpacing: '.04em' }}>Motivo de la cancelación (obligatorio)</label>
+                      <textarea value={bulkEstado.motivo} onChange={e => setBulkEstado(b => ({ ...b, motivo: e.target.value, error: null }))} rows={3} placeholder="Se agrega a las observaciones de cada pedido" style={{ ...caja, marginTop: 4, resize: 'vertical' }} />
+                    </div>
+                  )}
+                  {bulkEstado.error && <div style={{ fontSize: 12, color: 'var(--red)', marginTop: 10 }}>{bulkEstado.error}</div>}
+                  <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end', marginTop: 20 }}>
+                    <button className="btn btn-ghost" onClick={cerrar}>Cancelar</button>
+                    <button className="btn btn-primary" disabled={bulkEstado.estado === '' || seleccion.length > MAX_BULK_ESTADO} onClick={iniciarBulkEstado}>
+                      {bulkEstado.estado === '' ? 'Elige un estado' : `Pasar ${seleccion.length} a ${ESTADOS[bulkEstado.estado]?.label}`}
+                    </button>
+                  </div>
+                </>
+              ) : (
+                <>
+                  <div style={{ fontSize: 16, fontWeight: 700, marginBottom: 8 }}>
+                    {corriendo ? `Pasando a ${t.estadoNombre}…` : `Listo: ${t.estadoNombre}`}
+                  </div>
+                  <div style={{ height: 8, borderRadius: 4, background: 'var(--bg3)', overflow: 'hidden', margin: '12px 0 8px' }}>
+                    <div style={{ width: `${pct}%`, height: '100%', background: t.fallidos.length ? 'var(--amber)' : 'var(--accent)', transition: 'width .4s' }} />
+                  </div>
+                  <div style={{ fontSize: 12, color: 'var(--text2)', fontFamily: 'var(--mono)' }}>{t.procesados} / {t.total} ({pct}%)</div>
+                  <div style={{ display: 'flex', gap: 16, marginTop: 14, fontSize: 13, flexWrap: 'wrap' }}>
+                    <span style={{ color: 'var(--green)' }}>✓ {t.cambiados} cambiado(s)</span>
+                    {t.yaEstaban > 0 && <span style={{ color: 'var(--text2)' }}>= {t.yaEstaban} ya estaban así</span>}
+                    {t.fallidos.length > 0 && <span style={{ color: 'var(--red)' }}>✕ {t.fallidos.length} con error</span>}
+                  </div>
+                  {t.fallidos.length > 0 && (
+                    <div style={{ marginTop: 12, maxHeight: 180, overflowY: 'auto', border: '1px solid var(--border)', borderRadius: 8 }}>
+                      {t.fallidos.map(f => (
+                        <div key={f.id} style={{ display: 'flex', gap: 10, padding: '6px 10px', fontSize: 12, borderBottom: '1px solid var(--border)' }}>
+                          <span style={{ fontFamily: 'var(--mono)', color: 'var(--text)' }}>#{f.id}</span>
+                          <span style={{ color: 'var(--text2)' }}>{f.error}</span>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                  {corriendo && <p style={{ fontSize: 12, color: 'var(--text3)', marginTop: 14 }}>Puedes esperar aquí; si cierras la página el cambio sigue en el servidor.</p>}
+                  {terminado && t.fallidos.length > 0 && <p style={{ fontSize: 12, color: 'var(--text3)', marginTop: 12 }}>Los que fallaron quedaron seleccionados por si quieres reintentar.</p>}
+                  <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: 20 }}>
+                    <button className="btn btn-primary" disabled={corriendo} onClick={cerrar}>{corriendo ? 'Procesando…' : 'Cerrar'}</button>
+                  </div>
+                </>
+              )}
+            </div>
+          </div>
+        );
+      })()}
 
       {toast && (
         <div style={{

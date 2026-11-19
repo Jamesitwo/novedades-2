@@ -661,6 +661,13 @@ function calentarCopias(ids, tiendaId) {
 const CACHE_PEDIDO_MS = 45 * 1000;
 const cachePedidos = new Map(); // `${tienda}:${id}` -> {t, pedido}
 
+/** Olvida lo cacheado de estos pedidos (y las listas) tras cambiarlos. */
+function olvidarPedidos(ids) {
+  const set = new Set((ids || []).map(String));
+  for (const k of cachePedidos.keys()) if (set.has(k.slice(k.lastIndexOf(':') + 1))) cachePedidos.delete(k);
+  cacheListas.clear();
+}
+
 async function pedidoEnVivo(id, tiendaId) {
   const k = `${tiendaId || 'default'}:${id}`;
   const c = cachePedidos.get(k);
@@ -1105,6 +1112,7 @@ module.exports = {
   getCiudades,
   verificarConexion,
   clearTokenCache,
+  olvidarPedidos,
   getProductos,
   getProducto,
   validateDropiId,
